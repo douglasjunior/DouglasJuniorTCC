@@ -1,0 +1,67 @@
+<div xmlns="http://www.w3.org/1999/xhtml"
+     xmlns:h="http://java.sun.com/jsf/html"
+     xmlns:f="http://java.sun.com/jsf/core"
+     xmlns:p="http://primefaces.org/ui"
+     xmlns:ui="http://java.sun.com/jsf/facelets">
+
+
+
+
+    <p:panel >
+        <h2>Pagina de mineração Issues e Comments.</h2>
+        <br />
+        <h:form>
+            <p:growl globalOnly="true" id="messages" />
+            <h:outputLabel for="repositoryToMiner" value="Escolha o Repositório para mineração dos dados: "/>
+            <p:selectOneListbox id="repositoryToMiner" converter="#{repositoryBean.converter}" style="height:100px;width:300px" value="#{issuesAndCommentsBean.repositoryToMiner}">
+                <f:selectItems value="#{repositoryBean.allRepositories}" var="repo" itemLabel="#{repo.name}" itemDescription="#{repo.name}" itemValue="#{repo}"  />
+            </p:selectOneListbox>
+            <br />
+            <h:selectBooleanCheckbox value="#{issuesAndCommentsBean.minerOpenIssues}" id="minerOpenIssues" title="Minerar Open Issues" />
+            <h:outputLabel for="minerOpenIssues" value="Minerar Open Issues."/>
+            <br />       
+            <h:selectBooleanCheckbox value="#{issuesAndCommentsBean.minerClosedIssues}" id="minerClosedIssues" title="Minerar Closed Issues" />
+            <h:outputLabel for="minerClosedIssues" value="Minerar Closed Issues."/>
+            <br />       
+            <h:selectBooleanCheckbox value="#{issuesAndCommentsBean.minerComments}" id="minerComments" title="Minerar Comments" />
+            <h:outputLabel for="minerComments" value="Minerar Comments."/>
+            <br />    
+            <br />
+
+            <p:commandButton value="Start" async="true" actionListener="#{issuesAndCommentsBean.start()}" disabled="#{issuesAndCommentsBean.initialized}"
+                             onclick="pbAjax.start();startButton.disable();updateLogText.start();" widgetVar="startButton" id="startButton" />  
+
+            <p:commandButton value="Cancel" async="true" actionListener="#{issuesAndCommentsBean.cancel()}" 
+                             oncomplete="pbAjax.cancel();" />  
+
+            <br />
+            <br />
+
+            <h:outputText value="Process: #{issuesAndCommentsBean.lastLog}" id="lastLog"  />
+
+            <p:progressBar widgetVar="pbAjax" ajax="true" value="#{issuesAndCommentsBean.progress}" labelTemplate="{value}%" styleClass="animated" interval="3000" >  
+                <p:ajax event="complete" listener="#{issuesAndCommentsBean.onComplete()}" update="logTextArea,messages,lastLog,loadingImage" oncomplete="startButton.enable();updateLogText.stop();"/>
+            </p:progressBar>
+
+            <br />
+            <div style="margin: auto;text-align: center">
+                <p:outputPanel  id="loadingImage" >
+                    <p:graphicImage alt="Loading..." width="50" url="resources/images/loading.gif" rendered="#{issuesAndCommentsBean.initialized}"  />  
+                </p:outputPanel>
+            </div>
+            <br />
+
+            <p:poll interval="2" update="logTextArea"  widgetVar="updateLogText" stop="#{!issuesAndCommentsBean.initialized}" autoStart="true" />
+
+            <p:poll interval="2" update="messages,lastLog,loadingImage,startButton" autoStart="true" />
+
+            <p:poll interval="1" onstart="pbAjax.start();pbAjaxAutoUpdate.stop();" widgetVar="pbAjaxAutoUpdate" autoStart="#{issuesAndCommentsBean.initialized}" />
+
+            <h3>Log de mineração:</h3>
+            <br/>
+            <p:inputTextarea value="#{issuesAndCommentsBean.log}" id="logTextArea" style="width: 100%" rows="30" autoResize="autoResize" readonly="true" />
+
+        </h:form>
+
+    </p:panel>
+</div>

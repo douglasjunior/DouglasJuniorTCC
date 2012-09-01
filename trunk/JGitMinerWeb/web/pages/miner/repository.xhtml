@@ -1,0 +1,65 @@
+<div xmlns="http://www.w3.org/1999/xhtml"
+     xmlns:ui="http://java.sun.com/jsf/facelets"
+     xmlns:h="http://java.sun.com/jsf/html"
+     xmlns:f="http://java.sun.com/jsf/core"
+     xmlns:p="http://primefaces.org/ui">
+
+    <p:panel>
+        <h2>Pagina de mineração repositorio.</h2>
+        <br />
+        <h:form >
+            <p:growl globalOnly="true" id="messages" />
+            <h:panelGrid columns="2" cellpadding="2">
+                <h:outputLabel for="repositoryName" value="Name of Repository:"/>
+                <p:inputText value="#{repositoryBean.repositoryName}" label="repositoryName" id="repositoryName"></p:inputText>
+                <h:outputLabel for="repositoryOwner" value="Login of Owner:"/>
+                <p:inputText value="#{repositoryBean.repositoryOwner}" label="repositoryOwner" id="repositoryOwner"></p:inputText>
+                <br />
+                <br /> 
+                <p:commandButton type="submit" ajax="false" value="Go Miner" action="#{repositoryBean.goMiner}"></p:commandButton>
+            </h:panelGrid>
+        </h:form>
+        <br />
+        <br />
+        <h:form id="reposForm">  
+            <p:dataList value="#{repositoryBean.allRepositories}" var="repo" 
+                        id="minerated-repos" paginator="true" rows="5" 
+                        paginatorTemplate="{PreviousPageLink} {CurrentPageReport} {NextPageLink} {RowsPerPageDropdown}"  
+                        rowsPerPageTemplate="5,10,15" type="none">  
+
+                <f:facet name="header">  
+                    Repositórios já minerados:
+                </f:facet>  
+
+                <p:column>  
+                    <p:commandButton icon="ui-icon-search" update=":reposForm:repoDetail" oncomplete="repoDialog.show()" title="View Detail" style="margin-bottom: 3px">  
+                        <f:setPropertyActionListener value="#{repo}" target="#{repositoryBean.repositorySelected}" />  
+                    </p:commandButton>  
+
+                    <label>
+                        #{repo.name}, <a href="#{repo.svnUrl}" >#{repo.svnUrl}</a>
+                    </label>
+                    <br />
+                </p:column>  
+
+            </p:dataList>
+
+            <p:dialog header="Repository Detail" widgetVar="repoDialog" modal="true" showEffect="fade">  
+                <p:outputPanel id="repoDetail" style="text-align:center;" layout="block">  
+
+                    <h:panelGrid  columns="2" cellpadding="5">  
+                        <h:outputLabel for="repoName" value="Name: " style="font-weight:bold" />
+                        <h:outputText id="repoName" value="#{repositoryBean.repositorySelected.name}" />  
+
+                        <h:outputLabel for="repoCreatedAt" value="Created at: " style="font-weight:bold" />  
+                        <h:outputText id="repoCreatedAt" value="#{repositoryBean.repositorySelected.createdAt}" />  
+
+                        <h:outputLabel for="repoGitUrl" value="Git URL: " style="font-weight:bold" />  
+                        <h:outputText id="repoGitUrl" value="#{repositoryBean.repositorySelected.gitUrl}" />  
+                    </h:panelGrid>  
+                </p:outputPanel>  
+            </p:dialog> 
+        </h:form>
+        <br />
+    </p:panel>
+</div>
