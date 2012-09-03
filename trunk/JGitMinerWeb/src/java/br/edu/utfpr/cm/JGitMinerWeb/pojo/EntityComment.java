@@ -47,44 +47,6 @@ public class EntityComment implements Serializable {
         mineredAt = new Date();
     }
 
-    public EntityComment(Date createdAt, Date updatedAt, String body, String bodyHtml, String bodyText, long idComment, String url, EntityUser user) {
-        this();
-        this.createdAt = createdAt;
-        this.updatedAt = updatedAt;
-        this.body = body;
-        this.bodyHtml = bodyHtml;
-        this.bodyText = bodyText;
-        this.idComment = idComment;
-        this.url = url;
-        this.user = user;
-    }
-
-    public EntityComment(Comment coment) {
-        this();
-        this.createdAt = coment.getCreatedAt();
-        this.updatedAt = coment.getUpdatedAt();
-        this.body = coment.getBody();
-        this.bodyHtml = coment.getBodyHtml();
-        this.bodyText = coment.getBodyText();
-        this.idComment = coment.getId();
-        this.url = coment.getUrl();
-        this.user = EntityUser.createUser(coment.getUser());
-    }
-
-    public static EntityComment createComment(Comment gitComment) {
-                EntityComment entityComment = null;
-        if (gitComment != null) {
-            entityComment = CommentServices.getCommentByIdComment(gitComment.getId());
-            if (entityComment == null) {
-                entityComment = CommentServices.insertComment(gitComment);
-                System.out.println("############# CRIOU NOVO COMMENT " + entityComment.getIdComment() + " | " + entityComment.getUrl() + " #############");
-            } else {
-                System.out.println("############### PEGOU O COMMENT " + entityComment.getIdComment() + " | " + entityComment.getUrl() + " ##############");
-            }
-        }
-        return entityComment;
-    }
-
     public Long getId() {
         return id;
     }

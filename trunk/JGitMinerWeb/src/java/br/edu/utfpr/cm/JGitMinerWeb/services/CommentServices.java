@@ -6,6 +6,7 @@ package br.edu.utfpr.cm.JGitMinerWeb.services;
 
 import br.edu.utfpr.cm.JGitMinerWeb.dao.PersistenciaServices;
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.EntityComment;
+import br.edu.utfpr.cm.JGitMinerWeb.pojo.EntityUser;
 import java.util.List;
 import org.eclipse.egit.github.core.Comment;
 
@@ -23,9 +24,18 @@ public class CommentServices {
         return null;
     }
 
-    public static EntityComment insertComment(Comment gitComment) {
-        EntityComment newComment = new EntityComment(gitComment);
-        PersistenciaServices.insere(newComment);
-        return newComment;
+    public static EntityComment createEntity(Comment gitComent) {
+        EntityComment comment = new EntityComment();
+        
+        comment.setCreatedAt(gitComent.getCreatedAt());
+        comment.setUpdatedAt(gitComent.getUpdatedAt());
+        comment.setBody(gitComent.getBody());
+        comment.setBodyHtml(gitComent.getBodyHtml());
+        comment.setBodyText(gitComent.getBodyText());
+        comment.setIdComment(gitComent.getId());
+        comment.setUrl(gitComent.getUrl());
+      //  comment.setUser(gitComent.getUser());
+    
+        return comment;
     }
 }

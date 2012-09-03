@@ -70,7 +70,7 @@ public class PegandoIssuesEComentariosDoRepository {
             // inicio de coleta dos comentários das issues
             for (Comment coment : comments) {
                 System.out.println("Comment: " + coment.getUser().getLogin() + " | " + coment.getId());
-                EntityComment entityComment = EntityComment.createComment(coment);
+                EntityComment entityComment = new EntityComment();
 
                 entityIssue.addComment(entityComment);
             }
