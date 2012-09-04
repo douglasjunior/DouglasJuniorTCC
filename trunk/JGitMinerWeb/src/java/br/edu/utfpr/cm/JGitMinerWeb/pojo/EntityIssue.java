@@ -37,11 +37,11 @@ public class EntityIssue implements Serializable {
     @Temporal(javax.persistence.TemporalType.TIMESTAMP)
     private Date updatedAt;
     private int number;
-    @OneToMany(cascade = CascadeType.PERSIST)
+    @OneToMany
     private List<EntityLabel> labels;
-    @ManyToOne(cascade = CascadeType.PERSIST)
+    @ManyToOne
     private EntityMilestone milestone;
-    @OneToOne(cascade = CascadeType.PERSIST)
+    @OneToOne
     private EntityPullRequest pullRequest;
     @Column(columnDefinition = "text")
     private String body;

@@ -4,11 +4,9 @@
  */
 package br.edu.utfpr.cm.JGitMinerWeb.pojo;
 
-import br.edu.utfpr.cm.JGitMinerWeb.services.CommentServices;
 import java.io.Serializable;
 import java.util.Date;
 import javax.persistence.*;
-import org.eclipse.egit.github.core.Comment;
 
 /**
  *
@@ -40,7 +38,7 @@ public class EntityComment implements Serializable {
     @Column(unique = true)
     private long idComment;
     private String url;
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne
     private EntityUser user;
 
     public EntityComment() {
@@ -53,6 +51,14 @@ public class EntityComment implements Serializable {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public Date getMineredAt() {
+        return mineredAt;
+    }
+
+    public void setMineredAt(Date mineredAt) {
+        this.mineredAt = mineredAt;
     }
 
     public String getBody() {

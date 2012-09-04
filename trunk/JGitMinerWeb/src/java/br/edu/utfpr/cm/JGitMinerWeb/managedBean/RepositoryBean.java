@@ -82,8 +82,6 @@ public class RepositoryBean {
 
                 repository = RepositoryServices.createEntity(gitRepository, repositoryDao, userDao);
 
-                repositoryDao.insert(repository);
-
                 JsfUtil.addSuccessMessage("Repositorio salvo com sucesso.", "");
             } catch (Exception e) {
                 e.printStackTrace();

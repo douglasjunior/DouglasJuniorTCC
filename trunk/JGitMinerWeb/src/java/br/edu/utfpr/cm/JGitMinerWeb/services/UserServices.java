@@ -15,9 +15,9 @@ import org.eclipse.egit.github.core.User;
  * @author Douglas
  */
 public class UserServices {
-
+    
     private static UserDao dao;
-
+    
     private static EntityUser getUserByLogin(String login) {
         List<EntityUser> users = dao.executeNamedQueryComParametros("User.findByLogin", new String[]{"login"}, new Object[]{login});
         if (!users.isEmpty()) {
@@ -25,20 +25,19 @@ public class UserServices {
         }
         return null;
     }
-
+    
     static EntityUser createEntity(User gitUser, UserDao userDao) {
         if (gitUser == null) {
             return null;
         }
-
+        
         UserServices.dao = userDao;
         EntityUser user = getUserByLogin(gitUser.getLogin());
-
+        
         if (user == null) {
             user = new EntityUser();
-        } else {
         }
-
+        
         user.setMineredAt(new Date());
         user.setCreatedAt(gitUser.getCreatedAt());
         user.setCollaborators(gitUser.getCollaborators());
@@ -61,7 +60,13 @@ public class UserServices {
         user.setName(gitUser.getName());
         user.setType(gitUser.getType());
         user.setUrl(gitUser.getUrl());
-
+        
+        if (user.getId() == null || user.getId().equals(new Long(0))) {
+            userDao.insert(user);
+        } else {
+            userDao.edit(user);
+        }
+        
         return user;
     }
 }

@@ -22,7 +22,6 @@ import org.eclipse.egit.github.core.Comment;
 import org.eclipse.egit.github.core.Issue;
 import org.eclipse.egit.github.core.Repository;
 import org.eclipse.egit.github.core.service.IssueService;
-import org.primefaces.component.log.Log;
 
 @ManagedBean(name = "issuesAndCommentsBean")
 @SessionScoped
@@ -129,18 +128,7 @@ public class IssuesAndCommentsBean implements Serializable {
 
                         progress = new Integer(10);
 
-                        int i = 0;
-                        while (!canceled && i < issues.size()) {
-                            Issue gitIssue = issues.get(i);
-                            EntityIssue issue = minerIssue(gitIssue);
-
-                            if (issue != null && minerComments) {
-                                minerComments(issue, gitRepo);
-                            }
-
-                            calcularProgresso(i, issues.size());
-                            i++;
-                        }
+                        minerIssues(issues, gitRepo);
 
                         if (canceled) {
                             out.printLog("Processo de mineração interrompido.\n");
@@ -199,16 +187,25 @@ public class IssuesAndCommentsBean implements Serializable {
         progress = new Integer((int) prog);
     }
 
+    private void minerIssues(List<Issue> issues, Repository gitRepo) throws Exception {
+        int i = 0;
+        while (!canceled && i < issues.size()) {
+            Issue gitIssue = issues.get(i);
+            EntityIssue issue = minerIssue(gitIssue);
+            if (issue != null && minerComments) {
+                minerComments(issue, gitRepo);
+            }
+            issueDao.edit(issue);
+            calcularProgresso(i, issues.size());
+            i++;
+        }
+    }
+
     private EntityIssue minerIssue(Issue gitIssue) {
         EntityIssue issue = null;
         try {
             issue = IssueServices.createEntity(gitIssue, issueDao, userDao);
             issue.setRepository(repositoryToMiner);
-            if (issue.getId() == null || issue.getId().equals(new Long(0))) {
-                issueDao.insert(issue);
-            } else {
-                issueDao.edit(issue);
-            }
             out.printLog("Isseu gravada com sucesso: " + gitIssue.getTitle() + " - ID: " + gitIssue.getId());
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -220,41 +217,34 @@ public class IssuesAndCommentsBean implements Serializable {
     }
 
     private void minerComments(EntityIssue issue, Repository gitRepo) throws Exception {
+        out.printLog("");
         out.printLog("Baixando Comentários...");
         List<Comment> gitComments = new IssueService().getComments(gitRepo, issue.getNumber());
         out.printLog(gitComments.size() + " Comentários baixados.");
-        out.printLog("");
-
         int i = 0;
         while (!canceled && i < gitComments.size()) {
-            Comment gitComent = gitComments.get(i);
-            try {
-                EntityComment comment = CommentServices.createEntity(gitComent);
-                if (comment.getId() == null || comment.getId().equals(new Long(0))) {
-                    commentDao.insert(comment);
-                } else {
-                    commentDao.edit(comment);
-                }
-                issue.addComment(comment);
-                out.printLog("Comment gravado com sucesso: " + gitComent.getUrl() + " - ID: " + gitComent.getId());
-            } catch (Exception ex) {
-                ex.printStackTrace();
-                out.printLog("## Erro ao gravar Comment: " + gitComent.getUrl() + " - ID: " + gitComent.getId() + " Descrição: " + ex.toString());
-            }
+            Comment gitComment = gitComments.get(i);
+            minerComment(gitComment, issue);
             i++;
         }
-        issueDao.edit(issue);
+    }
+
+    private void minerComment(Comment gitComment, EntityIssue issue) {
+        try {
+            EntityComment comment = CommentServices.createEntity(gitComment, commentDao, userDao);
+            issue.addComment(comment);
+            out.printLog("Comment gravado com sucesso: " + gitComment.getUrl() + " - ID: " + gitComment.getId());
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            out.printLog("## Erro ao gravar Comment: " + gitComment.getUrl() + " - ID: " + gitComment.getId() + " Descrição: " + ex.toString());
+        }
     }
 
     public void teste() {
-
         EntityIssue issue = new EntityIssue();
-
         issue.setIdIssue(234234234);
         issue.setUserIssue(userDao.findByID(new Long(12)));
-
         issueDao.insert(issue);
-
         System.out.println("Gravou issue: " + issue);
     }
 }

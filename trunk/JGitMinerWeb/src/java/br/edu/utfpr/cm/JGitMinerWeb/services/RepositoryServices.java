@@ -18,9 +18,9 @@ import org.eclipse.egit.github.core.service.RepositoryService;
  * @author Douglas
  */
 public class RepositoryServices {
-
+    
     private static RepositoryDao dao;
-
+    
     private static EntityRepository getRepositoryByName(String name) {
         List<EntityRepository> users = dao.executeNamedQueryComParametros("Repository.findByName", new String[]{"name"}, new Object[]{name});
         if (!users.isEmpty()) {
@@ -28,19 +28,19 @@ public class RepositoryServices {
         }
         return null;
     }
-
+    
     public static EntityRepository createEntity(Repository gitRepository, RepositoryDao repositoryDao, UserDao userDao) {
         if (gitRepository == null) {
             return null;
         }
-
+        
         RepositoryServices.dao = repositoryDao;
         EntityRepository repo = getRepositoryByName(gitRepository.getName());
-
+        
         if (repo == null) {
             repo = new EntityRepository();
         }
-
+        
         repo.setMineredAt(new Date());
         repo.setFork(gitRepository.isFork());
         repo.setHasDownloads(gitRepository.isHasDownloads());
@@ -70,10 +70,16 @@ public class RepositoryServices {
         repo.setSvnUrl(gitRepository.getSvnUrl());
         repo.setUrl(gitRepository.getUrl());
         repo.setOwner(UserServices.createEntity(gitRepository.getOwner(), userDao));
-
+        
+        if (repo.getId() == null || repo.getId().equals(new Long(0))) {
+            repositoryDao.insert(repo);
+        } else {
+            repositoryDao.edit(repo);
+        }
+        
         return repo;
     }
-
+    
     public static Repository getGitRepository(String ownerLogin, String repoName) throws IOException {
         return new RepositoryService().getRepository(ownerLogin, repoName);
     }

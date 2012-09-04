@@ -5,7 +5,6 @@
 package br.edu.utfpr.cm.JGitMinerWeb.services;
 
 import br.edu.utfpr.cm.JGitMinerWeb.dao.IssueDao;
-import br.edu.utfpr.cm.JGitMinerWeb.dao.PersistenciaServices;
 import br.edu.utfpr.cm.JGitMinerWeb.dao.UserDao;
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.EntityIssue;
 import br.edu.utfpr.cm.JGitMinerWeb.util.out;
@@ -22,9 +21,9 @@ import org.eclipse.egit.github.core.service.IssueService;
  * @author Douglas
  */
 public class IssueServices {
-    
+
     private static IssueDao dao;
-    
+
     private static EntityIssue getIssueByIdIssue(long idIssue) {
         List<EntityIssue> issues = dao.executeNamedQueryComParametros("Issue.findByIdIssue", new String[]{"idIssue"}, new Object[]{idIssue});
         if (!issues.isEmpty()) {
@@ -32,13 +31,13 @@ public class IssueServices {
         }
         return null;
     }
-    
+
     public static List<Issue> getGitIssuesFromRepository(Repository gitRepo, boolean open, boolean closed) throws Exception {
         IssueService issueServ = new IssueService();
-        
+
         List<Issue> issues = new ArrayList<Issue>();
         HashMap<String, String> params = new HashMap<String, String>();
-        
+
         if (open) {
             List<Issue> opensIssues;
             out.printLog("Baixando Issues Abertas ...\n");
@@ -47,7 +46,7 @@ public class IssueServices {
             out.printLog(opensIssues.size() + " Issues abertas baixadas!\n");
             issues.addAll(opensIssues);
         }
-        
+
         if (closed) {
             List<Issue> clodesIssues;
             params = new HashMap<String, String>();
@@ -57,24 +56,24 @@ public class IssueServices {
             out.printLog(clodesIssues.size() + " Issues fechadas baixadas!\n");
             issues.addAll(clodesIssues);
         }
-        
+
         out.printLog(issues.size() + " Issues baixadas no total!\n");
-        
+
         return issues;
     }
-    
+
     public static EntityIssue createEntity(Issue gitIssue, IssueDao issueDao, UserDao userDao) {
         if (gitIssue == null) {
             return null;
         }
-        
+
         IssueServices.dao = issueDao;
         EntityIssue issue = getIssueByIdIssue(gitIssue.getId());
-        
+
         if (issue == null) {
             issue = new EntityIssue();
         }
-        
+
         issue.setMineredAt(new Date());
         issue.setIdIssue(gitIssue.getId());
         issue.setClosedAt(gitIssue.getClosedAt());
@@ -93,7 +92,13 @@ public class IssueServices {
         issue.setUrl(gitIssue.getUrl());
         issue.setAssignee(UserServices.createEntity(gitIssue.getAssignee(), userDao));
         issue.setUserIssue(UserServices.createEntity(gitIssue.getUser(), userDao));
-        
+
+        if (issue.getId() == null || issue.getId().equals(new Long(0))) {
+            issueDao.insert(issue);
+        } else {
+            issueDao.edit(issue);
+        }
+
         return issue;
     }
 }
