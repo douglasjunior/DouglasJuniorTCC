@@ -72,7 +72,7 @@ public class EntityMilestone implements Serializable {
         this.stateMilestone = milestone.getState();
         this.title = milestone.getTitle();
         this.url = milestone.getUrl();
-        this.creator = EntityUser.createUser(milestone.getCreator());
+    //    this.creator = EntityUser.createUser(milestone.getCreator());
     }
 
     public static EntityMilestone createMilestone(Milestone girMilestone) {

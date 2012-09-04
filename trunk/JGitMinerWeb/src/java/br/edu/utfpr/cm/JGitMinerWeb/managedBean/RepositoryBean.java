@@ -5,7 +5,9 @@
 package br.edu.utfpr.cm.JGitMinerWeb.managedBean;
 
 import br.edu.utfpr.cm.JGitMinerWeb.dao.RepositoryDao;
+import br.edu.utfpr.cm.JGitMinerWeb.dao.UserDao;
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.EntityRepository;
+import br.edu.utfpr.cm.JGitMinerWeb.services.RepositoryServices;
 import br.edu.utfpr.cm.JGitMinerWeb.util.JsfUtil;
 import java.util.List;
 import javax.ejb.EJB;
@@ -24,6 +26,8 @@ public class RepositoryBean {
 
     @EJB
     private RepositoryDao repositoryDao;
+    @EJB
+    private UserDao userDao;
     private EntityRepository repository;
     private EntityRepository repositorySelected;
     private String repositoryName;
@@ -76,7 +80,7 @@ public class RepositoryBean {
 
                 System.err.println("Repositório: " + gitRepository.getName() + " | " + gitRepository.getOwner().getLogin() + " | " + gitRepository.getCreatedAt() + " | " + gitRepository.getHtmlUrl());
 
-                repository = new EntityRepository(gitRepository);
+                repository = RepositoryServices.createEntity(gitRepository, repositoryDao, userDao);
 
                 repositoryDao.insert(repository);
 

@@ -87,7 +87,7 @@ public class PegandoPullRequestDasIssues {
             System.exit(1);
         }
 
-        EntityRepository repository = RepositoryServices.getRepositoryByName("rails");
+        EntityRepository repository = new EntityRepository();
 
         Repository repo = new RepositoryService().getRepository("rails", "rails");
 

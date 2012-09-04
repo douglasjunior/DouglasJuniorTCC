@@ -37,11 +37,11 @@ public class EntityIssue implements Serializable {
     @Temporal(javax.persistence.TemporalType.TIMESTAMP)
     private Date updatedAt;
     private int number;
-    @OneToMany(cascade = CascadeType.ALL)
+    @OneToMany(cascade = CascadeType.PERSIST)
     private List<EntityLabel> labels;
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne(cascade = CascadeType.PERSIST)
     private EntityMilestone milestone;
-    @OneToOne(cascade = CascadeType.ALL)
+    @OneToOne(cascade = CascadeType.PERSIST)
     private EntityPullRequest pullRequest;
     @Column(columnDefinition = "text")
     private String body;
@@ -56,9 +56,9 @@ public class EntityIssue implements Serializable {
     private String title;
     @Column(columnDefinition = "text")
     private String url;
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne
     private EntityUser assignee;
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne
     private EntityUser userIssue;
     @OneToMany
     private List<EntityComment> comments;
@@ -77,6 +77,14 @@ public class EntityIssue implements Serializable {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public Date getMineredAt() {
+        return mineredAt;
+    }
+
+    public void setMineredAt(Date mineredAt) {
+        this.mineredAt = mineredAt;
     }
 
     public EntityUser getAssignee() {

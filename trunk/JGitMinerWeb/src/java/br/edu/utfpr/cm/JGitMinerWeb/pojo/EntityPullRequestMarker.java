@@ -5,7 +5,6 @@
 package br.edu.utfpr.cm.JGitMinerWeb.pojo;
 
 import br.edu.utfpr.cm.JGitMinerWeb.services.PullRequestMakerServices;
-import br.edu.utfpr.cm.JGitMinerWeb.services.PullRequestServices;
 import java.io.Serializable;
 import java.util.Date;
 import javax.persistence.*;
@@ -46,7 +45,7 @@ public class EntityPullRequestMarker implements Serializable {
         this.label = gitMaker.getLabel();
         this.refPullRequestMarker = gitMaker.getRef();
         this.sha = gitMaker.getSha();
-        this.user = EntityUser.createUser(gitMaker.getUser());
+//        this.user = EntityUser.createUser(gitMaker.getUser());
     }
 
     public static EntityPullRequestMarker create(PullRequestMarker gitMaker) {

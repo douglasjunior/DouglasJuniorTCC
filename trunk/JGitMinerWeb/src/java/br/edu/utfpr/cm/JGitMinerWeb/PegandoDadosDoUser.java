@@ -41,7 +41,7 @@ public class PegandoDadosDoUser {
             
             System.out.println("Iniciada aualização do usuário: " + entityUser.getLogin());
             User gitUser = userService.getUser(entityUser.getLogin());
-            entityUser.updateData(gitUser);
+  //          entityUser.updateData(gitUser);
 
             System.out.println("Atualizado usuário: " + entityUser.getLogin());
             PersistenciaServices.atualiza(entityUser);

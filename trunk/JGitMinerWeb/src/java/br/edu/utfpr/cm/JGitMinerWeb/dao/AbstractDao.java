@@ -19,7 +19,7 @@ public abstract class AbstractDao<T> {
     public void insert(T entidade) {
         getEntityManager().persist(entidade);
     }
-    
+
     public void edit(T entidade) {
         getEntityManager().merge(entidade);
     }
@@ -53,5 +53,21 @@ public abstract class AbstractDao<T> {
         cq.select(getEntityManager().getCriteriaBuilder().count(rt));
         Query q = getEntityManager().createQuery(cq);
         return ((Long) q.getSingleResult()).intValue();
+    }
+
+    public List executeNamedQueryComParametros(String namedQuery, String[] parametros, Object[] objetos) {
+        Query query = getEntityManager().createNamedQuery(namedQuery);
+        if (parametros.length != objetos.length) {
+            System.err.println("A quantidade de parametros difere da quantidade de atributos.");
+            return null;
+        }
+        for (int i = 0; i < parametros.length; i++) {
+            String atributo = parametros[i];
+            Object parametro = objetos[i];
+            query.setParameter(atributo, parametro);
+        }
+        List list = query.getResultList();
+        System.out.println("NamedQueryy: " + list);
+        return list;
     }
 }

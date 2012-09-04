@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import javax.persistence.*;
-import org.eclipse.egit.github.core.Repository;
 
 /**
  *
@@ -28,8 +27,6 @@ public class EntityRepository implements Serializable {
     private Long id;
     @Temporal(javax.persistence.TemporalType.TIMESTAMP)
     private Date mineredAt;
-    @Column(length = 100)
-    private String ownerLogin;
     private boolean fork;
     private boolean hasDownloads;
     private boolean hasIssues;
@@ -47,9 +44,9 @@ public class EntityRepository implements Serializable {
     private int openIssues;
     private int sizeRepository;
     private int watchers;
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.PERSIST)
     private EntityRepository parent;
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.PERSIST)
     private EntityRepository source;
     private String cloneUrl;
     @Column(columnDefinition = "text")
@@ -69,7 +66,7 @@ public class EntityRepository implements Serializable {
     @Column(columnDefinition = "text")
     private String svnUrl;
     private String url;
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.PERSIST)
     private EntityUser owner;
     @OneToMany(mappedBy = "repository")
     private List<EntityIssue> issues;
@@ -77,71 +74,6 @@ public class EntityRepository implements Serializable {
     public EntityRepository() {
         issues = new ArrayList<EntityIssue>();
         mineredAt = new Date();
-    }
-
-    public EntityRepository(boolean fork, boolean hasDownloads, boolean hasIssues, boolean hasWiki, boolean isPrivate, Date createdAt, Date pushedAt, Date updatedAt, int forks, long idRepository, int openIssues, int sizeRepository, int watchers, EntityRepository parent, EntityRepository source, String cloneUrl, String description, String homepage, String gitUrl, String htmlUrl, String languageRepository, String masterBranch, String mirrorUrl, String name, String sshUrl, String svnUrl, String url, EntityUser owner) {
-        this();
-        this.fork = fork;
-        this.hasDownloads = hasDownloads;
-        this.hasIssues = hasIssues;
-        this.hasWiki = hasWiki;
-        this.isPrivate = isPrivate;
-        this.createdAt = createdAt;
-        this.pushedAt = pushedAt;
-        this.updatedAt = updatedAt;
-        this.forks = forks;
-        this.idRepository = idRepository;
-        this.openIssues = openIssues;
-        this.sizeRepository = sizeRepository;
-        this.watchers = watchers;
-        this.parent = parent;
-        this.source = source;
-        this.cloneUrl = cloneUrl;
-        this.description = description;
-        this.homepage = homepage;
-        this.gitUrl = gitUrl;
-        this.htmlUrl = htmlUrl;
-        this.languageRepository = languageRepository;
-        this.masterBranch = masterBranch;
-        this.mirrorUrl = mirrorUrl;
-        this.name = name;
-        this.sshUrl = sshUrl;
-        this.svnUrl = svnUrl;
-        this.url = url;
-        this.owner = owner;
-    }
-
-    public EntityRepository(Repository repository) {
-        this();
-        this.fork = repository.isFork();
-        this.hasDownloads = repository.isHasDownloads();
-        this.hasIssues = repository.isHasIssues();
-        this.hasWiki = repository.isHasWiki();
-        this.isPrivate = repository.isPrivate();
-        this.createdAt = repository.getCreatedAt();
-        this.pushedAt = repository.getPushedAt();
-        this.updatedAt = repository.getUpdatedAt();
-        this.forks = repository.getForks();
-        this.idRepository = repository.getId();
-        this.openIssues = repository.getOpenIssues();
-        this.sizeRepository = repository.getSize();
-        this.watchers = repository.getWatchers();
-//        this.parent = EntityRepository.create(repository.getParent());
-//        this.source = EntityRepository.create(repository.getSource());
-        this.cloneUrl = repository.getCloneUrl();
-        this.description = repository.getDescription();
-        this.homepage = repository.getHomepage();
-        this.gitUrl = repository.getGitUrl();
-        this.htmlUrl = repository.getHtmlUrl();
-        this.languageRepository = repository.getLanguage();
-        this.masterBranch = repository.getMasterBranch();
-        this.mirrorUrl = repository.getMirrorUrl();
-        this.name = repository.getName();
-        this.sshUrl = repository.getSshUrl();
-        this.svnUrl = repository.getSvnUrl();
-        this.url = repository.getUrl();
-        this.ownerLogin = repository.getOwner().getLogin();
-//        this.owner = EntityUser.createUser(repository.getOwner());
     }
 
     public Long getId() {
@@ -158,14 +90,6 @@ public class EntityRepository implements Serializable {
 
     public void setMineredAt(Date mineredAt) {
         this.mineredAt = mineredAt;
-    }
-
-    public String getOwnerLogin() {
-        return ownerLogin;
-    }
-
-    public void setOwnerLogin(String ownerLogin) {
-        this.ownerLogin = ownerLogin;
     }
 
     public String getCloneUrl() {

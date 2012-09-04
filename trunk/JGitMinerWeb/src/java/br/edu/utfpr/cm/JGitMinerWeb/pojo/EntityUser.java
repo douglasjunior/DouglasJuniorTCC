@@ -4,13 +4,11 @@
  */
 package br.edu.utfpr.cm.JGitMinerWeb.pojo;
 
-import br.edu.utfpr.cm.JGitMinerWeb.services.UserServices;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import javax.persistence.*;
-import org.eclipse.egit.github.core.User;
 
 /**
  *
@@ -72,83 +70,20 @@ public class EntityUser implements Serializable {
         mineredAt = new Date();
     }
 
-    public EntityUser(boolean hireable, Date createdAt, int collaborators, int diskUsage, int followers, int following, int idUser, int ownedPrivateRepos, int privateGists, int publicGists, int publicRepos, int totalPrivateRepos, String avatarUrl, String blog, String company, String email, String gravatarId, String htmlUrl, String location, String login, String name, String type, String url) {
-        this();
-        this.hireable = hireable;
-        this.createdAt = createdAt;
-        this.collaborators = collaborators;
-        this.diskUsage = diskUsage;
-        this.followers = followers;
-        this.following = following;
-        this.idUser = idUser;
-        this.ownedPrivateRepos = ownedPrivateRepos;
-        this.privateGists = privateGists;
-        this.publicGists = publicGists;
-        this.publicRepos = publicRepos;
-        this.totalPrivateRepos = totalPrivateRepos;
-        this.avatarUrl = avatarUrl;
-        this.blog = blog;
-        this.company = company;
-        this.email = email;
-        this.gravatarId = gravatarId;
-        this.htmlUrl = htmlUrl;
-        this.location = location;
-        this.login = login;
-        this.name = name;
-        this.type = type;
-        this.url = url;
-    }
-
-    public EntityUser(User user) {
-        this();
-        updateData(user);
-    }
-
-    public void updateData(User gitUser) {
-        this.mineredAt = new Date();
-        this.createdAt = gitUser.getCreatedAt();
-        this.collaborators = gitUser.getCollaborators();
-        this.diskUsage = gitUser.getDiskUsage();
-        this.followers = gitUser.getFollowers();
-        this.following = gitUser.getFollowing();
-        this.idUser = gitUser.getId();
-        this.ownedPrivateRepos = gitUser.getOwnedPrivateRepos();
-        this.privateGists = gitUser.getPrivateGists();
-        this.publicGists = gitUser.getPublicGists();
-        this.publicRepos = gitUser.getPublicRepos();
-        this.totalPrivateRepos = gitUser.getTotalPrivateRepos();
-        this.avatarUrl = gitUser.getBlog();
-        this.company = gitUser.getCompany();
-        this.email = gitUser.getEmail();
-        this.gravatarId = gitUser.getGravatarId();
-        this.htmlUrl = gitUser.getHtmlUrl();
-        this.location = gitUser.getLocation();
-        this.login = gitUser.getLogin();
-        this.name = gitUser.getName();
-        this.type = gitUser.getType();
-        this.url = gitUser.getUrl();
-    }
-
-    public static EntityUser createUser(User user) {
-        EntityUser entityUser = null;
-        if (user != null) {
-            entityUser = UserServices.getUserByLogin(user.getLogin());
-            if (entityUser == null) {
-                entityUser = UserServices.insertUser(user);
-                System.out.println("############# CRIOU NOVO USUARIO " + entityUser.getLogin() + " #############");
-            } else {
-                System.out.println("############### PEGOU O USUARIO " + entityUser.getLogin() + " ##############");
-            }
-        }
-        return entityUser;
-    }
-
     public Long getId() {
         return id;
     }
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public Date getMineredAt() {
+        return mineredAt;
+    }
+
+    public void setMineredAt(Date mineredAt) {
+        this.mineredAt = mineredAt;
     }
 
     public String getAvatarUrl() {

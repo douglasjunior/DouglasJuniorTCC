@@ -150,8 +150,8 @@ public class EntityPullRequest implements Serializable {
         this.statePullRequest = gitPullRequest.getState();
         this.title = gitPullRequest.getTitle();
         this.url = gitPullRequest.getUrl();
-        this.mergedBy = EntityUser.createUser(gitPullRequest.getMergedBy());
-        this.user = EntityUser.createUser(gitPullRequest.getUser());
+ //       this.mergedBy = EntityUser.createUser(gitPullRequest.getMergedBy());
+ //       this.user = EntityUser.createUser(gitPullRequest.getUser());
     }
 
     public Long getId() {

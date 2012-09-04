@@ -4,8 +4,8 @@
  */
 package br.edu.utfpr.cm.JGitMinerWeb.dao;
 
-import br.edu.utfpr.cm.JGitMinerWeb.pojo.EntityRepository;
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.EntityUser;
+import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 
@@ -13,6 +13,7 @@ import javax.persistence.PersistenceContext;
  *
  * @author Douglas
  */
+@Stateless
 public class UserDao extends AbstractDao<EntityUser> {
 
     @PersistenceContext(unitName = "pu")
