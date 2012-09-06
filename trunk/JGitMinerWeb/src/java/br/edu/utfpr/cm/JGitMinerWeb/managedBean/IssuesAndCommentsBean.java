@@ -6,13 +6,16 @@ import br.edu.utfpr.cm.JGitMinerWeb.dao.UserDao;
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.EntityComment;
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.EntityIssue;
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.EntityRepository;
+import br.edu.utfpr.cm.JGitMinerWeb.pojo.EntityUser;
 import br.edu.utfpr.cm.JGitMinerWeb.services.CommentServices;
 import br.edu.utfpr.cm.JGitMinerWeb.services.IssueServices;
 import br.edu.utfpr.cm.JGitMinerWeb.services.RepositoryServices;
+import br.edu.utfpr.cm.JGitMinerWeb.services.UserServices;
 import br.edu.utfpr.cm.JGitMinerWeb.util.out;
 import java.io.Serializable;
-import java.util.Arrays;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.ejb.EJB;
 import javax.faces.application.FacesMessage;
 import javax.faces.bean.ManagedBean;
@@ -21,6 +24,7 @@ import javax.faces.context.FacesContext;
 import org.eclipse.egit.github.core.Comment;
 import org.eclipse.egit.github.core.Issue;
 import org.eclipse.egit.github.core.Repository;
+import org.eclipse.egit.github.core.User;
 import org.eclipse.egit.github.core.service.IssueService;
 
 @ManagedBean(name = "issuesAndCommentsBean")
@@ -37,6 +41,10 @@ public class IssuesAndCommentsBean implements Serializable {
     private boolean minerOpenIssues;
     private boolean minerClosedIssues;
     private boolean minerComments;
+    private boolean minerCollaborators;
+    private boolean minerWatchers;
+    private boolean minerPullRequests;
+    private boolean minerTeams;
     private boolean initialized;
     private Integer progress;
     private String message;
@@ -76,6 +84,38 @@ public class IssuesAndCommentsBean implements Serializable {
         this.minerOpenIssues = minerOpenIssues;
     }
 
+    public boolean isMinerCollaborators() {
+        return minerCollaborators;
+    }
+
+    public void setMinerCollaborators(boolean minerCollaborators) {
+        this.minerCollaborators = minerCollaborators;
+    }
+
+    public boolean isMinerPullRequests() {
+        return minerPullRequests;
+    }
+
+    public void setMinerPullRequests(boolean minerPullRequests) {
+        this.minerPullRequests = minerPullRequests;
+    }
+
+    public boolean isMinerTeams() {
+        return minerTeams;
+    }
+
+    public void setMinerTeams(boolean minerTeams) {
+        this.minerTeams = minerTeams;
+    }
+
+    public boolean isMinerWatchers() {
+        return minerWatchers;
+    }
+
+    public void setMinerWatchers(boolean minerWatchers) {
+        this.minerWatchers = minerWatchers;
+    }
+
     public EntityRepository getRepositoryToMiner() {
         return repositoryToMiner;
     }
@@ -109,51 +149,43 @@ public class IssuesAndCommentsBean implements Serializable {
             out.printLog(message);
             progress = new Integer(100);
             initialized = false;
-        } else if (minerOpenIssues || minerClosedIssues) {
-            progress = new Integer(0);
-            initialized = true;
-
-            out.printLog("########### PROCESSO DE MINERAÇÃO INICIADO! ##############\n");
-
-            process = new Thread() {
-
-                @Override
-                public void run() {
-                    try {
-                        progress = new Integer(1);
-
-                        Repository gitRepo = RepositoryServices.getGitRepository(repositoryToMiner.getOwner().getLogin(), repositoryToMiner.getName());
-
-                        List<Issue> issues = IssueServices.getGitIssuesFromRepository(gitRepo, minerOpenIssues, minerClosedIssues);
-
-                        progress = new Integer(10);
-
-                        minerIssues(issues, gitRepo);
-
-                        if (canceled) {
-                            out.printLog("Processo de mineração interrompido.\n");
-                        }
-
-                        progress = new Integer(100);
-                        initialized = false;
-                        message = "Mineração finalizada.";
-                        out.printLog(message + "\n");
-                    } catch (Exception ex) {
-                        ex.printStackTrace();
-                        message = "Erro ocorrido, consulte o registo de Log para mais informações.";
-                        progress = new Integer(100);
-                        initialized = false;
-                        out.printLog(ex.toString() + "\n" + Arrays.toString(ex.getStackTrace()) + "\n");
-                    }
-                }
-            };
-            process.start();
-        } else {
-            message = "Erro: É preciso selecionar a mineração de isssues.";
-            out.printLog(message);
-            progress = new Integer(100);
-            initialized = false;
+            return;
         }
+        process = new Thread() {
+
+            @Override
+            public void run() {
+
+                out.printLog("########### PROCESSO DE MINERAÇÃO INICIADO! ##############\n");
+
+                try {
+                    Repository gitRepo = RepositoryServices.getGitRepository(repositoryToMiner.getOwner().getLogin(), repositoryToMiner.getName());
+                    progress = new Integer(1);
+                    initialized = true;
+                    if (minerOpenIssues || minerClosedIssues) {
+                        progress = new Integer(10);
+                        List<Issue> issues = IssueServices.getGitIssuesFromRepository(gitRepo, minerOpenIssues, minerClosedIssues);
+                        minerIssues(issues, gitRepo);
+                    }
+                    progress = new Integer(50);
+                    if (minerCollaborators) {
+                        List<User> collaborators = UserServices.getGitCollaboratorsFromRepository(gitRepo);
+                        minerCollaborators(collaborators);
+                    }
+                    if (canceled) {
+                        out.printLog("Processo de mineração interrompido.\n");
+                    }
+                    message = "Mineração finalizada.";
+                } catch (Exception ex) {
+                    Logger.getLogger(IssuesAndCommentsBean.class.getName()).log(Level.SEVERE, null, ex);
+                    message = "Mineração abortada:\n" + ex.toString();
+                }
+                progress = new Integer(100);
+                initialized = false;
+                out.printLog(message + "\n");
+            }
+        };
+        process.start();
     }
 
     public void cancel() {
@@ -177,16 +209,6 @@ public class IssuesAndCommentsBean implements Serializable {
         FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_INFO, message, message));
     }
 
-    private void calcularProgresso(int i, int size) {
-        double iDb = i;
-        double sizeDb = size;
-        double complete = 90;
-
-        double prog = (iDb / sizeDb * complete) + 10;
-
-        progress = new Integer((int) prog);
-    }
-
     private void minerIssues(List<Issue> issues, Repository gitRepo) throws Exception {
         int i = 0;
         while (!canceled && i < issues.size()) {
@@ -195,8 +217,8 @@ public class IssuesAndCommentsBean implements Serializable {
             if (issue != null && minerComments) {
                 minerComments(issue, gitRepo);
             }
+            issue.setRepository(repositoryToMiner);
             issueDao.edit(issue);
-            calcularProgresso(i, issues.size());
             i++;
         }
     }
@@ -205,7 +227,6 @@ public class IssuesAndCommentsBean implements Serializable {
         EntityIssue issue = null;
         try {
             issue = IssueServices.createEntity(gitIssue, issueDao, userDao);
-            issue.setRepository(repositoryToMiner);
             out.printLog("Isseu gravada com sucesso: " + gitIssue.getTitle() + " - ID: " + gitIssue.getId());
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -238,6 +259,29 @@ public class IssuesAndCommentsBean implements Serializable {
             ex.printStackTrace();
             out.printLog("## Erro ao gravar Comment: " + gitComment.getUrl() + " - ID: " + gitComment.getId() + " Descrição: " + ex.toString());
         }
+    }
+
+    private void minerCollaborators(List<User> collaborators) {
+        int i = 0;
+        while (!canceled && i < collaborators.size()) {
+            User gitCollab = collaborators.get(i);
+            EntityUser colab = minerCollaborator(gitCollab);
+            colab.addCollaboratedRepository(repositoryToMiner);
+            userDao.edit(colab);
+            i++;
+        }
+    }
+
+    private EntityUser minerCollaborator(User gitCollab) {
+        EntityUser colab = null;
+        try {
+            colab = UserServices.createEntity(gitCollab, userDao);
+            out.printLog("Collaborator gravado com sucesso: " + gitCollab.getLogin() + " - ID: " + gitCollab.getId());
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            out.printLog("## Erro ao gravar Collaborator: " + gitCollab.getLogin() + " - ID: " + gitCollab.getId() + " Descrição: " + ex.toString());
+        }
+        return colab;
     }
 
     public void teste() {

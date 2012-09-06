@@ -26,6 +26,18 @@
             <h:selectBooleanCheckbox value="#{issuesAndCommentsBean.minerComments}" id="minerComments" title="Minerar Comments" />
             <h:outputLabel for="minerComments" value="Minerar Comments."/>
             <br />    
+            <h:selectBooleanCheckbox value="#{issuesAndCommentsBean.minerCollaborators}" id="minerCollaborators" title="Minerar Collaborators" />
+            <h:outputLabel for="minerCollaborators" value="Minerar Collaborators."/>
+            <br />       
+            <h:selectBooleanCheckbox value="#{issuesAndCommentsBean.minerWatchers}" id="minerWatchers" title="Minerar Watchers" />
+            <h:outputLabel for="minerWatchers" value="Minerar Watchers."/>
+            <br />       
+            <h:selectBooleanCheckbox value="#{issuesAndCommentsBean.minerPullRequests}" id="minerPullRequests" title="Minerar Pull Requests" />
+            <h:outputLabel for="minerPullRequests" value="Minerar Pull Requests."/>
+            <br />       
+            <h:selectBooleanCheckbox value="#{issuesAndCommentsBean.minerTeams}" id="minerTeams" title="Minerar Teams" />
+            <h:outputLabel for="minerTeams" value="Minerar Teams."/>
+            <br />
             <br />
 
             <p:commandButton value="Start" async="true" actionListener="#{issuesAndCommentsBean.start()}" disabled="#{issuesAndCommentsBean.initialized}"

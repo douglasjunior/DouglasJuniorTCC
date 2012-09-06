@@ -1,17 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project-private xmlns="http://www.netbeans.org/ns/project-private/1">
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/1"/>
-    <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/1">
-        <file>file:/D:/Dropbox/TSI/TCC%20IMPL/DouglasJuniorTCC/trunk/JGitMinerWeb/src/java/br/edu/utfpr/cm/JGitMinerWeb/services/CommentServices.java</file>
-        <file>file:/D:/Dropbox/TSI/TCC%20IMPL/DouglasJuniorTCC/trunk/JGitMinerWeb/src/java/br/edu/utfpr/cm/JGitMinerWeb/services/IssueServices.java</file>
-        <file>file:/D:/Dropbox/TSI/TCC%20IMPL/DouglasJuniorTCC/trunk/JGitMinerWeb/src/java/br/edu/utfpr/cm/JGitMinerWeb/services/RepositoryServices.java</file>
-        <file>file:/D:/Dropbox/TSI/TCC%20IMPL/DouglasJuniorTCC/trunk/JGitMinerWeb/src/java/br/edu/utfpr/cm/JGitMinerWeb/services/UserServices.java</file>
-        <file>file:/D:/Dropbox/TSI/TCC%20IMPL/DouglasJuniorTCC/trunk/JGitMinerWeb/src/java/br/edu/utfpr/cm/JGitMinerWeb/pojo/EntityRepository.java</file>
-        <file>file:/D:/Dropbox/TSI/TCC%20IMPL/DouglasJuniorTCC/trunk/JGitMinerWeb/src/java/br/edu/utfpr/cm/JGitMinerWeb/pojo/EntityIssue.java</file>
-        <file>file:/D:/Dropbox/TSI/TCC%20IMPL/DouglasJuniorTCC/trunk/JGitMinerWeb/src/java/br/edu/utfpr/cm/JGitMinerWeb/managedBean/IssuesAndCommentsBean.java</file>
-        <file>file:/D:/Dropbox/TSI/TCC%20IMPL/DouglasJuniorTCC/trunk/JGitMinerWeb/src/java/br/edu/utfpr/cm/JGitMinerWeb/dao/AbstractDao.java</file>
-        <file>file:/D:/Dropbox/TSI/TCC%20IMPL/DouglasJuniorTCC/trunk/JGitMinerWeb/src/java/br/edu/utfpr/cm/JGitMinerWeb/pojo/EntityUser.java</file>
-        <file>file:/D:/Dropbox/TSI/TCC%20IMPL/DouglasJuniorTCC/trunk/JGitMinerWeb/web/pages/miner/issuesAndComments.xhtml</file>
-        <file>file:/D:/Dropbox/TSI/TCC%20IMPL/DouglasJuniorTCC/trunk/JGitMinerWeb/web/pages/miner/pullRequests.xhtml</file>
-    </open-files>
 </project-private>

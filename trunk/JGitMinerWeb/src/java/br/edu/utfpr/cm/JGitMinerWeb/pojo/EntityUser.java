@@ -63,10 +63,16 @@ public class EntityUser implements Serializable {
     private List<EntityIssue> issues;
     @OneToMany(mappedBy = "assignee", cascade = CascadeType.ALL)
     private List<EntityIssue> issuesAssigned;
+    @ManyToMany
+    private List<EntityRepository> watchedRepositories;
+    @ManyToMany
+    private List<EntityRepository> collaboratedRepositories;
 
     public EntityUser() {
         issues = new ArrayList<EntityIssue>();
         issuesAssigned = new ArrayList<EntityIssue>();
+        collaboratedRepositories = new ArrayList<EntityRepository>();
+        watchedRepositories = new ArrayList<EntityRepository>();
         mineredAt = new Date();
     }
 
@@ -284,6 +290,24 @@ public class EntityUser implements Serializable {
 
     public void setIssuesAssigned(List<EntityIssue> issuesAssigned) {
         this.issuesAssigned = issuesAssigned;
+    }
+
+    public void addCollaboratedRepository(EntityRepository repo) {
+        if (!collaboratedRepositories.contains(repo)) {
+            collaboratedRepositories.add(repo);
+        }
+        if (!repo.getCollaborators().contains(this)) {
+            repo.getCollaborators().add(this);
+        }
+    }
+
+    public void addWatchedRepository(EntityRepository repo) {
+        if (!watchedRepositories.contains(repo)) {
+            watchedRepositories.add(repo);
+        }
+        if (!repo.getWatchers().contains(this)) {
+            repo.getWatchers().add(this);
+        }
     }
 
     @Override

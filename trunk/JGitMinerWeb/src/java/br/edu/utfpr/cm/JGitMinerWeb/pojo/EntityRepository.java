@@ -43,10 +43,9 @@ public class EntityRepository implements Serializable {
     private long idRepository;
     private int openIssues;
     private int sizeRepository;
-    private int watchers;
-    @ManyToOne(cascade = CascadeType.PERSIST)
+    @ManyToOne
     private EntityRepository parent;
-    @ManyToOne(cascade = CascadeType.PERSIST)
+    @ManyToOne
     private EntityRepository source;
     private String cloneUrl;
     @Column(columnDefinition = "text")
@@ -66,13 +65,22 @@ public class EntityRepository implements Serializable {
     @Column(columnDefinition = "text")
     private String svnUrl;
     private String url;
-    @ManyToOne(cascade = CascadeType.PERSIST)
+    @ManyToOne
     private EntityUser owner;
+    @JoinColumn(name = "REPOSITORY_ID")
     @OneToMany(mappedBy = "repository")
     private List<EntityIssue> issues;
+    @JoinColumn(name = "COLLABORATEDREPOSITORIES_ID")
+    @ManyToMany(mappedBy = "collaboratedRepositories")
+    private List<EntityUser> collaborators;
+    @JoinColumn(name = "WATCHEDREPOSITORIES_ID")
+    @ManyToMany(mappedBy = "watchedRepositories") 
+    private List<EntityUser> watchers;
 
     public EntityRepository() {
         issues = new ArrayList<EntityIssue>();
+        collaborators = new ArrayList<EntityUser>();
+        watchers = new ArrayList<EntityUser>();
         mineredAt = new Date();
     }
 
@@ -316,12 +324,32 @@ public class EntityRepository implements Serializable {
         this.url = url;
     }
 
-    public int getWatchers() {
+    public List<EntityUser> getCollaborators() {
+        return collaborators;
+    }
+
+    public void setCollaborators(List<EntityUser> collaborators) {
+        this.collaborators = collaborators;
+    }
+
+    public void addCollaborator(EntityUser collaborator) {
+        if (!collaborators.contains(collaborator)) {
+            collaborators.add(collaborator);
+        }
+    }
+
+    public List<EntityUser> getWatchers() {
         return watchers;
     }
 
-    public void setWatchers(int watchers) {
+    public void setWatchers(List<EntityUser> watchers) {
         this.watchers = watchers;
+    }
+
+    public void addWatcher(EntityUser watcher) {
+        if (!watchers.contains(watcher)) {
+            watchers.add(watcher);
+        }
     }
 
     @Override

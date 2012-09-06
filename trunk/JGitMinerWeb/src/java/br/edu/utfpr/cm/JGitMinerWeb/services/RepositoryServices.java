@@ -54,7 +54,6 @@ public class RepositoryServices {
         repo.setIdRepository(gitRepository.getId());
         repo.setOpenIssues(gitRepository.getOpenIssues());
         repo.setSizeRepository(gitRepository.getSize());
-        repo.setWatchers(gitRepository.getWatchers());
         repo.setParent(RepositoryServices.createEntity(gitRepository.getParent(), repositoryDao, userDao));
         repo.setSource(RepositoryServices.createEntity(gitRepository.getSource(), repositoryDao, userDao));
         repo.setCloneUrl(gitRepository.getCloneUrl());
