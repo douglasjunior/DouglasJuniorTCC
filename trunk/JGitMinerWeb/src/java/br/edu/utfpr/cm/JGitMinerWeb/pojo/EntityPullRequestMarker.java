@@ -48,14 +48,6 @@ public class EntityPullRequestMarker implements Serializable {
 //        this.user = EntityUser.createUser(gitMaker.getUser());
     }
 
-    public static EntityPullRequestMarker create(PullRequestMarker gitMaker) {
-        EntityPullRequestMarker entityMaker = null;
-        if (gitMaker != null) {
-            entityMaker = PullRequestMakerServices.insert(gitMaker);
-            System.out.println("############# CRIOU NOVO PULL REQUEST MAKER " + entityMaker.getId() + " #############");
-        }
-        return entityMaker;
-    }
 
     public Long getId() {
         return id;

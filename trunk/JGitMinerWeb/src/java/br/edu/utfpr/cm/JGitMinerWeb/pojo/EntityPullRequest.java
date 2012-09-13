@@ -4,11 +4,9 @@
  */
 package br.edu.utfpr.cm.JGitMinerWeb.pojo;
 
-import br.edu.utfpr.cm.JGitMinerWeb.services.PullRequestServices;
 import java.io.Serializable;
 import java.util.Date;
 import javax.persistence.*;
-import org.eclipse.egit.github.core.PullRequest;
 
 /**
  *
@@ -17,7 +15,7 @@ import org.eclipse.egit.github.core.PullRequest;
 @Entity
 @Table(name = "gitPullRequest")
 @NamedQueries({
-    @NamedQuery(name = "PullRequest.findByIdPull", query = "SELECT p FROM EntityPullRequest p WHERE p.idPullRequest = :idPullRequest"),
+    @NamedQuery(name = "PullRequest.findByIdPullRequest", query = "SELECT p FROM EntityPullRequest p WHERE p.idPullRequest = :idPullRequest"),
     @NamedQuery(name = "PullRequest.findByIssue", query = "SELECT p FROM EntityPullRequest p WHERE p.issue = :issue")
 })
 public class EntityPullRequest implements Serializable {
@@ -67,91 +65,15 @@ public class EntityPullRequest implements Serializable {
     private String statePullRequest;
     private String title;
     private String url;
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne
     private EntityUser mergedBy;
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne
     private EntityUser user;
     @OneToOne(mappedBy = "pullRequest")
     private EntityIssue issue;
 
     public EntityPullRequest() {
         mineredAt = new Date();
-    }
-
-    public EntityPullRequest(boolean mergeable, boolean merged, Date closedAt, Date mergedAt, Date updatedAt, Date createdAt, long idPullRequest, int additions, int changedFiles, int comments, int commits, int deletions, int number, EntityPullRequestMarker base, EntityPullRequestMarker head, String body, String bodyHtml, String bodyText, String diffUrl, String htmlUrl, String issueUrl, String patchUrl, String statePullRequest, String title, String url, EntityUser mergedBy, EntityUser user) {
-        this();
-        this.mergeable = mergeable;
-        this.merged = merged;
-        this.closedAt = closedAt;
-        this.mergedAt = mergedAt;
-        this.updatedAt = updatedAt;
-        this.createdAt = createdAt;
-        this.idPullRequest = idPullRequest;
-        this.additions = additions;
-        this.changedFiles = changedFiles;
-        this.comments = comments;
-        this.commits = commits;
-        this.deletions = deletions;
-        this.number = number;
-        this.base = base;
-        this.head = head;
-        this.body = body;
-        this.bodyHtml = bodyHtml;
-        this.bodyText = bodyText;
-        this.diffUrl = diffUrl;
-        this.htmlUrl = htmlUrl;
-        this.issueUrl = issueUrl;
-        this.patchUrl = patchUrl;
-        this.statePullRequest = statePullRequest;
-        this.title = title;
-        this.url = url;
-        this.mergedBy = mergedBy;
-        this.user = user;
-    }
-
-    public static EntityPullRequest create(PullRequest gitPullRequest) {
-        EntityPullRequest entityPull = null;
-        if (gitPullRequest != null && gitPullRequest.getId() != 0) {
-            entityPull = PullRequestServices.getPullRequestByIdPull(gitPullRequest.getId());
-            if (entityPull == null) { // se não existe ele cria
-                entityPull = PullRequestServices.insertPullRequest(gitPullRequest);
-                System.out.println("############# CRIOU NOVO PULL REQUEST " + entityPull.getIdPullRequest() + " | " + entityPull.getTitle() + " #############");
-            } else {
-                System.out.println("############### PEGOU O PULL REQUEST " + entityPull.getIdPullRequest() + " | " + entityPull.getTitle() + " ##############");
-            }
-        }
-        return entityPull;
-    }
-
-    public EntityPullRequest(PullRequest gitPullRequest) {
-        this();
-        this.mergeable = gitPullRequest.isMergeable();
-        this.merged = gitPullRequest.isMerged();
-        this.closedAt = gitPullRequest.getClosedAt();
-        this.mergedAt = gitPullRequest.getMergedAt();
-        this.updatedAt = gitPullRequest.getUpdatedAt();
-        this.createdAt = gitPullRequest.getCreatedAt();
-        this.idPullRequest = gitPullRequest.getId();
-        this.additions = gitPullRequest.getAdditions();
-        this.changedFiles = gitPullRequest.getChangedFiles();
-        this.comments = gitPullRequest.getComments();
-        this.commits = gitPullRequest.getCommits();
-        this.deletions = gitPullRequest.getDeletions();
-        this.number = gitPullRequest.getNumber();
-        this.base = EntityPullRequestMarker.create(gitPullRequest.getBase());
-        this.head = EntityPullRequestMarker.create(gitPullRequest.getHead());
-        this.body = gitPullRequest.getBody();
-        this.bodyHtml = gitPullRequest.getBodyHtml();
-        this.bodyText = gitPullRequest.getBodyText();
-        this.diffUrl = gitPullRequest.getDiffUrl();
-        this.htmlUrl = gitPullRequest.getHtmlUrl();
-        this.issueUrl = gitPullRequest.getIssueUrl();
-        this.patchUrl = gitPullRequest.getPatchUrl();
-        this.statePullRequest = gitPullRequest.getState();
-        this.title = gitPullRequest.getTitle();
-        this.url = gitPullRequest.getUrl();
- //       this.mergedBy = EntityUser.createUser(gitPullRequest.getMergedBy());
- //       this.user = EntityUser.createUser(gitPullRequest.getUser());
     }
 
     public Long getId() {
@@ -376,6 +298,22 @@ public class EntityPullRequest implements Serializable {
 
     public void setUser(EntityUser user) {
         this.user = user;
+    }
+
+    public EntityIssue getIssue() {
+        return issue;
+    }
+
+    public void setIssue(EntityIssue issue) {
+        this.issue = issue;
+    }
+
+    public Date getMineredAt() {
+        return mineredAt;
+    }
+
+    public void setMineredAt(Date mineredAt) {
+        this.mineredAt = mineredAt;
     }
 
     @Override
