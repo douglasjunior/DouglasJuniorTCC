@@ -4,7 +4,7 @@
  */
 package br.edu.utfpr.cm.JGitMinerWeb.dao;
 
-import br.edu.utfpr.cm.JGitMinerWeb.pojo.EntityUser;
+import br.edu.utfpr.cm.JGitMinerWeb.pojo.EntityPullRequest;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -14,7 +14,7 @@ import javax.persistence.PersistenceContext;
  * @author Douglas
  */
 @Stateless
-public class UserDao extends AbstractDao<EntityUser> {
+public class PullRequestDao extends AbstractDao<EntityPullRequest> {
 
     @PersistenceContext(unitName = "pu")
     private EntityManager em;
@@ -24,7 +24,7 @@ public class UserDao extends AbstractDao<EntityUser> {
         return em;
     }
 
-    public UserDao() {
-        super(EntityUser.class);
+    public PullRequestDao() {
+        super(EntityPullRequest.class);
     }
 }

@@ -1,14 +1,8 @@
 package br.edu.utfpr.cm.JGitMinerWeb.managedBean;
 
-import br.edu.utfpr.cm.JGitMinerWeb.dao.CommentDao;
-import br.edu.utfpr.cm.JGitMinerWeb.dao.IssueDao;
-import br.edu.utfpr.cm.JGitMinerWeb.dao.MinerDao;
-import br.edu.utfpr.cm.JGitMinerWeb.dao.UserDao;
+import br.edu.utfpr.cm.JGitMinerWeb.dao.*;
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.*;
-import br.edu.utfpr.cm.JGitMinerWeb.services.CommentServices;
-import br.edu.utfpr.cm.JGitMinerWeb.services.IssueServices;
-import br.edu.utfpr.cm.JGitMinerWeb.services.RepositoryServices;
-import br.edu.utfpr.cm.JGitMinerWeb.services.UserServices;
+import br.edu.utfpr.cm.JGitMinerWeb.services.*;
 import br.edu.utfpr.cm.JGitMinerWeb.util.out;
 import java.io.Serializable;
 import java.util.Date;
@@ -18,11 +12,9 @@ import javax.faces.application.FacesMessage;
 import javax.faces.bean.ManagedBean;
 import javax.faces.bean.SessionScoped;
 import javax.faces.context.FacesContext;
-import org.eclipse.egit.github.core.Comment;
-import org.eclipse.egit.github.core.Issue;
-import org.eclipse.egit.github.core.Repository;
-import org.eclipse.egit.github.core.User;
+import org.eclipse.egit.github.core.*;
 import org.eclipse.egit.github.core.service.IssueService;
+import org.eclipse.egit.github.core.service.PullRequestService;
 
 @ManagedBean(name = "issuesAndCommentsBean")
 @SessionScoped
@@ -36,6 +28,8 @@ public class IssuesAndCommentsBean implements Serializable {
     private UserDao userDao;
     @EJB
     private MinerDao minerDao;
+    @EJB
+    private PullRequestDao pullRequestDao;
     private EntityRepository repositoryToMiner;
     private boolean minerOpenIssues;
     private boolean minerClosedIssues;
@@ -180,7 +174,7 @@ public class IssuesAndCommentsBean implements Serializable {
                         mineration.setMinerLog(out.getLog());
                         minerDao.edit(mineration);
                     }
-                    progress = new Integer(30);
+                    progress = new Integer(25);
                     if (minerCollaborators) {
                         subProgress = new Integer(0);
                         out.setCurrentProcess("Mirerando collaborators...\n");
@@ -189,7 +183,7 @@ public class IssuesAndCommentsBean implements Serializable {
                         mineration.setMinerLog(out.getLog());
                         minerDao.edit(mineration);
                     }
-                    progress = new Integer(60);
+                    progress = new Integer(50);
                     if (minerWatchers) {
                         subProgress = new Integer(0);
                         out.setCurrentProcess("Mirerando watchers...\n");
@@ -197,6 +191,12 @@ public class IssuesAndCommentsBean implements Serializable {
                         minerWatchers(wacthers);
                         mineration.setMinerLog(out.getLog());
                         minerDao.edit(mineration);
+                    }
+                    progress = new Integer(75);
+                    if (minerPullRequests) {
+                        subProgress = new Integer(0);
+                        out.setCurrentProcess("Mirerando Pull Requests...\n");
+                        minerPullRequests(gitRepo, repositoryToMiner);
                     }
                     if (canceled) {
                         out.printLog("Processo de mineração interrompido.\n");
@@ -363,5 +363,35 @@ public class IssuesAndCommentsBean implements Serializable {
     private void calculeSubProgress(double i, double size) {
         double subProg = (i / size) * 100;
         subProgress = new Integer((int) subProg);
+    }
+
+    private void minerPullRequests(Repository gitRepo, EntityRepository repo) throws Exception {
+        out.printLog("Coletando Issues no banco de dados...\n");
+        List<EntityIssue> issues = issueDao.executeNamedQueryComParametros("Issue.findByRepository", new String[]{"repository"}, new Object[]{repo});
+        out.printLog(issues.size() + " Issues encontradas no banco de dados...");
+        out.printLog("");
+        PullRequestService pullRequestService = new PullRequestService();
+        int i = 0;
+        while (!canceled && i < issues.size()) {
+            EntityIssue entityIssue = issues.get(i);
+            String log = "Baixando PullRequest da Issue " + entityIssue.getNumber() + ": ";
+            try {
+                PullRequest gitPullRequest = pullRequestService.getPullRequest(gitRepo, entityIssue.getNumber());
+                if (gitPullRequest != null && gitPullRequest.getId() != 0) {
+                    entityIssue.setPullRequest(PullRequestServices.createEntity(gitPullRequest, entityIssue, pullRequestDao, userDao));
+                    issueDao.edit(entityIssue);
+                    log += " PullRequest gravado com sucesso!";
+                }
+            } catch (org.eclipse.egit.github.core.client.RequestException ex) {
+                ex.printStackTrace();
+                log += " PullRequest não encontrado para esta Issue.";
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                log += " Ocorreu um erro inesperado: " + ex.toString();
+            }
+            out.printLog(log);
+            i++;
+            calculeSubProgress(i, issues.size());
+        }
     }
 }

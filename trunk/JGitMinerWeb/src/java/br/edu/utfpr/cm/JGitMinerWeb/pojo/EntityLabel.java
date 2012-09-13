@@ -42,19 +42,6 @@ public class EntityLabel implements Serializable {
         setUrl(label.getUrl());
     }
 
-    public static EntityLabel create(Label gitLabel) {
-        EntityLabel entityLabel = null;
-        if (gitLabel != null) {
-            entityLabel = LabelServices.getLabelByURL(gitLabel.getUrl());
-            if (entityLabel == null) { // se não existe ele cria
-                entityLabel = LabelServices.insertLabel(gitLabel);
-                System.out.println("############# CRIOU NOVO LABEL " + entityLabel.getUrl() + " #############");
-            } else {
-                System.out.println("############### PEGOU O LABEL " + entityLabel.getUrl() + " ##############");
-            }
-        }
-        return entityLabel;
-    }
 
     public Long getId() {
         return id;

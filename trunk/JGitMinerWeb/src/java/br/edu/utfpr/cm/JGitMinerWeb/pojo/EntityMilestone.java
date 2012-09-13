@@ -75,19 +75,6 @@ public class EntityMilestone implements Serializable {
     //    this.creator = EntityUser.createUser(milestone.getCreator());
     }
 
-    public static EntityMilestone createMilestone(Milestone girMilestone) {
-        EntityMilestone entityMilestone = null;
-        if (girMilestone != null) {
-            entityMilestone = MilestoneServices.getMilestoneByURL(girMilestone.getUrl());
-            if (entityMilestone == null) { // se não existe ele cria
-                entityMilestone = MilestoneServices.insert(girMilestone);
-                System.out.println("############# CRIOU NOVO MILESTONET " + entityMilestone.getUrl() + " #############");
-            } else {
-                System.out.println("############### PEGOU O MILESTONET " + entityMilestone.getUrl() + " ##############");
-            }
-        }
-        return entityMilestone;
-    }
 
     public Long getId() {
         return id;
