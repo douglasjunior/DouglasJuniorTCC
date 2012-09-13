@@ -12,25 +12,32 @@ import java.util.Date;
  */
 public class out {
 
-    private static String log;
-    private static String lastLog;
+    private static StringBuilder log;
+    private static String currentProcess;
 
-    public static String getLastLog() {
-        return lastLog;
+    static {
+        log = new StringBuilder();
+    }
+
+    public static String getCurrentProcess() {
+        return currentProcess;
+    }
+
+    public static void setCurrentProcess(String currentProcess) {
+        out.currentProcess = currentProcess;
     }
 
     public static String getLog() {
-        return log;
+        return log.toString();
     }
 
     public static void printLog(String log) {
-        out.lastLog = log;
-        out.log = new Date() + ": " + log + "\n" + out.log;
+        out.log.insert(0, new Date() + ": " + log + "\n");
         System.out.println(log);
     }
 
     public static void resetLog() {
-        out.log = "";
-        out.lastLog = "";
+        out.log = new StringBuilder();
+        out.currentProcess = "";
     }
 }

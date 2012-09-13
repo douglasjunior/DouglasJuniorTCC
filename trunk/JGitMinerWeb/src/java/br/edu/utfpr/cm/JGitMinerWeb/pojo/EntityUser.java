@@ -59,12 +59,14 @@ public class EntityUser implements Serializable {
     private String type;
     @Column(columnDefinition = "text")
     private String url;
-    @OneToMany(mappedBy = "userIssue", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "userIssue")
     private List<EntityIssue> issues;
-    @OneToMany(mappedBy = "assignee", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "assignee")
     private List<EntityIssue> issuesAssigned;
+    @JoinTable(name = "gitRepository_userWatchers")
     @ManyToMany
     private List<EntityRepository> watchedRepositories;
+    @JoinTable(name = "gitRepository_userCollaborators")
     @ManyToMany
     private List<EntityRepository> collaboratedRepositories;
 

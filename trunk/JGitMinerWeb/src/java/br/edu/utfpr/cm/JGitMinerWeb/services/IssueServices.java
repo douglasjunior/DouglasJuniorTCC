@@ -40,24 +40,24 @@ public class IssueServices {
 
         if (open) {
             List<Issue> opensIssues;
-            out.printLog("Baixando Issues Abertas ...\n");
+            out.printLog("Baixando Issues Abertas...\n");
             params.put("state", "open");
             opensIssues = issueServ.getIssues(gitRepo, params);
-            out.printLog(opensIssues.size() + " Issues abertas baixadas!\n");
+            out.printLog(opensIssues.size() + " Issues abertas baixadas!");
             issues.addAll(opensIssues);
         }
 
         if (closed) {
             List<Issue> clodesIssues;
             params = new HashMap<String, String>();
-            out.printLog("Baixando Issues Fechadas ...\n");
+            out.printLog("Baixando Issues Fechadas...\n");
             params.put("state", "closed");
             clodesIssues = issueServ.getIssues(gitRepo, params);
-            out.printLog(clodesIssues.size() + " Issues fechadas baixadas!\n");
+            out.printLog(clodesIssues.size() + " Issues fechadas baixadas!");
             issues.addAll(clodesIssues);
         }
 
-        out.printLog(issues.size() + " Issues baixadas no total!\n");
+        out.printLog(issues.size() + " Issues baixadas no total!");
 
         return issues;
     }

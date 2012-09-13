@@ -7,17 +7,12 @@ package br.edu.utfpr.cm.JGitMinerWeb.services;
 import br.edu.utfpr.cm.JGitMinerWeb.dao.UserDao;
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.EntityUser;
 import br.edu.utfpr.cm.JGitMinerWeb.util.out;
-import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import org.eclipse.egit.github.core.Issue;
 import org.eclipse.egit.github.core.Repository;
 import org.eclipse.egit.github.core.User;
 import org.eclipse.egit.github.core.service.CollaboratorService;
-import org.eclipse.egit.github.core.service.IssueService;
-import org.eclipse.egit.github.core.service.UserService;
+import org.eclipse.egit.github.core.service.WatcherService;
 
 /**
  *
@@ -80,9 +75,16 @@ public class UserServices {
     }
 
     public static List<User> getGitCollaboratorsFromRepository(Repository gitRepo) throws Exception {
-        out.printLog("Baixando Issues Abertas ...\n");
+        out.printLog("Baixando Collaborators...\n");
         List<User> users = new CollaboratorService().getCollaborators(gitRepo);
-        out.printLog(users.size() + " Issues baixadas no total!\n");
+        out.printLog(users.size() + " Collaborators baixados!");
+        return users;
+    }
+
+    public static List<User> getGitWatchersFromRepository(Repository gitRepo) throws Exception {
+        out.printLog("Baixando Watchers...\n");
+        List<User> users = new WatcherService().getWatchers(gitRepo);
+        out.printLog(users.size() + " Watchers baixados!");
         return users;
     }
 }

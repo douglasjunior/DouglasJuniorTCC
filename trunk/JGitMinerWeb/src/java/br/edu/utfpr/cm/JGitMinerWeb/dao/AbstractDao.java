@@ -67,7 +67,6 @@ public abstract class AbstractDao<T> {
             query.setParameter(atributo, parametro);
         }
         List list = query.getResultList();
-        System.out.println("NamedQueryy: " + list);
         return list;
     }
 }

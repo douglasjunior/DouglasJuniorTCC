@@ -41,18 +41,23 @@
             <br />
 
             <p:commandButton value="Start" async="true" actionListener="#{issuesAndCommentsBean.start()}" disabled="#{issuesAndCommentsBean.initialized}"
-                             onclick="pbAjax.start();startButton.disable();updateLogText.start();" widgetVar="startButton" id="startButton" />  
+                             onclick="progress.start();subProgress.start();startButton.disable();updateLogText.start();" widgetVar="startButton" id="startButton" />  
 
             <p:commandButton value="Cancel" async="true" actionListener="#{issuesAndCommentsBean.cancel()}" 
-                             oncomplete="pbAjax.cancel();" />  
+                             oncomplete="progress.cancel();subProgress.cancel();" />  
 
             <br />
             <br />
 
-            <h:outputText value="Process: #{issuesAndCommentsBean.lastLog}" id="lastLog"  />
+            <h:outputText value="Current process: #{issuesAndCommentsBean.currentProcess}" id="currentProcess" />
 
-            <p:progressBar widgetVar="pbAjax" ajax="true" value="#{issuesAndCommentsBean.progress}" labelTemplate="{value}%" styleClass="animated" interval="3000" >  
-                <p:ajax event="complete" listener="#{issuesAndCommentsBean.onComplete()}" update="logTextArea,messages,lastLog,loadingImage" oncomplete="startButton.enable();updateLogText.stop();"/>
+            <p:progressBar widgetVar="progress" ajax="true" value="#{issuesAndCommentsBean.progress}" labelTemplate="{value}%" styleClass="animated" interval="3000" >  
+                <p:ajax event="complete" listener="#{issuesAndCommentsBean.onComplete()}" update="logTextArea,messages,currentProcess,loadingImage" oncomplete="startButton.enable();updateLogText.stop();"/>
+            </p:progressBar>
+
+            <br /> 
+
+            <p:progressBar widgetVar="subProgress" ajax="true" value="#{issuesAndCommentsBean.subProgress}" labelTemplate="{value}%" styleClass="animated" interval="2000" >  
             </p:progressBar>
 
             <br />
@@ -65,9 +70,9 @@
 
             <p:poll interval="2" update="logTextArea"  widgetVar="updateLogText" stop="#{!issuesAndCommentsBean.initialized}" autoStart="true" />
 
-            <p:poll interval="2" update="messages,lastLog,loadingImage,startButton" autoStart="true" />
+            <p:poll interval="2" update="messages,currentProcess,loadingImage,startButton" autoStart="true" />
 
-            <p:poll interval="1" onstart="pbAjax.start();pbAjaxAutoUpdate.stop();" widgetVar="pbAjaxAutoUpdate" autoStart="#{issuesAndCommentsBean.initialized}" />
+            <p:poll interval="1" onstart="progress.start();subProgress.start();pbAjaxAutoUpdate.stop();" widgetVar="pbAjaxAutoUpdate" autoStart="#{issuesAndCommentsBean.initialized}" />
 
             <h3>Log de mineração:</h3>
             <br/>

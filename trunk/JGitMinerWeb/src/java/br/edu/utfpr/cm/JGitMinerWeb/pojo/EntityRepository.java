@@ -1,7 +1,7 @@
 /*
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
- */
+ */ 
 package br.edu.utfpr.cm.JGitMinerWeb.pojo;
 
 import java.io.Serializable;
@@ -70,11 +70,9 @@ public class EntityRepository implements Serializable {
     @JoinColumn(name = "REPOSITORY_ID")
     @OneToMany(mappedBy = "repository")
     private List<EntityIssue> issues;
-    @JoinColumn(name = "COLLABORATEDREPOSITORIES_ID")
     @ManyToMany(mappedBy = "collaboratedRepositories")
     private List<EntityUser> collaborators;
-    @JoinColumn(name = "WATCHEDREPOSITORIES_ID")
-    @ManyToMany(mappedBy = "watchedRepositories") 
+    @ManyToMany(mappedBy = "watchedRepositories")
     private List<EntityUser> watchers;
 
     public EntityRepository() {
