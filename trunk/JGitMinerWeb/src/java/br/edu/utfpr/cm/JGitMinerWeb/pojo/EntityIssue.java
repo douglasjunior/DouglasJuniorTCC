@@ -269,4 +269,5 @@ public class EntityIssue implements Serializable {
             getComments().add(comment);
         }
     }
+
 }

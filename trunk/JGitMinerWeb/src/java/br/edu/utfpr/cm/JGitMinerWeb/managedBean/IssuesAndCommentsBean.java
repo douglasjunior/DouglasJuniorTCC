@@ -21,15 +21,7 @@ import org.eclipse.egit.github.core.service.PullRequestService;
 public class IssuesAndCommentsBean implements Serializable {
 
     @EJB
-    private IssueDao issueDao;
-    @EJB
-    private CommentDao commentDao;
-    @EJB
-    private UserDao userDao;
-    @EJB
-    private MinerDao minerDao;
-    @EJB
-    private PullRequestDao pullRequestDao;
+    private GenericDao dao;
     private EntityRepository repositoryToMiner;
     private boolean minerOpenIssues;
     private boolean minerClosedIssues;
@@ -128,7 +120,7 @@ public class IssuesAndCommentsBean implements Serializable {
 
     public void start() {
         final EntityMiner mineration = new EntityMiner();
-        minerDao.insert(mineration);
+        dao.insert(mineration);
 
         out.resetLog();
         initialized = false;
@@ -142,7 +134,6 @@ public class IssuesAndCommentsBean implements Serializable {
         out.printLog("minerWatchers: " + minerWatchers);
         out.printLog("minerPullRequests: " + minerPullRequests);
         out.printLog("minerTeams: " + minerTeams);
-        out.printLog("");
 
         if (repositoryToMiner == null) {
             message = "Erro: Escolha o repositorio desejado.";
@@ -151,7 +142,7 @@ public class IssuesAndCommentsBean implements Serializable {
             subProgress = new Integer(0);
             initialized = false;
             mineration.setMinerLog(out.getLog());
-            minerDao.edit(mineration);
+            dao.edit(mineration);
             return;
         }
         process = new Thread() {
@@ -172,7 +163,7 @@ public class IssuesAndCommentsBean implements Serializable {
                         List<Issue> issues = IssueServices.getGitIssuesFromRepository(gitRepo, minerOpenIssues, minerClosedIssues);
                         minerIssues(issues, gitRepo);
                         mineration.setMinerLog(out.getLog());
-                        minerDao.edit(mineration);
+                        dao.edit(mineration);
                     }
                     progress = new Integer(25);
                     if (minerCollaborators) {
@@ -181,7 +172,7 @@ public class IssuesAndCommentsBean implements Serializable {
                         List<User> collaborators = UserServices.getGitCollaboratorsFromRepository(gitRepo);
                         minerCollaborators(collaborators);
                         mineration.setMinerLog(out.getLog());
-                        minerDao.edit(mineration);
+                        dao.edit(mineration);
                     }
                     progress = new Integer(50);
                     if (minerWatchers) {
@@ -190,7 +181,7 @@ public class IssuesAndCommentsBean implements Serializable {
                         List<User> wacthers = UserServices.getGitWatchersFromRepository(gitRepo);
                         minerWatchers(wacthers);
                         mineration.setMinerLog(out.getLog());
-                        minerDao.edit(mineration);
+                        dao.edit(mineration);
                     }
                     progress = new Integer(75);
                     if (minerPullRequests) {
@@ -215,17 +206,19 @@ public class IssuesAndCommentsBean implements Serializable {
                 initialized = false;
                 out.printLog(message + "\n");
                 mineration.setMinerLog(out.getLog());
-                minerDao.edit(mineration);
+                dao.edit(mineration);
             }
         };
         process.start();
     }
 
     public void cancel() {
-        out.printLog("Pedido de cancelamento enviado.\n");
-        canceled = true;
-        process.interrupt();
-        System.gc();
+        if (initialized) {
+            out.printLog("Pedido de cancelamento enviado.\n");
+            canceled = true;
+            process.interrupt();
+            System.gc();
+        }
     }
 
     public Integer getProgress() {
@@ -258,7 +251,7 @@ public class IssuesAndCommentsBean implements Serializable {
                 minerComments(issue, gitRepo);
             }
             issue.setRepository(repositoryToMiner);
-            issueDao.edit(issue);
+            dao.edit(issue);
             i++;
             calculeSubProgress(i, issues.size());
         }
@@ -267,7 +260,7 @@ public class IssuesAndCommentsBean implements Serializable {
     private EntityIssue minerIssue(Issue gitIssue) {
         EntityIssue issue = null;
         try {
-            issue = IssueServices.createEntity(gitIssue, issueDao, userDao);
+            issue = IssueServices.createEntity(gitIssue, dao);
             out.printLog("Isseu gravada com sucesso: " + gitIssue.getTitle() + " - ID: " + gitIssue.getId());
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -293,7 +286,7 @@ public class IssuesAndCommentsBean implements Serializable {
 
     private void minerComment(Comment gitComment, EntityIssue issue) {
         try {
-            EntityComment comment = CommentServices.createEntity(gitComment, commentDao, userDao);
+            EntityComment comment = CommentServices.createEntity(gitComment, dao);
             issue.addComment(comment);
             out.printLog("Comment gravado com sucesso: " + gitComment.getUrl() + " - ID: " + gitComment.getId());
         } catch (Exception ex) {
@@ -309,7 +302,7 @@ public class IssuesAndCommentsBean implements Serializable {
             User gitCollab = collaborators.get(i);
             EntityUser colab = minerCollaborator(gitCollab);
             colab.addCollaboratedRepository(repositoryToMiner);
-            userDao.edit(colab);
+            dao.edit(colab);
             i++;
             calculeSubProgress(i, collaborators.size());
         }
@@ -318,7 +311,7 @@ public class IssuesAndCommentsBean implements Serializable {
     private EntityUser minerCollaborator(User gitCollab) {
         EntityUser colab = null;
         try {
-            colab = UserServices.createEntity(gitCollab, userDao);
+            colab = UserServices.createEntity(gitCollab, dao);
             out.printLog("Collaborator gravado com sucesso: " + gitCollab.getLogin() + " - ID: " + gitCollab.getId());
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -334,7 +327,7 @@ public class IssuesAndCommentsBean implements Serializable {
             User gitWatcher = watchers.get(i);
             EntityUser watcher = minerWatcher(gitWatcher);
             watcher.addWatchedRepository(repositoryToMiner);
-            userDao.edit(watcher);
+            dao.edit(watcher);
             i++;
             calculeSubProgress(i, watchers.size());
         }
@@ -343,7 +336,7 @@ public class IssuesAndCommentsBean implements Serializable {
     private EntityUser minerWatcher(User gitWatcher) {
         EntityUser watcher = null;
         try {
-            watcher = UserServices.createEntity(gitWatcher, userDao);
+            watcher = UserServices.createEntity(gitWatcher, dao);
             out.printLog("Watcher gravado com sucesso: " + gitWatcher.getLogin() + " - ID: " + gitWatcher.getId());
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -355,8 +348,8 @@ public class IssuesAndCommentsBean implements Serializable {
     public void teste() {
         EntityIssue issue = new EntityIssue();
         issue.setIdIssue(234234234);
-        issue.setUserIssue(userDao.findByID(new Long(12)));
-        issueDao.insert(issue);
+        issue.setUserIssue((EntityUser) dao.findByID(new Long(12), EntityIssue.class));
+        dao.insert(issue);
         System.out.println("Gravou issue: " + issue);
     }
 
@@ -367,7 +360,7 @@ public class IssuesAndCommentsBean implements Serializable {
 
     private void minerPullRequests(Repository gitRepo, EntityRepository repo) throws Exception {
         out.printLog("Coletando Issues no banco de dados...\n");
-        List<EntityIssue> issues = issueDao.executeNamedQueryComParametros("Issue.findByRepository", new String[]{"repository"}, new Object[]{repo});
+        List<EntityIssue> issues = dao.executeNamedQueryComParametros("Issue.findByRepository", new String[]{"repository"}, new Object[]{repo});
         out.printLog(issues.size() + " Issues encontradas no banco de dados...");
         out.printLog("");
         PullRequestService pullRequestService = new PullRequestService();
@@ -378,8 +371,8 @@ public class IssuesAndCommentsBean implements Serializable {
             try {
                 PullRequest gitPullRequest = pullRequestService.getPullRequest(gitRepo, entityIssue.getNumber());
                 if (gitPullRequest != null && gitPullRequest.getId() != 0) {
-                    entityIssue.setPullRequest(PullRequestServices.createEntity(gitPullRequest, entityIssue, pullRequestDao, userDao));
-                    issueDao.edit(entityIssue);
+                    entityIssue.setPullRequest(PullRequestServices.createEntity(gitPullRequest, entityIssue, dao));
+                    dao.edit(entityIssue);
                     log += " PullRequest gravado com sucesso!";
                 }
             } catch (org.eclipse.egit.github.core.client.RequestException ex) {

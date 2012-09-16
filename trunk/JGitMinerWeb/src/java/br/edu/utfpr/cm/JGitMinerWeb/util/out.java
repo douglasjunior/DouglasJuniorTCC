@@ -25,6 +25,7 @@ public class out {
 
     public static void setCurrentProcess(String currentProcess) {
         out.currentProcess = currentProcess;
+        out.printLog(currentProcess);
     }
 
     public static String getLog() {

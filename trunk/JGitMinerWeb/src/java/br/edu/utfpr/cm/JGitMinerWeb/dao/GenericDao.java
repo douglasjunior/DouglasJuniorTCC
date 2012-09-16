@@ -1,55 +1,57 @@
 package br.edu.utfpr.cm.JGitMinerWeb.dao;
 
 import java.util.List;
+import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
 
-public abstract class AbstractDao<T> {
+@Stateless
+public class GenericDao {
 
-    private Class<T> entityClass;
+    @PersistenceContext(unitName = "pu")
+    private EntityManager em;
 
-    public AbstractDao(Class<T> classeEntidade) {
-        this.entityClass = classeEntidade;
+    EntityManager getEntityManager() {
+        return em;
     }
 
-    protected abstract EntityManager getEntityManager();
-
-    public void insert(T entidade) {
+    public void insert(Object entidade) {
         getEntityManager().persist(entidade);
     }
 
-    public void edit(T entidade) {
+    public void edit(Object entidade) {
         getEntityManager().merge(entidade);
     }
 
-    public void remove(T entidade) {
+    public void remove(Object entidade) {
         getEntityManager().remove(getEntityManager().merge(entidade));
     }
 
-    public T findByID(Object id) {
-        return (T) getEntityManager().find(entityClass, id);
+    public Object findByID(Object id, Class classe) {
+        return getEntityManager().find(classe, id);
     }
 
-    public List<T> selectAll() {
+    public List selectAll(Class classe) {
         CriteriaQuery cq = getEntityManager().getCriteriaBuilder().createQuery();
-        cq.select(cq.from(entityClass));
+        cq.select(cq.from(classe));
         return getEntityManager().createQuery(cq).getResultList();
     }
 
-    public List<T> selectBy(int[] intervalo) {
+    public List selectBy(int[] intervalo, Class classe) {
         CriteriaQuery cq = getEntityManager().getCriteriaBuilder().createQuery();
-        cq.select(cq.from(entityClass));
+        cq.select(cq.from(classe));
         Query q = getEntityManager().createQuery(cq);
         q.setMaxResults(intervalo[1] - intervalo[0]);
         q.setFirstResult(intervalo[0]);
         return q.getResultList();
     }
 
-    public int count() {
+    public int count(Class classe) {
         CriteriaQuery cq = getEntityManager().getCriteriaBuilder().createQuery();
-        Root<T> rt = cq.from(entityClass);
+        Root rt = cq.from(classe);
         cq.select(getEntityManager().getCriteriaBuilder().count(rt));
         Query q = getEntityManager().createQuery(cq);
         return ((Long) q.getSingleResult()).intValue();

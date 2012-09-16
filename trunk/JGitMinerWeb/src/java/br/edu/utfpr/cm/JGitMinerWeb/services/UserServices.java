@@ -4,7 +4,7 @@
  */
 package br.edu.utfpr.cm.JGitMinerWeb.services;
 
-import br.edu.utfpr.cm.JGitMinerWeb.dao.UserDao;
+import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericDao;
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.EntityUser;
 import br.edu.utfpr.cm.JGitMinerWeb.util.out;
 import java.util.Date;
@@ -20,23 +20,20 @@ import org.eclipse.egit.github.core.service.WatcherService;
  */
 public class UserServices {
 
-    private static UserDao dao;
-
-    private static EntityUser getUserByLogin(String login) {
+    private static EntityUser getUserByLogin(String login, GenericDao dao) {
         List<EntityUser> users = dao.executeNamedQueryComParametros("User.findByLogin", new String[]{"login"}, new Object[]{login});
         if (!users.isEmpty()) {
-            return dao.findByID(users.get(0).getId());
+            return (EntityUser) dao.findByID(users.get(0).getId(), EntityUser.class);
         }
         return null;
     }
 
-    public static EntityUser createEntity(User gitUser, UserDao userDao) {
+    public static EntityUser createEntity(User gitUser, GenericDao dao) {
         if (gitUser == null) {
             return null;
         }
 
-        UserServices.dao = userDao;
-        EntityUser user = getUserByLogin(gitUser.getLogin());
+        EntityUser user = getUserByLogin(gitUser.getLogin(), dao);
 
         if (user == null) {
             user = new EntityUser();
@@ -66,9 +63,9 @@ public class UserServices {
         user.setUrl(gitUser.getUrl());
 
         if (user.getId() == null || user.getId().equals(new Long(0))) {
-            userDao.insert(user);
+            dao.insert(user);
         } else {
-            userDao.edit(user);
+            dao.edit(user);
         }
 
         return user;

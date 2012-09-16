@@ -4,8 +4,7 @@
  */
 package br.edu.utfpr.cm.JGitMinerWeb.managedBean;
 
-import br.edu.utfpr.cm.JGitMinerWeb.dao.RepositoryDao;
-import br.edu.utfpr.cm.JGitMinerWeb.dao.UserDao;
+import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericDao;
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.EntityRepository;
 import br.edu.utfpr.cm.JGitMinerWeb.services.RepositoryServices;
 import br.edu.utfpr.cm.JGitMinerWeb.util.JsfUtil;
@@ -25,9 +24,7 @@ import org.eclipse.egit.github.core.service.RepositoryService;
 public class RepositoryBean {
 
     @EJB
-    private RepositoryDao repositoryDao;
-    @EJB
-    private UserDao userDao;
+    private GenericDao dao;
     private EntityRepository repository;
     private EntityRepository repositorySelected;
     private String repositoryName;
@@ -76,22 +73,24 @@ public class RepositoryBean {
             JsfUtil.addErrorMessage("Informe o nome do repositorio desejado.", "");
         } else {
             try {
+
+
                 Repository gitRepository = new RepositoryService().getRepository(this.repositoryOwnerLogin, this.repositoryName);
 
                 System.err.println("Repositório: " + gitRepository.getName() + " | " + gitRepository.getOwner().getLogin() + " | " + gitRepository.getCreatedAt() + " | " + gitRepository.getHtmlUrl());
 
-                repository = RepositoryServices.createEntity(gitRepository, repositoryDao, userDao);
+                repository = RepositoryServices.createEntity(gitRepository, dao);
 
                 JsfUtil.addSuccessMessage("Repositorio salvo com sucesso.", "");
             } catch (Exception e) {
                 e.printStackTrace();
-                JsfUtil.addErrorMessage("Erro ao salvar Repositorio.<br />" + e.getMessage(), ""); 
+                JsfUtil.addErrorMessage("Erro ao salvar Repositorio.<br />" + e.getMessage(), "");
             }
         }
     }
 
     public List<EntityRepository> getAllRepositories() {
-        return repositoryDao.selectAll();
+        return dao.selectAll(EntityRepository.class);
     }
 
     @FacesConverter(forClass = EntityRepository.class)
@@ -104,7 +103,7 @@ public class RepositoryBean {
             }
             RepositoryBean bean = (RepositoryBean) facesContext.getApplication().getELResolver().
                     getValue(facesContext.getELContext(), null, "repositoryBean");
-            return bean.repositoryDao.findByID(getKey(value));
+            return bean.dao.findByID(getKey(value), EntityRepository.class);
         }
 
         java.lang.Long getKey(String value) {

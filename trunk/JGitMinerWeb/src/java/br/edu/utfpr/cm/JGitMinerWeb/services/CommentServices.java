@@ -4,8 +4,7 @@
  */
 package br.edu.utfpr.cm.JGitMinerWeb.services;
 
-import br.edu.utfpr.cm.JGitMinerWeb.dao.CommentDao;
-import br.edu.utfpr.cm.JGitMinerWeb.dao.UserDao;
+import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericDao;
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.EntityComment;
 import java.util.Date;
 import java.util.List;
@@ -16,29 +15,26 @@ import org.eclipse.egit.github.core.Comment;
  * @author Douglas
  */
 public class CommentServices {
-    
-    private static CommentDao dao;
-    
-    public static EntityComment getCommentByIdComment(long idComment) {
+
+    public static EntityComment getCommentByIdComment(long idComment, GenericDao dao) {
         List<EntityComment> comments = dao.executeNamedQueryComParametros("Comment.findByIdComment", new String[]{"idComment"}, new Object[]{idComment});
         if (!comments.isEmpty()) {
-            return dao.findByID(comments.get(0).getId());
+            return (EntityComment) dao.findByID(comments.get(0).getId(), EntityComment.class);
         }
         return null;
     }
-    
-    public static EntityComment createEntity(Comment gitComment, CommentDao commentDao, UserDao userDao) {
+
+    public static EntityComment createEntity(Comment gitComment, GenericDao dao) {
         if (gitComment == null) {
             return null;
         }
-        
-        CommentServices.dao = commentDao;
-        EntityComment comment = getCommentByIdComment(gitComment.getId());
-        
+
+        EntityComment comment = getCommentByIdComment(gitComment.getId(), dao);
+
         if (comment == null) {
             comment = new EntityComment();
         }
-        
+
         comment.setMineredAt(new Date());
         comment.setCreatedAt(gitComment.getCreatedAt());
         comment.setUpdatedAt(gitComment.getUpdatedAt());
@@ -47,14 +43,14 @@ public class CommentServices {
         comment.setBodyText(gitComment.getBodyText());
         comment.setIdComment(gitComment.getId());
         comment.setUrl(gitComment.getUrl());
-        comment.setUser(UserServices.createEntity(gitComment.getUser(), userDao));
-        
+        comment.setUser(UserServices.createEntity(gitComment.getUser(), dao));
+
         if (comment.getId() == null || comment.getId().equals(new Long(0))) {
-            commentDao.insert(comment);
+            dao.insert(comment);
         } else {
-            commentDao.edit(comment);
+            dao.edit(comment);
         }
-        
+
         return comment;
     }
 }

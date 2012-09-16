@@ -4,8 +4,7 @@
  */
 package br.edu.utfpr.cm.JGitMinerWeb.services;
 
-import br.edu.utfpr.cm.JGitMinerWeb.dao.PullRequestDao;
-import br.edu.utfpr.cm.JGitMinerWeb.dao.UserDao;
+import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericDao;
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.EntityIssue;
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.EntityPullRequest;
 import java.util.Date;
@@ -18,16 +17,12 @@ import org.eclipse.egit.github.core.PullRequest;
  */
 public class PullRequestServices {
 
-    private static PullRequestDao dao;
-
-    public static EntityPullRequest createEntity(PullRequest gitPullRequest, EntityIssue issue, PullRequestDao pullDao, UserDao userDao) {
+    public static EntityPullRequest createEntity(PullRequest gitPullRequest, EntityIssue issue, GenericDao dao) {
         if (gitPullRequest == null) {
             return null;
         }
 
-        dao = pullDao;
-
-        EntityPullRequest pull = getPullRequestByIdPull(gitPullRequest.getId());
+        EntityPullRequest pull = getPullRequestByIdPull(gitPullRequest.getId(), dao);
 
         if (pull == null) {
             pull = new EntityPullRequest();
@@ -60,22 +55,22 @@ public class PullRequestServices {
         pull.setStatePullRequest(gitPullRequest.getState());
         pull.setTitle(gitPullRequest.getTitle());
         pull.setUrl(gitPullRequest.getUrl());
-        pull.setMergedBy(UserServices.createEntity(gitPullRequest.getMergedBy(), userDao));
-        pull.setUser(UserServices.createEntity(gitPullRequest.getUser(), userDao));
+        pull.setMergedBy(UserServices.createEntity(gitPullRequest.getMergedBy(), dao));
+        pull.setUser(UserServices.createEntity(gitPullRequest.getUser(), dao));
 
         if (pull.getId() == null || pull.getId().equals(new Long(0))) {
-            pullDao.insert(pull);
+            dao.insert(pull);
         } else {
-            pullDao.edit(pull);
+            dao.edit(pull);
         }
 
         return pull;
     }
 
-    private static EntityPullRequest getPullRequestByIdPull(long idPullRequest) {
+    private static EntityPullRequest getPullRequestByIdPull(long idPullRequest, GenericDao dao) {
         List<EntityPullRequest> pulls = dao.executeNamedQueryComParametros("PullRequest.findByIdPullRequest", new String[]{"idPullRequest"}, new Object[]{idPullRequest});
         if (!pulls.isEmpty()) {
-            return (EntityPullRequest) dao.findByID(pulls.get(0).getId());
+            return (EntityPullRequest) dao.findByID(pulls.get(0).getId(), EntityPullRequest.class);
         }
         return null;
     }
