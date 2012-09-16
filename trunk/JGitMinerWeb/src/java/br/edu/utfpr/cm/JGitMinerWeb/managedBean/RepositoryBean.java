@@ -73,13 +73,11 @@ public class RepositoryBean {
             JsfUtil.addErrorMessage("Informe o nome do repositorio desejado.", "");
         } else {
             try {
-
-
                 Repository gitRepository = new RepositoryService().getRepository(this.repositoryOwnerLogin, this.repositoryName);
 
                 System.err.println("Repositório: " + gitRepository.getName() + " | " + gitRepository.getOwner().getLogin() + " | " + gitRepository.getCreatedAt() + " | " + gitRepository.getHtmlUrl());
 
-                repository = RepositoryServices.createEntity(gitRepository, dao);
+                repository = RepositoryServices.createEntity(gitRepository, dao, true);
 
                 JsfUtil.addSuccessMessage("Repositorio salvo com sucesso.", "");
             } catch (Exception e) {
@@ -91,6 +89,10 @@ public class RepositoryBean {
 
     public List<EntityRepository> getAllRepositories() {
         return dao.selectAll(EntityRepository.class);
+    }
+
+    public List<EntityRepository> getRepositoriesPrimaryMiner() {
+        return dao.executeNamedQuery("Repository.findByPrimaryMiner");
     }
 
     @FacesConverter(forClass = EntityRepository.class)

@@ -14,7 +14,7 @@
             <p:growl globalOnly="true" id="messages" />
             <h:outputLabel for="repositoryToMiner" value="Escolha o Repositório para mineração dos dados: "/>
             <p:selectOneListbox id="repositoryToMiner" converter="#{repositoryBean.converter}" style="height:100px;width:300px" value="#{issuesAndCommentsBean.repositoryToMiner}">
-                <f:selectItems value="#{repositoryBean.allRepositories}" var="repo" itemLabel="#{repo.name}" itemDescription="#{repo.name}" itemValue="#{repo}"  />
+                <f:selectItems value="#{repositoryBean.repositoriesPrimaryMiner}" var="repo" itemLabel="#{repo.name}, #{repo.owner.login}" itemDescription="#{repo.name}" itemValue="#{repo}"  />
             </p:selectOneListbox>
             <br />
             <h:selectBooleanCheckbox value="#{issuesAndCommentsBean.minerOpenIssues}" id="minerOpenIssues" title="Minerar Open Issues" />
@@ -23,8 +23,8 @@
             <h:selectBooleanCheckbox value="#{issuesAndCommentsBean.minerClosedIssues}" id="minerClosedIssues" title="Minerar Closed Issues" />
             <h:outputLabel for="minerClosedIssues" value="Minerar Closed Issues."/>
             <br />       
-            <h:selectBooleanCheckbox value="#{issuesAndCommentsBean.minerComments}" id="minerComments" title="Minerar Comments" />
-            <h:outputLabel for="minerComments" value="Minerar Comments."/>
+            <h:selectBooleanCheckbox value="#{issuesAndCommentsBean.minerCommentsOfIssues}" id="minerComments" title="Minerar Comments of Issues" />
+            <h:outputLabel for="minerCommentsOfIssues" value="Minerar Comments of Issues."/>
             <br />    
             <h:selectBooleanCheckbox value="#{issuesAndCommentsBean.minerCollaborators}" id="minerCollaborators" title="Minerar Collaborators" />
             <h:outputLabel for="minerCollaborators" value="Minerar Collaborators."/>
@@ -34,6 +34,9 @@
             <br />       
             <h:selectBooleanCheckbox value="#{issuesAndCommentsBean.minerPullRequests}" id="minerPullRequests" title="Minerar Pull Requests" />
             <h:outputLabel for="minerPullRequests" value="Minerar Pull Requests."/>
+            <br />       
+            <h:selectBooleanCheckbox value="#{issuesAndCommentsBean.minerForks}" id="minerForks" title="Minerar Forks" />
+            <h:outputLabel for="minerForks" value="Minerar Forks."/>
             <br />       
             <h:selectBooleanCheckbox value="#{issuesAndCommentsBean.minerTeams}" id="minerTeams" title="Minerar Teams" />
             <h:outputLabel for="minerTeams" value="Minerar Teams."/>

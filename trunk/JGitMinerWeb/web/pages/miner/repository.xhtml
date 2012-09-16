@@ -22,7 +22,7 @@
         <br />
         <br />
         <h:form id="reposForm">  
-            <p:dataList value="#{repositoryBean.allRepositories}" var="repo" 
+            <p:dataList value="#{repositoryBean.repositoriesPrimaryMiner}" var="repo" 
                         id="minerated-repos" paginator="true" rows="5" 
                         paginatorTemplate="{PreviousPageLink} {CurrentPageReport} {NextPageLink} {RowsPerPageDropdown}"  
                         rowsPerPageTemplate="5,10,15" type="none">  
@@ -37,7 +37,7 @@
                     </p:commandButton>  
 
                     <label>
-                        #{repo.name}, <a href="#{repo.svnUrl}" >#{repo.svnUrl}</a>
+                        #{repo.name}, #{repo.owner.login}, <a href="#{repo.svnUrl}" >#{repo.svnUrl}</a>
                     </label>
                     <br />
                 </p:column>  

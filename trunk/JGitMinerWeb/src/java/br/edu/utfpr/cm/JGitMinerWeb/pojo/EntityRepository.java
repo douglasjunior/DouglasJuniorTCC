@@ -1,7 +1,7 @@
 /*
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
- */ 
+ */
 package br.edu.utfpr.cm.JGitMinerWeb.pojo;
 
 import java.io.Serializable;
@@ -17,7 +17,12 @@ import javax.persistence.*;
 @Entity
 @Table(name = "gitRepository")
 @NamedQueries({
-    @NamedQuery(name = "Repository.findByName", query = "SELECT r FROM EntityRepository r WHERE r.name = :name")
+    @NamedQuery(name = "Repository.findByName",
+    query = "SELECT r FROM EntityRepository r WHERE r.name = :name"),
+    @NamedQuery(name = "Repository.findByIdRepository",
+    query = "SELECT r FROM EntityRepository r WHERE r.idRepository = :idRepository"),
+    @NamedQuery(name = "Repository.findByPrimaryMiner",
+    query = "SELECT r FROM EntityRepository r WHERE r.primaryMiner = TRUE")
 })
 public class EntityRepository implements Serializable {
 
@@ -27,6 +32,7 @@ public class EntityRepository implements Serializable {
     private Long id;
     @Temporal(javax.persistence.TemporalType.TIMESTAMP)
     private Date mineredAt;
+    private boolean primaryMiner;
     private boolean fork;
     private boolean hasDownloads;
     private boolean hasIssues;
@@ -38,10 +44,8 @@ public class EntityRepository implements Serializable {
     private Date pushedAt;
     @Temporal(javax.persistence.TemporalType.TIMESTAMP)
     private Date updatedAt;
-    private int forks;
     @Column(unique = true)
     private long idRepository;
-    private int openIssues;
     private int sizeRepository;
     @ManyToOne
     private EntityRepository parent;
@@ -74,11 +78,14 @@ public class EntityRepository implements Serializable {
     private List<EntityUser> collaborators;
     @ManyToMany(mappedBy = "watchedRepositories")
     private List<EntityUser> watchers;
+    @OneToMany(mappedBy = "parent")
+    private List<EntityRepository> forks;
 
     public EntityRepository() {
         issues = new ArrayList<EntityIssue>();
         collaborators = new ArrayList<EntityUser>();
         watchers = new ArrayList<EntityUser>();
+        forks = new ArrayList<EntityRepository>();
         mineredAt = new Date();
     }
 
@@ -128,14 +135,6 @@ public class EntityRepository implements Serializable {
 
     public void setFork(boolean fork) {
         this.fork = fork;
-    }
-
-    public int getForks() {
-        return forks;
-    }
-
-    public void setForks(int forks) {
-        this.forks = forks;
     }
 
     public String getGitUrl() {
@@ -215,6 +214,9 @@ public class EntityRepository implements Serializable {
     }
 
     public void setMasterBranch(String masterBranch) {
+        if (masterBranch == null || masterBranch.isEmpty()) {
+            return;
+        }
         this.masterBranch = masterBranch;
     }
 
@@ -232,14 +234,6 @@ public class EntityRepository implements Serializable {
 
     public void setName(String name) {
         this.name = name;
-    }
-
-    public int getOpenIssues() {
-        return openIssues;
-    }
-
-    public void setOpenIssues(int openIssues) {
-        this.openIssues = openIssues;
     }
 
     public EntityUser getOwner() {
@@ -263,6 +257,9 @@ public class EntityRepository implements Serializable {
     }
 
     public void setParent(EntityRepository parent) {
+        if (parent == null) {
+            return;
+        }
         this.parent = parent;
     }
 
@@ -287,6 +284,9 @@ public class EntityRepository implements Serializable {
     }
 
     public void setSource(EntityRepository source) {
+        if (source == null) {
+            return;
+        }
         this.source = source;
     }
 
@@ -376,9 +376,24 @@ public class EntityRepository implements Serializable {
     }
 
     public void addIssue(EntityIssue issue) {
-        if (!getIssues().contains(issue) || issue.getId() == null || issue.getId().equals(new Long(0))) {
+        if (!getIssues().contains(issue)) {
             getIssues().add(issue);
         }
         issue.setRepository(this);
+    }
+
+    public void addFork(EntityRepository fork) {
+        if (!forks.contains(fork)) {
+            forks.add(fork);
+        }
+        fork.setParent(this);
+    }
+
+    public boolean isPrimaryMiner() {
+        return primaryMiner;
+    }
+
+    public void setPrimaryMiner(boolean primaryMiner) {
+        this.primaryMiner = primaryMiner || this.primaryMiner;
     }
 }

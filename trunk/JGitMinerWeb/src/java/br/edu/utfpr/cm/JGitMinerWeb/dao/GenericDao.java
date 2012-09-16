@@ -1,5 +1,6 @@
 package br.edu.utfpr.cm.JGitMinerWeb.dao;
 
+import br.edu.utfpr.cm.JGitMinerWeb.pojo.EntityRepository;
 import java.util.List;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
@@ -70,5 +71,9 @@ public class GenericDao {
         }
         List list = query.getResultList();
         return list;
+    }
+
+    public List executeNamedQuery(String namedQuery) {
+        return getEntityManager().createNamedQuery(namedQuery).getResultList();
     }
 }
