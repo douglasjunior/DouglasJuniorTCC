@@ -4,11 +4,9 @@
  */
 package br.edu.utfpr.cm.JGitMinerWeb.pojo;
 
-import br.edu.utfpr.cm.JGitMinerWeb.services.LabelServices;
 import java.io.Serializable;
 import java.util.Date;
 import javax.persistence.*;
-import org.eclipse.egit.github.core.Label;
 
 /**
  *
@@ -35,20 +33,20 @@ public class EntityLabel implements Serializable {
         mineredAt = new Date();
     }
 
-    public EntityLabel(Label label) {
-        this();
-        setColor(label.getColor());
-        setName(label.getName());
-        setUrl(label.getUrl());
-    }
-
-
     public Long getId() {
         return id;
     }
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public Date getMineredAt() {
+        return mineredAt;
+    }
+
+    public void setMineredAt(Date mineredAt) {
+        this.mineredAt = mineredAt;
     }
 
     public String getColor() {

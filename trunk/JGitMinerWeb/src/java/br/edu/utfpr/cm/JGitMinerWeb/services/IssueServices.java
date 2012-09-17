@@ -24,7 +24,7 @@ public class IssueServices {
     private static EntityIssue getIssueByIdIssue(long idIssue, GenericDao dao) {
         List<EntityIssue> issues = dao.executeNamedQueryComParametros("Issue.findByIdIssue", new String[]{"idIssue"}, new Object[]{idIssue});
         if (!issues.isEmpty()) {
-            return (EntityIssue) dao.findByID(issues.get(0).getId(), EntityIssue.class);
+            return issues.get(0);
         }
         return null;
     }
@@ -83,9 +83,8 @@ public class IssueServices {
         issue.setCreatedAt(gitIssue.getCreatedAt());
         issue.setUpdatedAt(gitIssue.getUpdatedAt());
         issue.setNumber(gitIssue.getNumber());
-        //issue.setLabels(LabelServices.getLabels(gitIssue.getLabels()));
-        //issue.setMilestone(EntityMilestone.createMilestone(gitIssue.getMilestone()));
-        //issue.setPullRequest(EntityPullRequest.create(gitIssue.getPullRequest(), this)); // será minerado separadamente
+        LabelServices.addLabels(issue, gitIssue.getLabels(), dao);
+        issue.setMilestone(MilestoneServices.createEntity(gitIssue.getMilestone(), dao));
         issue.setBody(gitIssue.getBody());
         issue.setBodyHtml(gitIssue.getBodyHtml());
         issue.setBodyText(gitIssue.getBodyText());
@@ -93,8 +92,8 @@ public class IssueServices {
         issue.setStateIssue(gitIssue.getState());
         issue.setTitle(gitIssue.getTitle());
         issue.setUrl(gitIssue.getUrl());
-        issue.setAssignee(UserServices.createEntity(gitIssue.getAssignee(), dao));
-        issue.setUserIssue(UserServices.createEntity(gitIssue.getUser(), dao));
+        issue.setAssignee(UserServices.createEntity(gitIssue.getAssignee(), dao, false));
+        issue.setUserIssue(UserServices.createEntity(gitIssue.getUser(), dao, false));
 
         if (issue.getId() == null || issue.getId().equals(new Long(0))) {
             dao.insert(issue);

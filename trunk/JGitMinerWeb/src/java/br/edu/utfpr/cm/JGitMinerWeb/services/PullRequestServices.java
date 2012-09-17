@@ -55,8 +55,8 @@ public class PullRequestServices {
         pull.setStatePullRequest(gitPullRequest.getState());
         pull.setTitle(gitPullRequest.getTitle());
         pull.setUrl(gitPullRequest.getUrl());
-        pull.setMergedBy(UserServices.createEntity(gitPullRequest.getMergedBy(), dao));
-        pull.setUser(UserServices.createEntity(gitPullRequest.getUser(), dao));
+        pull.setMergedBy(UserServices.createEntity(gitPullRequest.getMergedBy(), dao, false));
+        pull.setUser(UserServices.createEntity(gitPullRequest.getUser(), dao, false));
 
         if (pull.getId() == null || pull.getId().equals(new Long(0))) {
             dao.insert(pull);
@@ -70,7 +70,7 @@ public class PullRequestServices {
     private static EntityPullRequest getPullRequestByIdPull(long idPullRequest, GenericDao dao) {
         List<EntityPullRequest> pulls = dao.executeNamedQueryComParametros("PullRequest.findByIdPullRequest", new String[]{"idPullRequest"}, new Object[]{idPullRequest});
         if (!pulls.isEmpty()) {
-            return (EntityPullRequest) dao.findByID(pulls.get(0).getId(), EntityPullRequest.class);
+            return pulls.get(0);
         }
         return null;
     }

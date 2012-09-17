@@ -4,11 +4,9 @@
  */
 package br.edu.utfpr.cm.JGitMinerWeb.pojo;
 
-import br.edu.utfpr.cm.JGitMinerWeb.services.MilestoneServices;
 import java.io.Serializable;
 import java.util.Date;
 import javax.persistence.*;
-import org.eclipse.egit.github.core.Milestone;
 
 /**
  *
@@ -40,41 +38,12 @@ public class EntityMilestone implements Serializable {
     @Column(columnDefinition = "text")
     private String title;
     private String url;
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne
     private EntityUser creator;
 
     public EntityMilestone() {
         mineredAt = new Date();
     }
-
-    public EntityMilestone(Date createdAt, Date dueOn, int closedIssues, int number, int openIssues, String description, String stateMilestone, String title, String url, EntityUser creator) {
-        this();
-        this.createdAt = createdAt;
-        this.dueOn = dueOn;
-        this.closedIssues = closedIssues;
-        this.number = number;
-        this.openIssues = openIssues;
-        this.description = description;
-        this.stateMilestone = stateMilestone;
-        this.title = title;
-        this.url = url;
-        this.creator = creator;
-    }
-
-    public EntityMilestone(Milestone milestone) {
-        this();
-        this.createdAt = milestone.getCreatedAt();
-        this.dueOn = milestone.getDueOn();
-        this.closedIssues = milestone.getClosedIssues();
-        this.number = milestone.getNumber();
-        this.openIssues = milestone.getOpenIssues();
-        this.description = milestone.getDescription();
-        this.stateMilestone = milestone.getState();
-        this.title = milestone.getTitle();
-        this.url = milestone.getUrl();
-    //    this.creator = EntityUser.createUser(milestone.getCreator());
-    }
-
 
     public Long getId() {
         return id;
@@ -82,6 +51,14 @@ public class EntityMilestone implements Serializable {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public Date getMineredAt() {
+        return mineredAt;
+    }
+
+    public void setMineredAt(Date mineredAt) {
+        this.mineredAt = mineredAt;
     }
 
     public int getClosedIssues() {

@@ -214,9 +214,6 @@ public class EntityRepository implements Serializable {
     }
 
     public void setMasterBranch(String masterBranch) {
-        if (masterBranch == null || masterBranch.isEmpty()) {
-            return;
-        }
         this.masterBranch = masterBranch;
     }
 
@@ -257,9 +254,6 @@ public class EntityRepository implements Serializable {
     }
 
     public void setParent(EntityRepository parent) {
-        if (parent == null) {
-            return;
-        }
         this.parent = parent;
     }
 
@@ -284,9 +278,6 @@ public class EntityRepository implements Serializable {
     }
 
     public void setSource(EntityRepository source) {
-        if (source == null) {
-            return;
-        }
         this.source = source;
     }
 

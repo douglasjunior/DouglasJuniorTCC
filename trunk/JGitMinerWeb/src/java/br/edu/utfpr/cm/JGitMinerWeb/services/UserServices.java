@@ -23,43 +23,45 @@ public class UserServices {
     private static EntityUser getUserByLogin(String login, GenericDao dao) {
         List<EntityUser> users = dao.executeNamedQueryComParametros("User.findByLogin", new String[]{"login"}, new Object[]{login});
         if (!users.isEmpty()) {
-            return (EntityUser) dao.findByID(users.get(0).getId(), EntityUser.class);
+            return users.get(0);
         }
         return null;
     }
 
-    public static EntityUser createEntity(User gitUser, GenericDao dao) {
+    public static EntityUser createEntity(User gitUser, GenericDao dao, boolean primaryMiner) {
         if (gitUser == null) {
             return null;
         }
 
         EntityUser user = getUserByLogin(gitUser.getLogin(), dao);
-
         if (user == null) {
             user = new EntityUser();
         }
 
+        if (primaryMiner) {
+            user.setCreatedAt(gitUser.getCreatedAt());
+            user.setCollaborators(gitUser.getCollaborators());
+            user.setDiskUsage(gitUser.getDiskUsage());
+            user.setFollowers(gitUser.getFollowers());
+            user.setFollowing(gitUser.getFollowing());
+            user.setOwnedPrivateRepos(gitUser.getOwnedPrivateRepos());
+            user.setPrivateGists(gitUser.getPrivateGists());
+            user.setPublicGists(gitUser.getPublicGists());
+            user.setPublicRepos(gitUser.getPublicRepos());
+            user.setTotalPrivateRepos(gitUser.getTotalPrivateRepos());
+            user.setAvatarUrl(gitUser.getBlog());
+            user.setCompany(gitUser.getCompany());
+            user.setEmail(gitUser.getEmail());
+            user.setHtmlUrl(gitUser.getHtmlUrl());
+            user.setLocation(gitUser.getLocation());
+            user.setName(gitUser.getName());
+            user.setType(gitUser.getType());
+        }
+
         user.setMineredAt(new Date());
-        user.setCreatedAt(gitUser.getCreatedAt());
-        user.setCollaborators(gitUser.getCollaborators());
-        user.setDiskUsage(gitUser.getDiskUsage());
-        user.setFollowers(gitUser.getFollowers());
-        user.setFollowing(gitUser.getFollowing());
-        user.setIdUser(gitUser.getId());
-        user.setOwnedPrivateRepos(gitUser.getOwnedPrivateRepos());
-        user.setPrivateGists(gitUser.getPrivateGists());
-        user.setPublicGists(gitUser.getPublicGists());
-        user.setPublicRepos(gitUser.getPublicRepos());
-        user.setTotalPrivateRepos(gitUser.getTotalPrivateRepos());
-        user.setAvatarUrl(gitUser.getBlog());
-        user.setCompany(gitUser.getCompany());
-        user.setEmail(gitUser.getEmail());
         user.setGravatarId(gitUser.getGravatarId());
-        user.setHtmlUrl(gitUser.getHtmlUrl());
-        user.setLocation(gitUser.getLocation());
+        user.setIdUser(gitUser.getId());
         user.setLogin(gitUser.getLogin());
-        user.setName(gitUser.getName());
-        user.setType(gitUser.getType());
         user.setUrl(gitUser.getUrl());
 
         if (user.getId() == null || user.getId().equals(new Long(0))) {

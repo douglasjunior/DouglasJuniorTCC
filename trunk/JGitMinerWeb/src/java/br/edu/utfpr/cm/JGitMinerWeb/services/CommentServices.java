@@ -19,7 +19,7 @@ public class CommentServices {
     public static EntityComment getCommentByIdComment(long idComment, GenericDao dao) {
         List<EntityComment> comments = dao.executeNamedQueryComParametros("Comment.findByIdComment", new String[]{"idComment"}, new Object[]{idComment});
         if (!comments.isEmpty()) {
-            return (EntityComment) dao.findByID(comments.get(0).getId(), EntityComment.class);
+            return comments.get(0);
         }
         return null;
     }
@@ -43,7 +43,7 @@ public class CommentServices {
         comment.setBodyText(gitComment.getBodyText());
         comment.setIdComment(gitComment.getId());
         comment.setUrl(gitComment.getUrl());
-        comment.setUser(UserServices.createEntity(gitComment.getUser(), dao));
+        comment.setUser(UserServices.createEntity(gitComment.getUser(), dao, false));
 
         if (comment.getId() == null || comment.getId().equals(new Long(0))) {
             dao.insert(comment);

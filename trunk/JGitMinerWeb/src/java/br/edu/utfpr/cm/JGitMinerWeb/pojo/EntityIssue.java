@@ -270,4 +270,9 @@ public class EntityIssue implements Serializable {
         }
     }
 
+    public void addLabel(EntityLabel label) {
+        if (!labels.contains(label)) {
+            labels.add(label);
+        }
+    }
 }

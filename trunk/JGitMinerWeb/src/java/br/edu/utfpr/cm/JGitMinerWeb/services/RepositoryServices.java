@@ -21,7 +21,7 @@ public class RepositoryServices {
     private static EntityRepository getRepositoryByIdRepository(Long idRepo, GenericDao dao) {
         List<EntityRepository> users = dao.executeNamedQueryComParametros("Repository.findByIdRepository", new String[]{"idRepository"}, new Object[]{idRepo});
         if (!users.isEmpty()) {
-            return (EntityRepository) dao.findByID(users.get(0).getId(), EntityRepository.class);
+            return users.get(0);
         }
         return null;
     }
@@ -35,6 +35,12 @@ public class RepositoryServices {
 
         if (repo == null) {
             repo = new EntityRepository();
+        }
+
+        if (primary) {
+            repo.setParent(RepositoryServices.createEntity(gitRepository.getParent(), dao, false));
+            repo.setSource(RepositoryServices.createEntity(gitRepository.getSource(), dao, false));
+            repo.setMasterBranch(gitRepository.getMasterBranch());
         }
 
         repo.setMineredAt(new Date());
@@ -55,15 +61,12 @@ public class RepositoryServices {
         repo.setGitUrl(gitRepository.getGitUrl());
         repo.setHtmlUrl(gitRepository.getHtmlUrl());
         repo.setLanguageRepository(gitRepository.getLanguage());
-        repo.setMasterBranch(gitRepository.getMasterBranch());
         repo.setMirrorUrl(gitRepository.getMirrorUrl());
         repo.setName(gitRepository.getName());
         repo.setSshUrl(gitRepository.getSshUrl());
         repo.setSvnUrl(gitRepository.getSvnUrl());
         repo.setUrl(gitRepository.getUrl());
-        repo.setOwner(UserServices.createEntity(gitRepository.getOwner(), dao));
-        repo.setParent(RepositoryServices.createEntity(gitRepository.getParent(), dao, false));
-        repo.setSource(RepositoryServices.createEntity(gitRepository.getSource(), dao, false));
+        repo.setOwner(UserServices.createEntity(gitRepository.getOwner(), dao, false));
 
         if (repo.getId() == null || repo.getId().equals(new Long(0))) {
             dao.insert(repo);

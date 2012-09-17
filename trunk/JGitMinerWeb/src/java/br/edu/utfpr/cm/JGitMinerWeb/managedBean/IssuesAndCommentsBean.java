@@ -330,7 +330,7 @@ public class IssuesAndCommentsBean implements Serializable {
     private EntityUser minerCollaborator(User gitCollab) {
         EntityUser colab = null;
         try {
-            colab = UserServices.createEntity(gitCollab, dao);
+            colab = UserServices.createEntity(gitCollab, dao, false);
             out.printLog("Collaborator gravado com sucesso: " + gitCollab.getLogin() + " - ID: " + gitCollab.getId());
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -355,7 +355,7 @@ public class IssuesAndCommentsBean implements Serializable {
     private EntityUser minerWatcher(User gitWatcher) {
         EntityUser watcher = null;
         try {
-            watcher = UserServices.createEntity(gitWatcher, dao);
+            watcher = UserServices.createEntity(gitWatcher, dao, false);
             out.printLog("Watcher gravado com sucesso: " + gitWatcher.getLogin() + " - ID: " + gitWatcher.getId());
         } catch (Exception ex) {
             ex.printStackTrace();
