@@ -396,7 +396,7 @@ public class IssuesAndCommentsBean implements Serializable {
                 }
             } catch (org.eclipse.egit.github.core.client.RequestException ex) {
                 ex.printStackTrace();
-                log += " PullRequest não encontrado para esta Issue.";
+                log += " PullRequest não encontrado: " + ex.toString();
             } catch (Exception ex) {
                 ex.printStackTrace();
                 log += " Ocorreu um erro inesperado: " + ex.toString();
