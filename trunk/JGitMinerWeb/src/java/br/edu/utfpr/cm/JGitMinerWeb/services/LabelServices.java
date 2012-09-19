@@ -23,18 +23,15 @@ public class LabelServices {
             if (label == null) {
                 label = new EntityLabel();
             }
-
             label.setMineredAt(new Date());
             label.setName(gitLabel.getName());
             label.setColor(gitLabel.getColor());
             label.setUrl(gitLabel.getUrl());
-
             if (label.getId() == null || label.getId().equals(new Long(0))) {
                 dao.insert(label);
             } else {
                 dao.edit(label);
             }
-            
             issue.addLabel(label);
         }
     }

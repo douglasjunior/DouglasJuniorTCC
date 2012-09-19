@@ -6,6 +6,7 @@ package br.edu.utfpr.cm.JGitMinerWeb.services;
 
 import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericDao;
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.EntityIssue;
+import br.edu.utfpr.cm.JGitMinerWeb.pojo.EntityRepository;
 import br.edu.utfpr.cm.JGitMinerWeb.util.out;
 import java.util.ArrayList;
 import java.util.Date;
@@ -21,7 +22,7 @@ import org.eclipse.egit.github.core.service.IssueService;
  */
 public class IssueServices {
 
-    private static EntityIssue getIssueByIdIssue(long idIssue, GenericDao dao) {
+    public static EntityIssue getIssueByIdIssue(long idIssue, GenericDao dao) {
         List<EntityIssue> issues = dao.executeNamedQueryComParametros("Issue.findByIdIssue", new String[]{"idIssue"}, new Object[]{idIssue});
         if (!issues.isEmpty()) {
             return issues.get(0);
@@ -30,14 +31,10 @@ public class IssueServices {
     }
 
     public static List<Issue> getGitIssuesFromRepository(Repository gitRepo, boolean open, boolean closed) {
-
         List<Issue> issues = new ArrayList<Issue>();
-
         try {
             IssueService issueServ = new IssueService();
-
             HashMap<String, String> params = new HashMap<String, String>();
-
             if (open) {
                 List<Issue> opensIssues;
                 out.printLog("Baixando Issues Abertas...\n");
@@ -46,7 +43,6 @@ public class IssueServices {
                 out.printLog(opensIssues.size() + " Issues abertas baixadas!");
                 issues.addAll(opensIssues);
             }
-
             if (closed) {
                 List<Issue> clodesIssues;
                 params = new HashMap<String, String>();
@@ -56,13 +52,11 @@ public class IssueServices {
                 out.printLog(clodesIssues.size() + " Issues fechadas baixadas!");
                 issues.addAll(clodesIssues);
             }
-
             out.printLog(issues.size() + " Issues baixadas no total!");
         } catch (Exception ex) {
             ex.printStackTrace();
             out.printLog(issues.size() + " Issues baixadas no total! Erro: " + ex.toString());
         }
-
         return issues;
     }
 
@@ -102,5 +96,13 @@ public class IssueServices {
         }
 
         return issue;
+    }
+
+    public static EntityIssue getIssueByNumber(int number, EntityRepository repo, GenericDao dao) {
+        List<EntityIssue> issues = dao.executeNamedQueryComParametros("Issue.findByNumberAndRepository", new String[]{"number", "repository"}, new Object[]{number, repo});
+        if (!issues.isEmpty()) {
+            return issues.get(0);
+        }
+        return null;
     }
 }

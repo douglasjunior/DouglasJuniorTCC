@@ -16,6 +16,7 @@ import javax.persistence.*;
 @Table(name = "gitPullRequest")
 @NamedQueries({
     @NamedQuery(name = "PullRequest.findByIdPullRequest", query = "SELECT p FROM EntityPullRequest p WHERE p.idPullRequest = :idPullRequest"),
+    @NamedQuery(name = "PullRequest.findByNumberAndRepository", query = "SELECT p FROM EntityPullRequest p WHERE p.number = :number AND p.repository = :repository"),
     @NamedQuery(name = "PullRequest.findByIssue", query = "SELECT p FROM EntityPullRequest p WHERE p.issue = :issue")
 })
 public class EntityPullRequest implements Serializable {
@@ -71,6 +72,8 @@ public class EntityPullRequest implements Serializable {
     private EntityUser user;
     @OneToOne(mappedBy = "pullRequest")
     private EntityIssue issue;
+    @ManyToOne
+    private EntityRepository repository;
 
     public EntityPullRequest() {
         mineredAt = new Date();
@@ -306,6 +309,14 @@ public class EntityPullRequest implements Serializable {
 
     public void setIssue(EntityIssue issue) {
         this.issue = issue;
+    }
+
+    public EntityRepository getRepository() {
+        return repository;
+    }
+
+    public void setRepository(EntityRepository repository) {
+        this.repository = repository;
     }
 
     public Date getMineredAt() {

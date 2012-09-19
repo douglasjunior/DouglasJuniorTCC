@@ -14,7 +14,6 @@ import javax.faces.bean.SessionScoped;
 import javax.faces.context.FacesContext;
 import org.eclipse.egit.github.core.*;
 import org.eclipse.egit.github.core.service.IssueService;
-import org.eclipse.egit.github.core.service.PullRequestService;
 
 @ManagedBean(name = "issuesAndCommentsBean")
 @SessionScoped
@@ -28,7 +27,8 @@ public class IssuesAndCommentsBean implements Serializable {
     private boolean minerCommentsOfIssues;
     private boolean minerCollaborators;
     private boolean minerWatchers;
-    private boolean minerPullRequests;
+    private boolean minerOpenPullRequests;
+    private boolean minerClosedPullRequests;
     private boolean minerForks;
     private boolean minerTeams;
     private boolean initialized;
@@ -79,12 +79,20 @@ public class IssuesAndCommentsBean implements Serializable {
         this.minerCollaborators = minerCollaborators;
     }
 
-    public boolean isMinerPullRequests() {
-        return minerPullRequests;
+    public boolean isMinerClosedPullRequests() {
+        return minerClosedPullRequests;
     }
 
-    public void setMinerPullRequests(boolean minerPullRequests) {
-        this.minerPullRequests = minerPullRequests;
+    public void setMinerClosedPullRequests(boolean minerClosedPullRequests) {
+        this.minerClosedPullRequests = minerClosedPullRequests;
+    }
+
+    public boolean isMinerOpenPullRequests() {
+        return minerOpenPullRequests;
+    }
+
+    public void setMinerOpenPullRequests(boolean minerOpenPullRequests) {
+        this.minerOpenPullRequests = minerOpenPullRequests;
     }
 
     public boolean isMinerForks() {
@@ -141,7 +149,8 @@ public class IssuesAndCommentsBean implements Serializable {
         out.printLog("minerComments: " + minerCommentsOfIssues);
         out.printLog("minerCollaborators: " + minerCollaborators);
         out.printLog("minerWatchers: " + minerWatchers);
-        out.printLog("minerPullRequests: " + minerPullRequests);
+        out.printLog("minerOpenPullRequests: " + minerOpenPullRequests);
+        out.printLog("minerClosedPullRequests: " + minerClosedPullRequests);
         out.printLog("minerTeams: " + minerTeams);
 
         if (repositoryToMiner == null) {
@@ -169,8 +178,8 @@ public class IssuesAndCommentsBean implements Serializable {
                     if (!canceled && (minerOpenIssues || minerClosedIssues)) {
                         subProgress = new Integer(0);
                         out.setCurrentProcess("Minerando issues...\n");
-                        List<Issue> issues = IssueServices.getGitIssuesFromRepository(gitRepo, minerOpenIssues, minerClosedIssues);
-                        minerIssues(issues, gitRepo);
+                        List<Issue> gitIssues = IssueServices.getGitIssuesFromRepository(gitRepo, minerOpenIssues, minerClosedIssues);
+                        minerIssues(gitIssues, gitRepo);
                         mineration.setMinerLog(out.getLog());
                         dao.edit(mineration);
                     }
@@ -193,10 +202,12 @@ public class IssuesAndCommentsBean implements Serializable {
                         dao.edit(mineration);
                     }
                     progress = new Integer(75);
-                    if (!canceled && minerPullRequests) {
+                    if (!canceled && (minerClosedPullRequests || minerOpenPullRequests)) {
                         subProgress = new Integer(0);
                         out.setCurrentProcess("Minerando Pull Requests...\n");
-                        minerPullRequests(gitRepo, repositoryToMiner);
+                        List<PullRequest> gitPullRequests = PullRequestServices.getGitPullRequestsFromRepository(gitRepo, minerOpenPullRequests, minerClosedPullRequests);
+                        minerPullRequests(gitPullRequests);
+                        dao.edit(mineration);
                     }
                     progress = new Integer(80);
                     if (!canceled && minerForks) {
@@ -204,6 +215,7 @@ public class IssuesAndCommentsBean implements Serializable {
                         out.setCurrentProcess("Minerando Forks...\n");
                         List<Repository> gitForks = RepositoryServices.getForksFromRepository(gitRepo);
                         minerForks(gitForks);
+                        dao.edit(mineration);
                     }
                     if (canceled) {
                         out.printLog("Processo de mineração interrompido.\n");
@@ -265,6 +277,11 @@ public class IssuesAndCommentsBean implements Serializable {
             if (issue != null && minerCommentsOfIssues) {
                 minerComments(issue, gitRepo);
             }
+            EntityPullRequest pull = PullRequestServices.getPullRequestByNumber(gitIssue.getNumber(), repositoryToMiner, dao);
+            if (pull != null) {
+                pull.setIssue(issue);
+                issue.setPullRequest(pull);
+            }
             repositoryToMiner.addIssue(issue);
             dao.edit(issue);
             i++;
@@ -279,8 +296,6 @@ public class IssuesAndCommentsBean implements Serializable {
             out.printLog("Isseu gravada com sucesso: " + gitIssue.getTitle() + " - ID: " + gitIssue.getId());
         } catch (Exception ex) {
             ex.printStackTrace();
-            System.out.println("getAssignee: " + issue.getAssignee());
-            System.out.println("getUserIssue: " + issue.getUserIssue());
             out.printLog("## Erro ao gravar Issue: " + gitIssue.getTitle() + " - ID: " + gitIssue.getId() + " Descrição: " + ex.toString());
         }
         return issue;
@@ -377,34 +392,35 @@ public class IssuesAndCommentsBean implements Serializable {
         subProgress = new Integer((int) subProg);
     }
 
-    private void minerPullRequests(Repository gitRepo, EntityRepository repo) throws Exception {
-        out.printLog("Coletando Issues no banco de dados...\n");
-        List<EntityIssue> issues = dao.executeNamedQueryComParametros("Issue.findByRepository", new String[]{"repository"}, new Object[]{repo});
-        out.printLog(issues.size() + " Issues encontradas no banco de dados...");
-        out.printLog("");
-        PullRequestService pullRequestService = new PullRequestService();
+    private void minerPullRequests(List<PullRequest> gitPullRequests) throws Exception {
         int i = 0;
-        while (!canceled && i < issues.size()) {
-            EntityIssue entityIssue = issues.get(i);
-            String log = "Baixando PullRequest da Issue " + entityIssue.getNumber() + ": ";
-            try {
-                PullRequest gitPullRequest = pullRequestService.getPullRequest(gitRepo, entityIssue.getNumber());
-                if (gitPullRequest != null && gitPullRequest.getId() != 0) {
-                    entityIssue.setPullRequest(PullRequestServices.createEntity(gitPullRequest, entityIssue, dao));
-                    dao.edit(entityIssue);
-                    log += " PullRequest gravado com sucesso!";
-                }
-            } catch (org.eclipse.egit.github.core.client.RequestException ex) {
-                ex.printStackTrace();
-                log += " PullRequest não encontrado: " + ex.toString();
-            } catch (Exception ex) {
-                ex.printStackTrace();
-                log += " Ocorreu um erro inesperado: " + ex.toString();
+        calculeSubProgress(i, gitPullRequests.size());
+        while (!canceled && i < gitPullRequests.size()) {
+            PullRequest gitPull = gitPullRequests.get(i);
+            EntityPullRequest pullRequest = minerPullRequest(gitPull);
+            EntityIssue issue = IssueServices.getIssueByNumber(gitPull.getNumber(), repositoryToMiner, dao);
+            if (issue != null) {
+                issue.setPullRequest(pullRequest);
+                pullRequest.setIssue(issue);
+                dao.edit(issue);
             }
-            out.printLog(log);
+            repositoryToMiner.addPullRequest(pullRequest);
+            dao.edit(pullRequest);
             i++;
-            calculeSubProgress(i, issues.size());
+            calculeSubProgress(i, gitPullRequests.size());
         }
+    }
+
+    private EntityPullRequest minerPullRequest(PullRequest gitPull) {
+        EntityPullRequest pull = null;
+        try {
+            pull = PullRequestServices.createEntity(gitPull, dao);
+            out.printLog("PullRequest gravado com sucesso: " + gitPull.getTitle() + " - ID: " + gitPull.getId());
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            out.printLog("## Erro ao gravar Issue: " + gitPull.getTitle() + " - ID: " + gitPull.getId() + " Descrição: " + ex.toString());
+        }
+        return pull;
     }
 
     private void minerForks(List<Repository> gitForks) {

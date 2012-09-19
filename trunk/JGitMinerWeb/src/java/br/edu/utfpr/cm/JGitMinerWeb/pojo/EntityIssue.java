@@ -18,6 +18,7 @@ import javax.persistence.*;
 @Table(name = "gitIssue")
 @NamedQueries({
     @NamedQuery(name = "Issue.findByIdIssue", query = "SELECT i FROM EntityIssue i WHERE i.idIssue = :idIssue"),
+    @NamedQuery(name = "Issue.findByNumberAndRepository", query = "SELECT i FROM EntityIssue i WHERE i.number = :number AND i.repository = :repository"),
     @NamedQuery(name = "Issue.findByRepository", query = "SELECT i FROM EntityIssue i WHERE i.repository = :repository")
 })
 public class EntityIssue implements Serializable {
@@ -48,7 +49,7 @@ public class EntityIssue implements Serializable {
     @Column(columnDefinition = "text")
     private String bodyHtml;
     @Column(columnDefinition = "text")
-    private String bodyText;
+    private String bodyText; 
     @Column(columnDefinition = "text")
     private String htmlUrl;
     private String stateIssue;

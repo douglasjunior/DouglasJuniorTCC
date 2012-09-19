@@ -71,9 +71,10 @@ public class EntityRepository implements Serializable {
     private String url;
     @ManyToOne
     private EntityUser owner;
-    @JoinColumn(name = "REPOSITORY_ID")
     @OneToMany(mappedBy = "repository")
     private List<EntityIssue> issues;
+    @OneToMany(mappedBy = "repository")
+    private List<EntityPullRequest> pullRequests;
     @ManyToMany(mappedBy = "collaboratedRepositories")
     private List<EntityUser> collaborators;
     @ManyToMany(mappedBy = "watchedRepositories")
@@ -83,6 +84,7 @@ public class EntityRepository implements Serializable {
 
     public EntityRepository() {
         issues = new ArrayList<EntityIssue>();
+        pullRequests = new ArrayList<EntityPullRequest>();
         collaborators = new ArrayList<EntityUser>();
         watchers = new ArrayList<EntityUser>();
         forks = new ArrayList<EntityRepository>();
@@ -249,6 +251,22 @@ public class EntityRepository implements Serializable {
         this.issues = issues;
     }
 
+    public List<EntityRepository> getForks() {
+        return forks;
+    }
+
+    public void setForks(List<EntityRepository> forks) {
+        this.forks = forks;
+    }
+
+    public List<EntityPullRequest> getPullRequests() {
+        return pullRequests;
+    }
+
+    public void setPullRequests(List<EntityPullRequest> pullRequests) {
+        this.pullRequests = pullRequests;
+    }
+
     public EntityRepository getParent() {
         return parent;
     }
@@ -386,5 +404,12 @@ public class EntityRepository implements Serializable {
 
     public void setPrimaryMiner(boolean primaryMiner) {
         this.primaryMiner = primaryMiner || this.primaryMiner;
+    }
+
+    public void addPullRequest(EntityPullRequest pullRequest) {
+        if(!pullRequests.contains(pullRequest)){
+            pullRequests.add(pullRequest);
+        }
+        pullRequest.setRepository(this);
     }
 }

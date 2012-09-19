@@ -5,11 +5,15 @@
 package br.edu.utfpr.cm.JGitMinerWeb.services;
 
 import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericDao;
-import br.edu.utfpr.cm.JGitMinerWeb.pojo.EntityIssue;
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.EntityPullRequest;
+import br.edu.utfpr.cm.JGitMinerWeb.pojo.EntityRepository;
+import br.edu.utfpr.cm.JGitMinerWeb.util.out;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import org.eclipse.egit.github.core.PullRequest;
+import org.eclipse.egit.github.core.Repository;
+import org.eclipse.egit.github.core.service.PullRequestService;
 
 /**
  *
@@ -17,7 +21,7 @@ import org.eclipse.egit.github.core.PullRequest;
  */
 public class PullRequestServices {
 
-    public static EntityPullRequest createEntity(PullRequest gitPullRequest, EntityIssue issue, GenericDao dao) {
+    public static EntityPullRequest createEntity(PullRequest gitPullRequest, GenericDao dao) {
         if (gitPullRequest == null) {
             return null;
         }
@@ -29,7 +33,6 @@ public class PullRequestServices {
         }
 
         pull.setMineredAt(new Date());
-        pull.setIssue(issue);
         pull.setMergeable(gitPullRequest.isMergeable());
         pull.setMerged(gitPullRequest.isMerged());
         pull.setClosedAt(gitPullRequest.getClosedAt());
@@ -67,8 +70,42 @@ public class PullRequestServices {
         return pull;
     }
 
-    private static EntityPullRequest getPullRequestByIdPull(long idPullRequest, GenericDao dao) {
+    public static EntityPullRequest getPullRequestByIdPull(long idPullRequest, GenericDao dao) {
         List<EntityPullRequest> pulls = dao.executeNamedQueryComParametros("PullRequest.findByIdPullRequest", new String[]{"idPullRequest"}, new Object[]{idPullRequest});
+        if (!pulls.isEmpty()) {
+            return pulls.get(0);
+        }
+        return null;
+    }
+
+    public static List<PullRequest> getGitPullRequestsFromRepository(Repository gitRepo, boolean open, boolean closed) {
+        List<PullRequest> pulls = new ArrayList<PullRequest>();
+        try {
+            PullRequestService pullServ = new PullRequestService();
+            if (open) {
+                List<PullRequest> opensPulls;
+                out.printLog("Baixando PullRequests Abertos...\n");
+                opensPulls = pullServ.getPullRequests(gitRepo, "open");
+                out.printLog(opensPulls.size() + " PullRequests abertos baixados!");
+                pulls.addAll(opensPulls);
+            }
+            if (closed) {
+                List<PullRequest> closedsPulls;
+                out.printLog("Baixando PullRequests Fechados...\n");
+                closedsPulls = pullServ.getPullRequests(gitRepo, "closed");
+                out.printLog(closedsPulls.size() + " PullRequests fechados baixados!");
+                pulls.addAll(closedsPulls);
+            }
+            out.printLog(pulls.size() + " PullRequests baixados no total!");
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            out.printLog(pulls.size() + " PullRequests baixados no total! Erro: " + ex.toString());
+        }
+        return pulls;
+    }
+
+    public static EntityPullRequest getPullRequestByNumber(int number, EntityRepository repo, GenericDao dao) {
+        List<EntityPullRequest> pulls = dao.executeNamedQueryComParametros("PullRequest.findByNumberAndRepository", new String[]{"number", "repository"}, new Object[]{number, repo});
         if (!pulls.isEmpty()) {
             return pulls.get(0);
         }

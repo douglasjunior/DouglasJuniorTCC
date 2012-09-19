@@ -32,8 +32,11 @@
             <h:selectBooleanCheckbox value="#{issuesAndCommentsBean.minerWatchers}" id="minerWatchers" title="Minerar Watchers" />
             <h:outputLabel for="minerWatchers" value="Minerar Watchers."/>
             <br />       
-            <h:selectBooleanCheckbox value="#{issuesAndCommentsBean.minerPullRequests}" id="minerPullRequests" title="Minerar Pull Requests" />
-            <h:outputLabel for="minerPullRequests" value="Minerar Pull Requests."/>
+            <h:selectBooleanCheckbox value="#{issuesAndCommentsBean.minerOpenPullRequests}" id="minerOpenPullRequests" title="Minerar Open Pull Requests" />
+            <h:outputLabel for="minerOpenPullRequests" value="Minerar Open Pull Requests."/>
+            <br />       
+            <h:selectBooleanCheckbox value="#{issuesAndCommentsBean.minerClosedPullRequests}" id="minerClosedPullRequests" title="Minerar Closed Pull Requests" />
+            <h:outputLabel for="minerClosedPullRequests" value="Minerar Closed Pull Requests."/>
             <br />       
             <h:selectBooleanCheckbox value="#{issuesAndCommentsBean.minerForks}" id="minerForks" title="Minerar Forks" />
             <h:outputLabel for="minerForks" value="Minerar Forks."/>
