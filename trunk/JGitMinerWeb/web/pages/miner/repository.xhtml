@@ -37,7 +37,7 @@
                     </p:commandButton>  
 
                     <label>
-                        #{repo.name}, #{repo.owner.login}, <a href="#{repo.svnUrl}" >#{repo.svnUrl}</a>
+                        #{repo.name}, #{repo.owner.login}, <a href="#{repo.svnUrl}" target="_blank" >#{repo.svnUrl}</a>
                     </label>
                     <br />
                 </p:column>  
@@ -45,14 +45,23 @@
             </p:dataList>
 
             <p:dialog header="Repository Detail" widgetVar="repoDialog" modal="true" showEffect="fade">  
-                <p:outputPanel id="repoDetail" style="text-align:center;" layout="block">  
+                <p:outputPanel id="repoDetail" layout="block">  
 
                     <h:panelGrid  columns="2" cellpadding="5">  
                         <h:outputLabel for="repoName" value="Name: " style="font-weight:bold" />
                         <h:outputText id="repoName" value="#{repositoryBean.repositorySelected.name}" />  
 
+                        <h:outputLabel for="repoOwner" value="Owner: " style="font-weight:bold" />
+                        <h:outputText id="repoOwner" value="#{repositoryBean.repositorySelected.owner.login}" />  
+
                         <h:outputLabel for="repoCreatedAt" value="Created at: " style="font-weight:bold" />  
                         <h:outputText id="repoCreatedAt" value="#{repositoryBean.repositorySelected.createdAt}" />  
+
+                        <h:outputLabel for="repoParent" value="Parent: " style="font-weight:bold" />  
+                        <h:outputText id="repoParent" value="#{repositoryBean.repositorySelected.parent.name}" />  
+
+                        <h:outputLabel for="repoSource" value="Source: " style="font-weight:bold;" />  
+                        <h:outputText id="repoSource" value="#{repositoryBean.repositorySelected.source.name}" />  
 
                         <h:outputLabel for="repoGitUrl" value="Git URL: " style="font-weight:bold" />  
                         <h:outputText id="repoGitUrl" value="#{repositoryBean.repositorySelected.gitUrl}" />  

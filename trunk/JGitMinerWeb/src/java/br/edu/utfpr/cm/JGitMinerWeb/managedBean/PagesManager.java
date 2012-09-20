@@ -42,13 +42,9 @@ public class PagesManager implements Serializable {
         return "refreshPage";
     }
 
-    public String minerIssuesAndComments() {
-        this.body = "./pages/miner/issuesAndComments.xhtml";
+    public String minerOthers() {
+        this.body = "./pages/miner/others.xhtml";
         return "refreshPage";
     }
 
-    public String minerPullRequests() {
-        this.body = "./pages/miner/pullRequests.xhtml";
-        return "refreshPage";
-    }
 }
