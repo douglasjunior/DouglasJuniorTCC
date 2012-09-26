@@ -15,7 +15,7 @@ public class GenericDao {
     @PersistenceContext(unitName = "pu")
     private EntityManager em;
 
-    EntityManager getEntityManager() {
+    private EntityManager getEntityManager() {
         return em;
     }
 
@@ -31,7 +31,7 @@ public class GenericDao {
         getEntityManager().remove(getEntityManager().merge(entidade));
     }
 
-    public Object findByID(Object id, Class classe) {
+    public Object findByID(Object id, Class classe) {        
         return getEntityManager().find(classe, id);
     }
 

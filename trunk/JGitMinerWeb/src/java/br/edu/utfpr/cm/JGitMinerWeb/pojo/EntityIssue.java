@@ -37,6 +37,7 @@ public class EntityIssue implements Serializable {
     private Date createdAt;
     @Temporal(javax.persistence.TemporalType.TIMESTAMP)
     private Date updatedAt;
+    private int commentsCount;
     private int number;
     @OneToMany
     private List<EntityLabel> labels;
@@ -49,7 +50,7 @@ public class EntityIssue implements Serializable {
     @Column(columnDefinition = "text")
     private String bodyHtml;
     @Column(columnDefinition = "text")
-    private String bodyText; 
+    private String bodyText;
     @Column(columnDefinition = "text")
     private String htmlUrl;
     private String stateIssue;
@@ -182,6 +183,14 @@ public class EntityIssue implements Serializable {
 
     public void setMilestone(EntityMilestone milestone) {
         this.milestone = milestone;
+    }
+
+    public int getCommentsCount() {
+        return commentsCount;
+    }
+
+    public void setCommentsCount(int commentsCount) {
+        this.commentsCount = commentsCount;
     }
 
     public int getNumber() {

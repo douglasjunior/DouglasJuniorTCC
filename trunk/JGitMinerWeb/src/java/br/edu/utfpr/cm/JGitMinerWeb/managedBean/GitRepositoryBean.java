@@ -19,9 +19,9 @@ import javax.faces.convert.FacesConverter;
 import org.eclipse.egit.github.core.Repository;
 import org.eclipse.egit.github.core.service.RepositoryService;
 
-@ManagedBean(name = "repositoryBean")
+@ManagedBean(name = "gitRepositoryBean")
 @RequestScoped
-public class RepositoryBean {
+public class GitRepositoryBean {
 
     @EJB
     private GenericDao dao;
@@ -30,7 +30,7 @@ public class RepositoryBean {
     private String repositoryName;
     private String repositoryOwnerLogin;
 
-    public RepositoryBean() {
+    public GitRepositoryBean() {
         repository = new EntityRepository();
         repositorySelected = new EntityRepository();
     }
@@ -103,8 +103,8 @@ public class RepositoryBean {
             if (value == null || value.length() == 0 || value.equals("null")) {
                 return null;
             }
-            RepositoryBean bean = (RepositoryBean) facesContext.getApplication().getELResolver().
-                    getValue(facesContext.getELContext(), null, "repositoryBean");
+            GitRepositoryBean bean = (GitRepositoryBean) facesContext.getApplication().getELResolver().
+                    getValue(facesContext.getELContext(), null, "gitRepositoryBean");
             return bean.dao.findByID(getKey(value), EntityRepository.class);
         }
 
@@ -129,7 +129,7 @@ public class RepositoryBean {
                 EntityRepository o = (EntityRepository) object;
                 return getStringKey(o.getId());
             } else {
-                throw new IllegalArgumentException("object " + object + " is of type " + object.getClass().getName() + "; expected type: " + RepositoryBean.class.getName());
+                throw new IllegalArgumentException("object " + object + " is of type " + object.getClass().getName() + "; expected type: " + GitRepositoryBean.class.getName());
             }
         }
     }

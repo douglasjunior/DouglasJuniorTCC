@@ -24,14 +24,14 @@ public class EntityMiner implements Serializable {
     private Date minerStart;
     @Temporal(javax.persistence.TemporalType.TIMESTAMP)
     private Date minerStop;
-    private boolean minerSucess;
+    private boolean complete;
     @Lob
     @Basic(fetch = FetchType.LAZY)
     private String minerLog;
 
     public EntityMiner() {
         minerStart = new Date();
-        minerSucess = false;
+        complete = false;
     }
 
     public Long getId() {
@@ -66,12 +66,12 @@ public class EntityMiner implements Serializable {
         this.minerStop = minerStop;
     }
 
-    public boolean isMinerSucess() {
-        return minerSucess;
+    public boolean isComplete() {
+        return complete;
     }
 
-    public void setMinerSucess(boolean minerSucess) {
-        this.minerSucess = minerSucess;
+    public void setComplete(boolean complete) {
+        this.complete = complete;
     }
 
     @Override

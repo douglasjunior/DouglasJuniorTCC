@@ -42,12 +42,16 @@ public class PullRequestServices {
         pull.setIdPullRequest(gitPullRequest.getId());
         pull.setAdditions(gitPullRequest.getAdditions());
         pull.setChangedFiles(gitPullRequest.getChangedFiles());
-        pull.setComments(gitPullRequest.getComments());
+        pull.setCommentsCount(gitPullRequest.getComments());
         pull.setCommits(gitPullRequest.getCommits());
         pull.setDeletions(gitPullRequest.getDeletions());
         pull.setNumber(gitPullRequest.getNumber());
-//        this.base = EntityPullRequestMarker.create(gitPullRequest.getBase());
-//        this.head = EntityPullRequestMarker.create(gitPullRequest.getHead());
+        if (pull.getBase() == null) {
+            pull.setBase(PullRequestMakerServices.createEntity(gitPullRequest.getBase(), dao));
+        }
+        if (pull.getHead() == null) {
+            pull.setHead(PullRequestMakerServices.createEntity(gitPullRequest.getHead(), dao));
+        }
         pull.setBody(gitPullRequest.getBody());
         pull.setBodyHtml(gitPullRequest.getBodyHtml());
         pull.setBodyText(gitPullRequest.getBodyText());

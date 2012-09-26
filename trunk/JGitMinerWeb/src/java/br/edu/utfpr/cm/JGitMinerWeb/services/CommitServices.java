@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import org.eclipse.egit.github.core.Commit;
 import org.eclipse.egit.github.core.Issue;
 import org.eclipse.egit.github.core.Repository;
 import org.eclipse.egit.github.core.service.IssueService;
@@ -20,7 +21,7 @@ import org.eclipse.egit.github.core.service.IssueService;
  *
  * @author Douglas
  */
-public class IssueServices {
+public class CommitServices {
 
     public static EntityIssue getIssueByIdIssue(long idIssue, GenericDao dao) {
         List<EntityIssue> issues = dao.executeNamedQueryComParametros("Issue.findByIdIssue", new String[]{"idIssue"}, new Object[]{idIssue});
@@ -30,34 +31,21 @@ public class IssueServices {
         return null;
     }
 
-    public static List<Issue> getGitIssuesFromRepository(Repository gitRepo, boolean open, boolean closed) {
-        List<Issue> issues = new ArrayList<Issue>();
+    public static List<Commit> getGitCommitsFromRepository(Repository gitRepo) {
+        List<Commit> commits = new ArrayList<Commit>();
         try {
-            IssueService issueServ = new IssueService();
-            HashMap<String, String> params = new HashMap<String, String>();
-            if (open) {
-                List<Issue> opensIssues;
-                out.printLog("Baixando Issues Abertas...\n");
-                params.put("state", "open");
-                opensIssues = issueServ.getIssues(gitRepo, params);
-                out.printLog(opensIssues.size() + " Issues abertas baixadas!");
-                issues.addAll(opensIssues);
-            }
-            if (closed) {
-                List<Issue> clodesIssues;
-                params = new HashMap<String, String>();
-                out.printLog("Baixando Issues Fechadas...\n");
-                params.put("state", "closed");
-                clodesIssues = issueServ.getIssues(gitRepo, params);
-                out.printLog(clodesIssues.size() + " Issues fechadas baixadas!");
-                issues.addAll(clodesIssues);
-            }
-            out.printLog(issues.size() + " Issues baixadas no total!");
+//            IssueService issueServ = new IssueService();
+//            List<Issue> opensIssues;
+            out.printLog("Baixando Commits...\n");
+//            opensIssues = issueServ.getIssues(gitRepo);
+//            out.printLog(opensIssues.size() + " Issues abertas baixadas!");
+//            issues.addAll(opensIssues);
+            out.printLog(commits.size() + " Commits baixados no total!");
         } catch (Exception ex) {
             ex.printStackTrace();
-            out.printLog(issues.size() + " Issues baixadas no total! Erro: " + ex.toString());
+            out.printLog(commits.size() + " Commits baixadaos no total! Erro: " + ex.toString());
         }
-        return issues;
+        return commits;
     }
 
     public static EntityIssue createEntity(Issue gitIssue, GenericDao dao) {
@@ -77,7 +65,6 @@ public class IssueServices {
         issue.setCreatedAt(gitIssue.getCreatedAt());
         issue.setUpdatedAt(gitIssue.getUpdatedAt());
         issue.setNumber(gitIssue.getNumber());
-        issue.setCommentsCount(gitIssue.getComments());
         LabelServices.addLabels(issue, gitIssue.getLabels(), dao);
         issue.setMilestone(MilestoneServices.createEntity(gitIssue.getMilestone(), dao));
         issue.setBody(gitIssue.getBody());

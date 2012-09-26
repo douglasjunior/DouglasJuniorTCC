@@ -48,10 +48,6 @@
                     <path-in-war>WEB-INF/lib</path-in-war>
                 </library>
                 <library dirs="200">
-                    <file>${file.reference.org.eclipse.egit.github.core-2.0.4-sources.jar}</file>
-                    <path-in-war>WEB-INF/lib</path-in-war>
-                </library>
-                <library dirs="200">
                     <file>${file.reference.org.eclipse.egit.github.core-2.0.4.jar}</file>
                     <path-in-war>WEB-INF/lib</path-in-war>
                 </library>

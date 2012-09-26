@@ -40,7 +40,7 @@ public class EntityPullRequest implements Serializable {
     private long idPullRequest;
     private int additions;
     private int changedFiles;
-    private int comments;
+    private int commentsCount;
     private int commits;
     private int deletions;
     private int number;
@@ -143,12 +143,12 @@ public class EntityPullRequest implements Serializable {
         this.closedAt = closedAt;
     }
 
-    public int getComments() {
-        return comments;
+    public int getCommentsCount() {
+        return commentsCount;
     }
 
-    public void setComments(int comments) {
-        this.comments = comments;
+    public void setCommentsCount(int commentsCount) {
+        this.commentsCount = commentsCount;
     }
 
     public int getCommits() {

@@ -81,7 +81,7 @@ public class RepositoryServices {
         return new RepositoryService().getRepository(ownerLogin, repoName);
     }
 
-    public static List<Repository> getForksFromRepository(Repository gitRepo) throws Exception {
+    public static List<Repository> getGitForksFromRepository(Repository gitRepo) throws Exception {
         out.printLog("Baixando Forks...\n");
         List<Repository> forks = new RepositoryService().getForks(gitRepo);
         out.printLog(forks.size() + " Forks baixados!");
