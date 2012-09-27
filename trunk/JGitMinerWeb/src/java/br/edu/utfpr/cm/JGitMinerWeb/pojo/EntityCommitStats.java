@@ -14,6 +14,9 @@ import javax.persistence.*;
  */
 @Entity
 @Table(name = "gitCommitStats")
+@NamedQueries({
+    @NamedQuery(name = "CommitStats.findByRepositoryCommit", query = "SELECT s FROM EntityCommitStats s WHERE s.repositoryCommit = :repositoryCommit")
+})
 public class EntityCommitStats implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -25,6 +28,8 @@ public class EntityCommitStats implements Serializable {
     private int additions;
     private int deletions;
     private int total;
+    @OneToOne(mappedBy = "stats")
+    private EntityRepositoryCommit repositoryCommit;
 
     public EntityCommitStats() {
         mineredAt = new Date();
@@ -36,6 +41,22 @@ public class EntityCommitStats implements Serializable {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public Date getMineredAt() {
+        return mineredAt;
+    }
+
+    public void setMineredAt(Date mineredAt) {
+        this.mineredAt = mineredAt;
+    }
+
+    public EntityRepositoryCommit getRepositoryCommit() {
+        return repositoryCommit;
+    }
+
+    public void setRepositoryCommit(EntityRepositoryCommit repositoryCommit) {
+        this.repositoryCommit = repositoryCommit;
     }
 
     public int getAdditions() {

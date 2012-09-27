@@ -15,6 +15,9 @@ import javax.persistence.*;
  */
 @Entity
 @Table(name = "gitCommit")
+@NamedQueries({
+    @NamedQuery(name = "Commit.findByURL", query = "SELECT c FROM EntityCommit c WHERE c.url = :url")
+})
 public class EntityCommit implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -28,6 +31,7 @@ public class EntityCommit implements Serializable {
     @ManyToOne
     private EntityCommitUser committer;
     @OneToMany
+    @JoinTable(name = "gitcommit_parents")
     private List<EntityCommit> parents;
     @Column(columnDefinition = "text")
     private String message;
@@ -36,16 +40,20 @@ public class EntityCommit implements Serializable {
     @ManyToOne
     private EntityTree tree;
 
-    public EntityCommit() {
-        mineredAt = new Date();
-    }
-
     public Long getId() {
         return id;
     }
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public Date getMineredAt() {
+        return mineredAt;
+    }
+
+    public void setMineredAt(Date mineredAt) {
+        this.mineredAt = mineredAt;
     }
 
     public EntityCommitUser getAuthor() {
@@ -127,5 +135,11 @@ public class EntityCommit implements Serializable {
     @Override
     public String toString() {
         return "br.edu.utfpr.cm.JGitMiner.pojo.EntityCommity[ id=" + id + " ]";
+    }
+
+    public void addParent(EntityCommit parent) {
+        if (!parents.contains(parent)) {
+            parents.add(parent);
+        }
     }
 }

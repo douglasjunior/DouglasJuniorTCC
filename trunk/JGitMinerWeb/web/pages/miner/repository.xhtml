@@ -9,13 +9,15 @@
         <br />
         <h:form >
             <p:growl globalOnly="true" id="messages" />
-            <h:panelGrid columns="2" cellpadding="2">
+            <h:panelGrid columns="3" cellpadding="2">
                 <h:outputLabel for="repositoryName" value="Name of Repository:"/>
-                <p:inputText value="#{gitRepositoryBean.repositoryName}" label="repositoryName" id="repositoryName"></p:inputText>
+                <p:inputText value="#{gitRepositoryBean.repositoryName}" label="repositoryName" id="repositoryName" required="true" requiredMessage="Este campo não pode ficar vazio." />
+                <p:message for="repositoryName" />
                 <h:outputLabel for="repositoryOwner" value="Login of Owner:"/>
-                <p:inputText value="#{gitRepositoryBean.repositoryOwner}" label="repositoryOwner" id="repositoryOwner"></p:inputText>
+                <p:inputText value="#{gitRepositoryBean.repositoryOwner}" label="repositoryOwner" id="repositoryOwner" required="true" requiredMessage="Este campo não pode ficar vazio." />
+                <p:message for="repositoryOwner"  />
                 <br />
-                <br /> 
+                <br />
                 <p:commandButton type="submit" ajax="false" value="Go Miner" action="#{gitRepositoryBean.goMiner}"></p:commandButton>
             </h:panelGrid>
         </h:form>

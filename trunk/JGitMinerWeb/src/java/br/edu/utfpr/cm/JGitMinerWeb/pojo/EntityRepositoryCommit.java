@@ -5,6 +5,7 @@
 package br.edu.utfpr.cm.JGitMinerWeb.pojo;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import javax.persistence.*;
@@ -15,6 +16,9 @@ import javax.persistence.*;
  */
 @Entity
 @Table(name = "gitRepositoryCommit")
+@NamedQueries({
+    @NamedQuery(name = "RepositoryCommit.findByURL", query = "SELECT c FROM EntityRepositoryCommit c WHERE c.url = :url")
+})
 public class EntityRepositoryCommit implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -24,12 +28,14 @@ public class EntityRepositoryCommit implements Serializable {
     @Temporal(javax.persistence.TemporalType.TIMESTAMP)
     private Date mineredAt;
     @ManyToOne
-    private EntityCommit commit;
+    private EntityRepository repository;
     @ManyToOne
+    private EntityCommit commit;
+    @OneToOne
     private EntityCommitStats stats;
     @OneToMany
     private List<EntityCommit> parents;
-    @OneToMany
+    @OneToMany(mappedBy = "repositoryCommit")
     private List<EntityCommitFile> files;
     @Column(columnDefinition = "text")
     private String sha;
@@ -40,7 +46,8 @@ public class EntityRepositoryCommit implements Serializable {
     private EntityUser committer;
 
     public EntityRepositoryCommit() {
-        mineredAt = new Date();
+        parents = new ArrayList<EntityCommit>();
+        files = new ArrayList<EntityCommitFile>();
     }
 
     public Long getId() {
@@ -49,6 +56,22 @@ public class EntityRepositoryCommit implements Serializable {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public Date getMineredAt() {
+        return mineredAt;
+    }
+
+    public void setMineredAt(Date mineredAt) {
+        this.mineredAt = mineredAt;
+    }
+
+    public EntityRepository getRepository() {
+        return repository;
+    }
+
+    public void setRepository(EntityRepository repository) {
+        this.repository = repository;
     }
 
     public EntityUser getAuthor() {
@@ -138,5 +161,18 @@ public class EntityRepositoryCommit implements Serializable {
     @Override
     public String toString() {
         return "br.edu.utfpr.cm.JGitMiner.pojo.EntityRepositoryCommit[ id=" + id + " ]";
+    }
+
+    public void addParent(EntityCommit parent) {
+        if (!parents.contains(parent)) {
+            parents.add(parent);
+        }
+    }
+
+    public void addFile(EntityCommitFile file) {
+        if (!files.contains(file)) {
+            files.add(file);
+        }
+        file.setRepositoryCommit(this);
     }
 }

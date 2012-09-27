@@ -35,6 +35,8 @@ public class EntityCommitFile implements Serializable {
     @Column(columnDefinition = "text")
     private String sha;
     private String status;
+    @ManyToOne
+    private EntityRepositoryCommit repositoryCommit;
 
     public EntityCommitFile() {
         mineredAt = new Date();
@@ -118,6 +120,22 @@ public class EntityCommitFile implements Serializable {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public Date getMineredAt() {
+        return mineredAt;
+    }
+
+    public void setMineredAt(Date mineredAt) {
+        this.mineredAt = mineredAt;
+    }
+
+    public EntityRepositoryCommit getRepositoryCommit() {
+        return repositoryCommit;
+    }
+
+    public void setRepositoryCommit(EntityRepositoryCommit repositoryCommit) {
+        this.repositoryCommit = repositoryCommit;
     }
 
     @Override

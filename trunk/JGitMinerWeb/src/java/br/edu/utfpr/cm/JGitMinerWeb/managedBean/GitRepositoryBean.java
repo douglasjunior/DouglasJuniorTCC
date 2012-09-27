@@ -8,6 +8,7 @@ import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericDao;
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.EntityRepository;
 import br.edu.utfpr.cm.JGitMinerWeb.services.RepositoryServices;
 import br.edu.utfpr.cm.JGitMinerWeb.util.JsfUtil;
+import java.io.Serializable;
 import java.util.List;
 import javax.ejb.EJB;
 import javax.faces.bean.ManagedBean;
@@ -21,7 +22,7 @@ import org.eclipse.egit.github.core.service.RepositoryService;
 
 @ManagedBean(name = "gitRepositoryBean")
 @RequestScoped
-public class GitRepositoryBean {
+public class GitRepositoryBean implements Serializable {
 
     @EJB
     private GenericDao dao;
