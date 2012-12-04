@@ -6,12 +6,7 @@ package br.edu.utfpr.cm.JGitMinerWeb.pojo;
 
 import java.io.Serializable;
 import java.util.Date;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.Table;
-import javax.persistence.Temporal;
+import javax.persistence.*;
 
 /**
  *
@@ -19,6 +14,9 @@ import javax.persistence.Temporal;
  */
 @Entity
 @Table(name = "gitCommitUser")
+@NamedQueries({
+    @NamedQuery(name = "CommitUser.findByEmail", query = "SELECT u FROM EntityCommitUser u WHERE u.email = :email")
+})
 public class EntityCommitUser implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -32,16 +30,20 @@ public class EntityCommitUser implements Serializable {
     private String email;
     private String name;
 
-    public EntityCommitUser() {
-        mineredAt = new Date();
-    }
-
     public Long getId() {
         return id;
     }
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public Date getMineredAt() {
+        return mineredAt;
+    }
+
+    public void setMineredAt(Date mineredAt) {
+        this.mineredAt = mineredAt;
     }
 
     public Date getDateCommitUser() {

@@ -5,9 +5,9 @@
      xmlns:p="http://primefaces.org/ui">
 
     <p:panel>
-        <h2>Pagina de mineração repositorio.</h2>
-        <br />
-        <h:form >
+        <h2>Pagina de mineração de repositório.</h2>
+        <br /> 
+        <h:form prependId="false" >
             <p:growl globalOnly="true" id="messages" />
             <h:panelGrid columns="3" cellpadding="2">
                 <h:outputLabel for="repositoryName" value="Name of Repository:"/>
@@ -18,12 +18,14 @@
                 <p:message for="repositoryOwner"  />
                 <br />
                 <br />
-                <p:commandButton type="submit" ajax="false" value="Go Miner" action="#{gitRepositoryBean.goMiner}"></p:commandButton>
+                <p:commandButton id="startButton" value="Go Miner" ajax="false"
+                                 actionListener="#{gitRepositoryBean.goMiner}" >
+                </p:commandButton>
             </h:panelGrid>
         </h:form>
         <br />
         <br />
-        <h:form id="reposForm">  
+        <h:form id="formDatailsRepo">  
             <p:dataList value="#{gitRepositoryBean.repositoriesPrimaryMiner}" var="repo" 
                         id="minerated-repos" paginator="true" rows="5" 
                         paginatorTemplate="{PreviousPageLink} {CurrentPageReport} {NextPageLink} {RowsPerPageDropdown}"  
@@ -34,7 +36,7 @@
                 </f:facet>  
 
                 <p:column>  
-                    <p:commandButton icon="ui-icon-search" update=":reposForm:repoDetail" oncomplete="repoDialog.show()" title="View Detail" style="margin-bottom: 3px">  
+                    <p:commandButton icon="ui-icon-search" update=":formDatailsRepo:repoDetail" oncomplete="repoDialog.show()" title="View Detail" style="margin-bottom: 3px">  
                         <f:setPropertyActionListener value="#{repo}" target="#{gitRepositoryBean.repositorySelected}" />  
                     </p:commandButton>  
 

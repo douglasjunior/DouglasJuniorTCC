@@ -28,8 +28,8 @@ public class CommitServices {
         }
 
         commit.setMineredAt(new Date());
-        commit.setAuthor(null);
-        commit.setCommitter(null);
+        commit.setAuthor(CommitUserServices.createEntity(gitCommit.getAuthor(), dao));
+        commit.setCommitter(CommitUserServices.createEntity(gitCommit.getCommitter(), dao));
         commit.setMessage(gitCommit.getMessage());
         createParents(commit, gitCommit.getParents(), dao);
         commit.setSha(gitCommit.getSha());

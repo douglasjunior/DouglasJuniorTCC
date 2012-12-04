@@ -32,7 +32,7 @@ public class UserServices {
         if (gitUser == null) {
             return null;
         }
-
+        
         EntityUser user = getUserByLogin(gitUser.getLogin(), dao);
         if (user == null) {
             user = new EntityUser();

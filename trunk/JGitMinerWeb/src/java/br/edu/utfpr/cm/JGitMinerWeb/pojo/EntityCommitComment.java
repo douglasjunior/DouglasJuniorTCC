@@ -22,12 +22,29 @@ public class EntityCommitComment implements Serializable {
     private Long id;
     @Temporal(javax.persistence.TemporalType.TIMESTAMP)
     private Date mineredAt;
+    @Temporal(javax.persistence.TemporalType.TIMESTAMP)
+    private Date createdAt;
+    @Temporal(javax.persistence.TemporalType.TIMESTAMP)
+    private Date updatedAt;
+    @Column(columnDefinition = "text")
+    private String body;
+    @Column(columnDefinition = "text")
+    private String bodyHtml;
+    @Column(columnDefinition = "text")
+    private String bodyText;
+    @Column(unique = true)
+    private long idComment;
+    private String url;
     private int line;
     private int position;
     @Column(columnDefinition = "text")
     private String commitId;
     @Column(columnDefinition = "text")
     private String pathCommitComment;
+    @ManyToOne
+    private EntityCommit commit;
+    @ManyToOne
+    private EntityUser user;
 
     public EntityCommitComment() {
         mineredAt = new Date();
@@ -65,12 +82,92 @@ public class EntityCommitComment implements Serializable {
         this.pathCommitComment = pathCommitComment;
     }
 
+    public EntityCommit getCommit() {
+        return commit;
+    }
+
+    public void setCommit(EntityCommit commit) {
+        this.commit = commit;
+    }
+
+    public EntityUser getUser() {
+        return user;
+    }
+
+    public void setUser(EntityUser user) {
+        this.user = user;
+    }
+
+    public Date getMineredAt() {
+        return mineredAt;
+    }
+
+    public void setMineredAt(Date mineredAt) {
+        this.mineredAt = mineredAt;
+    }
+
     public int getPosition() {
         return position;
     }
 
     public void setPosition(int position) {
         this.position = position;
+    }
+
+    public String getBody() {
+        return body;
+    }
+
+    public void setBody(String body) {
+        this.body = body;
+    }
+
+    public String getBodyHtml() {
+        return bodyHtml;
+    }
+
+    public void setBodyHtml(String bodyHtml) {
+        this.bodyHtml = bodyHtml;
+    }
+
+    public String getBodyText() {
+        return bodyText;
+    }
+
+    public void setBodyText(String bodyText) {
+        this.bodyText = bodyText;
+    }
+
+    public Date getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Date createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public long getIdComment() {
+        return idComment;
+    }
+
+    public void setIdComment(long idComment) {
+        this.idComment = idComment;
+    }
+
+    public Date getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(Date updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    public String getUrl() {
+        return url;
+    }
+
+    public void setUrl(String url) {
+        this.url = url;
     }
 
     @Override

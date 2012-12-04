@@ -4,6 +4,7 @@ import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericDao;
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.*;
 import br.edu.utfpr.cm.JGitMinerWeb.services.*;
 import br.edu.utfpr.cm.JGitMinerWeb.util.out;
+import java.io.IOException;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
@@ -13,6 +14,7 @@ import javax.faces.bean.ManagedBean;
 import javax.faces.bean.SessionScoped;
 import javax.faces.context.FacesContext;
 import org.eclipse.egit.github.core.*;
+import org.eclipse.egit.github.core.service.CommitService;
 import org.eclipse.egit.github.core.service.IssueService;
 
 @ManagedBean(name = "gitOthersBean")
@@ -38,7 +40,7 @@ public class GitOthersBean implements Serializable {
     private Integer subProgress;
     private String message;
     private boolean canceled;
-    Thread process;
+    private Thread process;
 
     public GitOthersBean() {
         initialized = false;
@@ -154,12 +156,15 @@ public class GitOthersBean implements Serializable {
     }
 
     public void start() {
-        final EntityMiner mineration = new EntityMiner();
-        dao.insert(mineration);
-
         out.resetLog();
         initialized = false;
         canceled = false;
+        progress = new Integer(0);
+        subProgress = new Integer(0);
+        final EntityMiner mineration = new EntityMiner();
+
+        dao.insert(mineration);
+
 
         out.printLog("Repositorio: " + repositoryToMiner);
         out.printLog("minerOpenIssues: " + minerOpenIssues);
@@ -192,7 +197,7 @@ public class GitOthersBean implements Serializable {
 
                 try {
                     initialized = true;
-                    progress = new Integer(1);
+                    Thread.sleep(5000);
                     Repository gitRepo = RepositoryServices.getGitRepository(repositoryToMiner.getOwner().getLogin(), repositoryToMiner.getName());
                     progress = new Integer(10);
                     if (!canceled && (minerOpenIssues || minerClosedIssues)) {
@@ -241,7 +246,7 @@ public class GitOthersBean implements Serializable {
                         subProgress = new Integer(0);
                         out.setCurrentProcess("Minerando RepositoryCommits...\n");
                         List<RepositoryCommit> gitRepoCommits = RepositoryCommitServices.getGitCommitsFromRepository(gitRepo);
-                        minerRepositoryCommits(gitRepoCommits);
+                        minerRepositoryCommits(gitRepoCommits, gitRepo);
                         dao.edit(mineration);
                     }
                     if (canceled) {
@@ -270,7 +275,7 @@ public class GitOthersBean implements Serializable {
         if (initialized) {
             out.printLog("Pedido de cancelamento enviado.\n");
             canceled = true;
-            process.interrupt();
+            process.interrupt(); 
         }
     }
 
@@ -305,6 +310,10 @@ public class GitOthersBean implements Serializable {
         issue.setUserIssue((EntityUser) dao.findByID(new Long(12), EntityIssue.class));
         dao.insert(issue);
         System.out.println("Gravou issue: " + issue);
+    }
+
+    public void debug(String string) {
+        System.out.println("debug: " + string);
     }
 
     /*
@@ -477,14 +486,14 @@ public class GitOthersBean implements Serializable {
         return fork;
     }
 
-    private void minerRepositoryCommits(List<RepositoryCommit> gitRepoCommits) {
+    private void minerRepositoryCommits(List<RepositoryCommit> gitRepoCommits, Repository gitRepo) throws Exception {
         int i = 0;
         calculeSubProgress(i, gitRepoCommits.size());
         while (!canceled && i < gitRepoCommits.size()) {
             RepositoryCommit gitRepoCommit = gitRepoCommits.get(i);
             EntityRepositoryCommit repoCommit = minerRepositoryCommit(gitRepoCommit);
             if (minerCommentsOfRepositoryCommits && repoCommit != null) {
-                minerCommentsOfRepoCommit(repoCommit);
+                minerCommentsOfRepoCommit(repoCommit, gitRepo);
             }
             repositoryToMiner.addRepoCommit(repoCommit);
             dao.edit(repoCommit);
@@ -505,7 +514,30 @@ public class GitOthersBean implements Serializable {
         return repoCommit;
     }
 
-    private void minerCommentsOfRepoCommit(EntityRepositoryCommit repoCommit) {
-        throw new UnsupportedOperationException("Not yet implemented");
+    private void minerCommentsOfRepoCommit(EntityRepositoryCommit repoCommit, Repository gitRepo) throws Exception {
+        out.printLog("");
+        out.printLog("Baixando Comentários dos Commits...");
+        List<CommitComment> gitCommitComments = new CommitService().getComments(gitRepo, repoCommit.getSha());
+        out.printLog(gitCommitComments.size() + " Comentários baixados.");
+        int i = 0;
+        while (!canceled && i < gitCommitComments.size()) {
+            CommitComment gitCommitComment = gitCommitComments.get(i);
+            EntityCommitComment commitComment = minerCommentOfRepoCommit(gitCommitComment);
+            repoCommit.getCommit().addComment(commitComment);
+            dao.edit(commitComment);
+            i++;
+        }
+    }
+
+    private EntityCommitComment minerCommentOfRepoCommit(CommitComment gitCommitComment) {
+        EntityCommitComment commitComment = null;
+        try {
+            commitComment = CommitCommentServices.createEntity(gitCommitComment, dao);
+            out.printLog("Comment do Commit gravado com sucesso: " + gitCommitComment.getUrl());
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            out.printLog("## Erro ao gravar Comment do Commit: " + gitCommitComment.getUrl() + " Descrição: " + ex.toString());
+        }
+        return commitComment;
     }
 }

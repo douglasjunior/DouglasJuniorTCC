@@ -34,6 +34,7 @@ public class EntityRepositoryCommit implements Serializable {
     @OneToOne
     private EntityCommitStats stats;
     @OneToMany
+    @JoinTable(name="gitrepositorycommit_parents")
     private List<EntityCommit> parents;
     @OneToMany(mappedBy = "repositoryCommit")
     private List<EntityCommitFile> files;
@@ -43,7 +44,7 @@ public class EntityRepositoryCommit implements Serializable {
     @ManyToOne
     private EntityUser author;
     @ManyToOne
-    private EntityUser committer;
+    private EntityUser committer; 
 
     public EntityRepositoryCommit() {
         parents = new ArrayList<EntityCommit>();

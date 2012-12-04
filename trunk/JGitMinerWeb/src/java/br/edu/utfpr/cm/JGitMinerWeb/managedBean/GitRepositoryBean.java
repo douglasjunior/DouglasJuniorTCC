@@ -69,9 +69,10 @@ public class GitRepositoryBean implements Serializable {
     }
 
     public void goMiner() {
+        System.out.println("gotMiner Repository");
         if (this.repositoryName == null || this.repositoryName.isEmpty()
                 || this.repositoryOwnerLogin == null || this.repositoryOwnerLogin.isEmpty()) {
-            JsfUtil.addErrorMessage("Informe o nome do repositorio desejado.", "");
+            JsfUtil.addErrorMessage("Erro", "Informe o nome do repositorio desejado.");
         } else {
             try {
                 Repository gitRepository = new RepositoryService().getRepository(this.repositoryOwnerLogin, this.repositoryName);
@@ -83,7 +84,7 @@ public class GitRepositoryBean implements Serializable {
                 JsfUtil.addSuccessMessage("Repositorio salvo com sucesso.", "");
             } catch (Exception e) {
                 e.printStackTrace();
-                JsfUtil.addErrorMessage("Erro ao salvar Repositorio.<br />" + e.getMessage(), "");
+                JsfUtil.addErrorMessage("Erro", "Erro ao salvar Repositorio.<br />Descrição: " + e.getMessage());
             }
         }
     }
