@@ -3,16 +3,14 @@ package br.edu.utfpr.cm.JGitMinerWeb.managedBean;
 import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericDao;
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.*;
 import br.edu.utfpr.cm.JGitMinerWeb.services.*;
+import br.edu.utfpr.cm.JGitMinerWeb.util.JsfUtil;
 import br.edu.utfpr.cm.JGitMinerWeb.util.out;
-import java.io.IOException;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
 import javax.ejb.EJB;
-import javax.faces.application.FacesMessage;
 import javax.faces.bean.ManagedBean;
 import javax.faces.bean.SessionScoped;
-import javax.faces.context.FacesContext;
 import org.eclipse.egit.github.core.*;
 import org.eclipse.egit.github.core.service.CommitService;
 import org.eclipse.egit.github.core.service.IssueService;
@@ -41,6 +39,7 @@ public class GitOthersBean implements Serializable {
     private String message;
     private boolean canceled;
     private Thread process;
+    private boolean fail;
 
     public GitOthersBean() {
         initialized = false;
@@ -165,7 +164,6 @@ public class GitOthersBean implements Serializable {
 
         dao.insert(mineration);
 
-
         out.printLog("Repositorio: " + repositoryToMiner);
         out.printLog("minerOpenIssues: " + minerOpenIssues);
         out.printLog("minerClosedIssues: " + minerClosedIssues);
@@ -184,12 +182,12 @@ public class GitOthersBean implements Serializable {
             progress = new Integer(0);
             subProgress = new Integer(0);
             initialized = false;
+            fail = true;
             mineration.setMinerLog(out.getLog());
             dao.edit(mineration);
             return;
         }
         process = new Thread() {
-
             @Override
             public void run() {
 
@@ -199,6 +197,7 @@ public class GitOthersBean implements Serializable {
                     initialized = true;
                     Thread.sleep(5000);
                     Repository gitRepo = RepositoryServices.getGitRepository(repositoryToMiner.getOwner().getLogin(), repositoryToMiner.getName());
+                    System.out.println("Repositorio escolhido: " + gitRepo);
                     progress = new Integer(10);
                     if (!canceled && (minerOpenIssues || minerClosedIssues)) {
                         subProgress = new Integer(0);
@@ -249,6 +248,13 @@ public class GitOthersBean implements Serializable {
                         minerRepositoryCommits(gitRepoCommits, gitRepo);
                         dao.edit(mineration);
                     }
+                    if (!canceled && minerTeams) {
+                        subProgress = new Integer(0);
+                        out.setCurrentProcess("Minerando Teams...\n");
+                        List<Team> gitTeams = TeamServices.getGitTeamsFromRepository(gitRepo);
+                        minerTeams(gitTeams, gitRepo);
+                        dao.edit(mineration);
+                    }
                     if (canceled) {
                         out.printLog("Processo de mineração cancelado pelo usuário.\n");
                     }
@@ -256,8 +262,9 @@ public class GitOthersBean implements Serializable {
                     message = "Mineração finalizada.";
                 } catch (Exception ex) {
                     ex.printStackTrace();
-                    message = "Mineração abortada:\n" + ex.toString();
+                    message = "Mineração abortada: " + ex.toString();
                     mineration.setComplete(false);
+                    fail = true;
                 }
                 System.gc();
                 out.setCurrentProcess(message);
@@ -275,19 +282,28 @@ public class GitOthersBean implements Serializable {
         if (initialized) {
             out.printLog("Pedido de cancelamento enviado.\n");
             canceled = true;
-            process.interrupt(); 
+            process.interrupt();
         }
     }
 
     public Integer getProgress() {
-        if (progress != null && progress > 100) {
+        if (fail) {
+            progress = new Integer(100);
+        } else if (progress == null) {
+            progress = new Integer(0);
+        } else if (progress > 100) {
             progress = new Integer(100);
         }
+        System.out.println("progress: " + progress);
         return progress;
     }
 
     public Integer getSubProgress() {
-        if (subProgress != null && subProgress > 100) {
+        if (fail) {
+            subProgress = new Integer(100);
+        } else if (subProgress == null) {
+            subProgress = new Integer(0);
+        } else if (subProgress > 100) {
             subProgress = new Integer(100);
         }
         return subProgress;
@@ -296,7 +312,13 @@ public class GitOthersBean implements Serializable {
     public void onComplete() {
         out.printLog("onComplete" + '\n');
         initialized = false;
-        FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_INFO, message, message));
+        progress = new Integer(0);
+        subProgress = new Integer(0);
+        if (fail) {
+            JsfUtil.addErrorMessage(message);
+        } else {
+            JsfUtil.addSuccessMessage(message);
+        }
     }
 
     private void calculeSubProgress(double i, double size) {
@@ -305,11 +327,12 @@ public class GitOthersBean implements Serializable {
     }
 
     public void teste() {
-        EntityIssue issue = new EntityIssue();
-        issue.setIdIssue(234234234);
-        issue.setUserIssue((EntityUser) dao.findByID(new Long(12), EntityIssue.class));
-        dao.insert(issue);
-        System.out.println("Gravou issue: " + issue);
+//        EntityIssue issue = new EntityIssue();
+//        issue.setIdIssue(234234234);
+//        issue.setUserIssue((EntityUser) dao.findByID(new Long(12), EntityIssue.class));
+//        dao.insert(issue);
+//        System.out.println("Gravou issue: " + issue);
+        System.out.println("clicou");
     }
 
     public void debug(String string) {
@@ -539,5 +562,30 @@ public class GitOthersBean implements Serializable {
             out.printLog("## Erro ao gravar Comment do Commit: " + gitCommitComment.getUrl() + " Descrição: " + ex.toString());
         }
         return commitComment;
+    }
+
+    private void minerTeams(List<Team> gitTeams, Repository gitRepo) {
+        int i = 0;
+        calculeSubProgress(i, gitTeams.size());
+        while (!canceled && i < gitTeams.size()) {
+            Team gitTeam = gitTeams.get(i);
+            EntityTeam team = minerTeam(gitTeam);
+            repositoryToMiner.addTeam(team);
+            dao.edit(team);
+            i++;
+            calculeSubProgress(i, gitTeams.size());
+        }
+    }
+
+    private EntityTeam minerTeam(Team gitTeam) {
+        EntityTeam team = null;
+        try {
+            team = TeamServices.createEntity(gitTeam, dao);
+            out.printLog("Team gravado com sucesso: " + gitTeam.getName() + " - ID: " + gitTeam.getId());
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            out.printLog("## Erro ao gravar Team: " + gitTeam.getName() + " - ID: " + gitTeam.getId() + " Descrição: " + ex.toString());
+        }
+        return team;
     }
 }

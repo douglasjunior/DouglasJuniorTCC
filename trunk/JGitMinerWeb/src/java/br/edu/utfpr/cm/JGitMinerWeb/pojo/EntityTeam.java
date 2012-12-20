@@ -16,6 +16,9 @@ import javax.persistence.*;
  */
 @Entity
 @Table(name = "gitTeam")
+@NamedQueries({
+    @NamedQuery(name = "Team.findByTeamID", query = "SELECT t FROM EntityTeam t WHERE t.idTeam = :idTeam")
+})
 public class EntityTeam implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -32,9 +35,12 @@ public class EntityTeam implements Serializable {
     private String url;
     @OneToMany
     private List<EntityUser> members;
+    @ManyToMany
+    private List<EntityRepository> repositories;
 
     public EntityTeam() {
         members = new ArrayList<EntityUser>();
+        repositories = new ArrayList<EntityRepository>();
         mineratedAt = new Date();
     }
 
@@ -60,6 +66,14 @@ public class EntityTeam implements Serializable {
 
     public void setMembers(List<EntityUser> members) {
         this.members = members;
+    }
+
+    public List<EntityRepository> getRepositories() {
+        return repositories;
+    }
+
+    public void setRepositories(List<EntityRepository> repositories) {
+        this.repositories = repositories;
     }
 
     public int getMembersCount() {

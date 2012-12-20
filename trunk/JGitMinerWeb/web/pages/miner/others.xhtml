@@ -1,16 +1,17 @@
 <div xmlns="http://www.w3.org/1999/xhtml"
      xmlns:h="http://java.sun.com/jsf/html"
      xmlns:f="http://java.sun.com/jsf/core"
-     xmlns:p="http://primefaces.org/ui"
-     xmlns:ui="http://java.sun.com/jsf/facelets">
+     xmlns:p="http://primefaces.org/ui" >
     <p:panel >
         <h2>Pagina de mineração de Outros Dados.</h2>
         <br />
         <h:form id="formMinerOther" prependId="false">
+            <p:growl globalOnly="true" id="messages" />
+
             <p:panel id="panelMinerOther">
                 <h:outputLabel for="repositoryToMiner" value="Escolha o Repositório para mineração dos dados: "/>
-                <p:message id="repositoryToMinerMessage" for="repositoryToMiner" />
-                <p:selectOneListbox id="repositoryToMiner" required="true" requiredMessage="Selecione um repositório para mineração dos dados." converter="#{gitRepositoryBean.converter}" style="height:100px;width:300px" value="#{gitOthersBean.repositoryToMiner}">
+
+                <p:selectOneListbox id="repositoryToMiner" converter="#{gitRepositoryBean.converter}" style="height:100px;width:300px" value="#{gitOthersBean.repositoryToMiner}">
                     <f:selectItems value="#{gitRepositoryBean.repositoriesPrimaryMiner}" var="repo" itemLabel="#{repo.name}, #{repo.owner.login}" itemDescription="#{repo.name}" itemValue="#{repo}"  />
                 </p:selectOneListbox>
                 <br />
@@ -52,49 +53,35 @@
             <br />
             <br />
 
-            <p:commandButton value="Start" actionListener="#{gitOthersBean.start()}" disabled="#{gitOthersBean.initialized}" update="@form"
-                             widgetVar="startButton" id="startButton" onclick="startButton.disable();" />  
+            <p:commandButton widgetVar="startButton" type="submit" actionListener="#{gitOthersBean.start()}" value="Start" 
+                             onclick="startButton.disable();progress.start();subProgress.start();textAreaUpdater.start();" update="loadingImage,logTextArea" />
 
-            <p:commandButton value="Cancel" async="true" actionListener="#{gitOthersBean.cancel()}" onclick="startButton.enable();" immediate="true" />  
+            <p:commandButton value="Cancel" actionListener="#{gitOthersBean.cancel()}" oncomplete="startButton.enable();progress.cancel();subProgress.start();" />
 
-            <p:poll interval="3" async="true" autoStart="true"  listener="#{gitOthersBean.debug('pbAjaxStartButton')}" immediate="true" update="startButton" />
-        </h:form>
-        <br />
-        <br />
-        <h:form prependId="false" id="formProgress">
-            <p:growl globalOnly="true" id="messages" />
-            <h:outputText value="Current process: #{gitOthersBean.currentProcess}" id="currentProcess" />
+            <br />
+            <br />
 
-            <p:progressBar widgetVar="progress" ajax="true" value="#{gitOthersBean.progress}" labelTemplate="{value}%" styleClass="animated" interval="3000"  >  
-                <p:ajax event="complete" listener="#{gitOthersBean.onComplete()}" update="logTextArea" oncomplete="progress.stop();subProgress.stop();pbAjaxLogTextArea.stop();"/>
+            <p:progressBar id="progress" widgetVar="progress" ajax="true" value="#{gitOthersBean.progress}" labelTemplate="{value}%" styleClass="animated" interval="3000" >
+                <p:ajax event="complete" listener="#{gitOthersBean.onComplete()}" update="messages,loadingImage,logTextArea" oncomplete="startButton.enable();textAreaUpdater.stop();"/>
             </p:progressBar>
-
-            <br /> 
-
-            <p:progressBar widgetVar="subProgress" ajax="true" value="#{gitOthersBean.subProgress}" labelTemplate="{value}%" styleClass="animated" interval="2000" >  
+            <br />
+            <p:progressBar id="subProgress" widgetVar="subProgress" ajax="true" value="#{gitOthersBean.subProgress}" labelTemplate="{value}%" styleClass="animated" interval="3000" >  
             </p:progressBar>
 
             <br />
             <div style="margin: auto;text-align: center">
-                <p:outputPanel  id="loadingImage" >
-                    <p:graphicImage alt="Loading..." width="50" url="resources/images/loading.gif"  rendered="#{gitOthersBean.initialized}" />  
+                <p:outputPanel  id="loadingImage"  >
+                    <p:graphicImage alt="Loading..." width="50" url="resources/images/loading.gif" rendered="#{gitOthersBean.initialized}" />  
                 </p:outputPanel>
             </div>
             <br />
 
-            <p:poll interval="2" async="true" id="pbAjaxAutoStart" widgetVar="pbAjaxAutoStart" listener="#{gitOthersBean.debug('pbAjaxAutoStart')}" 
-                    onstart="progress.start();subProgress.start();" autoStart="#{gitOthersBean.initialized}" stop="#{!gitOthersBean.initialized}" />
-
-            <p:poll interval="2" async="true" id="pbAjaxLogTextArea" widgetVar="pbAjaxLogTextArea" autoStart="#{gitOthersBean.initialized}" update="logTextArea" listener="#{gitOthersBean.debug('pbAjaxLogTextArea')}" />
-
-            <p:poll interval="3" async="true" id="pbAjaxGeral" autoStart="true"  listener="#{gitOthersBean.debug('pbAjaxGeral')}" 
-                    update="pbAjaxAutoStart,pbAjaxLogTextArea,messages,currentProcess,loadingImage" />
+            <p:poll id="textAreaUpdater" widgetVar="textAreaUpdater" async="true" interval="4" update="logTextArea,loadingImage" autoStart="#{gitOthersBean.initialized}" />
 
             <h3>Log de mineração:</h3>
-            <br/>
+            <br />
             <p:inputTextarea value="#{gitOthersBean.log}" id="logTextArea" style="width: 100%" rows="30" autoResize="autoResize" readonly="true" />
 
         </h:form>
-
     </p:panel>
 </div>
