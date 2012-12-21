@@ -7,6 +7,7 @@ package br.edu.utfpr.cm.JGitMinerWeb.services;
 import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericDao;
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.EntityCommitComment;
 import java.util.Date;
+import java.util.List;
 import org.eclipse.egit.github.core.CommitComment;
 
 /**
@@ -50,6 +51,10 @@ public class CommitCommentServices {
     }
 
     private static EntityCommitComment getCommitCommentByURL(String url, GenericDao dao) {
-        throw new UnsupportedOperationException("Not yet implemented");
+        List<EntityCommitComment> comments = dao.executeNamedQueryComParametros("CommitComment.findByURL", new String[]{"url"}, new Object[]{url});
+        if (!comments.isEmpty()) {
+            return comments.get(0);
+        }
+        return null;
     }
 }

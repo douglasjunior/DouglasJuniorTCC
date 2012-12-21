@@ -14,6 +14,7 @@ import javax.faces.bean.SessionScoped;
 import org.eclipse.egit.github.core.*;
 import org.eclipse.egit.github.core.service.CommitService;
 import org.eclipse.egit.github.core.service.IssueService;
+import org.eclipse.egit.github.core.service.OrganizationService;
 
 @ManagedBean(name = "gitOthersBean")
 @SessionScoped
@@ -207,7 +208,7 @@ public class GitOthersBean implements Serializable {
                         mineration.setMinerLog(out.getLog());
                         dao.edit(mineration);
                     }
-                    progress = new Integer(25);
+                    progress = new Integer(22);
                     if (!canceled && minerCollaborators) {
                         subProgress = new Integer(0);
                         out.setCurrentProcess("Minerando collaborators...\n");
@@ -216,7 +217,7 @@ public class GitOthersBean implements Serializable {
                         mineration.setMinerLog(out.getLog());
                         dao.edit(mineration);
                     }
-                    progress = new Integer(50);
+                    progress = new Integer(34);
                     if (!canceled && minerWatchers) {
                         subProgress = new Integer(0);
                         out.setCurrentProcess("Minerando watchers...\n");
@@ -225,7 +226,7 @@ public class GitOthersBean implements Serializable {
                         mineration.setMinerLog(out.getLog());
                         dao.edit(mineration);
                     }
-                    progress = new Integer(75);
+                    progress = new Integer(56);
                     if (!canceled && (minerClosedPullRequests || minerOpenPullRequests)) {
                         subProgress = new Integer(0);
                         out.setCurrentProcess("Minerando Pull Requests...\n");
@@ -233,7 +234,7 @@ public class GitOthersBean implements Serializable {
                         minerPullRequests(gitPullRequests);
                         dao.edit(mineration);
                     }
-                    progress = new Integer(80);
+                    progress = new Integer(68);
                     if (!canceled && minerForks) {
                         subProgress = new Integer(0);
                         out.setCurrentProcess("Minerando Forks...\n");
@@ -241,6 +242,7 @@ public class GitOthersBean implements Serializable {
                         minerForks(gitForks);
                         dao.edit(mineration);
                     }
+                    progress = new Integer(80);
                     if (!canceled && minerRepositoryCommits) {
                         subProgress = new Integer(0);
                         out.setCurrentProcess("Minerando RepositoryCommits...\n");
@@ -248,6 +250,7 @@ public class GitOthersBean implements Serializable {
                         minerRepositoryCommits(gitRepoCommits, gitRepo);
                         dao.edit(mineration);
                     }
+                    progress = new Integer(92);
                     if (!canceled && minerTeams) {
                         subProgress = new Integer(0);
                         out.setCurrentProcess("Minerando Teams...\n");
@@ -269,6 +272,7 @@ public class GitOthersBean implements Serializable {
                 System.gc();
                 out.setCurrentProcess(message);
                 progress = new Integer(100);
+                subProgress = new Integer(100);
                 initialized = false;
                 mineration.setMinerStop(new Date());
                 mineration.setMinerLog(out.getLog());
@@ -348,7 +352,7 @@ public class GitOthersBean implements Serializable {
         while (!canceled && i < gitIssues.size()) {
             Issue gitIssue = gitIssues.get(i);
             EntityIssue issue = minerIssue(gitIssue);
-            if (minerCommentsOfIssues && issue != null && issue.getCommentsCount() > 0) {
+            if (minerCommentsOfIssues && issue.getCommentsCount() > 0) {
                 minerCommentsOfIssue(issue, gitRepo);
             }
             EntityPullRequest pull = PullRequestServices.getPullRequestByNumber(gitIssue.getNumber(), repositoryToMiner, dao);
@@ -515,7 +519,7 @@ public class GitOthersBean implements Serializable {
         while (!canceled && i < gitRepoCommits.size()) {
             RepositoryCommit gitRepoCommit = gitRepoCommits.get(i);
             EntityRepositoryCommit repoCommit = minerRepositoryCommit(gitRepoCommit);
-            if (minerCommentsOfRepositoryCommits && repoCommit != null) {
+            if (minerCommentsOfRepositoryCommits && repoCommit.getCommit().getCommentCount() > 0) {
                 minerCommentsOfRepoCommit(repoCommit, gitRepo);
             }
             repositoryToMiner.addRepoCommit(repoCommit);

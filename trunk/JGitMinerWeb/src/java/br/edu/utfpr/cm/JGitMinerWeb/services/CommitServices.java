@@ -30,6 +30,7 @@ public class CommitServices {
         commit.setMineredAt(new Date());
         commit.setAuthor(CommitUserServices.createEntity(gitCommit.getAuthor(), dao));
         commit.setCommitter(CommitUserServices.createEntity(gitCommit.getCommitter(), dao));
+        commit.setCommentCount(gitCommit.getCommentCount());
         commit.setMessage(gitCommit.getMessage());
         createParents(commit, gitCommit.getParents(), dao);
         commit.setSha(gitCommit.getSha());
@@ -59,5 +60,7 @@ public class CommitServices {
                 commit.addParent(createEntity(gitParent, dao));
             }
         }
+
+
     }
 }

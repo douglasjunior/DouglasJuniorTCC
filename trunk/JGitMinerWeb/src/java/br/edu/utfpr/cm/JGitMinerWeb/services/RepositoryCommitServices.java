@@ -14,6 +14,7 @@ import org.eclipse.egit.github.core.CommitFile;
 import org.eclipse.egit.github.core.Repository;
 import org.eclipse.egit.github.core.RepositoryCommit;
 import org.eclipse.egit.github.core.service.CommitService;
+import org.eclipse.egit.github.core.service.GistService;
 
 /**
  *

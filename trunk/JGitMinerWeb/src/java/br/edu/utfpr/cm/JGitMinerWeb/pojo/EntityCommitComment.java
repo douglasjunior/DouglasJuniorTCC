@@ -14,6 +14,9 @@ import javax.persistence.*;
  */
 @Entity
 @Table(name = "gitCommitComment")
+@NamedQueries({
+    @NamedQuery(name = "CommitComment.findByURL", query = "SELECT c FROM EntityCommitComment c WHERE c.url = :url")
+})
 public class EntityCommitComment implements Serializable {
 
     private static final long serialVersionUID = 1L;
