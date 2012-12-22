@@ -66,11 +66,14 @@ public class EntityIssue implements Serializable {
     private List<EntityComment> comments;
     @ManyToOne
     private EntityRepository repository;
+    @OneToMany(mappedBy = "issue")
+    private List<EntityIssueEvent> events;
 
     public EntityIssue() {
         comments = new ArrayList<EntityComment>();
         labels = new ArrayList<EntityLabel>();
         mineredAt = new Date();
+        events = new ArrayList<EntityIssueEvent>();
     }
 
     public Long getId() {
@@ -284,5 +287,12 @@ public class EntityIssue implements Serializable {
         if (!labels.contains(label)) {
             labels.add(label);
         }
+    }
+
+    public void addEvent(EntityIssueEvent issueEvent) {
+        if(!events.contains(issueEvent)){
+            events.add(issueEvent);
+        }
+        issueEvent.setIssue(this);
     }
 }

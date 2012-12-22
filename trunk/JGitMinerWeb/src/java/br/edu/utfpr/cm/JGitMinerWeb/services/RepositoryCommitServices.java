@@ -14,7 +14,6 @@ import org.eclipse.egit.github.core.CommitFile;
 import org.eclipse.egit.github.core.Repository;
 import org.eclipse.egit.github.core.RepositoryCommit;
 import org.eclipse.egit.github.core.service.CommitService;
-import org.eclipse.egit.github.core.service.GistService;
 
 /**
  *
@@ -26,7 +25,7 @@ public class RepositoryCommitServices {
         List<RepositoryCommit> repoCommits = null;
         try {
             out.printLog("Baixando RepositoryCommits...\n");
-            repoCommits = new CommitService().getCommits(gitRepo);
+            repoCommits = new CommitService(AuthServices.getGitHubCliente()).getCommits(gitRepo);
             out.printLog(repoCommits.size() + " RepositoryCommits baixados no total!");
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -39,6 +38,8 @@ public class RepositoryCommitServices {
         if (gitRepoCommit == null) {
             return null;
         }
+        
+
 
         EntityRepositoryCommit repoCommit = getRepoCommitByURL(gitRepoCommit.getUrl(), dao);
 

@@ -32,7 +32,7 @@ public class UserServices {
         if (gitUser == null) {
             return null;
         }
-        
+
         EntityUser user = getUserByLogin(gitUser.getLogin(), dao);
         if (user == null) {
             user = new EntityUser();
@@ -75,14 +75,14 @@ public class UserServices {
 
     public static List<User> getGitCollaboratorsFromRepository(Repository gitRepo) throws Exception {
         out.printLog("Baixando Collaborators...\n");
-        List<User> users = new CollaboratorService().getCollaborators(gitRepo);
+        List<User> users = new CollaboratorService(AuthServices.getGitHubCliente()).getCollaborators(gitRepo);
         out.printLog(users.size() + " Collaborators baixados!");
         return users;
     }
 
     public static List<User> getGitWatchersFromRepository(Repository gitRepo) throws Exception {
         out.printLog("Baixando Watchers...\n");
-        List<User> users = new WatcherService().getWatchers(gitRepo);
+        List<User> users = new WatcherService(AuthServices.getGitHubCliente()).getWatchers(gitRepo);
         out.printLog(users.size() + " Watchers baixados!");
         return users;
     }

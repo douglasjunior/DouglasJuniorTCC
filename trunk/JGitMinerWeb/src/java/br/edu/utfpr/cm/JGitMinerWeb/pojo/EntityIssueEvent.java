@@ -12,6 +12,8 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 
@@ -21,6 +23,9 @@ import javax.persistence.Temporal;
  */
 @Entity
 @Table(name = "gitIssueEvent")
+@NamedQueries({
+    @NamedQuery(name = "IssueEvent.findByURL", query = "SELECT e FROM EntityIssueEvent e WHERE e.url = :url")
+})
 public class EntityIssueEvent implements Serializable {
 
     private static final long serialVersionUID = 1L;

@@ -14,7 +14,6 @@ import javax.faces.bean.SessionScoped;
 import org.eclipse.egit.github.core.*;
 import org.eclipse.egit.github.core.service.CommitService;
 import org.eclipse.egit.github.core.service.IssueService;
-import org.eclipse.egit.github.core.service.OrganizationService;
 
 @ManagedBean(name = "gitOthersBean")
 @SessionScoped
@@ -26,6 +25,8 @@ public class GitOthersBean implements Serializable {
     private boolean minerOpenIssues;
     private boolean minerClosedIssues;
     private boolean minerCommentsOfIssues;
+    private boolean minerOpenMilestones;
+    private boolean minerClosedMilestones;
     private boolean minerCollaborators;
     private boolean minerWatchers;
     private boolean minerOpenPullRequests;
@@ -73,6 +74,22 @@ public class GitOthersBean implements Serializable {
 
     public void setMinerOpenIssues(boolean minerOpenIssues) {
         this.minerOpenIssues = minerOpenIssues;
+    }
+
+    public boolean isMinerOpenMilestones() {
+        return minerOpenMilestones;
+    }
+
+    public void setMinerOpenMilestones(boolean minerOpenMilestones) {
+        this.minerOpenMilestones = minerOpenMilestones;
+    }
+
+    public boolean isMinerClosedMilestones() {
+        return minerClosedMilestones;
+    }
+
+    public void setMinerClosedMilestones(boolean minerClosedMilestones) {
+        this.minerClosedMilestones = minerClosedMilestones;
     }
 
     public boolean isMinerCollaborators() {
@@ -198,13 +215,20 @@ public class GitOthersBean implements Serializable {
                     initialized = true;
                     Thread.sleep(5000);
                     Repository gitRepo = RepositoryServices.getGitRepository(repositoryToMiner.getOwner().getLogin(), repositoryToMiner.getName());
-                    System.out.println("Repositorio escolhido: " + gitRepo);
                     progress = new Integer(10);
                     if (!canceled && (minerOpenIssues || minerClosedIssues)) {
                         subProgress = new Integer(0);
                         out.setCurrentProcess("Minerando issues...\n");
                         List<Issue> gitIssues = IssueServices.getGitIssuesFromRepository(gitRepo, minerOpenIssues, minerClosedIssues);
                         minerIssues(gitIssues, gitRepo);
+                        mineration.setMinerLog(out.getLog());
+                        dao.edit(mineration);
+                    }
+                    if (!canceled && (minerOpenMilestones || minerClosedMilestones)) {
+                        subProgress = new Integer(0);
+                        out.setCurrentProcess("Minerando milestones...\n");
+                        List<Milestone> gitMilestones = MilestoneServices.getGitMilestoneFromRepository(gitRepo, minerOpenMilestones, minerClosedMilestones);
+                        minerMilestones(gitMilestones, gitRepo);
                         mineration.setMinerLog(out.getLog());
                         dao.edit(mineration);
                     }
@@ -352,6 +376,7 @@ public class GitOthersBean implements Serializable {
         while (!canceled && i < gitIssues.size()) {
             Issue gitIssue = gitIssues.get(i);
             EntityIssue issue = minerIssue(gitIssue);
+            minerEventsIssue(issue, gitRepo);
             if (minerCommentsOfIssues && issue.getCommentsCount() > 0) {
                 minerCommentsOfIssue(issue, gitRepo);
             }
@@ -382,7 +407,7 @@ public class GitOthersBean implements Serializable {
     private void minerCommentsOfIssue(EntityIssue issue, Repository gitRepo) throws Exception {
         out.printLog("");
         out.printLog("Baixando Comentários...");
-        List<Comment> gitComments = new IssueService().getComments(gitRepo, issue.getNumber());
+        List<Comment> gitComments = new IssueService(AuthServices.getGitHubCliente()).getComments(gitRepo, issue.getNumber());
         out.printLog(gitComments.size() + " Comentários baixados.");
         int i = 0;
         while (!canceled && i < gitComments.size()) {
@@ -518,6 +543,7 @@ public class GitOthersBean implements Serializable {
         calculeSubProgress(i, gitRepoCommits.size());
         while (!canceled && i < gitRepoCommits.size()) {
             RepositoryCommit gitRepoCommit = gitRepoCommits.get(i);
+            gitRepoCommit = new CommitService(AuthServices.getGitHubCliente()).getCommit(gitRepo, gitRepoCommit.getSha());
             EntityRepositoryCommit repoCommit = minerRepositoryCommit(gitRepoCommit);
             if (minerCommentsOfRepositoryCommits && repoCommit.getCommit().getCommentCount() > 0) {
                 minerCommentsOfRepoCommit(repoCommit, gitRepo);
@@ -532,6 +558,7 @@ public class GitOthersBean implements Serializable {
     private EntityRepositoryCommit minerRepositoryCommit(RepositoryCommit gitRepoCommit) {
         EntityRepositoryCommit repoCommit = null;
         try {
+
             repoCommit = RepositoryCommitServices.createEntity(gitRepoCommit, dao);
             out.printLog("RepositoryCommit gravado com sucesso: " + gitRepoCommit.getUrl());
         } catch (Exception ex) {
@@ -544,7 +571,7 @@ public class GitOthersBean implements Serializable {
     private void minerCommentsOfRepoCommit(EntityRepositoryCommit repoCommit, Repository gitRepo) throws Exception {
         out.printLog("");
         out.printLog("Baixando Comentários dos Commits...");
-        List<CommitComment> gitCommitComments = new CommitService().getComments(gitRepo, repoCommit.getSha());
+        List<CommitComment> gitCommitComments = new CommitService(AuthServices.getGitHubCliente()).getComments(gitRepo, repoCommit.getSha());
         out.printLog(gitCommitComments.size() + " Comentários baixados.");
         int i = 0;
         while (!canceled && i < gitCommitComments.size()) {
@@ -591,5 +618,60 @@ public class GitOthersBean implements Serializable {
             out.printLog("## Erro ao gravar Team: " + gitTeam.getName() + " - ID: " + gitTeam.getId() + " Descrição: " + ex.toString());
         }
         return team;
+    }
+
+    private void minerMilestones(List<Milestone> gitMilestones, Repository gitRepo) {
+        int i = 0;
+        calculeSubProgress(i, gitMilestones.size());
+        while (!canceled && i < gitMilestones.size()) {
+            Milestone gitMilestone = gitMilestones.get(i);
+            EntityMilestone milestone = minerMilestone(gitMilestone);
+            repositoryToMiner.addMilestone(milestone);
+            dao.edit(milestone);
+            i++;
+            calculeSubProgress(i, gitMilestones.size());
+        }
+    }
+
+    private EntityMilestone minerMilestone(Milestone gitMilestone) {
+        EntityMilestone milestone = null;
+        try {
+            milestone = MilestoneServices.createEntity(gitMilestone, dao);
+            out.printLog("Milestone gravado com sucesso: " + gitMilestone.getTitle() + " - Number: " + gitMilestone.getNumber());
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            out.printLog("## Erro ao gravar Milestone: " + gitMilestone.getTitle() + " - Number: " + gitMilestone.getNumber() + " Descrição: " + ex.toString());
+        }
+        return milestone;
+    }
+
+    private void minerEventsIssue(EntityIssue issue, Repository gitRepo) {
+//        PageIterator<IssueEvent> events = new IssueService(AuthServices.getGitHubCliente()).getIssues(gitRepo, null);
+        out.printLog("Baixando Issue Events...");
+        List<IssueEvent> gitIssueEvents = IssueEventServices.getEventsByIssue(issue, gitRepo.getOwner().getLogin(), gitRepo.getName());
+        out.printLog("Issue Events baixados: " + gitIssueEvents.size());
+        
+        int i = 0;
+        calculeSubProgress(i, gitIssueEvents.size());
+        while (!canceled && i < gitIssueEvents.size()) {
+            IssueEvent gitIssueEvent = gitIssueEvents.get(i);
+            EntityIssueEvent issueEvent = minerIssueEvent(gitIssueEvent);
+            issue.addEvent(issueEvent);
+            dao.edit(issueEvent);
+            i++;
+            calculeSubProgress(i, gitIssueEvents.size());
+        }
+    }
+
+    private EntityIssueEvent minerIssueEvent(IssueEvent gitIssueEvent) {
+        EntityIssueEvent issueEvent = null;
+        try {
+            issueEvent = IssueEventServices.createEntity(gitIssueEvent, dao);
+            out.printLog("Issue Event gravado com sucesso: " + gitIssueEvent.getEvent() + " - Number: " + gitIssueEvent.getId());
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            out.printLog("## Erro ao gravar Issue Event: " + gitIssueEvent.getEvent() + " - Number: " + gitIssueEvent.getId() + " Descrição: " + ex.toString());
+        }
+        return issueEvent;
     }
 }

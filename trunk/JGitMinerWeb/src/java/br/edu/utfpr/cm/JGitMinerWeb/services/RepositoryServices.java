@@ -78,12 +78,12 @@ public class RepositoryServices {
     }
 
     public static Repository getGitRepository(String ownerLogin, String repoName) throws Exception {
-        return new RepositoryService().getRepository(ownerLogin, repoName);
+        return new RepositoryService(AuthServices.getGitHubCliente()).getRepository(ownerLogin, repoName);
     }
 
     public static List<Repository> getGitForksFromRepository(Repository gitRepo) throws Exception {
         out.printLog("Baixando Forks...\n");
-        List<Repository> forks = new RepositoryService().getForks(gitRepo);
+        List<Repository> forks = new RepositoryService(AuthServices.getGitHubCliente()).getForks(gitRepo);
         out.printLog(forks.size() + " Forks baixados!");
         return forks;
     }

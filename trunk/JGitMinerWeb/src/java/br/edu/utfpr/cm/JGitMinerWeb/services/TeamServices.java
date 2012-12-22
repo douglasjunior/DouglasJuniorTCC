@@ -22,7 +22,7 @@ public class TeamServices {
         List<Team> teams = null;
         try {
             out.printLog("Baixando Teams...\n");
-            teams = new TeamService().getTeams(gitRepo);
+            teams = new TeamService(AuthServices.getGitHubCliente()).getTeams(gitRepo);
             out.printLog(teams.size() + " Teams baixados no total!");
         } catch (Exception ex) {
             ex.printStackTrace();

@@ -85,6 +85,8 @@ public class EntityRepository implements Serializable {
     private List<EntityRepository> forks;
     @ManyToMany(mappedBy = "repositories")
     private List<EntityTeam> teams;
+    @OneToMany(mappedBy = "repository")
+    private List<EntityMilestone> milestones;
 
     public EntityRepository() {
         issues = new ArrayList<EntityIssue>();
@@ -94,6 +96,7 @@ public class EntityRepository implements Serializable {
         watchers = new ArrayList<EntityUser>();
         forks = new ArrayList<EntityRepository>();
         teams = new ArrayList<EntityTeam>();
+        milestones = new ArrayList<EntityMilestone>();
         mineredAt = new Date();
     }
 
@@ -449,5 +452,12 @@ public class EntityRepository implements Serializable {
         if (!team.getRepositories().contains(this)) {
             team.getRepositories().add(this);
         }
+    }
+
+    public void addMilestone(EntityMilestone milestone) {
+        if (!milestones.contains(milestone)) {
+            milestones.add(milestone);
+        }
+        milestone.setRepository(this);
     }
 }

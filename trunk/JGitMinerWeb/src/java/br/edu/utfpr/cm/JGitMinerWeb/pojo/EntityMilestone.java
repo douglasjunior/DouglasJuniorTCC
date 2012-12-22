@@ -40,6 +40,8 @@ public class EntityMilestone implements Serializable {
     private String url;
     @ManyToOne
     private EntityUser creator;
+    @ManyToOne
+    private EntityRepository repository;
 
     public EntityMilestone() {
         mineredAt = new Date();
@@ -83,6 +85,14 @@ public class EntityMilestone implements Serializable {
 
     public void setCreator(EntityUser creator) {
         this.creator = creator;
+    }
+
+    public EntityRepository getRepository() {
+        return repository;
+    }
+
+    public void setRepository(EntityRepository repository) {
+        this.repository = repository;
     }
 
     public String getDescription() {

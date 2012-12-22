@@ -33,7 +33,7 @@ public class IssueServices {
     public static List<Issue> getGitIssuesFromRepository(Repository gitRepo, boolean open, boolean closed) {
         List<Issue> issues = new ArrayList<Issue>();
         try {
-            IssueService issueServ = new IssueService();
+            IssueService issueServ = new IssueService(AuthServices.getGitHubCliente());
             HashMap<String, String> params = new HashMap<String, String>();
             if (open) {
                 List<Issue> opensIssues;
@@ -89,6 +89,8 @@ public class IssueServices {
         issue.setUrl(gitIssue.getUrl());
         issue.setAssignee(UserServices.createEntity(gitIssue.getAssignee(), dao, false));
         issue.setUserIssue(UserServices.createEntity(gitIssue.getUser(), dao, false));
+        
+        
 
         if (issue.getId() == null || issue.getId().equals(new Long(0))) {
             dao.insert(issue);

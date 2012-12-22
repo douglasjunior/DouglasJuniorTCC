@@ -6,6 +6,7 @@ package br.edu.utfpr.cm.JGitMinerWeb.managedBean;
 
 import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericDao;
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.EntityRepository;
+import br.edu.utfpr.cm.JGitMinerWeb.services.AuthServices;
 import br.edu.utfpr.cm.JGitMinerWeb.services.RepositoryServices;
 import br.edu.utfpr.cm.JGitMinerWeb.util.JsfUtil;
 import java.io.Serializable;
@@ -75,7 +76,7 @@ public class GitRepositoryBean implements Serializable {
             JsfUtil.addErrorMessage("Informe o nome do repositorio desejado.");
         } else {
             try {
-                Repository gitRepository = new RepositoryService().getRepository(this.repositoryOwnerLogin, this.repositoryName);
+                Repository gitRepository = new RepositoryService(AuthServices.getGitHubCliente()).getRepository(this.repositoryOwnerLogin, this.repositoryName);
 
                 System.err.println("Repositório: " + gitRepository.getName() + " | " + gitRepository.getOwner().getLogin() + " | " + gitRepository.getCreatedAt() + " | " + gitRepository.getHtmlUrl());
 

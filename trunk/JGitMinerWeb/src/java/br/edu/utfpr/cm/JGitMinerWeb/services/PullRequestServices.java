@@ -85,7 +85,7 @@ public class PullRequestServices {
     public static List<PullRequest> getGitPullRequestsFromRepository(Repository gitRepo, boolean open, boolean closed) {
         List<PullRequest> pulls = new ArrayList<PullRequest>();
         try {
-            PullRequestService pullServ = new PullRequestService();
+            PullRequestService pullServ = new PullRequestService(AuthServices.getGitHubCliente());
             if (open) {
                 List<PullRequest> opensPulls;
                 out.printLog("Baixando PullRequests Abertos...\n");

@@ -6,9 +6,12 @@ package br.edu.utfpr.cm.JGitMinerWeb.services;
 
 import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericDao;
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.EntityMilestone;
-import java.util.Date;
+import br.edu.utfpr.cm.JGitMinerWeb.util.out;
+import java.util.ArrayList;
 import java.util.List;
 import org.eclipse.egit.github.core.Milestone;
+import org.eclipse.egit.github.core.Repository;
+import org.eclipse.egit.github.core.service.MilestoneService;
 
 /**
  *
@@ -27,7 +30,7 @@ public class MilestoneServices {
             milestone = new EntityMilestone();
         }
 
-        milestone.setCreatedAt(new Date());
+        milestone.setCreatedAt(gitMilestone.getCreatedAt());
         milestone.setDueOn(gitMilestone.getDueOn());
         milestone.setClosedIssues(gitMilestone.getClosedIssues());
         milestone.setNumber(gitMilestone.getNumber());
@@ -43,7 +46,7 @@ public class MilestoneServices {
         } else {
             dao.edit(milestone);
         }
-        
+
         return milestone;
     }
 
@@ -53,5 +56,31 @@ public class MilestoneServices {
             return miles.get(0);
         }
         return null;
+    }
+
+    public static List<Milestone> getGitMilestoneFromRepository(Repository gitRepo, boolean open, boolean closed) {
+        List<Milestone> milestones = new ArrayList<Milestone>();
+        try {
+            MilestoneService service = new MilestoneService(AuthServices.getGitHubCliente());
+            if (open) {
+                List<Milestone> opens;
+                out.printLog("Baixando Milestones Abertos...\n");
+                opens = service.getMilestones(gitRepo, "open");
+                out.printLog(opens.size() + " Milestones abertos baixadas!");
+                milestones.addAll(opens);
+            }
+            if (closed) {
+                List<Milestone> closeds;
+                out.printLog("Baixando Milestones Fechados...\n");
+                closeds = service.getMilestones(gitRepo, "closed");
+                out.printLog(closeds.size() + " Milestones fechados baixadas!");
+                milestones.addAll(closeds);
+            }
+            out.printLog(milestones.size() + " Milestones baixados no total!");
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            out.printLog(milestones.size() + " Milestones baixados no total! Erro: " + ex.toString());
+        }
+        return milestones;
     }
 }
