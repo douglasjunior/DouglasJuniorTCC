@@ -20,13 +20,13 @@ import org.eclipse.egit.github.core.client.PagedRequest;
  */
 public class IssueEventServices {
 
-    public static List<IssueEvent> getEventsByIssue(EntityIssue issue, String login, String name) {
+    public static List<IssueEvent> getEventsByIssue(EntityIssue issue, String ownerRepositoryLogin, String repositoryName) {
         // repos/:owner/:repo/issues/:issue_number/events
 
         PagedRequest<IssueEvent> request = new PagedRequest<IssueEvent>(1, 100);
         StringBuilder uri = new StringBuilder("/repos");
-        uri.append('/').append(login);
-        uri.append('/').append(name);
+        uri.append('/').append(ownerRepositoryLogin);
+        uri.append('/').append(repositoryName);
         uri.append("/issues");
         uri.append('/').append(issue.getNumber());
         uri.append("/events");
