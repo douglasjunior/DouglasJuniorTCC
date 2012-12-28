@@ -25,6 +25,7 @@ public class GitOthersBean implements Serializable {
     private boolean minerOpenIssues;
     private boolean minerClosedIssues;
     private boolean minerCommentsOfIssues;
+    private boolean minerEventsOfIssues;
     private boolean minerOpenMilestones;
     private boolean minerClosedMilestones;
     private boolean minerCollaborators;
@@ -58,6 +59,14 @@ public class GitOthersBean implements Serializable {
 
     public void setMinerCommentsOfIssues(boolean minerCommentsOfIssues) {
         this.minerCommentsOfIssues = minerCommentsOfIssues;
+    }
+
+    public boolean isMinerEventsOfIssues() {
+        return minerEventsOfIssues;
+    }
+
+    public void setMinerEventsOfIssues(boolean minerEventsOfIssues) {
+        this.minerEventsOfIssues = minerEventsOfIssues;
     }
 
     public boolean isMinerClosedIssues() {
@@ -169,6 +178,9 @@ public class GitOthersBean implements Serializable {
     }
 
     public String getLog() {
+        if (out.getLog().length() > 999999) {
+            return out.getLog().substring(0, 999999);
+        }
         return out.getLog();
     }
 
@@ -185,13 +197,17 @@ public class GitOthersBean implements Serializable {
         out.printLog("Repositorio: " + repositoryToMiner);
         out.printLog("minerOpenIssues: " + minerOpenIssues);
         out.printLog("minerClosedIssues: " + minerClosedIssues);
-        out.printLog("minerComments: " + minerCommentsOfIssues);
+        out.printLog("\tminerComments: " + minerCommentsOfIssues);
+        out.printLog("\tminerEventsOfIssues: " + minerEventsOfIssues);
+        out.printLog("minerOpenMilestones: " + minerOpenMilestones);
+        out.printLog("minerClosedMilestones: " + minerClosedMilestones);
         out.printLog("minerCollaborators: " + minerCollaborators);
         out.printLog("minerWatchers: " + minerWatchers);
         out.printLog("minerOpenPullRequests: " + minerOpenPullRequests);
         out.printLog("minerClosedPullRequests: " + minerClosedPullRequests);
+        out.printLog("minerForks: " + minerForks);
         out.printLog("minerRepositoryCommits: " + minerRepositoryCommits);
-        out.printLog("minerCommentsOfRepositoryCommits: " + minerCommentsOfRepositoryCommits);
+        out.printLog("\tminerCommentsOfRepositoryCommits: " + minerCommentsOfRepositoryCommits);
         out.printLog("minerTeams: " + minerTeams);
 
         if (repositoryToMiner == null) {
@@ -228,7 +244,7 @@ public class GitOthersBean implements Serializable {
                         subProgress = new Integer(0);
                         out.setCurrentProcess("Minerando milestones...\n");
                         List<Milestone> gitMilestones = MilestoneServices.getGitMilestoneFromRepository(gitRepo, minerOpenMilestones, minerClosedMilestones);
-                        minerMilestones(gitMilestones, gitRepo);
+                        minerMilestones(gitMilestones);
                         mineration.setMinerLog(out.getLog());
                         dao.edit(mineration);
                     }
@@ -376,7 +392,9 @@ public class GitOthersBean implements Serializable {
         while (!canceled && i < gitIssues.size()) {
             Issue gitIssue = gitIssues.get(i);
             EntityIssue issue = minerIssue(gitIssue);
-            minerEventsIssue(issue, gitRepo);
+            if (minerEventsOfIssues) {
+                minerEventsIssue(issue, gitRepo);
+            }
             if (minerCommentsOfIssues && issue.getCommentsCount() > 0) {
                 minerCommentsOfIssue(issue, gitRepo);
             }
@@ -620,7 +638,7 @@ public class GitOthersBean implements Serializable {
         return team;
     }
 
-    private void minerMilestones(List<Milestone> gitMilestones, Repository gitRepo) {
+    private void minerMilestones(List<Milestone> gitMilestones) {
         int i = 0;
         calculeSubProgress(i, gitMilestones.size());
         while (!canceled && i < gitMilestones.size()) {
@@ -650,16 +668,13 @@ public class GitOthersBean implements Serializable {
         out.printLog("Baixando Issue Events...");
         List<IssueEvent> gitIssueEvents = IssueEventServices.getEventsByIssue(issue, gitRepo.getOwner().getLogin(), gitRepo.getName());
         out.printLog("Issue Events baixados: " + gitIssueEvents.size());
-        
         int i = 0;
-        calculeSubProgress(i, gitIssueEvents.size());
         while (!canceled && i < gitIssueEvents.size()) {
             IssueEvent gitIssueEvent = gitIssueEvents.get(i);
             EntityIssueEvent issueEvent = minerIssueEvent(gitIssueEvent);
             issue.addEvent(issueEvent);
             dao.edit(issueEvent);
             i++;
-            calculeSubProgress(i, gitIssueEvents.size());
         }
     }
 

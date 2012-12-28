@@ -20,7 +20,7 @@ public class CommitStatsServices {
     public static EntityCommitStats createEntity(CommitStats gitStats, EntityRepositoryCommit repoCommit, GenericDao dao) {
         if (gitStats == null) {
             return null;
-        } 
+        }
 
         EntityCommitStats stats = getStatsByRepoCommit(repoCommit, dao);
 
@@ -32,7 +32,6 @@ public class CommitStatsServices {
         stats.setAdditions(gitStats.getAdditions());
         stats.setDeletions(gitStats.getDeletions());
         stats.setTotal(gitStats.getTotal());
-        stats.setRepositoryCommit(repoCommit);
 
         if (stats.getId() == null || stats.getId().equals(new Long(0))) {
             dao.insert(stats);

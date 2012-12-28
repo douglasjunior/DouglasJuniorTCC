@@ -129,6 +129,7 @@ public class EntityRepositoryCommit implements Serializable {
 
     public void setStats(EntityCommitStats stats) {
         this.stats = stats;
+        this.stats.setRepositoryCommit(this);
     }
 
     public String getUrl() {
