@@ -35,6 +35,7 @@ public class GitOthersBean implements Serializable {
     private boolean minerForks;
     private boolean minerRepositoryCommits;
     private boolean minerCommentsOfRepositoryCommits;
+    private boolean minerStatsAndFilesOfCommits;
     private boolean minerTeams;
     private boolean initialized;
     private Integer progress;
@@ -141,6 +142,14 @@ public class GitOthersBean implements Serializable {
         this.minerCommentsOfRepositoryCommits = minerCommentsOfRepositoryCommits;
     }
 
+    public boolean isMinerStatsAndFilesOfCommits() {
+        return minerStatsAndFilesOfCommits;
+    }
+
+    public void setMinerStatsAndFilesOfCommits(boolean minerStatsAndFilesOfCommits) {
+        this.minerStatsAndFilesOfCommits = minerStatsAndFilesOfCommits;
+    }
+
     public boolean isMinerRepositoryCommits() {
         return minerRepositoryCommits;
     }
@@ -208,6 +217,7 @@ public class GitOthersBean implements Serializable {
         out.printLog("minerForks: " + minerForks);
         out.printLog("minerRepositoryCommits: " + minerRepositoryCommits);
         out.printLog("\tminerCommentsOfRepositoryCommits: " + minerCommentsOfRepositoryCommits);
+        out.printLog("\tminerStatsAndFilesOfCommits: " + minerStatsAndFilesOfCommits);
         out.printLog("minerTeams: " + minerTeams);
 
         if (repositoryToMiner == null) {
@@ -395,7 +405,7 @@ public class GitOthersBean implements Serializable {
             if (minerEventsOfIssues) {
                 minerEventsIssue(issue, gitRepo);
             }
-            if (minerCommentsOfIssues && issue.getCommentsCount() > 0) {
+            if (minerCommentsOfIssues && issue.getCommentsCount() > issue.getComments().size()) {
                 minerCommentsOfIssue(issue, gitRepo);
             }
             EntityPullRequest pull = PullRequestServices.getPullRequestByNumber(gitIssue.getNumber(), repositoryToMiner, dao);
@@ -561,9 +571,17 @@ public class GitOthersBean implements Serializable {
         calculeSubProgress(i, gitRepoCommits.size());
         while (!canceled && i < gitRepoCommits.size()) {
             RepositoryCommit gitRepoCommit = gitRepoCommits.get(i);
-            gitRepoCommit = new CommitService(AuthServices.getGitHubCliente()).getCommit(gitRepo, gitRepoCommit.getSha());
             EntityRepositoryCommit repoCommit = minerRepositoryCommit(gitRepoCommit);
-            if (minerCommentsOfRepositoryCommits && repoCommit.getCommit().getCommentCount() > 0) {
+            if (minerStatsAndFilesOfCommits && (repoCommit.getFiles().isEmpty() || repoCommit.getStats() == null)) {
+                gitRepoCommit = new CommitService(AuthServices.getGitHubCliente()).getCommit(gitRepo, gitRepoCommit.getSha());
+                if (repoCommit.getStats() == null) {
+                    minerStatsOfCommit(repoCommit, gitRepoCommit.getStats());
+                }
+                if (repoCommit.getFiles().isEmpty()) {
+                    minerFilesOfCommit(repoCommit, gitRepoCommit.getFiles());
+                }
+            }
+            if (minerCommentsOfRepositoryCommits && repoCommit.getCommit().getCommentCount() > repoCommit.getCommit().getComments().size()) {
                 minerCommentsOfRepoCommit(repoCommit, gitRepo);
             }
             repositoryToMiner.addRepoCommit(repoCommit);
@@ -576,7 +594,6 @@ public class GitOthersBean implements Serializable {
     private EntityRepositoryCommit minerRepositoryCommit(RepositoryCommit gitRepoCommit) {
         EntityRepositoryCommit repoCommit = null;
         try {
-
             repoCommit = RepositoryCommitServices.createEntity(gitRepoCommit, dao);
             out.printLog("RepositoryCommit gravado com sucesso: " + gitRepoCommit.getUrl());
         } catch (Exception ex) {
@@ -611,6 +628,26 @@ public class GitOthersBean implements Serializable {
             out.printLog("## Erro ao gravar Comment do Commit: " + gitCommitComment.getUrl() + " Descrição: " + ex.toString());
         }
         return commitComment;
+    }
+
+    private void minerStatsOfCommit(EntityRepositoryCommit repoCommit, CommitStats gitStats) {
+        out.printLog("Gravando o Stats do commit.");
+        EntityCommitStats stats = CommitStatsServices.createEntity(gitStats, repoCommit, dao);
+        if (stats != null) {
+            repoCommit.setStats(stats);
+            stats.setRepositoryCommit(repoCommit);
+        }
+    }
+
+    private void minerFilesOfCommit(EntityRepositoryCommit repoCommit, List<CommitFile> gitFiles) {
+        if (gitFiles != null) {
+            out.printLog("Gravando os " + gitFiles.size() + " files do commit.");
+            for (CommitFile gitCommitFile : gitFiles) {
+                EntityCommitFile file = CommitFileServices.createEntity(gitCommitFile, dao);
+                repoCommit.addFile(file);
+                dao.edit(file);
+            }
+        }
     }
 
     private void minerTeams(List<Team> gitTeams, Repository gitRepo) {

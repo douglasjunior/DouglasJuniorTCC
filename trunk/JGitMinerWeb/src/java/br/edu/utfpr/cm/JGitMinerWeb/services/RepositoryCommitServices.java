@@ -39,9 +39,7 @@ public class RepositoryCommitServices {
             return null;
         }
         
-
-
-        EntityRepositoryCommit repoCommit = getRepoCommitByURL(gitRepoCommit.getUrl(), dao);
+        EntityRepositoryCommit repoCommit = getRepoCommitBySHA(gitRepoCommit.getSha(), dao);
 
         if (repoCommit == null) {
             repoCommit = new EntityRepositoryCommit();
@@ -51,10 +49,8 @@ public class RepositoryCommitServices {
         repoCommit.setAuthor(UserServices.createEntity(gitRepoCommit.getAuthor(), dao, false));
         repoCommit.setCommit(CommitServices.createEntity(gitRepoCommit.getCommit(), dao));
         repoCommit.setCommitter(UserServices.createEntity(gitRepoCommit.getCommitter(), dao, false));
-        createFiles(repoCommit, gitRepoCommit.getFiles(), dao);
         createParents(repoCommit, gitRepoCommit.getParents(), dao);
         repoCommit.setSha(gitRepoCommit.getSha());
-        repoCommit.setStats(CommitStatsServices.createEntity(gitRepoCommit.getStats(), repoCommit, dao));
         repoCommit.setUrl(gitRepoCommit.getUrl());
 
         if (repoCommit.getId() == null || repoCommit.getId().equals(new Long(0))) {
@@ -66,8 +62,8 @@ public class RepositoryCommitServices {
         return repoCommit;
     }
 
-    private static EntityRepositoryCommit getRepoCommitByURL(String url, GenericDao dao) {
-        List<EntityRepositoryCommit> repoCommits = dao.executeNamedQueryComParametros("RepositoryCommit.findByURL", new String[]{"url"}, new Object[]{url});
+    private static EntityRepositoryCommit getRepoCommitBySHA(String sha, GenericDao dao) {
+        List<EntityRepositoryCommit> repoCommits = dao.executeNamedQueryComParametros("RepositoryCommit.findBySHA", new String[]{"sha"}, new Object[]{sha});
         if (!repoCommits.isEmpty()) {
             return repoCommits.get(0);
         }
@@ -78,14 +74,6 @@ public class RepositoryCommitServices {
         if (gitParents != null) {
             for (Commit gitParent : gitParents) {
                 repoCommit.addParent(CommitServices.createEntity(gitParent, dao));
-            }
-        }
-    }
-
-    private static void createFiles(EntityRepositoryCommit repoCommit, List<CommitFile> gitFiles, GenericDao dao) {
-        if (gitFiles != null) {
-            for (CommitFile gitCommitFile : gitFiles) {
-                repoCommit.addFile(CommitFileServices.createEntity(gitCommitFile, dao));
             }
         }
     }

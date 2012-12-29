@@ -7,6 +7,7 @@ package br.edu.utfpr.cm.JGitMinerWeb.services;
 import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericDao;
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.EntityCommitFile;
 import java.util.Date;
+import java.util.List;
 import org.eclipse.egit.github.core.CommitFile;
 
 /**
@@ -40,5 +41,13 @@ public class CommitFileServices {
         }
 
         return commitFile;
+    }
+
+    private static EntityCommitFile getCommitFileBySHA(String sha, GenericDao dao) {
+        List<EntityCommitFile> files = dao.executeNamedQueryComParametros("CommitFile.findBySHA", new String[]{"sha"}, new Object[]{sha});
+        if (!files.isEmpty()) {
+            return files.get(0);
+        }
+        return null;
     }
 }

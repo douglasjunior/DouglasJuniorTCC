@@ -57,6 +57,10 @@
                 <h:selectBooleanCheckbox value="#{gitOthersBean.minerCommentsOfRepositoryCommits}" id="minerCommentsOfRepositoryCommits" title="Minerar Comments of Repository Commits" />
                 <h:outputLabel for="minerCommentsOfRepositoryCommits" value="Minerar Comments of Repository Commits."/>
                 <br />
+                <p:spacer width="15" height="0" />
+                <h:selectBooleanCheckbox value="#{gitOthersBean.minerStatsAndFilesOfCommits}" id="minerStatsAndFilesOfCommits" title="Minerar Files and Stats of Repository Commits" />
+                <h:outputLabel for="minerStatsAndFilesOfCommits" value="Minerar Files and Stats of Repository Commits."/>
+                <br />
                 <h:selectBooleanCheckbox value="#{gitOthersBean.minerTeams}" id="minerTeams" title="Minerar Teams" />
                 <h:outputLabel for="minerTeams" value="Minerar Teams."/>
             </p:panel>

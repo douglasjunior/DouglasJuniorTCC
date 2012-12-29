@@ -17,7 +17,8 @@ import javax.persistence.*;
 @Entity
 @Table(name = "gitRepositoryCommit")
 @NamedQueries({
-    @NamedQuery(name = "RepositoryCommit.findByURL", query = "SELECT c FROM EntityRepositoryCommit c WHERE c.url = :url")
+    @NamedQuery(name = "RepositoryCommit.findByURL", query = "SELECT c FROM EntityRepositoryCommit c WHERE c.url = :url"),
+    @NamedQuery(name = "RepositoryCommit.findBySHA", query = "SELECT c FROM EntityRepositoryCommit c WHERE c.sha = :sha")
 })
 public class EntityRepositoryCommit implements Serializable {
 
@@ -34,7 +35,7 @@ public class EntityRepositoryCommit implements Serializable {
     @OneToOne
     private EntityCommitStats stats;
     @OneToMany
-    @JoinTable(name="gitrepositorycommit_parents")
+    @JoinTable(name = "gitrepositorycommit_parents")
     private List<EntityCommit> parents;
     @OneToMany(mappedBy = "repositoryCommit")
     private List<EntityCommitFile> files;
@@ -44,7 +45,7 @@ public class EntityRepositoryCommit implements Serializable {
     @ManyToOne
     private EntityUser author;
     @ManyToOne
-    private EntityUser committer; 
+    private EntityUser committer;
 
     public EntityRepositoryCommit() {
         parents = new ArrayList<EntityCommit>();
@@ -129,7 +130,6 @@ public class EntityRepositoryCommit implements Serializable {
 
     public void setStats(EntityCommitStats stats) {
         this.stats = stats;
-        this.stats.setRepositoryCommit(this);
     }
 
     public String getUrl() {

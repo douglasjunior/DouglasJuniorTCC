@@ -14,6 +14,9 @@ import javax.persistence.*;
  */
 @Entity
 @Table(name = "gitCommitFile")
+@NamedQueries({
+    @NamedQuery(name = "CommitFile.findBySHA", query = "SELECT f FROM EntityCommitFile f WHERE f.sha = :sha")
+})
 public class EntityCommitFile implements Serializable {
 
     private static final long serialVersionUID = 1L;
