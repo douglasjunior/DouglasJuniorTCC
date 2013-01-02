@@ -15,6 +15,10 @@ import javax.servlet.http.HttpSession;
 
 public class JsfUtil {
 
+    private static final String[] CARACTERES = {"{", "}", "(", ")", "\\[", "\\]", "<", ">",
+        ":", ";", ".", ",", "!", "?", "\\", "/", "~", "`", "\"", "\'", "\\\\",
+        "=", "+", "\\-", "*", "@", "#", "$", "%", "^", "&", "_", "\\|"};
+
     public static void ensureAddErrorMessage(Exception ex, String defaultMsg) {
         String msg = ex.getLocalizedMessage();
         if (msg != null && msg.length() > 0) {
@@ -194,5 +198,26 @@ public class JsfUtil {
     public static UIComponent findComponent(String componentId) {
         UIComponent component = UIViewRoot.getCurrentComponent(getContext());
         return component.findComponent(componentId);
+    }
+
+    /**
+     * Remove do texto caracteres com codificação diferente de UTF-8.
+     * @param texto
+     * @return 
+     */
+    public static String filterChar(String texto) {
+        if (texto != null && !texto.isEmpty()) {
+            StringBuilder padrao = new StringBuilder();
+            padrao.append("[^a-zA-Z0-9|");
+            for (int i = 0; i < CARACTERES.length; i++) {
+                padrao.append(CARACTERES[i]);
+                if (i < CARACTERES.length - 1) {
+                    padrao.append("|");
+                }
+            }
+            padrao.append("]");
+            return (texto.replaceAll(padrao.toString(), " "));
+        }
+        return texto;
     }
 }

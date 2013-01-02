@@ -6,6 +6,7 @@ package br.edu.utfpr.cm.JGitMinerWeb.services;
 
 import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericDao;
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.EntityComment;
+import br.edu.utfpr.cm.JGitMinerWeb.util.JsfUtil;
 import java.util.Date;
 import java.util.List;
 import org.eclipse.egit.github.core.Comment;
@@ -38,7 +39,7 @@ public class CommentServices {
         comment.setMineredAt(new Date());
         comment.setCreatedAt(gitComment.getCreatedAt());
         comment.setUpdatedAt(gitComment.getUpdatedAt());
-        comment.setBody(gitComment.getBody());
+        comment.setBody(JsfUtil.filterChar(gitComment.getBody()));
         comment.setBodyHtml(gitComment.getBodyHtml());
         comment.setBodyText(gitComment.getBodyText());
         comment.setIdComment(gitComment.getId());

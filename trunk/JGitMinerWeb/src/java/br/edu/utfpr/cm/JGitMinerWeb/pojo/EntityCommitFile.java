@@ -34,6 +34,7 @@ public class EntityCommitFile implements Serializable {
     private String filename;
     @Column(columnDefinition = "text")
     private String patch;
+    @Column(columnDefinition = "text")
     private String rawUrl;
     @Column(columnDefinition = "text")
     private String sha;

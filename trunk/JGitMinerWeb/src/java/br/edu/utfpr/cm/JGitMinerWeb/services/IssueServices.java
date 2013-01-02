@@ -7,6 +7,7 @@ package br.edu.utfpr.cm.JGitMinerWeb.services;
 import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericDao;
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.EntityIssue;
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.EntityRepository;
+import br.edu.utfpr.cm.JGitMinerWeb.util.JsfUtil;
 import br.edu.utfpr.cm.JGitMinerWeb.util.out;
 import java.util.ArrayList;
 import java.util.Date;
@@ -80,17 +81,17 @@ public class IssueServices {
         issue.setCommentsCount(gitIssue.getComments());
         LabelServices.addLabels(issue, gitIssue.getLabels(), dao);
         issue.setMilestone(MilestoneServices.createEntity(gitIssue.getMilestone(), dao));
-        issue.setBody(gitIssue.getBody());
+        issue.setBody(JsfUtil.filterChar(gitIssue.getBody()));
         issue.setBodyHtml(gitIssue.getBodyHtml());
         issue.setBodyText(gitIssue.getBodyText());
         issue.setHtmlUrl(gitIssue.getHtmlUrl());
         issue.setStateIssue(gitIssue.getState());
-        issue.setTitle(gitIssue.getTitle());
+        issue.setTitle(JsfUtil.filterChar(gitIssue.getTitle()));
         issue.setUrl(gitIssue.getUrl());
         issue.setAssignee(UserServices.createEntity(gitIssue.getAssignee(), dao, false));
         issue.setUserIssue(UserServices.createEntity(gitIssue.getUser(), dao, false));
-        
-        
+
+
 
         if (issue.getId() == null || issue.getId().equals(new Long(0))) {
             dao.insert(issue);

@@ -24,7 +24,8 @@ import javax.persistence.Temporal;
 @Entity
 @Table(name = "gitIssueEvent")
 @NamedQueries({
-    @NamedQuery(name = "IssueEvent.findByURL", query = "SELECT e FROM EntityIssueEvent e WHERE e.url = :url")
+    @NamedQuery(name = "IssueEvent.findByURL", query = "SELECT e FROM EntityIssueEvent e WHERE e.url = :url"),
+    @NamedQuery(name = "IssueEvent.findByEventIssueID", query = "SELECT e FROM EntityIssueEvent e WHERE e.idIssueEvent = :idIssueEvent")
 })
 public class EntityIssueEvent implements Serializable {
 
@@ -49,7 +50,7 @@ public class EntityIssueEvent implements Serializable {
     private EntityUser actor;
 
     public EntityIssueEvent() {
-        mineredAt = new Date();
+
     }
 
     public Long getId() {
@@ -58,6 +59,14 @@ public class EntityIssueEvent implements Serializable {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public Date getMineredAt() {
+        return mineredAt;
+    }
+
+    public void setMineredAt(Date mineredAt) {
+        this.mineredAt = mineredAt;
     }
 
     public EntityUser getActor() {

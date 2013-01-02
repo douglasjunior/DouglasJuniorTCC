@@ -9,6 +9,7 @@ import br.edu.utfpr.cm.JGitMinerWeb.pojo.EntityIssue;
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.EntityIssueEvent;
 import com.google.gson.reflect.TypeToken;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import org.eclipse.egit.github.core.IssueEvent;
 import org.eclipse.egit.github.core.client.PageIterator;
@@ -52,30 +53,27 @@ public class IssueEventServices {
             return null;
         }
 
-        EntityIssueEvent issueEvent = getEventByURL(gitIssueEvent.getUrl(), dao);
+        EntityIssueEvent issueEvent = getEventByIssueEventID(gitIssueEvent.getId(), dao);
 
         if (issueEvent == null) {
             issueEvent = new EntityIssueEvent();
-        }
 
-        issueEvent.setCreatedAt(gitIssueEvent.getCreatedAt());
-        issueEvent.setActor(UserServices.createEntity(gitIssueEvent.getActor(), dao, false));
-        issueEvent.setCommitId(gitIssueEvent.getCommitId());
-        issueEvent.setEvent(gitIssueEvent.getEvent());
-        issueEvent.setIdIssueEvent(gitIssueEvent.getId());
-        issueEvent.setUrl(gitIssueEvent.getUrl());
+            issueEvent.setMineredAt(new Date());
+            issueEvent.setCreatedAt(gitIssueEvent.getCreatedAt());
+            issueEvent.setActor(UserServices.createEntity(gitIssueEvent.getActor(), dao, false));
+            issueEvent.setCommitId(gitIssueEvent.getCommitId());
+            issueEvent.setEvent(gitIssueEvent.getEvent());
+            issueEvent.setIdIssueEvent(gitIssueEvent.getId());
+            issueEvent.setUrl(gitIssueEvent.getUrl());
 
-        if (issueEvent.getId() == null || issueEvent.getId().equals(new Long(0))) {
             dao.insert(issueEvent);
-        } else {
-            dao.edit(issueEvent);
         }
 
         return issueEvent;
     }
 
-    private static EntityIssueEvent getEventByURL(String url, GenericDao dao) {
-        List<EntityIssueEvent> events = dao.executeNamedQueryComParametros("IssueEvent.findByURL", new String[]{"url"}, new Object[]{url});
+    private static EntityIssueEvent getEventByIssueEventID(long issueEventID, GenericDao dao) {
+        List<EntityIssueEvent> events = dao.executeNamedQueryComParametros("IssueEvent.findByEventIssueID", new String[]{"idIssueEvent"}, new Object[]{issueEventID});
         if (!events.isEmpty()) {
             return events.get(0);
         }
