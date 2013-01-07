@@ -5,6 +5,7 @@
 package br.edu.utfpr.cm.JGitMinerWeb.pojo;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import javax.persistence.*;
@@ -15,6 +16,9 @@ import javax.persistence.*;
  */
 @Entity
 @Table(name = "gitTree")
+@NamedQueries({
+    @NamedQuery(name = "Tree.findByURL", query = "SELECT t FROM EntityTree t WHERE t.url = :url")
+})
 public class EntityTree implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -23,15 +27,15 @@ public class EntityTree implements Serializable {
     private Long id;
     @Temporal(javax.persistence.TemporalType.TIMESTAMP)
     private Date mineredAt;
-    @OneToMany
-    private List<EntityTreeEntry> tree;
+    @OneToMany(mappedBy = "tree")
+    private List<EntityTreeEntry> treeEntrys;
     @Column(columnDefinition = "text")
     private String sha;
     @Column(columnDefinition = "text")
     private String url;
 
     public EntityTree() {
-        mineredAt = new Date();
+        treeEntrys = new ArrayList<EntityTreeEntry>();
     }
 
     public Long getId() {
@@ -50,12 +54,20 @@ public class EntityTree implements Serializable {
         this.sha = sha;
     }
 
-    public List<EntityTreeEntry> getTree() {
-        return tree;
+    public Date getMineredAt() {
+        return mineredAt;
     }
 
-    public void setTree(List<EntityTreeEntry> tree) {
-        this.tree = tree;
+    public void setMineredAt(Date mineredAt) {
+        this.mineredAt = mineredAt;
+    }
+
+    public List<EntityTreeEntry> getTreeEntrys() {
+        return treeEntrys;
+    }
+
+    public void setTreeEntrys(List<EntityTreeEntry> treeEntrys) {
+        this.treeEntrys = treeEntrys;
     }
 
     public String getUrl() {
@@ -89,5 +101,12 @@ public class EntityTree implements Serializable {
     @Override
     public String toString() {
         return "br.edu.utfpr.cm.JGitMiner.pojo.EntityTree[ id=" + id + " ]";
+    }
+
+    public void addTreeEntry(EntityTreeEntry treeEntry) {
+        if (!treeEntrys.contains(treeEntry)) {
+            treeEntrys.add(treeEntry);
+        }
+        treeEntry.setTree(this);
     }
 }

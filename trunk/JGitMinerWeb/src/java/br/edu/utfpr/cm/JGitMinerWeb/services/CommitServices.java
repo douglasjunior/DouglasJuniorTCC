@@ -9,6 +9,7 @@ import br.edu.utfpr.cm.JGitMinerWeb.pojo.EntityCommit;
 import java.util.Date;
 import java.util.List;
 import org.eclipse.egit.github.core.Commit;
+import org.eclipse.egit.github.core.Repository;
 
 /**
  *
@@ -16,7 +17,7 @@ import org.eclipse.egit.github.core.Commit;
  */
 public class CommitServices {
 
-    public static EntityCommit createEntity(Commit gitCommit, GenericDao dao) {
+    public static EntityCommit createEntity(Commit gitCommit, Repository gitRepo, GenericDao dao) {
         if (gitCommit == null) {
             return null;
         }
@@ -32,9 +33,9 @@ public class CommitServices {
         commit.setCommitter(CommitUserServices.createEntity(gitCommit.getCommitter(), dao));
         commit.setCommentCount(gitCommit.getCommentCount());
         commit.setMessage(gitCommit.getMessage());
-        createParents(commit, gitCommit.getParents(), dao);
+        createParents(commit, gitCommit.getParents(), gitRepo, dao);
         commit.setSha(gitCommit.getSha());
-        commit.setTree(null);
+    //  commit.setTree(TreeServices.createTreeEntity(gitCommit.getTree(), gitRepo, dao));
         commit.setUrl(gitCommit.getUrl());
 
         if (commit.getId() == null || commit.getId().equals(new Long(0))) {
@@ -54,13 +55,11 @@ public class CommitServices {
         return null;
     }
 
-    private static void createParents(EntityCommit commit, List<Commit> gitParents, GenericDao dao) {
+    private static void createParents(EntityCommit commit, List<Commit> gitParents, Repository gitRepo, GenericDao dao) {
         if (gitParents != null) {
             for (Commit gitParent : gitParents) {
-                commit.addParent(createEntity(gitParent, dao));
+                commit.addParent(createEntity(gitParent, gitRepo, dao));
             }
         }
-
-
     }
 }

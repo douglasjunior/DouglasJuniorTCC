@@ -10,7 +10,6 @@ import br.edu.utfpr.cm.JGitMinerWeb.util.out;
 import java.util.Date;
 import java.util.List;
 import org.eclipse.egit.github.core.Commit;
-import org.eclipse.egit.github.core.CommitFile;
 import org.eclipse.egit.github.core.Repository;
 import org.eclipse.egit.github.core.RepositoryCommit;
 import org.eclipse.egit.github.core.service.CommitService;
@@ -34,11 +33,11 @@ public class RepositoryCommitServices {
         return repoCommits;
     }
 
-    public static EntityRepositoryCommit createEntity(RepositoryCommit gitRepoCommit, GenericDao dao) {
+    public static EntityRepositoryCommit createEntity(RepositoryCommit gitRepoCommit, Repository gitRepo, GenericDao dao) {
         if (gitRepoCommit == null) {
             return null;
         }
-        
+
         EntityRepositoryCommit repoCommit = getRepoCommitBySHA(gitRepoCommit.getSha(), dao);
 
         if (repoCommit == null) {
@@ -47,9 +46,9 @@ public class RepositoryCommitServices {
 
         repoCommit.setMineredAt(new Date());
         repoCommit.setAuthor(UserServices.createEntity(gitRepoCommit.getAuthor(), dao, false));
-        repoCommit.setCommit(CommitServices.createEntity(gitRepoCommit.getCommit(), dao));
+        repoCommit.setCommit(CommitServices.createEntity(gitRepoCommit.getCommit(), gitRepo, dao));
         repoCommit.setCommitter(UserServices.createEntity(gitRepoCommit.getCommitter(), dao, false));
-        createParents(repoCommit, gitRepoCommit.getParents(), dao);
+        createParents(repoCommit, gitRepoCommit.getParents(), gitRepo, dao);
         repoCommit.setSha(gitRepoCommit.getSha());
         repoCommit.setUrl(gitRepoCommit.getUrl());
 
@@ -70,10 +69,10 @@ public class RepositoryCommitServices {
         return null;
     }
 
-    private static void createParents(EntityRepositoryCommit repoCommit, List<Commit> gitParents, GenericDao dao) {
+    private static void createParents(EntityRepositoryCommit repoCommit, List<Commit> gitParents, Repository gitRepo, GenericDao dao) {
         if (gitParents != null) {
             for (Commit gitParent : gitParents) {
-                repoCommit.addParent(CommitServices.createEntity(gitParent, dao));
+                repoCommit.addParent(CommitServices.createEntity(gitParent, gitRepo, dao));
             }
         }
     }

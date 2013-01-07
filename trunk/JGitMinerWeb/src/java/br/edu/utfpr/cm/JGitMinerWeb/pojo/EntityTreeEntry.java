@@ -14,6 +14,9 @@ import javax.persistence.*;
  */
 @Entity
 @Table(name = "gitTreeEntry")
+@NamedQueries({
+    @NamedQuery(name = "TreeEntry.findByURL", query = "SELECT t FROM EntityTreeEntry t WHERE t.url = :url")
+})
 public class EntityTreeEntry implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -30,7 +33,10 @@ public class EntityTreeEntry implements Serializable {
     @Column(columnDefinition = "text")
     private String sha;
     private String type;
+    @Column(columnDefinition = "text")
     private String url;
+    @ManyToOne
+    private EntityTree tree;
 
     public EntityTreeEntry() {
         mineredAt = new Date();
@@ -68,6 +74,14 @@ public class EntityTreeEntry implements Serializable {
         this.sha = sha;
     }
 
+    public Date getMineredAt() {
+        return mineredAt;
+    }
+
+    public void setMineredAt(Date mineredAt) {
+        this.mineredAt = mineredAt;
+    }
+
     public long getSizeTreeEntry() {
         return sizeTreeEntry;
     }
@@ -90,6 +104,14 @@ public class EntityTreeEntry implements Serializable {
 
     public void setUrl(String url) {
         this.url = url;
+    }
+
+    public EntityTree getTree() {
+        return tree;
+    }
+
+    public void setTree(EntityTree tree) {
+        this.tree = tree;
     }
 
     @Override

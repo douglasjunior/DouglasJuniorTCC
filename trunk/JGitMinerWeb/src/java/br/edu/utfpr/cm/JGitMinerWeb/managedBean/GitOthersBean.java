@@ -568,10 +568,11 @@ public class GitOthersBean implements Serializable {
 
     private void minerRepositoryCommits(List<RepositoryCommit> gitRepoCommits, Repository gitRepo) throws Exception {
         int i = 0;
+
         calculeSubProgress(i, gitRepoCommits.size());
         while (!canceled && i < gitRepoCommits.size()) {
             RepositoryCommit gitRepoCommit = gitRepoCommits.get(i);
-            EntityRepositoryCommit repoCommit = minerRepositoryCommit(gitRepoCommit);
+            EntityRepositoryCommit repoCommit = minerRepositoryCommit(gitRepoCommit, gitRepo);
             if (minerStatsAndFilesOfCommits && (repoCommit.getFiles().isEmpty() || repoCommit.getStats() == null)) {
                 gitRepoCommit = new CommitService(AuthServices.getGitHubCliente()).getCommit(gitRepo, gitRepoCommit.getSha());
                 if (repoCommit.getStats() == null) {
@@ -591,10 +592,10 @@ public class GitOthersBean implements Serializable {
         }
     }
 
-    private EntityRepositoryCommit minerRepositoryCommit(RepositoryCommit gitRepoCommit) {
+    private EntityRepositoryCommit minerRepositoryCommit(RepositoryCommit gitRepoCommit, Repository gitRepo) {
         EntityRepositoryCommit repoCommit = null;
         try {
-            repoCommit = RepositoryCommitServices.createEntity(gitRepoCommit, dao);
+            repoCommit = RepositoryCommitServices.createEntity(gitRepoCommit, gitRepo, dao);
             out.printLog("RepositoryCommit gravado com sucesso: " + gitRepoCommit.getUrl());
         } catch (Exception ex) {
             ex.printStackTrace();
