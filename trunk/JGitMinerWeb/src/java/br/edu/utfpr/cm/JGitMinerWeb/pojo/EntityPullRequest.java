@@ -70,7 +70,7 @@ public class EntityPullRequest implements Serializable {
     private EntityUser mergedBy;
     @ManyToOne
     private EntityUser user;
-    @OneToOne(mappedBy = "pullRequest")
+    @OneToOne
     private EntityIssue issue;
     @ManyToOne
     private EntityRepository repository;

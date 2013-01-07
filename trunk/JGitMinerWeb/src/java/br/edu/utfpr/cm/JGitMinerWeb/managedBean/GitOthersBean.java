@@ -412,6 +412,7 @@ public class GitOthersBean implements Serializable {
             if (pull != null) {
                 pull.setIssue(issue);
                 issue.setPullRequest(pull);
+                dao.edit(pull);
             }
             repositoryToMiner.addIssue(issue);
             dao.edit(issue);
@@ -520,7 +521,6 @@ public class GitOthersBean implements Serializable {
             if (issue != null) {
                 issue.setPullRequest(pullRequest);
                 pullRequest.setIssue(issue);
-                dao.edit(issue);
             }
             repositoryToMiner.addPullRequest(pullRequest);
             dao.edit(pullRequest);

@@ -43,7 +43,7 @@ public class EntityIssue implements Serializable {
     private List<EntityLabel> labels;
     @ManyToOne
     private EntityMilestone milestone;
-    @OneToOne
+    @OneToOne(mappedBy = "issue")
     private EntityPullRequest pullRequest;
     @Column(columnDefinition = "text")
     private String body;
