@@ -21,9 +21,9 @@ import javax.faces.convert.FacesConverter;
 import org.eclipse.egit.github.core.Repository;
 import org.eclipse.egit.github.core.service.RepositoryService;
 
-@ManagedBean(name = "gitRepositoryBean")
+@ManagedBean(name = "gitMinerRepositoryBean")
 @RequestScoped
-public class GitRepositoryBean implements Serializable {
+public class GitMinerRepositoryBean implements Serializable {
 
     @EJB
     private GenericDao dao;
@@ -32,7 +32,7 @@ public class GitRepositoryBean implements Serializable {
     private String repositoryName;
     private String repositoryOwnerLogin;
 
-    public GitRepositoryBean() {
+    public GitMinerRepositoryBean() {
         repository = new EntityRepository();
         repositorySelected = new EntityRepository();
     }
@@ -106,8 +106,8 @@ public class GitRepositoryBean implements Serializable {
             if (value == null || value.length() == 0 || value.equals("null")) {
                 return null;
             }
-            GitRepositoryBean bean = (GitRepositoryBean) facesContext.getApplication().getELResolver().
-                    getValue(facesContext.getELContext(), null, "gitRepositoryBean");
+            GitMinerRepositoryBean bean = (GitMinerRepositoryBean) facesContext.getApplication().getELResolver().
+                    getValue(facesContext.getELContext(), null, "gitMinerRepositoryBean");
             return bean.dao.findByID(getKey(value), EntityRepository.class);
         }
 
@@ -132,7 +132,7 @@ public class GitRepositoryBean implements Serializable {
                 EntityRepository o = (EntityRepository) object;
                 return getStringKey(o.getId());
             } else {
-                throw new IllegalArgumentException("object " + object + " is of type " + object.getClass().getName() + "; expected type: " + GitRepositoryBean.class.getName());
+                throw new IllegalArgumentException("object " + object + " is of type " + object.getClass().getName() + "; expected type: " + GitMinerRepositoryBean.class.getName());
             }
         }
     }

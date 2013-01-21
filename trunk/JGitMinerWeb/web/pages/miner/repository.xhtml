@@ -1,5 +1,4 @@
 <div xmlns="http://www.w3.org/1999/xhtml"
-     xmlns:ui="http://java.sun.com/jsf/facelets"
      xmlns:h="http://java.sun.com/jsf/html"
      xmlns:f="http://java.sun.com/jsf/core"
      xmlns:p="http://primefaces.org/ui">
@@ -11,22 +10,22 @@
             <p:growl globalOnly="true" id="messages" />
             <h:panelGrid columns="3" cellpadding="2">
                 <h:outputLabel for="repositoryName" value="Name of Repository:"/>
-                <p:inputText value="#{gitRepositoryBean.repositoryName}" label="repositoryName" id="repositoryName" required="true" requiredMessage="Este campo não pode ficar vazio." />
+                <p:inputText value="#{gitMinerRepositoryBean.repositoryName}" label="repositoryName" id="repositoryName" required="true" requiredMessage="Este campo não pode ficar vazio." />
                 <p:message for="repositoryName" />
                 <h:outputLabel for="repositoryOwner" value="Login of Owner:"/>
-                <p:inputText value="#{gitRepositoryBean.repositoryOwner}" label="repositoryOwner" id="repositoryOwner" required="true" requiredMessage="Este campo não pode ficar vazio." />
+                <p:inputText value="#{gitMinerRepositoryBean.repositoryOwner}" label="repositoryOwner" id="repositoryOwner" required="true" requiredMessage="Este campo não pode ficar vazio." />
                 <p:message for="repositoryOwner"  />
                 <br />
                 <br />
                 <p:commandButton id="startButton" value="Go Miner" ajax="false"
-                                 actionListener="#{gitRepositoryBean.goMiner}" >
+                                 actionListener="#{gitMinerRepositoryBean.goMiner}" >
                 </p:commandButton>
             </h:panelGrid>
         </h:form>
         <br />
         <br />
         <h:form id="formDatailsRepo">  
-            <p:dataList value="#{gitRepositoryBean.repositoriesPrimaryMiner}" var="repo" 
+            <p:dataList value="#{gitMinerRepositoryBean.repositoriesPrimaryMiner}" var="repo" 
                         id="minerated-repos" paginator="true" rows="5" 
                         paginatorTemplate="{PreviousPageLink} {CurrentPageReport} {NextPageLink} {RowsPerPageDropdown}"  
                         rowsPerPageTemplate="5,10,15" type="none">  
@@ -37,7 +36,7 @@
 
                 <p:column>  
                     <p:commandButton icon="ui-icon-search" update=":formDatailsRepo:repoDetail" oncomplete="repoDialog.show()" title="View Detail" style="margin-bottom: 3px">  
-                        <f:setPropertyActionListener value="#{repo}" target="#{gitRepositoryBean.repositorySelected}" />  
+                        <f:setPropertyActionListener value="#{repo}" target="#{gitMinerRepositoryBean.repositorySelected}" />  
                     </p:commandButton>  
 
                     <label>
@@ -53,22 +52,22 @@
 
                     <h:panelGrid  columns="2" cellpadding="5">  
                         <h:outputLabel for="repoName" value="Name: " style="font-weight:bold" />
-                        <h:outputText id="repoName" value="#{gitRepositoryBean.repositorySelected.name}" />  
+                        <h:outputText id="repoName" value="#{gitMinerRepositoryBean.repositorySelected.name}" />  
 
                         <h:outputLabel for="repoOwner" value="Owner: " style="font-weight:bold" />
-                        <h:outputText id="repoOwner" value="#{gitRepositoryBean.repositorySelected.owner.login}" />  
+                        <h:outputText id="repoOwner" value="#{gitMinerRepositoryBean.repositorySelected.owner.login}" />  
 
                         <h:outputLabel for="repoCreatedAt" value="Created at: " style="font-weight:bold" />  
-                        <h:outputText id="repoCreatedAt" value="#{gitRepositoryBean.repositorySelected.createdAt}" />  
+                        <h:outputText id="repoCreatedAt" value="#{gitMinerRepositoryBean.repositorySelected.createdAt}" />  
 
                         <h:outputLabel for="repoParent" value="Parent: " style="font-weight:bold" />  
-                        <h:outputText id="repoParent" value="#{gitRepositoryBean.repositorySelected.parent.name}" />  
+                        <h:outputText id="repoParent" value="#{gitMinerRepositoryBean.repositorySelected.parent.name}" />  
 
                         <h:outputLabel for="repoSource" value="Source: " style="font-weight:bold;" />  
-                        <h:outputText id="repoSource" value="#{gitRepositoryBean.repositorySelected.source.name}" />  
+                        <h:outputText id="repoSource" value="#{gitMinerRepositoryBean.repositorySelected.source.name}" />  
 
                         <h:outputLabel for="repoGitUrl" value="Git URL: " style="font-weight:bold" />  
-                        <h:outputText id="repoGitUrl" value="#{gitRepositoryBean.repositorySelected.gitUrl}" />  
+                        <h:outputText id="repoGitUrl" value="#{gitMinerRepositoryBean.repositorySelected.gitUrl}" />  
                     </h:panelGrid>  
                 </p:outputPanel>  
             </p:dialog> 

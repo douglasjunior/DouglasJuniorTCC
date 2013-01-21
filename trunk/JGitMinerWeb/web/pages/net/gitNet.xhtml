@@ -1,0 +1,40 @@
+<div xmlns="http://www.w3.org/1999/xhtml"
+     xmlns:h="http://java.sun.com/jsf/html"
+     xmlns:f="http://java.sun.com/jsf/core"
+     xmlns:p="http://primefaces.org/ui">
+
+    <p:panel>
+        <h2>Pagina de geração de redes.</h2>
+        <br /> 
+        <h:form prependId="false" >
+            <p:growl globalOnly="true" id="messages" />
+            
+            <p:selectOneListbox id="repositoryToMiner" converter="#{gitMinerRepositoryBean.converter}" style="height:100px;width:300px" value="#{gitNetBean.repository}" >
+                <f:selectItems value="#{gitMinerRepositoryBean.repositoriesPrimaryMiner}" var="repo" itemLabel="#{repo.name}, #{repo.owner.login}" itemDescription="#{repo.name}" itemValue="#{repo}" />
+            </p:selectOneListbox>
+
+            <br />
+            <br />
+
+            <p:commandButton widgetVar="startButton" type="submit" actionListener="#{gitNetBean.start()}" value="Start" 
+                             onclick="startButton.disable();progress.start();" update="loadingImage" />
+
+            <p:commandButton value="Cancel" actionListener="#{gitNetBean.cancel()}" oncomplete="startButton.enable();progress.cancel();subProgress.start();" />
+
+            <br />
+            <br />
+
+            <p:progressBar id="progress" widgetVar="progress" ajax="true" value="#{gitNetBean.progress}" labelTemplate="{value}%" styleClass="animated" interval="3000" >
+                <p:ajax event="complete" listener="#{gitNetBean.onComplete()}" update="messages,loadingImage" oncomplete="startButton.enable();textAreaUpdater.stop();"/>
+            </p:progressBar>
+
+            <br />
+
+            <div style="margin: auto;text-align: center">
+                <p:outputPanel  id="loadingImage"  >
+                    <p:graphicImage alt="Loading..." width="50" url="resources/images/loading.gif" rendered="#{gitNetBean.initialized}" />  
+                </p:outputPanel>
+            </div>
+        </h:form>
+    </p:panel>
+</div>

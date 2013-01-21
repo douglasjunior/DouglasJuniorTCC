@@ -1,6 +1,5 @@
 <div xmlns="http://www.w3.org/1999/xhtml"
      xmlns:h="http://java.sun.com/jsf/html"
-     xmlns:f="http://java.sun.com/jsf/core"
      xmlns:p="http://primefaces.org/ui"> 
 
     <p:panel>
@@ -10,11 +9,9 @@
                     <p:menuitem action="#{pagesManager.minerRepository}" ajax="false" value="Repository" id="minerRepository"></p:menuitem>
                     <p:menuitem action="#{pagesManager.minerOthers}" ajax="false" value="Others" id="minerIssuesComments"></p:menuitem>
                 </p:submenu>
-                <p:submenu label="Metric" icon="ui-icon ui-icon-document" id="menuMetric">
-                    <p:menuitem action="#{pagesManager.home()}" ajax="false" value="One" id="metricOne"></p:menuitem>
-                    <p:menuitem action="#{pagesManager.home()}" ajax="false" value="Two" id="metricTwo"></p:menuitem>
+                <p:submenu label="Net" icon="ui-icon ui-icon-document" id="menuNet">
+                    <p:menuitem action="#{pagesManager.netGit()}" ajax="false" value="Net Git" id="netOne"></p:menuitem>
                 </p:submenu>
-                <p:menuitem action="#{pagesManager.home()}" ajax="false" value="Logout" id="menuLogout" icon="ui-icon ui-icon-power"></p:menuitem>
             </p:menubar>
         </h:form>
     </p:panel>

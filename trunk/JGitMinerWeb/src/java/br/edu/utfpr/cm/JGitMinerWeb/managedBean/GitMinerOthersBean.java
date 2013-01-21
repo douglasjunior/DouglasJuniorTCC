@@ -15,9 +15,9 @@ import org.eclipse.egit.github.core.*;
 import org.eclipse.egit.github.core.service.CommitService;
 import org.eclipse.egit.github.core.service.IssueService;
 
-@ManagedBean(name = "gitOthersBean")
+@ManagedBean(name = "gitMinerOthersBean")
 @SessionScoped
-public class GitOthersBean implements Serializable {
+public class GitMinerOthersBean implements Serializable {
 
     @EJB
     private GenericDao dao;
@@ -45,7 +45,7 @@ public class GitOthersBean implements Serializable {
     private Thread process;
     private boolean fail;
 
-    public GitOthersBean() {
+    public GitMinerOthersBean() {
         initialized = false;
         canceled = false;
     }
@@ -705,14 +705,18 @@ public class GitOthersBean implements Serializable {
 //        PageIterator<IssueEvent> events = new IssueService(AuthServices.getGitHubCliente()).getIssues(gitRepo, null);
         out.printLog("Baixando Issue Events...");
         List<IssueEvent> gitIssueEvents = IssueEventServices.getEventsByIssue(issue, gitRepo.getOwner().getLogin(), gitRepo.getName());
-        out.printLog("Issue Events baixados: " + gitIssueEvents.size());
-        int i = 0;
-        while (!canceled && i < gitIssueEvents.size()) {
-            IssueEvent gitIssueEvent = gitIssueEvents.get(i);
-            EntityIssueEvent issueEvent = minerIssueEvent(gitIssueEvent);
-            issue.addEvent(issueEvent);
-            dao.edit(issueEvent);
-            i++;
+        if (issue.getEvents().size() < gitIssueEvents.size()) {
+            out.printLog("Issue Events baixados: " + gitIssueEvents.size());
+            int i = 0;
+            while (!canceled && i < gitIssueEvents.size()) {
+                IssueEvent gitIssueEvent = gitIssueEvents.get(i);
+                EntityIssueEvent issueEvent = minerIssueEvent(gitIssueEvent);
+                issue.addEvent(issueEvent);
+                dao.edit(issueEvent);
+                i++;
+            }
+        } else {
+            out.printLog("Issue Events já minerados anteriormente: " + gitIssueEvents.size());
         }
     }
 

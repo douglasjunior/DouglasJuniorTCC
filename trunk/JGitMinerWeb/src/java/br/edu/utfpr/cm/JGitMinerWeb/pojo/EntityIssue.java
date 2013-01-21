@@ -148,6 +148,14 @@ public class EntityIssue implements Serializable {
         this.repository = repository;
     }
 
+    public List<EntityIssueEvent> getEvents() {
+        return events;
+    }
+
+    public void setEvents(List<EntityIssueEvent> events) {
+        this.events = events;
+    }
+
     public Date getCreatedAt() {
         return createdAt;
     }
@@ -290,7 +298,7 @@ public class EntityIssue implements Serializable {
     }
 
     public void addEvent(EntityIssueEvent issueEvent) {
-        if(!events.contains(issueEvent)){
+        if (!events.contains(issueEvent)) {
             events.add(issueEvent);
         }
         issueEvent.setIssue(this);
