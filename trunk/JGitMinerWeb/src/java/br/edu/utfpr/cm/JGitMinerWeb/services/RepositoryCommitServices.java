@@ -6,7 +6,7 @@ package br.edu.utfpr.cm.JGitMinerWeb.services;
 
 import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericDao;
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.EntityRepositoryCommit;
-import br.edu.utfpr.cm.JGitMinerWeb.util.out;
+import br.edu.utfpr.cm.JGitMinerWeb.util.OutLog;
 import java.util.Date;
 import java.util.List;
 import org.eclipse.egit.github.core.Commit;
@@ -20,7 +20,7 @@ import org.eclipse.egit.github.core.service.CommitService;
  */
 public class RepositoryCommitServices {
 
-    public static List<RepositoryCommit> getGitCommitsFromRepository(Repository gitRepo) {
+    public static List<RepositoryCommit> getGitCommitsFromRepository(Repository gitRepo, OutLog out) {
         List<RepositoryCommit> repoCommits = null;
         try {
             out.printLog("Baixando RepositoryCommits...\n");

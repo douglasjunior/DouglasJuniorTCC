@@ -7,7 +7,7 @@ package br.edu.utfpr.cm.JGitMinerWeb.services;
 import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericDao;
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.EntityPullRequest;
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.EntityRepository;
-import br.edu.utfpr.cm.JGitMinerWeb.util.out;
+import br.edu.utfpr.cm.JGitMinerWeb.util.OutLog;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -82,7 +82,7 @@ public class PullRequestServices {
         return null;
     }
 
-    public static List<PullRequest> getGitPullRequestsFromRepository(Repository gitRepo, boolean open, boolean closed) {
+    public static List<PullRequest> getGitPullRequestsFromRepository(Repository gitRepo, boolean open, boolean closed, OutLog out) {
         List<PullRequest> pulls = new ArrayList<PullRequest>();
         try {
             PullRequestService pullServ = new PullRequestService(AuthServices.getGitHubCliente());

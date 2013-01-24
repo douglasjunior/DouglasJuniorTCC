@@ -8,7 +8,7 @@ import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericDao;
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.EntityIssue;
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.EntityRepository;
 import br.edu.utfpr.cm.JGitMinerWeb.util.JsfUtil;
-import br.edu.utfpr.cm.JGitMinerWeb.util.out;
+import br.edu.utfpr.cm.JGitMinerWeb.util.OutLog;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -31,7 +31,7 @@ public class IssueServices {
         return null;
     }
 
-    public static List<Issue> getGitIssuesFromRepository(Repository gitRepo, boolean open, boolean closed) {
+    public static List<Issue> getGitIssuesFromRepository(Repository gitRepo, boolean open, boolean closed, OutLog out) {
         List<Issue> issues = new ArrayList<Issue>();
         try {
             IssueService issueServ = new IssueService(AuthServices.getGitHubCliente());

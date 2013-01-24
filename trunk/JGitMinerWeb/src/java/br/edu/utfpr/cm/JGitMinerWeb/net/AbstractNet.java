@@ -4,6 +4,7 @@
  */
 package br.edu.utfpr.cm.JGitMinerWeb.net;
 
+import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericDao;
 import br.edu.utfpr.cm.JGitMinerWeb.edge.AbstractEdge;
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.EntityRepository;
 import java.util.Date;
@@ -15,12 +16,14 @@ import java.util.List;
  */
 public abstract class AbstractNet implements Runnable {
 
+    protected GenericDao dao;
     protected EntityRepository repository;
     protected Date begin;
     protected Date end;
     protected List<AbstractEdge> net;
 
-    public AbstractNet(EntityRepository repository, Date begin, Date end) {
+    public AbstractNet(EntityRepository repository, Date begin, Date end, GenericDao dao) {
+        this.dao = dao;
         this.repository = repository;
         this.begin = begin;
         this.end = end;

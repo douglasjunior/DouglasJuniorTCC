@@ -6,7 +6,7 @@ package br.edu.utfpr.cm.JGitMinerWeb.services;
 
 import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericDao;
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.EntityRepository;
-import br.edu.utfpr.cm.JGitMinerWeb.util.out;
+import br.edu.utfpr.cm.JGitMinerWeb.util.OutLog;
 import java.util.Date;
 import java.util.List;
 import org.eclipse.egit.github.core.Repository;
@@ -81,7 +81,7 @@ public class RepositoryServices {
         return new RepositoryService(AuthServices.getGitHubCliente()).getRepository(ownerLogin, repoName);
     }
 
-    public static List<Repository> getGitForksFromRepository(Repository gitRepo) throws Exception {
+    public static List<Repository> getGitForksFromRepository(Repository gitRepo, OutLog out) throws Exception {
         out.printLog("Baixando Forks...\n");
         List<Repository> forks = new RepositoryService(AuthServices.getGitHubCliente()).getForks(gitRepo);
         out.printLog(forks.size() + " Forks baixados!");

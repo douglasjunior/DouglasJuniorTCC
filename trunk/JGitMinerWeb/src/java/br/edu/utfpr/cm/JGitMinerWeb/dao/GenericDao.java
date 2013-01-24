@@ -1,5 +1,6 @@
 package br.edu.utfpr.cm.JGitMinerWeb.dao;
 
+import br.edu.utfpr.cm.JGitMinerWeb.edge.AbstractEdge;
 import java.util.List;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
@@ -74,5 +75,18 @@ public class GenericDao {
 
     public List executeNamedQuery(String namedQuery) {
         return getEntityManager().createNamedQuery(namedQuery).getResultList();
+    }
+
+    public List selectWithParams(String select, String[] params, Object[] objects) {
+        Query query = em.createQuery(select);
+        if (params.length != objects.length) {
+            throw new IndexOutOfBoundsException("The lenght of params array is not equals lenght of objects array.");
+        }
+        for (int i = 0; i < params.length; i++) {
+            String atributo = params[i];
+            Object parametro = objects[i];
+            query.setParameter(atributo, parametro);
+        }
+        return query.getResultList();
     }
 }

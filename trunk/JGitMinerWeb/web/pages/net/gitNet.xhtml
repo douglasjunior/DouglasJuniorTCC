@@ -8,16 +8,24 @@
         <br /> 
         <h:form prependId="false" >
             <p:growl globalOnly="true" id="messages" />
-            
+
+            <h:outputText value="Select a Repository: " /> <br />  
             <p:selectOneListbox id="repositoryToMiner" converter="#{gitMinerRepositoryBean.converter}" style="height:100px;width:300px" value="#{gitNetBean.repository}" >
                 <f:selectItems value="#{gitMinerRepositoryBean.repositoriesPrimaryMiner}" var="repo" itemLabel="#{repo.name}, #{repo.owner.login}" itemDescription="#{repo.name}" itemValue="#{repo}" />
             </p:selectOneListbox>
 
             <br />
+
+            <h:outputText value="Date: " />  
+            <p:calendar value="#{gitNetBean.beginDate}" id="beginDate" effect="explode" pattern="MM/dd/yyyy" navigator="true" size="10" />  
+            <h:outputText value=" at " />  
+            <p:calendar value="#{gitNetBean.endDate}" id="endDate" effect="explode"  pattern="MM/dd/yyyy" navigator="true" size="10" /> 
+
+            <br />
             <br />
 
             <p:commandButton widgetVar="startButton" type="submit" actionListener="#{gitNetBean.start()}" value="Start" 
-                             onclick="startButton.disable();progress.start();" update="loadingImage" />
+                             onclick="startButton.disable();progress.start();textAreaUpdater.start();" update="loadingImage" />
 
             <p:commandButton value="Cancel" actionListener="#{gitNetBean.cancel()}" oncomplete="startButton.enable();progress.cancel();subProgress.start();" />
 
@@ -25,16 +33,23 @@
             <br />
 
             <p:progressBar id="progress" widgetVar="progress" ajax="true" value="#{gitNetBean.progress}" labelTemplate="{value}%" styleClass="animated" interval="3000" >
-                <p:ajax event="complete" listener="#{gitNetBean.onComplete()}" update="messages,loadingImage" oncomplete="startButton.enable();textAreaUpdater.stop();"/>
+                <p:ajax event="complete" listener="#{gitNetBean.onComplete()}" update="messages,loadingImage,logTextArea" oncomplete="startButton.enable();textAreaUpdater.stop();"/>
             </p:progressBar>
 
             <br />
-
             <div style="margin: auto;text-align: center">
                 <p:outputPanel  id="loadingImage"  >
                     <p:graphicImage alt="Loading..." width="50" url="resources/images/loading.gif" rendered="#{gitNetBean.initialized}" />  
                 </p:outputPanel>
             </div>
+            <br />
+
+            <p:poll id="textAreaUpdater" widgetVar="textAreaUpdater" async="true" interval="4" update="logTextArea,loadingImage" autoStart="#{gitMinerOthersBean.initialized}" />
+
+            <h3>Log:</h3>
+            <br />
+            <p:inputTextarea value="#{gitNetBean.log}" id="logTextArea" style="width: 100%" rows="30" autoResize="autoResize" readonly="true" />
+
         </h:form>
     </p:panel>
 </div>

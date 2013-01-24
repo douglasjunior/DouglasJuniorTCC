@@ -4,7 +4,7 @@ import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericDao;
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.*;
 import br.edu.utfpr.cm.JGitMinerWeb.services.*;
 import br.edu.utfpr.cm.JGitMinerWeb.util.JsfUtil;
-import br.edu.utfpr.cm.JGitMinerWeb.util.out;
+import br.edu.utfpr.cm.JGitMinerWeb.util.OutLog;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
@@ -21,6 +21,7 @@ public class GitMinerOthersBean implements Serializable {
 
     @EJB
     private GenericDao dao;
+    private OutLog out;
     private EntityRepository repositoryToMiner;
     private boolean minerOpenIssues;
     private boolean minerClosedIssues;
@@ -48,6 +49,7 @@ public class GitMinerOthersBean implements Serializable {
     public GitMinerOthersBean() {
         initialized = false;
         canceled = false;
+        out = new OutLog();
     }
 
     public boolean isInitialized() {
@@ -197,6 +199,7 @@ public class GitMinerOthersBean implements Serializable {
         out.resetLog();
         initialized = false;
         canceled = false;
+        fail = false;
         progress = new Integer(0);
         subProgress = new Integer(0);
         final EntityMiner mineration = new EntityMiner();
@@ -239,13 +242,12 @@ public class GitMinerOthersBean implements Serializable {
 
                 try {
                     initialized = true;
-                    Thread.sleep(5000);
                     Repository gitRepo = RepositoryServices.getGitRepository(repositoryToMiner.getOwner().getLogin(), repositoryToMiner.getName());
                     progress = new Integer(10);
                     if (!canceled && (minerOpenIssues || minerClosedIssues)) {
                         subProgress = new Integer(0);
                         out.setCurrentProcess("Minerando issues...\n");
-                        List<Issue> gitIssues = IssueServices.getGitIssuesFromRepository(gitRepo, minerOpenIssues, minerClosedIssues);
+                        List<Issue> gitIssues = IssueServices.getGitIssuesFromRepository(gitRepo, minerOpenIssues, minerClosedIssues, out);
                         minerIssues(gitIssues, gitRepo);
                         mineration.setMinerLog(out.getLog());
                         dao.edit(mineration);
@@ -253,7 +255,7 @@ public class GitMinerOthersBean implements Serializable {
                     if (!canceled && (minerOpenMilestones || minerClosedMilestones)) {
                         subProgress = new Integer(0);
                         out.setCurrentProcess("Minerando milestones...\n");
-                        List<Milestone> gitMilestones = MilestoneServices.getGitMilestoneFromRepository(gitRepo, minerOpenMilestones, minerClosedMilestones);
+                        List<Milestone> gitMilestones = MilestoneServices.getGitMilestoneFromRepository(gitRepo, minerOpenMilestones, minerClosedMilestones, out);
                         minerMilestones(gitMilestones);
                         mineration.setMinerLog(out.getLog());
                         dao.edit(mineration);
@@ -262,7 +264,7 @@ public class GitMinerOthersBean implements Serializable {
                     if (!canceled && minerCollaborators) {
                         subProgress = new Integer(0);
                         out.setCurrentProcess("Minerando collaborators...\n");
-                        List<User> collaborators = UserServices.getGitCollaboratorsFromRepository(gitRepo);
+                        List<User> collaborators = UserServices.getGitCollaboratorsFromRepository(gitRepo, out);
                         minerCollaborators(collaborators);
                         mineration.setMinerLog(out.getLog());
                         dao.edit(mineration);
@@ -271,7 +273,7 @@ public class GitMinerOthersBean implements Serializable {
                     if (!canceled && minerWatchers) {
                         subProgress = new Integer(0);
                         out.setCurrentProcess("Minerando watchers...\n");
-                        List<User> wacthers = UserServices.getGitWatchersFromRepository(gitRepo);
+                        List<User> wacthers = UserServices.getGitWatchersFromRepository(gitRepo, out);
                         minerWatchers(wacthers);
                         mineration.setMinerLog(out.getLog());
                         dao.edit(mineration);
@@ -280,7 +282,7 @@ public class GitMinerOthersBean implements Serializable {
                     if (!canceled && (minerClosedPullRequests || minerOpenPullRequests)) {
                         subProgress = new Integer(0);
                         out.setCurrentProcess("Minerando Pull Requests...\n");
-                        List<PullRequest> gitPullRequests = PullRequestServices.getGitPullRequestsFromRepository(gitRepo, minerOpenPullRequests, minerClosedPullRequests);
+                        List<PullRequest> gitPullRequests = PullRequestServices.getGitPullRequestsFromRepository(gitRepo, minerOpenPullRequests, minerClosedPullRequests, out);
                         minerPullRequests(gitPullRequests);
                         dao.edit(mineration);
                     }
@@ -288,7 +290,7 @@ public class GitMinerOthersBean implements Serializable {
                     if (!canceled && minerForks) {
                         subProgress = new Integer(0);
                         out.setCurrentProcess("Minerando Forks...\n");
-                        List<Repository> gitForks = RepositoryServices.getGitForksFromRepository(gitRepo);
+                        List<Repository> gitForks = RepositoryServices.getGitForksFromRepository(gitRepo, out);
                         minerForks(gitForks);
                         dao.edit(mineration);
                     }
@@ -296,7 +298,7 @@ public class GitMinerOthersBean implements Serializable {
                     if (!canceled && minerRepositoryCommits) {
                         subProgress = new Integer(0);
                         out.setCurrentProcess("Minerando RepositoryCommits...\n");
-                        List<RepositoryCommit> gitRepoCommits = RepositoryCommitServices.getGitCommitsFromRepository(gitRepo);
+                        List<RepositoryCommit> gitRepoCommits = RepositoryCommitServices.getGitCommitsFromRepository(gitRepo, out);
                         minerRepositoryCommits(gitRepoCommits, gitRepo);
                         dao.edit(mineration);
                     }
@@ -304,7 +306,7 @@ public class GitMinerOthersBean implements Serializable {
                     if (!canceled && minerTeams) {
                         subProgress = new Integer(0);
                         out.setCurrentProcess("Minerando Teams...\n");
-                        List<Team> gitTeams = TeamServices.getGitTeamsFromRepository(gitRepo);
+                        List<Team> gitTeams = TeamServices.getGitTeamsFromRepository(gitRepo, out);
                         minerTeams(gitTeams, gitRepo);
                         dao.edit(mineration);
                     }
@@ -336,7 +338,10 @@ public class GitMinerOthersBean implements Serializable {
         if (initialized) {
             out.printLog("Pedido de cancelamento enviado.\n");
             canceled = true;
-            process.interrupt();
+            try {
+                process.interrupt();
+            } catch (Exception ex) {
+            }
         }
     }
 

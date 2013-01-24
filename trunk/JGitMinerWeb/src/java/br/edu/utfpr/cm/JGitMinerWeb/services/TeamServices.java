@@ -6,7 +6,7 @@ package br.edu.utfpr.cm.JGitMinerWeb.services;
 
 import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericDao;
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.EntityTeam;
-import br.edu.utfpr.cm.JGitMinerWeb.util.out;
+import br.edu.utfpr.cm.JGitMinerWeb.util.OutLog;
 import java.util.ArrayList;
 import java.util.List;
 import org.eclipse.egit.github.core.Repository;
@@ -19,7 +19,7 @@ import org.eclipse.egit.github.core.service.TeamService;
  */
 public class TeamServices {
 
-    public static List<Team> getGitTeamsFromRepository(Repository gitRepo) {
+    public static List<Team> getGitTeamsFromRepository(Repository gitRepo, OutLog out) {
         List<Team> teams = new ArrayList<Team>();
         try {
             out.printLog("Baixando Teams...\n");

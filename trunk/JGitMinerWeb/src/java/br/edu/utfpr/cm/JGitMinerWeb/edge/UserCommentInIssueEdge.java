@@ -11,9 +11,19 @@ import br.edu.utfpr.cm.JGitMinerWeb.pojo.EntityUser;
  *
  * @author douglas
  */
-public class UserCommentInIssueEdge extends AbstractEdge<EntityIssue, EntityUser, Integer> {
+public class UserCommentInIssueEdge extends AbstractEdge<EntityIssue, EntityUser, Long> {
 
-    public UserCommentInIssueEdge(EntityIssue x, EntityUser y, Integer value) {
+    public UserCommentInIssueEdge(EntityIssue x, EntityUser y, Long value) {
         super(x, y, value);
     }
+
+    @Override
+    public String getStringX() {
+        return getX().getNumber()+"";
+    }
+
+    @Override
+    public String getStringY() {
+        return getY().getLogin();
+    } 
 }

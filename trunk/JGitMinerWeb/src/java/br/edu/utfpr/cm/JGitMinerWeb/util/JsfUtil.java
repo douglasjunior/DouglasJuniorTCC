@@ -18,6 +18,7 @@ public class JsfUtil {
     private static final String[] CARACTERES = {"{", "}", "(", ")", "\\[", "\\]", "<", ">",
         ":", ";", ".", ",", "!", "?", "\\", "/", "~", "`", "\"", "\'", "\\\\",
         "=", "+", "\\-", "*", "@", "#", "$", "%", "^", "&", "_", "\\|"};
+    public static final char TOKEN_SEPARATOR = ';';
 
     public static void ensureAddErrorMessage(Exception ex, String defaultMsg) {
         String msg = ex.getLocalizedMessage();
@@ -202,8 +203,9 @@ public class JsfUtil {
 
     /**
      * Remove do texto caracteres com codificação diferente de UTF-8.
+     *
      * @param texto
-     * @return 
+     * @return
      */
     public static String filterChar(String texto) {
         if (texto != null && !texto.isEmpty()) {

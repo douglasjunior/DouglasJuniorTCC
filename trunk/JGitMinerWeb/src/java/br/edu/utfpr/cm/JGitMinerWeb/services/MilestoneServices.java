@@ -6,7 +6,7 @@ package br.edu.utfpr.cm.JGitMinerWeb.services;
 
 import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericDao;
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.EntityMilestone;
-import br.edu.utfpr.cm.JGitMinerWeb.util.out;
+import br.edu.utfpr.cm.JGitMinerWeb.util.OutLog;
 import java.util.ArrayList;
 import java.util.List;
 import org.eclipse.egit.github.core.Milestone;
@@ -58,7 +58,7 @@ public class MilestoneServices {
         return null;
     }
 
-    public static List<Milestone> getGitMilestoneFromRepository(Repository gitRepo, boolean open, boolean closed) {
+    public static List<Milestone> getGitMilestoneFromRepository(Repository gitRepo, boolean open, boolean closed, OutLog out) {
         List<Milestone> milestones = new ArrayList<Milestone>();
         try {
             MilestoneService service = new MilestoneService(AuthServices.getGitHubCliente());

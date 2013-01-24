@@ -6,7 +6,7 @@ package br.edu.utfpr.cm.JGitMinerWeb.services;
 
 import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericDao;
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.EntityUser;
-import br.edu.utfpr.cm.JGitMinerWeb.util.out;
+import br.edu.utfpr.cm.JGitMinerWeb.util.OutLog;
 import java.util.Date;
 import java.util.List;
 import org.eclipse.egit.github.core.Repository;
@@ -73,14 +73,14 @@ public class UserServices {
         return user;
     }
 
-    public static List<User> getGitCollaboratorsFromRepository(Repository gitRepo) throws Exception {
+    public static List<User> getGitCollaboratorsFromRepository(Repository gitRepo, OutLog out) throws Exception {
         out.printLog("Baixando Collaborators...\n");
         List<User> users = new CollaboratorService(AuthServices.getGitHubCliente()).getCollaborators(gitRepo);
         out.printLog(users.size() + " Collaborators baixados!");
         return users;
     }
 
-    public static List<User> getGitWatchersFromRepository(Repository gitRepo) throws Exception {
+    public static List<User> getGitWatchersFromRepository(Repository gitRepo, OutLog out) throws Exception {
         out.printLog("Baixando Watchers...\n");
         List<User> users = new WatcherService(AuthServices.getGitHubCliente()).getWatchers(gitRepo);
         out.printLog(users.size() + " Watchers baixados!");

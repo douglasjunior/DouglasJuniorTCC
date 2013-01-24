@@ -18,7 +18,7 @@ public abstract class AbstractEdge<X, Y, V> {
         this.x = x;
         this.y = y;
         this.value = value;
-    }   
+    }
 
     public X getX() {
         return x;
@@ -54,5 +54,10 @@ public abstract class AbstractEdge<X, Y, V> {
 
     public void setValue(V value) {
         this.value = value;
+    }
+
+    @Override
+    public String toString() {
+        return getStringX() + ";" + getStringY() + ";" + getStringValue();
     }
 }
