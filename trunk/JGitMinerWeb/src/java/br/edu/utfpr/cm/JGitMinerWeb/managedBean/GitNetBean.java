@@ -131,6 +131,25 @@ public class GitNetBean implements Serializable {
         this.progress = progress;
     }
 
+    public void deleteNetInSession() {
+        try {
+            EntityNet netForDelete = (EntityNet) JsfUtil.getObjectFromSession(STR_NET_FOR_DELETE);
+            dao.remove(netForDelete);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            JsfUtil.addErrorMessage(ex.toString());
+        }
+        removeNetFromSession();
+    }
+
+    public void removeNetFromSession() {
+        JsfUtil.removeAttributeFromSession(STR_NET_FOR_DELETE);
+    }
+
+    public void addNetForDeleteInSession(EntityNet netForDelete) {
+        JsfUtil.addAttributeInSession(STR_NET_FOR_DELETE, netForDelete);
+    }
+
     public void start() {
         final EntityNet entityNet = new EntityNet();
         dao.insert(entityNet);
@@ -236,7 +255,7 @@ public class GitNetBean implements Serializable {
 
     public void downloadCSV(EntityNet net) {
         try {
-            String fileName = net.getRepository().getName() + "-" + net.getNetStart() + ".txt";
+            String fileName = generateFileName(net) + ".csv";
 
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             PrintWriter pw = new PrintWriter(baos);
@@ -257,22 +276,30 @@ public class GitNetBean implements Serializable {
         }
     }
 
-    public void deleteNetInSession() {
+    public void downloadLOG(EntityNet net) {
         try {
-            EntityNet netForDelete = (EntityNet) JsfUtil.getObjectFromSession(STR_NET_FOR_DELETE);
-            dao.remove(netForDelete);
+            String fileName = generateFileName(net) + ".log";
+
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            PrintWriter pw = new PrintWriter(baos);
+
+            String[] linhas = net.getNetLog().split("\n");
+
+            for (String linha : linhas) {
+                pw.println(linha);
+            }
+
+            pw.flush();
+            pw.close();
+
+            JsfUtil.downloadFile(fileName, baos.toByteArray());
         } catch (Exception ex) {
             ex.printStackTrace();
             JsfUtil.addErrorMessage(ex.toString());
         }
-        removeNetFromSession();
     }
 
-    public void removeNetFromSession() {
-        JsfUtil.removeAttributeFromSession(STR_NET_FOR_DELETE);
-    }
-
-    public void addNetForDeleteInSession(EntityNet netForDelete) {
-        JsfUtil.addAttributeInSession(STR_NET_FOR_DELETE, netForDelete);
+    private String generateFileName(EntityNet net) {
+        return net.getRepository().getName() + "-" + net.getNetStart();
     }
 }

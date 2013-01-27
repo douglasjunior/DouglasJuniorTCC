@@ -39,10 +39,10 @@
                 </p:column>
 
                 <p:column headerText="Download Files">
-                    <p:commandButton id="netDownloadLog" value="Log" actionListener="#{gitNetBean.downloadCSV(net)}" ajax="false" />
-                    <p:commandButton id="netDownloadNET" value=".NET" actionListener="#{gitNetBean.downloadCSV(net)}" ajax="false" />
-                    <p:commandButton id="netDownloadARFF" value="ARFF" actionListener="#{gitNetBean.downloadCSV(net)}" ajax="false" />
+                    <p:commandButton id="netDownloadLog" value="Log" actionListener="#{gitNetBean.downloadLOG(net)}" ajax="false" />
                     <p:commandButton id="netDownloadCSV" value="CSV" actionListener="#{gitNetBean.downloadCSV(net)}" ajax="false" />
+                    <p:commandButton id="netDownloadNET" value="Pajek" actionListener="#{gitNetBean.downloadCSV(net)}" ajax="false" />
+                    <p:commandButton id="netDownloadARFF" value="ARFF" actionListener="#{gitNetBean.downloadCSV(net)}" ajax="false" />
                 </p:column>
 
                 <p:column headerText="Options">
