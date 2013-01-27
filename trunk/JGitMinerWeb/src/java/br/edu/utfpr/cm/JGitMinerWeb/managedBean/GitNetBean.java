@@ -11,6 +11,8 @@ import br.edu.utfpr.cm.JGitMinerWeb.pojo.EntityNet;
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.EntityRepository;
 import br.edu.utfpr.cm.JGitMinerWeb.util.JsfUtil;
 import br.edu.utfpr.cm.JGitMinerWeb.util.OutLog;
+import java.io.ByteArrayOutputStream;
+import java.io.PrintWriter;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
@@ -155,6 +157,7 @@ public class GitNetBean implements Serializable {
         } else {
             initialized = true;
             progress = new Integer(10);
+            entityNet.setRepository(repository);
 
             final UserCommentInIssueNet net = new UserCommentInIssueNet(repository, beginDate, endDate, dao);
 
@@ -219,6 +222,34 @@ public class GitNetBean implements Serializable {
         for (AbstractEdge edge : net) {
             sb.append(edge.getStringY()).append(JsfUtil.TOKEN_SEPARATOR).append(edge.getStringX()).append(JsfUtil.TOKEN_SEPARATOR).append(edge.getValue()).append("\n");
         }
+        System.out.println("Saida: ##################################################### \n" + sb.toString());
         return sb.toString();
+    }
+
+    public List<EntityNet> getNets() {
+        return dao.executeNamedQuery("Net.findAllTheLatest");
+    }
+
+    public void downloadCSV(EntityNet net) {
+        try {
+            String fileName = net.getRepository().getName() + "-" + net.getNetStart() + ".txt";
+
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            PrintWriter pw = new PrintWriter(baos);
+
+            String[] linhas = net.getNetResult().split("\n");
+
+            for (String linha : linhas) {
+                pw.println(linha);
+            }
+
+            pw.flush();
+            pw.close();
+
+            JsfUtil.downloadFile(fileName, baos.toByteArray());
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            JsfUtil.addErrorMessage(ex.toString());
+        }
     }
 }

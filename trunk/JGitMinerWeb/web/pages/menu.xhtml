@@ -5,12 +5,13 @@
     <p:panel>
         <h:form prependId="false">
             <p:menubar>
-                <p:submenu label="Miner" icon="ui-icon ui-icon-document" id="menuMiner">
+                <p:submenu label="Miner" icon="ui-icon ui-icon-document" id="minerMenu">
                     <p:menuitem action="#{pagesManager.minerRepository}" ajax="false" value="Repository" id="minerRepository"></p:menuitem>
-                    <p:menuitem action="#{pagesManager.minerOthers}" ajax="false" value="Others" id="minerIssuesComments"></p:menuitem>
+                    <p:menuitem action="#{pagesManager.minerOthers}" ajax="false" value="Others data" id="minerOthersData"></p:menuitem>
                 </p:submenu>
-                <p:submenu label="Net" icon="ui-icon ui-icon-document" id="menuNet">
-                    <p:menuitem action="#{pagesManager.netGit()}" ajax="false" value="Net Git" id="netOne"></p:menuitem>
+                <p:submenu label="Net" icon="ui-icon ui-icon-document" id="netMenu">
+                    <p:menuitem action="#{pagesManager.netGit()}" ajax="false" value="Create" id="netCreate"></p:menuitem>
+                    <p:menuitem action="#{pagesManager.netView()}" ajax="false" value="View" id="netView"></p:menuitem>
                 </p:submenu>
             </p:menubar>
         </h:form>

@@ -1,0 +1,59 @@
+<div xmlns="http://www.w3.org/1999/xhtml"
+     xmlns:h="http://java.sun.com/jsf/html"
+     xmlns:f="http://java.sun.com/jsf/core"
+     xmlns:p="http://primefaces.org/ui">
+
+    <p:panel>
+        <h2>Página de listagem das redes.</h2>
+        <br /> 
+        <h:form prependId="false" >
+            <p:growl globalOnly="true" id="messages" />
+
+            <p:dataTable var="net" value="#{gitNetBean.nets}" id="netList" rows="10"
+                         emptyMessage="No records found." paginator="true" paginatorPosition="bottom"
+                         paginatorTemplate="{CurrentPageReport}  {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                         rowsPerPageTemplate="5,10,15">
+
+                <f:facet name="header">
+                    <h:outputText value="Nets"/>
+                </f:facet>
+
+                <p:column headerText="Repository">
+                    <h:outputText value="#{net.repository.name}" />
+                </p:column>
+
+                <p:column headerText="Started" >
+                    <h:outputText value="#{net.netStart}" >
+                        <f:convertDateTime pattern="MM/dd/yyyy HH:mm:ss" />
+                    </h:outputText>
+                </p:column>
+
+                <p:column headerText="Stoped" >
+                    <h:outputText value="#{net.netStop}" >
+                        <f:convertDateTime pattern="MM/dd/yyyy HH:mm:ss" />
+                    </h:outputText>
+                </p:column>
+
+                <p:column headerText="Completed">
+                    <h:outputText value="#{net.complete}" />
+                </p:column>
+
+                <p:column headerText="Download Files">
+                    <p:commandButton id="netDownloadLog" value="Log" actionListener="#{gitNetBean.downloadCSV(net)}" ajax="false" />
+                    <p:commandButton id="netDownloadNET" value=".NET" actionListener="#{gitNetBean.downloadCSV(net)}" ajax="false" />
+                    <p:commandButton id="netDownloadARFF" value="ARFF" actionListener="#{gitNetBean.downloadCSV(net)}" ajax="false" />
+                    <p:commandButton id="netDownloadCSV" value="CSV" actionListener="#{gitNetBean.downloadCSV(net)}" ajax="false" />
+                </p:column>
+            </p:dataTable>
+
+            <p:confirmDialog message="Really delete this network?"
+                             header="Confirmation" severity="alert" widgetVar="confirmation" closable="false" id="confirmDelete">
+                <p:commandButton value="Yes" id="confirmYes" update="netList messages" oncomplete="confirmation.hide()" style="position: relative;left: 45px;"
+                                 actionListener="#{gitNetBean.downloadCSV()}">
+                </p:commandButton>
+                <p:commandButton value="No" id="confirmNo" oncomplete="confirmation.hide()" style="position: relative;left: 115px;"
+                                 actionListener="#{gitNetBean.downloadCSV()}"/>
+            </p:confirmDialog>
+        </h:form>
+    </p:panel>
+</div>

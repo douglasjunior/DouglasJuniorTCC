@@ -48,7 +48,12 @@ public class PagesManager implements Serializable {
     }
 
     public String netGit() {
-        this.body = "./pages/net/gitNet.xhtml";
+        this.body = "./pages/net/net.xhtml";
+        return "refreshPage";
+    }
+
+    public String netView() {
+        this.body = "./pages/net/view.xhtml";
         return "refreshPage";
     }
 }

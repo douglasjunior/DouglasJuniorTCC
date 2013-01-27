@@ -13,6 +13,9 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Lob;
+import javax.persistence.ManyToOne;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 
@@ -22,6 +25,9 @@ import javax.persistence.Temporal;
  */
 @Entity
 @Table(name = "net")
+@NamedQueries({
+    @NamedQuery(name = "Net.findAllTheLatest", query = "SELECT n FROM EntityNet n ORDER BY n.netStart DESC")
+})
 public class EntityNet implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -39,6 +45,8 @@ public class EntityNet implements Serializable {
     @Lob
     @Basic(fetch = FetchType.LAZY)
     private String netResult;
+    @ManyToOne(fetch = FetchType.LAZY)
+    private EntityRepository repository;
 
     public EntityNet() {
         netStart = new Date();
@@ -91,6 +99,14 @@ public class EntityNet implements Serializable {
 
     public void setNetResult(String netResult) {
         this.netResult = netResult;
+    }
+
+    public EntityRepository getRepository() {
+        return repository;
+    }
+
+    public void setRepository(EntityRepository repository) {
+        this.repository = repository;
     }
 
     @Override

@@ -7,14 +7,20 @@ package br.edu.utfpr.cm.JGitMinerWeb.net;
 import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericDao;
 import br.edu.utfpr.cm.JGitMinerWeb.edge.AbstractEdge;
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.EntityRepository;
+import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
+import javax.persistence.Entity;
+import javax.persistence.Inheritance;
+import javax.persistence.InheritanceType;
 
 /**
  *
  * @author douglas
  */
-public abstract class AbstractNet implements Runnable {
+//@Entity
+//@Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
+public abstract class AbstractNet implements Runnable, Serializable {
 
     protected GenericDao dao;
     protected EntityRepository repository;

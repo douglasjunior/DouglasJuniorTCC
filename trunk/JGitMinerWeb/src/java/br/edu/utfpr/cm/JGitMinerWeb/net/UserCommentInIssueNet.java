@@ -5,13 +5,10 @@
 package br.edu.utfpr.cm.JGitMinerWeb.net;
 
 import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericDao;
-import br.edu.utfpr.cm.JGitMinerWeb.edge.AbstractEdge;
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.EntityRepository;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  *
@@ -66,5 +63,7 @@ public class UserCommentInIssueNet extends AbstractNet {
         net = dao.selectWithParams(jpql, new String[]{"repo", "dataInicial", "dataFinal"}, new Object[]{getRepository(), getBegin(), getEnd()});
 
         System.out.println("Results: " + net.size());
+        
+        
     }
 }

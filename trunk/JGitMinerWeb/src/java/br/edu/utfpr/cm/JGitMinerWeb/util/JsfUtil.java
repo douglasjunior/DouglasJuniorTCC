@@ -1,6 +1,10 @@
 package br.edu.utfpr.cm.JGitMinerWeb.util;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Level;
@@ -8,9 +12,11 @@ import java.util.logging.Logger;
 import javax.faces.application.FacesMessage;
 import javax.faces.component.UIComponent;
 import javax.faces.component.UIViewRoot;
+import javax.faces.context.ExternalContext;
 import javax.faces.context.FacesContext;
 import javax.faces.convert.Converter;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 public class JsfUtil {
@@ -221,5 +227,46 @@ public class JsfUtil {
             return (texto.replaceAll(padrao.toString(), " "));
         }
         return texto;
+    }
+
+    /**
+     * Efetua download do arquivo arquivo para o usuário.
+     *
+     * @param fileName Nome desejado para exibição ao usuário.
+     * @param file
+     * @throws IOException
+     */
+    public static void downloadFile(String fileName, byte[] bytesFile) throws IOException {
+        HttpServletResponse response = (HttpServletResponse) getContext().getExternalContext().getResponse();
+
+        //configura o arquivo que vai voltar para o usuario.
+        response.setHeader("Content-Disposition", "attachment;filename=\"" + fileName + "\"");
+        response.setContentLength(bytesFile.length);
+
+        //isso faz abrir a janelinha de download
+        response.setContentType("application/download");
+
+        //envia o arquivo de volta
+        OutputStream out = response.getOutputStream();
+        out.write(bytesFile);
+        out.flush();
+        out.close();
+        getContext().responseComplete();
+    }
+
+    /**
+     * Efetua leitura do arquivo para um array de bytes.
+     *
+     * @param file
+     * @return
+     * @throws FileNotFoundException
+     * @throws IOException
+     */
+    public static byte[] readFile(File file) throws FileNotFoundException, IOException {
+        int lenght = (int) file.length();
+        byte[] sendBuf = new byte[lenght];
+        FileInputStream inFile = new FileInputStream(file);
+        inFile.read(sendBuf, 0, lenght);
+        return sendBuf;
     }
 }
