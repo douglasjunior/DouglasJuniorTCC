@@ -44,15 +44,21 @@
                     <p:commandButton id="netDownloadARFF" value="ARFF" actionListener="#{gitNetBean.downloadCSV(net)}" ajax="false" />
                     <p:commandButton id="netDownloadCSV" value="CSV" actionListener="#{gitNetBean.downloadCSV(net)}" ajax="false" />
                 </p:column>
+
+                <p:column headerText="Options">
+                    <p:commandButton  icon="ui-icon-trash" title="Delete this Net"  actionListener="#{gitNetBean.addNetForDeleteInSession(net)}"
+                                      id="netDelete" oncomplete="confirmation.show()" />
+                </p:column>
             </p:dataTable>
 
-            <p:confirmDialog message="Really delete this network?"
-                             header="Confirmation" severity="alert" widgetVar="confirmation" closable="false" id="confirmDelete">
-                <p:commandButton value="Yes" id="confirmYes" update="netList messages" oncomplete="confirmation.hide()" style="position: relative;left: 45px;"
-                                 actionListener="#{gitNetBean.downloadCSV()}">
+            <p:confirmDialog  id="confirmDelete" widgetVar="confirmation"
+                              message="Really delete this network?" header="Confirmation" 
+                              severity="alert"  closable="false" >
+                <p:commandButton value="Yes" id="confirmYes" update="netList messages" oncomplete="confirmation.hide()" style="position: relative;left: 80px"
+                                 actionListener="#{gitNetBean.deleteNetInSession()}">
                 </p:commandButton>
-                <p:commandButton value="No" id="confirmNo" oncomplete="confirmation.hide()" style="position: relative;left: 115px;"
-                                 actionListener="#{gitNetBean.downloadCSV()}"/>
+                <p:commandButton value="No" id="confirmNo" oncomplete="confirmation.hide()" style="position: relative;left: 80px"
+                                 actionListener="#{gitNetBean.removeNetFromSession()}"/>
             </p:confirmDialog>
         </h:form>
     </p:panel>

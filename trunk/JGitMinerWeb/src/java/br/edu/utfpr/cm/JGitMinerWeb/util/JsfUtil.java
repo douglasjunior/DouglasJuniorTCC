@@ -12,7 +12,6 @@ import java.util.logging.Logger;
 import javax.faces.application.FacesMessage;
 import javax.faces.component.UIComponent;
 import javax.faces.component.UIViewRoot;
-import javax.faces.context.ExternalContext;
 import javax.faces.context.FacesContext;
 import javax.faces.convert.Converter;
 import javax.servlet.http.HttpServletRequest;
@@ -154,8 +153,9 @@ public class JsfUtil {
      * @return um objeto do tipo <code>Object</code> referente ao atributo
      * identificado pelo nome recebido como parametro.
      */
-    public static Object getObjectFromSession(String key) {
-        return FacesContext.getCurrentInstance().getExternalContext().getSessionMap().get(key);
+    public static Object getObjectFromSession(String name) {
+        HttpSession hs = JsfUtil.getSession(false);
+        return hs.getAttribute(name);
     }
 
     public static void dispatch(String s) {
@@ -167,7 +167,7 @@ public class JsfUtil {
     }
 
     /**
-     * <p>Redireciona para uma URL específica recebida como parametro
+     * Redireciona para uma URL específica recebida como parametro
      *
      * @param url URL para a qual será redirecionada a página.
      */
@@ -179,6 +179,11 @@ public class JsfUtil {
         }
     }
 
+    /**
+     * Retorna a Session
+     * @param create
+     * @return 
+     */
     public static HttpSession getSession(Boolean create) {
         FacesContext fc = FacesContext.getCurrentInstance();
         HttpSession session = (HttpSession) fc.getExternalContext().getSession(create);
@@ -268,5 +273,15 @@ public class JsfUtil {
         FileInputStream inFile = new FileInputStream(file);
         inFile.read(sendBuf, 0, lenght);
         return sendBuf;
+    }
+
+    public static void addAttributeInSession(String name, Object value) {
+        HttpSession hs = JsfUtil.getSession(false);
+        hs.setAttribute(name, value);
+    }
+
+    public static void removeAttributeFromSession(String name) {
+        HttpSession hs = JsfUtil.getSession(false);
+        hs.removeAttribute(name);
     }
 }

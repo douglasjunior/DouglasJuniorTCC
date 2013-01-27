@@ -28,6 +28,10 @@ import javax.faces.bean.SessionScoped;
 @SessionScoped
 public class GitNetBean implements Serializable {
 
+    private final String STR_NET_FOR_DELETE = "netForDelete";
+    /*
+     * 
+     */
     @EJB
     private GenericDao dao;
     private OutLog out;
@@ -251,5 +255,24 @@ public class GitNetBean implements Serializable {
             ex.printStackTrace();
             JsfUtil.addErrorMessage(ex.toString());
         }
+    }
+
+    public void deleteNetInSession() {
+        try {
+            EntityNet netForDelete = (EntityNet) JsfUtil.getObjectFromSession(STR_NET_FOR_DELETE);
+            dao.remove(netForDelete);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            JsfUtil.addErrorMessage(ex.toString());
+        }
+        removeNetFromSession();
+    }
+
+    public void removeNetFromSession() {
+        JsfUtil.removeAttributeFromSession(STR_NET_FOR_DELETE);
+    }
+
+    public void addNetForDeleteInSession(EntityNet netForDelete) {
+        JsfUtil.addAttributeInSession(STR_NET_FOR_DELETE, netForDelete);
     }
 }
