@@ -204,7 +204,7 @@ public class GitMinerOthersBean implements Serializable {
         subProgress = new Integer(0);
         final EntityMiner mineration = new EntityMiner();
 
-        dao.insert(mineration);
+
 
         out.printLog("Repositorio: " + repositoryToMiner);
         out.printLog("minerOpenIssues: " + minerOpenIssues);
@@ -230,108 +230,109 @@ public class GitMinerOthersBean implements Serializable {
             subProgress = new Integer(0);
             initialized = false;
             fail = true;
-            mineration.setMinerLog(out.getLog());
-            dao.edit(mineration);
-            return;
-        }
-        process = new Thread() {
-            @Override
-            public void run() {
+        } else {
+            mineration.setRepository(repositoryToMiner);
+            dao.insert(mineration);
 
-                out.printLog("########### PROCESSO DE MINERAÇÃO INICIADO! ##############\n");
+            process = new Thread() {
+                @Override
+                public void run() {
 
-                try {
-                    initialized = true;
-                    Repository gitRepo = RepositoryServices.getGitRepository(repositoryToMiner.getOwner().getLogin(), repositoryToMiner.getName());
-                    progress = new Integer(10);
-                    if (!canceled && (minerOpenIssues || minerClosedIssues)) {
-                        subProgress = new Integer(0);
-                        out.setCurrentProcess("Minerando issues...\n");
-                        List<Issue> gitIssues = IssueServices.getGitIssuesFromRepository(gitRepo, minerOpenIssues, minerClosedIssues, out);
-                        minerIssues(gitIssues, gitRepo);
-                        mineration.setMinerLog(out.getLog());
-                        dao.edit(mineration);
+                    out.printLog("########### PROCESSO DE MINERAÇÃO INICIADO! ##############\n");
+
+                    try {
+                        initialized = true;
+                        Repository gitRepo = RepositoryServices.getGitRepository(repositoryToMiner.getOwner().getLogin(), repositoryToMiner.getName());
+                        progress = new Integer(10);
+                        if (!canceled && (minerOpenIssues || minerClosedIssues)) {
+                            subProgress = new Integer(0);
+                            out.setCurrentProcess("Minerando issues...\n");
+                            List<Issue> gitIssues = IssueServices.getGitIssuesFromRepository(gitRepo, minerOpenIssues, minerClosedIssues, out);
+                            minerIssues(gitIssues, gitRepo);
+                            mineration.setMinerLog(out.getLog());
+                            dao.edit(mineration);
+                        }
+                        if (!canceled && (minerOpenMilestones || minerClosedMilestones)) {
+                            subProgress = new Integer(0);
+                            out.setCurrentProcess("Minerando milestones...\n");
+                            List<Milestone> gitMilestones = MilestoneServices.getGitMilestoneFromRepository(gitRepo, minerOpenMilestones, minerClosedMilestones, out);
+                            minerMilestones(gitMilestones);
+                            mineration.setMinerLog(out.getLog());
+                            dao.edit(mineration);
+                        }
+                        progress = new Integer(22);
+                        if (!canceled && minerCollaborators) {
+                            subProgress = new Integer(0);
+                            out.setCurrentProcess("Minerando collaborators...\n");
+                            List<User> collaborators = UserServices.getGitCollaboratorsFromRepository(gitRepo, out);
+                            minerCollaborators(collaborators);
+                            mineration.setMinerLog(out.getLog());
+                            dao.edit(mineration);
+                        }
+                        progress = new Integer(34);
+                        if (!canceled && minerWatchers) {
+                            subProgress = new Integer(0);
+                            out.setCurrentProcess("Minerando watchers...\n");
+                            List<User> wacthers = UserServices.getGitWatchersFromRepository(gitRepo, out);
+                            minerWatchers(wacthers);
+                            mineration.setMinerLog(out.getLog());
+                            dao.edit(mineration);
+                        }
+                        progress = new Integer(56);
+                        if (!canceled && (minerClosedPullRequests || minerOpenPullRequests)) {
+                            subProgress = new Integer(0);
+                            out.setCurrentProcess("Minerando Pull Requests...\n");
+                            List<PullRequest> gitPullRequests = PullRequestServices.getGitPullRequestsFromRepository(gitRepo, minerOpenPullRequests, minerClosedPullRequests, out);
+                            minerPullRequests(gitPullRequests);
+                            dao.edit(mineration);
+                        }
+                        progress = new Integer(68);
+                        if (!canceled && minerForks) {
+                            subProgress = new Integer(0);
+                            out.setCurrentProcess("Minerando Forks...\n");
+                            List<Repository> gitForks = RepositoryServices.getGitForksFromRepository(gitRepo, out);
+                            minerForks(gitForks);
+                            dao.edit(mineration);
+                        }
+                        progress = new Integer(80);
+                        if (!canceled && minerRepositoryCommits) {
+                            subProgress = new Integer(0);
+                            out.setCurrentProcess("Minerando RepositoryCommits...\n");
+                            List<RepositoryCommit> gitRepoCommits = RepositoryCommitServices.getGitCommitsFromRepository(gitRepo, out);
+                            minerRepositoryCommits(gitRepoCommits, gitRepo);
+                            dao.edit(mineration);
+                        }
+                        progress = new Integer(92);
+                        if (!canceled && minerTeams) {
+                            subProgress = new Integer(0);
+                            out.setCurrentProcess("Minerando Teams...\n");
+                            List<Team> gitTeams = TeamServices.getGitTeamsFromRepository(gitRepo, out);
+                            minerTeams(gitTeams, gitRepo);
+                            dao.edit(mineration);
+                        }
+                        if (canceled) {
+                            out.printLog("Processo de mineração cancelado pelo usuário.\n");
+                        }
+                        mineration.setComplete(true);
+                        message = "Mineração finalizada.";
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                        message = "Mineração abortada: " + ex.toString();
+                        mineration.setComplete(false);
+                        fail = true;
                     }
-                    if (!canceled && (minerOpenMilestones || minerClosedMilestones)) {
-                        subProgress = new Integer(0);
-                        out.setCurrentProcess("Minerando milestones...\n");
-                        List<Milestone> gitMilestones = MilestoneServices.getGitMilestoneFromRepository(gitRepo, minerOpenMilestones, minerClosedMilestones, out);
-                        minerMilestones(gitMilestones);
-                        mineration.setMinerLog(out.getLog());
-                        dao.edit(mineration);
-                    }
-                    progress = new Integer(22);
-                    if (!canceled && minerCollaborators) {
-                        subProgress = new Integer(0);
-                        out.setCurrentProcess("Minerando collaborators...\n");
-                        List<User> collaborators = UserServices.getGitCollaboratorsFromRepository(gitRepo, out);
-                        minerCollaborators(collaborators);
-                        mineration.setMinerLog(out.getLog());
-                        dao.edit(mineration);
-                    }
-                    progress = new Integer(34);
-                    if (!canceled && minerWatchers) {
-                        subProgress = new Integer(0);
-                        out.setCurrentProcess("Minerando watchers...\n");
-                        List<User> wacthers = UserServices.getGitWatchersFromRepository(gitRepo, out);
-                        minerWatchers(wacthers);
-                        mineration.setMinerLog(out.getLog());
-                        dao.edit(mineration);
-                    }
-                    progress = new Integer(56);
-                    if (!canceled && (minerClosedPullRequests || minerOpenPullRequests)) {
-                        subProgress = new Integer(0);
-                        out.setCurrentProcess("Minerando Pull Requests...\n");
-                        List<PullRequest> gitPullRequests = PullRequestServices.getGitPullRequestsFromRepository(gitRepo, minerOpenPullRequests, minerClosedPullRequests, out);
-                        minerPullRequests(gitPullRequests);
-                        dao.edit(mineration);
-                    }
-                    progress = new Integer(68);
-                    if (!canceled && minerForks) {
-                        subProgress = new Integer(0);
-                        out.setCurrentProcess("Minerando Forks...\n");
-                        List<Repository> gitForks = RepositoryServices.getGitForksFromRepository(gitRepo, out);
-                        minerForks(gitForks);
-                        dao.edit(mineration);
-                    }
-                    progress = new Integer(80);
-                    if (!canceled && minerRepositoryCommits) {
-                        subProgress = new Integer(0);
-                        out.setCurrentProcess("Minerando RepositoryCommits...\n");
-                        List<RepositoryCommit> gitRepoCommits = RepositoryCommitServices.getGitCommitsFromRepository(gitRepo, out);
-                        minerRepositoryCommits(gitRepoCommits, gitRepo);
-                        dao.edit(mineration);
-                    }
-                    progress = new Integer(92);
-                    if (!canceled && minerTeams) {
-                        subProgress = new Integer(0);
-                        out.setCurrentProcess("Minerando Teams...\n");
-                        List<Team> gitTeams = TeamServices.getGitTeamsFromRepository(gitRepo, out);
-                        minerTeams(gitTeams, gitRepo);
-                        dao.edit(mineration);
-                    }
-                    if (canceled) {
-                        out.printLog("Processo de mineração cancelado pelo usuário.\n");
-                    }
-                    mineration.setComplete(true);
-                    message = "Mineração finalizada.";
-                } catch (Exception ex) {
-                    ex.printStackTrace();
-                    message = "Mineração abortada: " + ex.toString();
-                    mineration.setComplete(false);
-                    fail = true;
+                    System.gc();
+                    out.setCurrentProcess(message);
+                    progress = new Integer(100);
+                    subProgress = new Integer(100);
+                    initialized = false;
+                    mineration.setMinerStop(new Date());
+                    mineration.setMinerLog(out.getLog());
+                    dao.edit(mineration);
                 }
-                System.gc();
-                out.setCurrentProcess(message);
-                progress = new Integer(100);
-                subProgress = new Integer(100);
-                initialized = false;
-                mineration.setMinerStop(new Date());
-                mineration.setMinerLog(out.getLog());
-                dao.edit(mineration);
-            }
-        };
-        process.start();
+            };
+            process.start();
+        }
     }
 
     public void cancel() {

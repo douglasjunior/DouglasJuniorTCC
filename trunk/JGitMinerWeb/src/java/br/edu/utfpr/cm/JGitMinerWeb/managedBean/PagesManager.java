@@ -56,4 +56,9 @@ public class PagesManager implements Serializable {
         this.body = "./pages/net/view.xhtml";
         return "refreshPage";
     }
+
+    public String minerView() {
+        this.body = "./pages/miner/view.xhtml";
+        return "refreshPage";
+    }
 }

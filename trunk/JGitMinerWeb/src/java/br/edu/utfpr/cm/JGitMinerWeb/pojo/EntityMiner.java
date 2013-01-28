@@ -14,6 +14,9 @@ import javax.persistence.*;
  */
 @Entity
 @Table(name = "miner")
+@NamedQueries({
+    @NamedQuery(name = "Miner.findAllTheLatest", query = "SELECT m FROM EntityMiner m ORDER BY m.minerStart DESC")
+})
 public class EntityMiner implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -28,6 +31,8 @@ public class EntityMiner implements Serializable {
     @Lob
     @Basic(fetch = FetchType.LAZY)
     private String minerLog;
+    @ManyToOne
+    private EntityRepository repository;
 
     public EntityMiner() {
         minerStart = new Date();
@@ -48,6 +53,14 @@ public class EntityMiner implements Serializable {
 
     public void setMinerLog(String minerLog) {
         this.minerLog = minerLog;
+    }
+
+    public EntityRepository getRepository() {
+        return repository;
+    }
+
+    public void setRepository(EntityRepository repository) {
+        this.repository = repository;
     }
 
     public Date getMinerStart() {

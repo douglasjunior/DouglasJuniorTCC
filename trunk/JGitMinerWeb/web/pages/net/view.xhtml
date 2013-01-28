@@ -9,7 +9,7 @@
         <h:form prependId="false" >
             <p:growl globalOnly="true" id="messages" />
 
-            <p:dataTable var="net" value="#{gitNetBean.nets}" id="netList" rows="10"
+            <p:dataTable var="net" value="#{gitNetViewBean.nets}" id="netList" rows="10"
                          emptyMessage="No records found." paginator="true" paginatorPosition="bottom"
                          paginatorTemplate="{CurrentPageReport}  {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
                          rowsPerPageTemplate="5,10,15">
@@ -39,14 +39,14 @@
                 </p:column>
 
                 <p:column headerText="Download Files">
-                    <p:commandButton id="netDownloadLog" value="Log" actionListener="#{gitNetBean.downloadLOG(net)}" ajax="false" />
-                    <p:commandButton id="netDownloadCSV" value="CSV" actionListener="#{gitNetBean.downloadCSV(net)}" ajax="false" />
-                    <p:commandButton id="netDownloadNET" value="Pajek" actionListener="#{gitNetBean.downloadCSV(net)}" ajax="false" />
-                    <p:commandButton id="netDownloadARFF" value="ARFF" actionListener="#{gitNetBean.downloadCSV(net)}" ajax="false" />
+                    <p:commandButton id="netDownloadLog" value="Log" actionListener="#{gitNetViewBean.downloadLOG(net)}" ajax="false" />
+                    <p:commandButton id="netDownloadCSV" value="CSV" actionListener="#{gitNetViewBean.downloadCSV(net)}" ajax="false" />
+                    <p:commandButton id="netDownloadNET" value="Pajek" actionListener="#{gitNetViewBean.downloadCSV(net)}" ajax="false" />
+                    <p:commandButton id="netDownloadARFF" value="ARFF" actionListener="#{gitNetViewBean.downloadCSV(net)}" ajax="false" />
                 </p:column>
 
                 <p:column headerText="Options">
-                    <p:commandButton  icon="ui-icon-trash" title="Delete this Net"  actionListener="#{gitNetBean.addNetForDeleteInSession(net)}"
+                    <p:commandButton  icon="ui-icon-trash" title="Delete this Net"  actionListener="#{gitNetViewBean.addNetForDeleteInSession(net)}"
                                       id="netDelete" oncomplete="confirmation.show()" />
                 </p:column>
             </p:dataTable>
@@ -55,10 +55,10 @@
                               message="Really delete this network?" header="Confirmation" 
                               severity="alert"  closable="false" >
                 <p:commandButton value="Yes" id="confirmYes" update="netList messages" oncomplete="confirmation.hide()" style="position: relative;left: 80px"
-                                 actionListener="#{gitNetBean.deleteNetInSession()}">
+                                 actionListener="#{gitNetViewBean.deleteNetInSession()}">
                 </p:commandButton>
                 <p:commandButton value="No" id="confirmNo" oncomplete="confirmation.hide()" style="position: relative;left: 80px"
-                                 actionListener="#{gitNetBean.removeNetFromSession()}"/>
+                                 actionListener="#{gitNetViewBean.removeNetFromSession()}"/>
             </p:confirmDialog>
         </h:form>
     </p:panel>

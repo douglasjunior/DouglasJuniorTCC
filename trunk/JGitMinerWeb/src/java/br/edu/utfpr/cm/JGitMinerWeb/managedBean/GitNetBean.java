@@ -11,8 +11,6 @@ import br.edu.utfpr.cm.JGitMinerWeb.pojo.EntityNet;
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.EntityRepository;
 import br.edu.utfpr.cm.JGitMinerWeb.util.JsfUtil;
 import br.edu.utfpr.cm.JGitMinerWeb.util.OutLog;
-import java.io.ByteArrayOutputStream;
-import java.io.PrintWriter;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
@@ -28,7 +26,7 @@ import javax.faces.bean.SessionScoped;
 @SessionScoped
 public class GitNetBean implements Serializable {
 
-    private final String STR_NET_FOR_DELETE = "netForDelete";
+
     /*
      * 
      */
@@ -131,25 +129,6 @@ public class GitNetBean implements Serializable {
         this.progress = progress;
     }
 
-    public void deleteNetInSession() {
-        try {
-            EntityNet netForDelete = (EntityNet) JsfUtil.getObjectFromSession(STR_NET_FOR_DELETE);
-            dao.remove(netForDelete);
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            JsfUtil.addErrorMessage(ex.toString());
-        }
-        removeNetFromSession();
-    }
-
-    public void removeNetFromSession() {
-        JsfUtil.removeAttributeFromSession(STR_NET_FOR_DELETE);
-    }
-
-    public void addNetForDeleteInSession(EntityNet netForDelete) {
-        JsfUtil.addAttributeInSession(STR_NET_FOR_DELETE, netForDelete);
-    }
-
     public void start() {
         final EntityNet entityNet = new EntityNet();
         dao.insert(entityNet);
@@ -194,7 +173,7 @@ public class GitNetBean implements Serializable {
                         progress = new Integer(50);
                         out.printLog("");
                         out.setCurrentProcess("Iniciando processamento dos dados coletados.");
-                        entityNet.setNetResult(convertResultToString(net.getNet()));
+                        entityNet.setNetResult(convertResultToCSV(net.getNet()));
                         out.printLog("Processamento dos dados concluído!");
                         entityNet.setComplete(true);
                         dao.edit(entityNet);
@@ -240,66 +219,11 @@ public class GitNetBean implements Serializable {
         }
     }
 
-    private String convertResultToString(List<AbstractEdge> net) {
+    private String convertResultToCSV(List<AbstractEdge> net) {
         StringBuilder sb = new StringBuilder();
         for (AbstractEdge edge : net) {
             sb.append(edge.getStringY()).append(JsfUtil.TOKEN_SEPARATOR).append(edge.getStringX()).append(JsfUtil.TOKEN_SEPARATOR).append(edge.getValue()).append("\n");
         }
-        System.out.println("Saida: ##################################################### \n" + sb.toString());
         return sb.toString();
-    }
-
-    public List<EntityNet> getNets() {
-        return dao.executeNamedQuery("Net.findAllTheLatest");
-    }
-
-    public void downloadCSV(EntityNet net) {
-        try {
-            String fileName = generateFileName(net) + ".csv";
-
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            PrintWriter pw = new PrintWriter(baos);
-
-            String[] linhas = net.getNetResult().split("\n");
-
-            for (String linha : linhas) {
-                pw.println(linha);
-            }
-
-            pw.flush();
-            pw.close();
-
-            JsfUtil.downloadFile(fileName, baos.toByteArray());
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            JsfUtil.addErrorMessage(ex.toString());
-        }
-    }
-
-    public void downloadLOG(EntityNet net) {
-        try {
-            String fileName = generateFileName(net) + ".log";
-
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            PrintWriter pw = new PrintWriter(baos);
-
-            String[] linhas = net.getNetLog().split("\n");
-
-            for (String linha : linhas) {
-                pw.println(linha);
-            }
-
-            pw.flush();
-            pw.close();
-
-            JsfUtil.downloadFile(fileName, baos.toByteArray());
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            JsfUtil.addErrorMessage(ex.toString());
-        }
-    }
-
-    private String generateFileName(EntityNet net) {
-        return net.getRepository().getName() + "-" + net.getNetStart();
     }
 }
