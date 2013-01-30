@@ -43,7 +43,7 @@ public class PullRequestServices {
         pull.setAdditions(gitPullRequest.getAdditions());
         pull.setChangedFiles(gitPullRequest.getChangedFiles());
         pull.setCommentsCount(gitPullRequest.getComments());
-        pull.setCommits(gitPullRequest.getCommits());
+        pull.setCommitsCount(gitPullRequest.getCommits());
         pull.setDeletions(gitPullRequest.getDeletions());
         pull.setNumber(gitPullRequest.getNumber());
         if (pull.getBase() == null) {

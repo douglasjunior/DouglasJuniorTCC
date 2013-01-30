@@ -10,9 +10,6 @@ import br.edu.utfpr.cm.JGitMinerWeb.pojo.EntityRepository;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
-import javax.persistence.Entity;
-import javax.persistence.Inheritance;
-import javax.persistence.InheritanceType;
 
 /**
  *

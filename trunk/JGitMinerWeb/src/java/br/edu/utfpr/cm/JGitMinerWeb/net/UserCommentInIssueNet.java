@@ -57,13 +57,11 @@ public class UserCommentInIssueNet extends AbstractNet {
                 + "AND i.createdAt <= :dataFinal "
                 + "GROUP BY i, u "
                 + "ORDER BY u.login, i.number";
-
+        
         System.out.println(jpql);
 
         net = dao.selectWithParams(jpql, new String[]{"repo", "dataInicial", "dataFinal"}, new Object[]{getRepository(), getBegin(), getEnd()});
 
-        System.out.println("Results: " + net.size());
-        
-        
+        System.out.println("Results: " + net.size());       
     }
 }

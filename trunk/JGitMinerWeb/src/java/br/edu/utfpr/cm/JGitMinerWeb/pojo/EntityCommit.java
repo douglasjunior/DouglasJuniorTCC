@@ -31,12 +31,12 @@ public class EntityCommit implements Serializable {
     private EntityCommitUser author;
     @ManyToOne
     private EntityCommitUser committer;
-    @OneToMany(mappedBy = "son")
-    private List<EntityCommit> parents;
+//    @OneToMany(mappedBy = "son")
+//    private List<EntityCommit> parents;
+//    @ManyToOne
+//    private EntityCommit son;
     @OneToMany(mappedBy = "commit")
     private List<EntityCommitComment> comments;
-    @ManyToOne
-    private EntityCommit son;
     @Column(columnDefinition = "text")
     private String message;
     private String sha;
@@ -46,7 +46,7 @@ public class EntityCommit implements Serializable {
     private int commentCount;
 
     public EntityCommit() {
-        parents = new ArrayList<EntityCommit>();
+//        parents = new ArrayList<EntityCommit>();
         comments = new ArrayList<EntityCommitComment>();
     }
 
@@ -64,14 +64,6 @@ public class EntityCommit implements Serializable {
 
     public void setMineredAt(Date mineredAt) {
         this.mineredAt = mineredAt;
-    }
-
-    public EntityCommit getSon() {
-        return son;
-    }
-
-    public void setSon(EntityCommit son) {
-        this.son = son;
     }
 
     public EntityCommitUser getAuthor() {
@@ -98,14 +90,21 @@ public class EntityCommit implements Serializable {
         this.message = message;
     }
 
-    public List<EntityCommit> getParents() {
-        return parents;
-    }
-
-    public void setParents(List<EntityCommit> parents) {
-        this.parents = parents;
-    }
-
+//    public List<EntityCommit> getParents() {
+//        return parents;
+//    }
+//
+//    public void setParents(List<EntityCommit> parents) {
+//        this.parents = parents;
+//    }
+//
+//    public EntityCommit getSon() {
+//        return son;
+//    }
+//
+//    public void setSon(EntityCommit son) {
+//        this.son = son;
+//    }
     public List<EntityCommitComment> getComments() {
         return comments;
     }
@@ -163,13 +162,12 @@ public class EntityCommit implements Serializable {
         return "br.edu.utfpr.cm.JGitMiner.pojo.EntityCommity[ id=" + id + " ]";
     }
 
-    public void addParent(EntityCommit parent) {
-        if (!parents.contains(parent)) {
-            parents.add(parent);
-        }
-        parent.setSon(this);
-    }
-
+//    public void addParent(EntityCommit parent) {
+//        if (!parents.contains(parent)) {
+//            parents.add(parent);
+//        }
+//        parent.setSon(this);
+//    }
     public void addComment(EntityCommitComment comment) {
         if (!comments.contains(comment)) {
             comments.add(comment);

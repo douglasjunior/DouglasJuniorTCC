@@ -34,9 +34,9 @@ public class EntityRepositoryCommit implements Serializable {
     private EntityCommit commit;
     @OneToOne
     private EntityCommitStats stats;
-    @OneToMany
-    @JoinTable(name = "gitrepositorycommit_parents")
-    private List<EntityCommit> parents;
+//    @OneToMany
+//    @JoinTable(name = "gitrepositorycommit_parents")
+//    private List<EntityCommit> parents;
     @OneToMany(mappedBy = "repositoryCommit")
     private List<EntityCommitFile> files;
     @Column(columnDefinition = "text")
@@ -48,7 +48,7 @@ public class EntityRepositoryCommit implements Serializable {
     private EntityUser committer;
 
     public EntityRepositoryCommit() {
-        parents = new ArrayList<EntityCommit>();
+//        parents = new ArrayList<EntityCommit>();
         files = new ArrayList<EntityCommitFile>();
     }
 
@@ -108,14 +108,13 @@ public class EntityRepositoryCommit implements Serializable {
         this.files = files;
     }
 
-    public List<EntityCommit> getParents() {
-        return parents;
-    }
-
-    public void setParents(List<EntityCommit> parents) {
-        this.parents = parents;
-    }
-
+//    public List<EntityCommit> getParents() {
+//        return parents;
+//    }
+//
+//    public void setParents(List<EntityCommit> parents) {
+//        this.parents = parents;
+//    }
     public String getSha() {
         return sha;
     }
@@ -165,12 +164,11 @@ public class EntityRepositoryCommit implements Serializable {
         return "br.edu.utfpr.cm.JGitMiner.pojo.EntityRepositoryCommit[ id=" + id + " ]";
     }
 
-    public void addParent(EntityCommit parent) {
-        if (!parents.contains(parent)) {
-            parents.add(parent);
-        }
-    }
-
+//    public void addParent(EntityCommit parent) {
+//        if (!parents.contains(parent)) {
+//            parents.add(parent);
+//        }
+//    }
     public void addFile(EntityCommitFile file) {
         if (!files.contains(file)) {
             files.add(file);

@@ -6,6 +6,7 @@ import br.edu.utfpr.cm.JGitMinerWeb.services.*;
 import br.edu.utfpr.cm.JGitMinerWeb.util.JsfUtil;
 import br.edu.utfpr.cm.JGitMinerWeb.util.OutLog;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import javax.ejb.EJB;
@@ -283,7 +284,7 @@ public class GitMinerOthersBean implements Serializable {
                             subProgress = new Integer(0);
                             out.setCurrentProcess("Minerando Pull Requests...\n");
                             List<PullRequest> gitPullRequests = PullRequestServices.getGitPullRequestsFromRepository(gitRepo, minerOpenPullRequests, minerClosedPullRequests, out);
-                            minerPullRequests(gitPullRequests);
+                            minerPullRequests(gitPullRequests, gitRepo);
                             dao.edit(mineration);
                         }
                         progress = new Integer(68);
@@ -517,16 +518,24 @@ public class GitMinerOthersBean implements Serializable {
         return watcher;
     }
 
-    private void minerPullRequests(List<PullRequest> gitPullRequests) throws Exception {
+    private void minerPullRequests(List<PullRequest> gitPullRequests, Repository gitRepo) throws Exception {
         int i = 0;
         calculeSubProgress(i, gitPullRequests.size());
         while (!canceled && i < gitPullRequests.size()) {
             PullRequest gitPull = gitPullRequests.get(i);
             EntityPullRequest pullRequest = minerPullRequest(gitPull);
-            EntityIssue issue = IssueServices.getIssueByNumber(gitPull.getNumber(), repositoryToMiner, dao);
-            if (issue != null) {
-                issue.setPullRequest(pullRequest);
-                pullRequest.setIssue(issue);
+            if (pullRequest.getIssue() == null) {
+                EntityIssue issue = IssueServices.getIssueByNumber(gitPull.getNumber(), repositoryToMiner, dao);
+                if (issue != null) {
+                    issue.setPullRequest(pullRequest);
+                    pullRequest.setIssue(issue);
+                }
+            }
+            System.out.println("VAI PASSA AQUIIIIIIIIIII!!!!!!!!!");
+            if (pullRequest.getRepositoryCommits().isEmpty()) {
+                List<RepositoryCommit> gitRepoCommits = RepositoryCommitServices.getGitRepoCommitsFromPullRequest(pullRequest, repositoryToMiner);
+                List<EntityRepositoryCommit> repoCommits = minerRepositoryCommits(gitRepoCommits, gitRepo);
+                pullRequest.setRepositoryCommits(repoCommits);
             }
             repositoryToMiner.addPullRequest(pullRequest);
             dao.edit(pullRequest);
@@ -572,13 +581,13 @@ public class GitMinerOthersBean implements Serializable {
         return fork;
     }
 
-    private void minerRepositoryCommits(List<RepositoryCommit> gitRepoCommits, Repository gitRepo) throws Exception {
+    private List<EntityRepositoryCommit> minerRepositoryCommits(List<RepositoryCommit> gitRepoCommits, Repository gitRepo) throws Exception {
+        List<EntityRepositoryCommit> repoCommits = new ArrayList<EntityRepositoryCommit>();
         int i = 0;
-
         calculeSubProgress(i, gitRepoCommits.size());
         while (!canceled && i < gitRepoCommits.size()) {
             RepositoryCommit gitRepoCommit = gitRepoCommits.get(i);
-            EntityRepositoryCommit repoCommit = minerRepositoryCommit(gitRepoCommit, gitRepo);
+            EntityRepositoryCommit repoCommit = minerRepositoryCommit(gitRepoCommit);
             if (minerStatsAndFilesOfCommits && (repoCommit.getFiles().isEmpty() || repoCommit.getStats() == null)) {
                 gitRepoCommit = new CommitService(AuthServices.getGitHubCliente()).getCommit(gitRepo, gitRepoCommit.getSha());
                 if (repoCommit.getStats() == null) {
@@ -595,13 +604,15 @@ public class GitMinerOthersBean implements Serializable {
             dao.edit(repoCommit);
             i++;
             calculeSubProgress(i, gitRepoCommits.size());
+            repoCommits.add(repoCommit);
         }
+        return repoCommits;
     }
 
-    private EntityRepositoryCommit minerRepositoryCommit(RepositoryCommit gitRepoCommit, Repository gitRepo) {
+    private EntityRepositoryCommit minerRepositoryCommit(RepositoryCommit gitRepoCommit) {
         EntityRepositoryCommit repoCommit = null;
         try {
-            repoCommit = RepositoryCommitServices.createEntity(gitRepoCommit, gitRepo, dao);
+            repoCommit = RepositoryCommitServices.createEntity(gitRepoCommit, dao);
             out.printLog("RepositoryCommit gravado com sucesso: " + gitRepoCommit.getUrl());
         } catch (Exception ex) {
             ex.printStackTrace();

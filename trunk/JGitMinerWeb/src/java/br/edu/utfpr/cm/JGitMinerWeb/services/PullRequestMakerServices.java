@@ -14,23 +14,25 @@ import org.eclipse.egit.github.core.PullRequestMarker;
  * @author Douglas
  */
 public class PullRequestMakerServices {
-    
+
     static EntityPullRequestMarker createEntity(PullRequestMarker gitPullReqMaker, GenericDao dao) {
         if (gitPullReqMaker == null) {
             return null;
         }
-        
+
         EntityPullRequestMarker pullReMaker = new EntityPullRequestMarker();
-        
+
         pullReMaker.setMineredAt(new Date());
         pullReMaker.setLabel(gitPullReqMaker.getLabel());
         pullReMaker.setRefPullRequestMarker(gitPullReqMaker.getRef());
         pullReMaker.setRepo(RepositoryServices.createEntity(gitPullReqMaker.getRepo(), dao, false));
         pullReMaker.setSha(gitPullReqMaker.getSha());
-        pullReMaker.setUser(UserServices.createEntity(gitPullReqMaker.getUser(), dao, false));
-        
+        if (gitPullReqMaker.getUser() != null) {
+            pullReMaker.setUser(UserServices.createEntity(gitPullReqMaker.getUser(), dao, false));
+        }
+
         dao.insert(pullReMaker);
-        
+
         return pullReMaker;
     }
 }

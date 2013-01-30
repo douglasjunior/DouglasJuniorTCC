@@ -28,7 +28,7 @@ public class UserServices {
         return null;
     }
 
-    public static EntityUser createEntity(User gitUser, GenericDao dao, boolean primaryMiner) {
+    public static EntityUser createEntity(User gitUser, GenericDao dao, boolean firstMiner) {
         if (gitUser == null) {
             return null;
         }
@@ -38,7 +38,7 @@ public class UserServices {
             user = new EntityUser();
         }
 
-        if (primaryMiner) {
+        if (firstMiner) {
             user.setCreatedAt(gitUser.getCreatedAt());
             user.setCollaborators(gitUser.getCollaborators());
             user.setDiskUsage(gitUser.getDiskUsage());

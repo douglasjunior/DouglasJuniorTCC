@@ -5,7 +5,9 @@
 package br.edu.utfpr.cm.JGitMinerWeb.pojo;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import javax.persistence.*;
 
 /**
@@ -41,7 +43,7 @@ public class EntityPullRequest implements Serializable {
     private int additions;
     private int changedFiles;
     private int commentsCount;
-    private int commits;
+    private int commitsCount;
     private int deletions;
     private int number;
     @ManyToOne
@@ -74,9 +76,12 @@ public class EntityPullRequest implements Serializable {
     private EntityIssue issue;
     @ManyToOne
     private EntityRepository repository;
+    @OneToMany
+    private List<EntityRepositoryCommit> repositoryCommits;
 
     public EntityPullRequest() {
         mineredAt = new Date();
+        repositoryCommits = new ArrayList<EntityRepositoryCommit>();
     }
 
     public Long getId() {
@@ -149,14 +154,6 @@ public class EntityPullRequest implements Serializable {
 
     public void setCommentsCount(int commentsCount) {
         this.commentsCount = commentsCount;
-    }
-
-    public int getCommits() {
-        return commits;
-    }
-
-    public void setCommits(int commits) {
-        this.commits = commits;
     }
 
     public Date getCreatedAt() {
@@ -317,6 +314,22 @@ public class EntityPullRequest implements Serializable {
 
     public void setRepository(EntityRepository repository) {
         this.repository = repository;
+    }
+
+    public int getCommitsCount() {
+        return commitsCount;
+    }
+
+    public void setCommitsCount(int commitsCount) {
+        this.commitsCount = commitsCount;
+    }
+
+    public List<EntityRepositoryCommit> getRepositoryCommits() {
+        return repositoryCommits;
+    }
+
+    public void setRepositoryCommits(List<EntityRepositoryCommit> repositoryCommits) {
+        this.repositoryCommits = repositoryCommits;
     }
 
     public Date getMineredAt() {
