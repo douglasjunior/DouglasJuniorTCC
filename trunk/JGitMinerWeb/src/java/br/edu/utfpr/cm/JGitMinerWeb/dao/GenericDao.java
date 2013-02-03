@@ -1,7 +1,9 @@
 package br.edu.utfpr.cm.JGitMinerWeb.dao;
 
-import br.edu.utfpr.cm.JGitMinerWeb.edge.AbstractEdge;
+import br.edu.utfpr.cm.JGitMinerWeb.pojo.matriz.EntityMatrizRecord;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -33,6 +35,18 @@ public class GenericDao {
 
     public Object findByID(Object id, Class classe) {
         return getEntityManager().find(classe, id);
+    }
+
+    public <T> T findByID(String strId, String strClasse) {
+        try {
+            Class cClass = Class.forName(strClasse);
+            Long lId = Long.valueOf(strId);
+            Object obj = findByID(lId, cClass);
+            return (T) obj;
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        return null;
     }
 
     public List selectAll(Class classe) {

@@ -1,8 +1,32 @@
 package br.edu.utfpr.cm.JGitMinerWeb.managedBean;
 
 import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericDao;
-import br.edu.utfpr.cm.JGitMinerWeb.pojo.*;
-import br.edu.utfpr.cm.JGitMinerWeb.services.*;
+import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.EntityComment;
+import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.EntityCommitComment;
+import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.EntityCommitFile;
+import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.EntityCommitStats;
+import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.EntityIssue;
+import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.EntityIssueEvent;
+import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.EntityMilestone;
+import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.EntityMiner;
+import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.EntityPullRequest;
+import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.EntityRepository;
+import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.EntityRepositoryCommit;
+import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.EntityTeam;
+import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.EntityUser;
+import br.edu.utfpr.cm.JGitMinerWeb.services.miner.AuthServices;
+import br.edu.utfpr.cm.JGitMinerWeb.services.miner.CommentServices;
+import br.edu.utfpr.cm.JGitMinerWeb.services.miner.CommitCommentServices;
+import br.edu.utfpr.cm.JGitMinerWeb.services.miner.CommitFileServices;
+import br.edu.utfpr.cm.JGitMinerWeb.services.miner.CommitStatsServices;
+import br.edu.utfpr.cm.JGitMinerWeb.services.miner.IssueEventServices;
+import br.edu.utfpr.cm.JGitMinerWeb.services.miner.IssueServices;
+import br.edu.utfpr.cm.JGitMinerWeb.services.miner.MilestoneServices;
+import br.edu.utfpr.cm.JGitMinerWeb.services.miner.PullRequestServices;
+import br.edu.utfpr.cm.JGitMinerWeb.services.miner.RepositoryCommitServices;
+import br.edu.utfpr.cm.JGitMinerWeb.services.miner.RepositoryServices;
+import br.edu.utfpr.cm.JGitMinerWeb.services.miner.TeamServices;
+import br.edu.utfpr.cm.JGitMinerWeb.services.miner.UserServices;
 import br.edu.utfpr.cm.JGitMinerWeb.util.JsfUtil;
 import br.edu.utfpr.cm.JGitMinerWeb.util.OutLog;
 import java.io.Serializable;
@@ -28,16 +52,16 @@ public class GitMinerOthersBean implements Serializable {
     private boolean minerClosedIssues;
     private boolean minerCommentsOfIssues;
     private boolean minerEventsOfIssues;
+    private boolean minerRepositoryCommits;
+    private boolean minerCommentsOfRepositoryCommits;
+    private boolean minerStatsAndFilesOfCommits;
+    private boolean minerOpenPullRequests;
+    private boolean minerClosedPullRequests;
     private boolean minerOpenMilestones;
     private boolean minerClosedMilestones;
     private boolean minerCollaborators;
     private boolean minerWatchers;
-    private boolean minerOpenPullRequests;
-    private boolean minerClosedPullRequests;
     private boolean minerForks;
-    private boolean minerRepositoryCommits;
-    private boolean minerCommentsOfRepositoryCommits;
-    private boolean minerStatsAndFilesOfCommits;
     private boolean minerTeams;
     private boolean initialized;
     private Integer progress;
@@ -212,16 +236,16 @@ public class GitMinerOthersBean implements Serializable {
         out.printLog("minerClosedIssues: " + minerClosedIssues);
         out.printLog("\tminerComments: " + minerCommentsOfIssues);
         out.printLog("\tminerEventsOfIssues: " + minerEventsOfIssues);
+        out.printLog("minerRepositoryCommits: " + minerRepositoryCommits);
+        out.printLog("\tminerCommentsOfRepositoryCommits: " + minerCommentsOfRepositoryCommits);
+        out.printLog("\tminerStatsAndFilesOfCommits: " + minerStatsAndFilesOfCommits);
+        out.printLog("minerOpenPullRequests: " + minerOpenPullRequests);
+        out.printLog("minerClosedPullRequests: " + minerClosedPullRequests);
         out.printLog("minerOpenMilestones: " + minerOpenMilestones);
         out.printLog("minerClosedMilestones: " + minerClosedMilestones);
         out.printLog("minerCollaborators: " + minerCollaborators);
         out.printLog("minerWatchers: " + minerWatchers);
-        out.printLog("minerOpenPullRequests: " + minerOpenPullRequests);
-        out.printLog("minerClosedPullRequests: " + minerClosedPullRequests);
         out.printLog("minerForks: " + minerForks);
-        out.printLog("minerRepositoryCommits: " + minerRepositoryCommits);
-        out.printLog("\tminerCommentsOfRepositoryCommits: " + minerCommentsOfRepositoryCommits);
-        out.printLog("\tminerStatsAndFilesOfCommits: " + minerStatsAndFilesOfCommits);
         out.printLog("minerTeams: " + minerTeams);
 
         if (repositoryToMiner == null) {
@@ -300,7 +324,7 @@ public class GitMinerOthersBean implements Serializable {
                             subProgress = new Integer(0);
                             out.setCurrentProcess("Minerando RepositoryCommits...\n");
                             List<RepositoryCommit> gitRepoCommits = RepositoryCommitServices.getGitCommitsFromRepository(gitRepo, out);
-                            minerRepositoryCommits(gitRepoCommits, gitRepo);
+                            minerRepositoryCommits(gitRepoCommits, gitRepo, true);
                             dao.edit(mineration);
                         }
                         progress = new Integer(92);
@@ -531,11 +555,12 @@ public class GitMinerOthersBean implements Serializable {
                     pullRequest.setIssue(issue);
                 }
             }
-            System.out.println("VAI PASSA AQUIIIIIIIIIII!!!!!!!!!");
             if (pullRequest.getRepositoryCommits().isEmpty()) {
+                out.printLog("Baixando commits do Pull Request...");
                 List<RepositoryCommit> gitRepoCommits = RepositoryCommitServices.getGitRepoCommitsFromPullRequest(pullRequest, repositoryToMiner);
-                List<EntityRepositoryCommit> repoCommits = minerRepositoryCommits(gitRepoCommits, gitRepo);
+                List<EntityRepositoryCommit> repoCommits = minerRepositoryCommits(gitRepoCommits, gitRepo, false);
                 pullRequest.setRepositoryCommits(repoCommits);
+                out.printLog(repoCommits.size() + " commits baixados do Pull Request...");
             }
             repositoryToMiner.addPullRequest(pullRequest);
             dao.edit(pullRequest);
@@ -581,11 +606,13 @@ public class GitMinerOthersBean implements Serializable {
         return fork;
     }
 
-    private List<EntityRepositoryCommit> minerRepositoryCommits(List<RepositoryCommit> gitRepoCommits, Repository gitRepo) throws Exception {
+    private List<EntityRepositoryCommit> minerRepositoryCommits(List<RepositoryCommit> gitRepoCommits, Repository gitRepo, boolean calcSubProgress) throws Exception {
         List<EntityRepositoryCommit> repoCommits = new ArrayList<EntityRepositoryCommit>();
         int i = 0;
-        calculeSubProgress(i, gitRepoCommits.size());
         while (!canceled && i < gitRepoCommits.size()) {
+            if (calcSubProgress) {
+                calculeSubProgress(i, gitRepoCommits.size());
+            }
             RepositoryCommit gitRepoCommit = gitRepoCommits.get(i);
             EntityRepositoryCommit repoCommit = minerRepositoryCommit(gitRepoCommit);
             if (minerStatsAndFilesOfCommits && (repoCommit.getFiles().isEmpty() || repoCommit.getStats() == null)) {
@@ -603,7 +630,6 @@ public class GitMinerOthersBean implements Serializable {
             repositoryToMiner.addRepoCommit(repoCommit);
             dao.edit(repoCommit);
             i++;
-            calculeSubProgress(i, gitRepoCommits.size());
             repoCommits.add(repoCommit);
         }
         return repoCommits;

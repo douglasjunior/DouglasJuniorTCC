@@ -47,18 +47,18 @@ public class PagesManager implements Serializable {
         return "refreshPage";
     }
 
-    public String netGit() {
-        this.body = "./pages/net/net.xhtml";
-        return "refreshPage";
-    }
-
-    public String netView() {
-        this.body = "./pages/net/view.xhtml";
-        return "refreshPage";
-    }
 
     public String minerView() {
         this.body = "./pages/miner/view.xhtml";
+        return "refreshPage";
+    }
+    public String matrizGit() {
+        this.body = "./pages/matriz/create.xhtml";
+        return "refreshPage";
+    }
+
+    public String matrizView() {
+        this.body = "./pages/matriz/view.xhtml";
         return "refreshPage";
     }
 }

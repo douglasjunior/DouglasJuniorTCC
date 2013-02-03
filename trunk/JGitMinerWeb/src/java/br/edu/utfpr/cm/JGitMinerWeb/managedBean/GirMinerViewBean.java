@@ -5,8 +5,8 @@
 package br.edu.utfpr.cm.JGitMinerWeb.managedBean;
 
 import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericDao;
-import br.edu.utfpr.cm.JGitMinerWeb.pojo.EntityMiner;
-import br.edu.utfpr.cm.JGitMinerWeb.pojo.EntityNet;
+import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.EntityMiner;
+import br.edu.utfpr.cm.JGitMinerWeb.pojo.matriz.EntityMatriz;
 import br.edu.utfpr.cm.JGitMinerWeb.util.JsfUtil;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintWriter;

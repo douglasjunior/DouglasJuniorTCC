@@ -28,6 +28,23 @@
                 <p:spacer width="15" height="0" />
                 <h:selectBooleanCheckbox value="#{gitMinerOthersBean.minerEventsOfIssues}" id="minerEventsOfIssues" title="Minerar Events of Issues" />
                 <h:outputLabel for="minerEventsOfIssues" value="Minerar Events of Issues."/>
+                <br />       
+                <h:selectBooleanCheckbox value="#{gitMinerOthersBean.minerRepositoryCommits}" id="minerRepositoryCommits" title="Minerar Repository Commits" />
+                <h:outputLabel for="minerRepositoryCommits" value="Minerar Repository Commits."/>
+                <br />
+                <p:spacer width="15" height="0" />
+                <h:selectBooleanCheckbox value="#{gitMinerOthersBean.minerCommentsOfRepositoryCommits}" id="minerCommentsOfRepositoryCommits" title="Minerar Comments of Repository Commits" />
+                <h:outputLabel for="minerCommentsOfRepositoryCommits" value="Minerar Comments of Repository Commits."/>
+                <br />
+                <p:spacer width="15" height="0" />
+                <h:selectBooleanCheckbox value="#{gitMinerOthersBean.minerStatsAndFilesOfCommits}" id="minerStatsAndFilesOfCommits" title="Minerar Files and Stats of Repository Commits" />
+                <h:outputLabel for="minerStatsAndFilesOfCommits" value="Minerar Files and Stats of Repository Commits."/>
+                <br />       
+                <h:selectBooleanCheckbox value="#{gitMinerOthersBean.minerOpenPullRequests}" id="minerOpenPullRequests" title="Minerar Open Pull Requests" />
+                <h:outputLabel for="minerOpenPullRequests" value="Minerar Open Pull Requests."/>
+                <br />       
+                <h:selectBooleanCheckbox value="#{gitMinerOthersBean.minerClosedPullRequests}" id="minerClosedPullRequests" title="Minerar Closed Pull Requests" />
+                <h:outputLabel for="minerClosedPullRequests" value="Minerar Closed Pull Requests."/>
                 <br />    
                 <h:selectBooleanCheckbox value="#{gitMinerOthersBean.minerOpenMilestones}" id="minerOpenMilestones" title="Minerar Open Milestones" />
                 <h:outputLabel for="minerOpenMilestones" value="Minerar Open Milestones."/>
@@ -41,25 +58,8 @@
                 <h:selectBooleanCheckbox value="#{gitMinerOthersBean.minerWatchers}" id="minerWatchers" title="Minerar Watchers" />
                 <h:outputLabel for="minerWatchers" value="Minerar Watchers."/>
                 <br />       
-                <h:selectBooleanCheckbox value="#{gitMinerOthersBean.minerOpenPullRequests}" id="minerOpenPullRequests" title="Minerar Open Pull Requests" />
-                <h:outputLabel for="minerOpenPullRequests" value="Minerar Open Pull Requests."/>
-                <br />       
-                <h:selectBooleanCheckbox value="#{gitMinerOthersBean.minerClosedPullRequests}" id="minerClosedPullRequests" title="Minerar Closed Pull Requests" />
-                <h:outputLabel for="minerClosedPullRequests" value="Minerar Closed Pull Requests."/>
-                <br />       
                 <h:selectBooleanCheckbox value="#{gitMinerOthersBean.minerForks}" id="minerForks" title="Minerar Forks" />
                 <h:outputLabel for="minerForks" value="Minerar Forks."/>
-                <br />       
-                <h:selectBooleanCheckbox value="#{gitMinerOthersBean.minerRepositoryCommits}" id="minerRepositoryCommits" title="Minerar Repository Commits" />
-                <h:outputLabel for="minerRepositoryCommits" value="Minerar Repository Commits."/>
-                <br />
-                <p:spacer width="15" height="0" />
-                <h:selectBooleanCheckbox value="#{gitMinerOthersBean.minerCommentsOfRepositoryCommits}" id="minerCommentsOfRepositoryCommits" title="Minerar Comments of Repository Commits" />
-                <h:outputLabel for="minerCommentsOfRepositoryCommits" value="Minerar Comments of Repository Commits."/>
-                <br />
-                <p:spacer width="15" height="0" />
-                <h:selectBooleanCheckbox value="#{gitMinerOthersBean.minerStatsAndFilesOfCommits}" id="minerStatsAndFilesOfCommits" title="Minerar Files and Stats of Repository Commits" />
-                <h:outputLabel for="minerStatsAndFilesOfCommits" value="Minerar Files and Stats of Repository Commits."/>
                 <br />
                 <h:selectBooleanCheckbox value="#{gitMinerOthersBean.minerTeams}" id="minerTeams" title="Minerar Teams" />
                 <h:outputLabel for="minerTeams" value="Minerar Teams."/>
