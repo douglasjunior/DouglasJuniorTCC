@@ -7,6 +7,7 @@ package br.edu.utfpr.cm.JGitMinerWeb.services.miner;
 import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericDao;
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.EntityRepository;
 import br.edu.utfpr.cm.JGitMinerWeb.util.OutLog;
+import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
 import org.eclipse.egit.github.core.Repository;
@@ -16,7 +17,7 @@ import org.eclipse.egit.github.core.service.RepositoryService;
  *
  * @author Douglas
  */
-public class RepositoryServices {
+public class RepositoryServices implements Serializable  {
 
     private static EntityRepository getRepositoryByIdRepository(Long idRepo, GenericDao dao) {
         List<EntityRepository> users = dao.executeNamedQueryComParametros("Repository.findByIdRepository", new String[]{"idRepository"}, new Object[]{idRepo});

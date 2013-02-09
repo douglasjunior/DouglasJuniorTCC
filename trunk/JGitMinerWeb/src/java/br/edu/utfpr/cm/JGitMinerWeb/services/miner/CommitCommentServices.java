@@ -7,6 +7,7 @@ package br.edu.utfpr.cm.JGitMinerWeb.services.miner;
 import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericDao;
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.EntityCommitComment;
 import br.edu.utfpr.cm.JGitMinerWeb.util.JsfUtil;
+import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
 import org.eclipse.egit.github.core.CommitComment;
@@ -15,7 +16,7 @@ import org.eclipse.egit.github.core.CommitComment;
  *
  * @author Douglas
  */
-public class CommitCommentServices {
+public class CommitCommentServices implements Serializable  {
 
     public static EntityCommitComment createEntity(CommitComment gitComment, GenericDao dao) {
         if (gitComment == null) {

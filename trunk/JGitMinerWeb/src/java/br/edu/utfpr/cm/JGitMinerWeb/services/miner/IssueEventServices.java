@@ -8,10 +8,12 @@ import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericDao;
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.EntityIssue;
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.EntityIssueEvent;
 import com.google.gson.reflect.TypeToken;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import org.eclipse.egit.github.core.IssueEvent;
+import org.eclipse.egit.github.core.client.NoSuchPageException;
 import org.eclipse.egit.github.core.client.PageIterator;
 import org.eclipse.egit.github.core.client.PagedRequest;
 
@@ -19,21 +21,19 @@ import org.eclipse.egit.github.core.client.PagedRequest;
  *
  * @author douglas
  */
-public class IssueEventServices {
+public class IssueEventServices implements Serializable  {
 
     public static List<IssueEvent> getEventsByIssue(EntityIssue issue, String ownerRepositoryLogin, String repositoryName) {
         // repos/:owner/:repo/issues/:issue_number/events
 
-        PagedRequest<IssueEvent> request = new PagedRequest<IssueEvent>(1, 100);
         StringBuilder uri = new StringBuilder("/repos");
         uri.append('/').append(ownerRepositoryLogin);
         uri.append('/').append(repositoryName);
         uri.append("/issues");
         uri.append('/').append(issue.getNumber());
         uri.append("/events");
-        //   uri.append('/').append(eventId);
+        PagedRequest<IssueEvent> request = new PagedRequest<IssueEvent>(1, 100);
         request.setUri(uri);
-        // request.setType(IssueEvent.class);
         request.setType(new TypeToken<List<IssueEvent>>() {
         }.getType());
         PageIterator<IssueEvent> pageIterator = new PageIterator<IssueEvent>(request, AuthServices.getGitHubCliente());
@@ -42,8 +42,8 @@ public class IssueEventServices {
             while (pageIterator.hasNext()) {
                 elements.addAll(pageIterator.next());
             }
-        } catch (Exception ex) {
-            ex.printStackTrace();
+        } catch (NoSuchPageException pageException) {
+            throw pageException;
         }
         return elements;
     }

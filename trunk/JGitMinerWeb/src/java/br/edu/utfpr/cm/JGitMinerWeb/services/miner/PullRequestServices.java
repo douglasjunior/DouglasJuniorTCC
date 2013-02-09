@@ -8,6 +8,7 @@ import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericDao;
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.EntityPullRequest;
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.EntityRepository;
 import br.edu.utfpr.cm.JGitMinerWeb.util.OutLog;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -19,7 +20,7 @@ import org.eclipse.egit.github.core.service.PullRequestService;
  *
  * @author Douglas
  */
-public class PullRequestServices {
+public class PullRequestServices implements Serializable  {
 
     public static EntityPullRequest createEntity(PullRequest gitPullRequest, GenericDao dao) {
         if (gitPullRequest == null) {

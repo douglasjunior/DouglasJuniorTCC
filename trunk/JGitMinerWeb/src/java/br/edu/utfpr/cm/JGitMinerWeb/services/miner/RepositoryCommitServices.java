@@ -10,6 +10,7 @@ import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.EntityRepository;
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.EntityRepositoryCommit;
 import br.edu.utfpr.cm.JGitMinerWeb.util.OutLog;
 import com.google.gson.reflect.TypeToken;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -24,7 +25,7 @@ import org.eclipse.egit.github.core.service.CommitService;
  *
  * @author Douglas
  */
-public class RepositoryCommitServices {
+public class RepositoryCommitServices implements Serializable {
 
     public static List<RepositoryCommit> getGitCommitsFromRepository(Repository gitRepo, OutLog out) {
         List<RepositoryCommit> repoCommits = null;

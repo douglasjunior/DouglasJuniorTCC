@@ -5,9 +5,7 @@
 package br.edu.utfpr.cm.JGitMinerWeb.pojo.miner;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 import javax.persistence.*;
 
 /**
@@ -31,12 +29,6 @@ public class EntityCommit implements Serializable {
     private EntityCommitUser author;
     @ManyToOne
     private EntityCommitUser committer;
-//    @OneToMany(mappedBy = "son")
-//    private List<EntityCommit> parents;
-//    @ManyToOne
-//    private EntityCommit son;
-    @OneToMany(mappedBy = "commit")
-    private List<EntityCommitComment> comments;
     @Column(columnDefinition = "text")
     private String message;
     private String sha;
@@ -46,8 +38,6 @@ public class EntityCommit implements Serializable {
     private int commentCount;
 
     public EntityCommit() {
-//        parents = new ArrayList<EntityCommit>();
-        comments = new ArrayList<EntityCommitComment>();
     }
 
     public Long getId() {
@@ -105,14 +95,6 @@ public class EntityCommit implements Serializable {
 //    public void setSon(EntityCommit son) {
 //        this.son = son;
 //    }
-    public List<EntityCommitComment> getComments() {
-        return comments;
-    }
-
-    public void setComments(List<EntityCommitComment> comments) {
-        this.comments = comments;
-    }
-
     public String getSha() {
         return sha;
     }
@@ -160,19 +142,6 @@ public class EntityCommit implements Serializable {
     @Override
     public String toString() {
         return "br.edu.utfpr.cm.JGitMiner.pojo.EntityCommity[ id=" + id + " ]";
-    }
-
-//    public void addParent(EntityCommit parent) {
-//        if (!parents.contains(parent)) {
-//            parents.add(parent);
-//        }
-//        parent.setSon(this);
-//    }
-    public void addComment(EntityCommitComment comment) {
-        if (!comments.contains(comment)) {
-            comments.add(comment);
-        }
-        comment.setCommit(this);
     }
 
     public void setCommentCount(int commentCount) {

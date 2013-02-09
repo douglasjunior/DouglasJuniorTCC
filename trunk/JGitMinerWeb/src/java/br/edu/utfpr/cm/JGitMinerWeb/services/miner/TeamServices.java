@@ -7,6 +7,7 @@ package br.edu.utfpr.cm.JGitMinerWeb.services.miner;
 import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericDao;
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.EntityTeam;
 import br.edu.utfpr.cm.JGitMinerWeb.util.OutLog;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import org.eclipse.egit.github.core.Repository;
@@ -17,7 +18,7 @@ import org.eclipse.egit.github.core.service.TeamService;
  *
  * @author douglas
  */
-public class TeamServices {
+public class TeamServices implements Serializable  {
 
     public static List<Team> getGitTeamsFromRepository(Repository gitRepo, OutLog out) {
         List<Team> teams = new ArrayList<Team>();

@@ -45,9 +45,9 @@ public class EntityCommitComment implements Serializable {
     @Column(columnDefinition = "text")
     private String pathCommitComment;
     @ManyToOne
-    private EntityCommit commit;
-    @ManyToOne
     private EntityUser user;
+    @ManyToOne
+    private EntityRepositoryCommit repositoryCommit;
 
     public EntityCommitComment() {
         mineredAt = new Date();
@@ -85,20 +85,20 @@ public class EntityCommitComment implements Serializable {
         this.pathCommitComment = pathCommitComment;
     }
 
-    public EntityCommit getCommit() {
-        return commit;
-    }
-
-    public void setCommit(EntityCommit commit) {
-        this.commit = commit;
-    }
-
     public EntityUser getUser() {
         return user;
     }
 
     public void setUser(EntityUser user) {
         this.user = user;
+    }
+
+    public EntityRepositoryCommit getRepositoryCommit() {
+        return repositoryCommit;
+    }
+
+    public void setRepositoryCommit(EntityRepositoryCommit repositoryCommit) {
+        this.repositoryCommit = repositoryCommit;
     }
 
     public Date getMineredAt() {

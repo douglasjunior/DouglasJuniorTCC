@@ -7,6 +7,7 @@ package br.edu.utfpr.cm.JGitMinerWeb.services.miner;
 import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericDao;
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.EntityIssue;
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.EntityLabel;
+import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
 import org.eclipse.egit.github.core.Label;
@@ -15,7 +16,7 @@ import org.eclipse.egit.github.core.Label;
  *
  * @author Douglas
  */
-public class LabelServices {
+public class LabelServices implements Serializable  {
 
     public static void addLabels(EntityIssue issue, List<Label> gitLabels, GenericDao dao) {
         for (Label gitLabel : gitLabels) {

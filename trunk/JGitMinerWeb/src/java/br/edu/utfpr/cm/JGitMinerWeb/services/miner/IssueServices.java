@@ -9,6 +9,7 @@ import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.EntityIssue;
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.EntityRepository;
 import br.edu.utfpr.cm.JGitMinerWeb.util.JsfUtil;
 import br.edu.utfpr.cm.JGitMinerWeb.util.OutLog;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -21,7 +22,7 @@ import org.eclipse.egit.github.core.service.IssueService;
  *
  * @author Douglas
  */
-public class IssueServices {
+public class IssueServices implements Serializable  {
 
     public static EntityIssue getIssueByIdIssue(long idIssue, GenericDao dao) {
         List<EntityIssue> issues = dao.executeNamedQueryComParametros("Issue.findByIdIssue", new String[]{"idIssue"}, new Object[]{idIssue});

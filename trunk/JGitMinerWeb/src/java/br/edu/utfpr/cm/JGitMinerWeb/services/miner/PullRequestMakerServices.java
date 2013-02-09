@@ -6,6 +6,7 @@ package br.edu.utfpr.cm.JGitMinerWeb.services.miner;
 
 import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericDao;
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.EntityPullRequestMarker;
+import java.io.Serializable;
 import java.util.Date;
 import org.eclipse.egit.github.core.PullRequestMarker;
 
@@ -13,7 +14,7 @@ import org.eclipse.egit.github.core.PullRequestMarker;
  *
  * @author Douglas
  */
-public class PullRequestMakerServices {
+public class PullRequestMakerServices implements Serializable  {
 
     static EntityPullRequestMarker createEntity(PullRequestMarker gitPullReqMaker, GenericDao dao) {
         if (gitPullReqMaker == null) {

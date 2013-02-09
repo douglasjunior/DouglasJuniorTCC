@@ -5,9 +5,9 @@
 package br.edu.utfpr.cm.JGitMinerWeb.pojo.miner;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 import javax.persistence.*;
 
 /**
@@ -32,13 +32,10 @@ public class EntityRepositoryCommit implements Serializable {
     private EntityRepository repository;
     @ManyToOne
     private EntityCommit commit;
-    @OneToOne
+    @OneToOne(fetch = FetchType.LAZY)
     private EntityCommitStats stats;
-//    @OneToMany
-//    @JoinTable(name = "gitrepositorycommit_parents")
-//    private List<EntityCommit> parents;
-    @OneToMany(mappedBy = "repositoryCommit")
-    private List<EntityCommitFile> files;
+    @OneToMany(mappedBy = "repositoryCommit", fetch = FetchType.LAZY)
+    private Set<EntityCommitFile> files;
     @Column(columnDefinition = "text")
     private String sha;
     private String url;
@@ -46,10 +43,12 @@ public class EntityRepositoryCommit implements Serializable {
     private EntityUser author;
     @ManyToOne
     private EntityUser committer;
+    @OneToMany(mappedBy = "repositoryCommit", fetch = FetchType.LAZY)
+    private Set<EntityCommitComment> comments;
 
     public EntityRepositoryCommit() {
-//        parents = new ArrayList<EntityCommit>();
-        files = new ArrayList<EntityCommitFile>();
+        comments = new HashSet<EntityCommitComment>();
+        files = new HashSet<EntityCommitFile>();
     }
 
     public Long getId() {
@@ -100,11 +99,19 @@ public class EntityRepositoryCommit implements Serializable {
         this.committer = committer;
     }
 
-    public List<EntityCommitFile> getFiles() {
+    public Set<EntityCommitComment> getComments() {
+        return comments;
+    }
+
+    public void setComments(Set<EntityCommitComment> comments) {
+        this.comments = comments;
+    }
+
+    public Set<EntityCommitFile> getFiles() {
         return files;
     }
 
-    public void setFiles(List<EntityCommitFile> files) {
+    public void setFiles(Set<EntityCommitFile> files) {
         this.files = files;
     }
 
@@ -170,9 +177,12 @@ public class EntityRepositoryCommit implements Serializable {
 //        }
 //    }
     public void addFile(EntityCommitFile file) {
-        if (!files.contains(file)) {
-            files.add(file);
-        }
+        files.add(file);
         file.setRepositoryCommit(this);
+    }
+
+    public void addComment(EntityCommitComment comment) {
+        comments.add(comment);
+        comment.setRepositoryCommit(this);
     }
 }

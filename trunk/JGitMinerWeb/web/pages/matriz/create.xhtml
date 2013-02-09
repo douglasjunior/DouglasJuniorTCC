@@ -10,16 +10,23 @@
             <p:growl globalOnly="true" id="messages" />
 
             <h:outputText value="Select a Repository: " /> <br />  
-            <p:selectOneListbox id="repositoryToMiner" converter="#{gitMinerRepositoryBean.converter}" style="height:100px;width:300px" value="#{gitMatrizBean.repository}" >
+            <p:selectOneListbox id="repositories" converter="#{gitMinerRepositoryBean.converter}" style="height:100px;width:300px" value="#{gitMatrizBean.repository}" >
                 <f:selectItems value="#{gitMinerRepositoryBean.repositoriesPrimaryMiner}" var="repo" itemLabel="#{repo.name}, #{repo.owner.login}" itemDescription="#{repo.name}" itemValue="#{repo}" />
             </p:selectOneListbox>
 
             <br />
 
+            <h:outputText value="Select a Matriz Service Class: " /> <br />  
+            <p:selectOneListbox id="serviceClass" converter="#{gitMatrizBean.converterClass}" style="height:100px;width:300px" value="#{gitMatrizBean.serviceClass}" >
+                <f:selectItems value="#{gitMatrizBean.servicesClasses}" var="serviceClass" itemLabel="#{serviceClass.simpleName}" itemDescription="#{serviceClass.name}" itemValue="#{serviceClass}" />
+            </p:selectOneListbox>
+
+            <br />
+
             <h:outputText value="Date: " />  
-            <p:calendar value="#{gitMatrizBean.beginDate}" id="beginDate" effect="explode" pattern="MM/dd/yyyy" navigator="true" size="10" />  
+            <p:calendar id="beginDate" effect="explode" navigator="true" size="10" />
             <h:outputText value=" at " />  
-            <p:calendar value="#{gitMatrizBean.endDate}" id="endDate" effect="explode"  pattern="MM/dd/yyyy" navigator="true" size="10" /> 
+            <p:calendar id="endDate" effect="explode" navigator="true" size="10"/>
 
             <br />
             <br />

@@ -7,6 +7,7 @@ package br.edu.utfpr.cm.JGitMinerWeb.services.miner;
 import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericDao;
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.EntityComment;
 import br.edu.utfpr.cm.JGitMinerWeb.util.JsfUtil;
+import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
 import org.eclipse.egit.github.core.Comment;
@@ -15,7 +16,7 @@ import org.eclipse.egit.github.core.Comment;
  *
  * @author Douglas
  */
-public class CommentServices {
+public class CommentServices implements Serializable {
 
     public static EntityComment getCommentByIdComment(long idComment, GenericDao dao) {
         List<EntityComment> comments = dao.executeNamedQueryComParametros("Comment.findByIdComment", new String[]{"idComment"}, new Object[]{idComment});

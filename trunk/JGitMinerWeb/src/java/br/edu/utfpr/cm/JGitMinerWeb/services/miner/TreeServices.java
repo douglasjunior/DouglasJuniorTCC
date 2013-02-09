@@ -7,6 +7,7 @@ package br.edu.utfpr.cm.JGitMinerWeb.services.miner;
 import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericDao;
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.EntityTree;
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.EntityTreeEntry;
+import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
 import org.eclipse.egit.github.core.Repository;
@@ -17,7 +18,7 @@ import org.eclipse.egit.github.core.TreeEntry;
  *
  * @author douglas
  */
-public class TreeServices {
+public class TreeServices implements Serializable  {
 
     public static EntityTree createTreeEntity(Tree gitTree, Repository gitRepo, GenericDao dao) {
         if (gitTree == null) {

@@ -11,6 +11,7 @@
 package br.edu.utfpr.cm.JGitMinerWeb.services.miner;
 
 import java.io.IOException;
+import java.io.Serializable;
 import org.eclipse.egit.github.core.IRepositoryIdProvider;
 import org.eclipse.egit.github.core.Tree;
 import org.eclipse.egit.github.core.client.GitHubClient;
@@ -26,7 +27,7 @@ import org.eclipse.egit.github.core.service.GitHubService;
  * @see <a href="http://developer.github.com/v3/git/trees/">GitHub commit API
  * documentation</a>
  */
-public class TreeService extends GitHubService {
+public class TreeService extends GitHubService implements Serializable  {
 
     /**
      * Create tree service

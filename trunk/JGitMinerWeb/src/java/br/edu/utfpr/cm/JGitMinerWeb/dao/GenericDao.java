@@ -1,9 +1,7 @@
 package br.edu.utfpr.cm.JGitMinerWeb.dao;
 
-import br.edu.utfpr.cm.JGitMinerWeb.pojo.matriz.EntityMatrizRecord;
+import java.io.Serializable;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -12,7 +10,7 @@ import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
 
 @Stateless
-public class GenericDao {
+public class GenericDao implements Serializable {
 
     @PersistenceContext(unitName = "pu")
     private EntityManager em;

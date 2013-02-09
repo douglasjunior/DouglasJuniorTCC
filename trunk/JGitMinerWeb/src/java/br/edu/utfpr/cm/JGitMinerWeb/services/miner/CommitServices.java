@@ -6,6 +6,7 @@ package br.edu.utfpr.cm.JGitMinerWeb.services.miner;
 
 import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericDao;
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.EntityCommit;
+import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
 import org.eclipse.egit.github.core.Commit;
@@ -14,7 +15,7 @@ import org.eclipse.egit.github.core.Commit;
  *
  * @author Douglas
  */
-public class CommitServices {
+public class CommitServices implements Serializable  {
 
     public static EntityCommit createEntity(Commit gitCommit, GenericDao dao) {
         if (gitCommit == null) {

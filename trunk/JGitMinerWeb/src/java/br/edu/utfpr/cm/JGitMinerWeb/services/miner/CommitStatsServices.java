@@ -7,6 +7,7 @@ package br.edu.utfpr.cm.JGitMinerWeb.services.miner;
 import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericDao;
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.EntityCommitStats;
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.EntityRepositoryCommit;
+import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
 import org.eclipse.egit.github.core.CommitStats;
@@ -15,7 +16,7 @@ import org.eclipse.egit.github.core.CommitStats;
  *
  * @author Douglas
  */
-public class CommitStatsServices {
+public class CommitStatsServices implements Serializable  {
 
     public static EntityCommitStats createEntity(CommitStats gitStats, EntityRepositoryCommit repoCommit, GenericDao dao) {
         if (gitStats == null) {

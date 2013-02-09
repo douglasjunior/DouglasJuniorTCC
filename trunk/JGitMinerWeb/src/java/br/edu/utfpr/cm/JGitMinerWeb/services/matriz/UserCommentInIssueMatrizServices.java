@@ -13,6 +13,7 @@ import br.edu.utfpr.cm.JGitMinerWeb.util.JsfUtil;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Map;
 
 /**
  *
@@ -20,20 +21,17 @@ import java.util.Date;
  */
 public class UserCommentInIssueMatrizServices extends MatrizServices {
 
-    private Date begin;
-    private Date end;
-
     public UserCommentInIssueMatrizServices(GenericDao dao) {
         super(dao);
     }
 
-    public UserCommentInIssueMatrizServices(GenericDao dao, EntityRepository repository, Date begin, Date end) {
-        super(dao, repository);
-        this.begin = begin;
-        this.end = end;
+    public UserCommentInIssueMatrizServices(GenericDao dao, EntityRepository repository, Map params) {
+        super(dao, repository, params);
+        System.out.println(params);
     }
 
     public Date getBegin() {
+        Date begin = getDateParam("begin");
         if (begin == null) {
             try {
                 return new SimpleDateFormat("MM/dd/yyyy").parse("01/01/1970");
@@ -45,6 +43,7 @@ public class UserCommentInIssueMatrizServices extends MatrizServices {
     }
 
     public Date getEnd() {
+        Date end = getDateParam("end");
         if (end == null) {
             try {
                 return new SimpleDateFormat("MM/dd/yyyy").parse("01/01/2999");

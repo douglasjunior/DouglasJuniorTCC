@@ -4,11 +4,7 @@
  */
 package br.edu.utfpr.cm.JGitMinerWeb.pojo.matriz;
 
-import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericDao;
-import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.EntityIssue;
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.EntityRepository;
-import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.EntityUser;
-import br.edu.utfpr.cm.JGitMinerWeb.util.JsfUtil;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.List;

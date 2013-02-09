@@ -4,19 +4,25 @@
  */
 package br.edu.utfpr.cm.JGitMinerWeb.util;
 
+import java.io.Serializable;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 
 /**
  *
  * @author Douglas
  */
-public class OutLog {
+public class OutLog implements Serializable  {
 
-    private StringBuilder log;
+    private StringBuffer log;
     private String currentProcess;
+    private static SimpleDateFormat dateFormat;
 
     public OutLog() {
-        log = new StringBuilder();
+        log = new StringBuffer();
+        if (dateFormat == null) {
+            dateFormat = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
+        }
     }
 
     public String getCurrentProcess() {
@@ -24,21 +30,29 @@ public class OutLog {
     }
 
     public void setCurrentProcess(String currentProcess) {
-        currentProcess = currentProcess;
+        this.currentProcess = currentProcess;
         printLog(currentProcess);
     }
 
-    public String getLog() {
+    public StringBuffer getLog() {
+        return log;
+    }
+
+    public String getSingleLog() {
+        if (log.length() > 99999) {
+            return log.substring(0, 99999);
+        }
         return log.toString();
     }
 
     public void printLog(String logStr) {
-        log.insert(0, new Date() + ": " + logStr + "\n");
+        logStr = dateFormat.format(new Date()) + ": " + logStr + "\n";
+        log.insert(0, logStr);
         System.out.println(logStr);
     }
 
     public void resetLog() {
-        log = new StringBuilder();
+        log = new StringBuffer();
         currentProcess = "";
     }
 }

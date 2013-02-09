@@ -8,14 +8,21 @@ import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericDao;
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.matriz.EntityMatriz;
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.EntityRepository;
 import br.edu.utfpr.cm.JGitMinerWeb.services.matriz.MatrizServices;
-import br.edu.utfpr.cm.JGitMinerWeb.services.matriz.UserCommentInIssueMatrizServices;
 import br.edu.utfpr.cm.JGitMinerWeb.util.JsfUtil;
 import br.edu.utfpr.cm.JGitMinerWeb.util.OutLog;
 import java.io.Serializable;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import javax.ejb.EJB;
 import javax.faces.bean.ManagedBean;
 import javax.faces.bean.SessionScoped;
+import javax.faces.component.UIComponent;
+import javax.faces.context.FacesContext;
+import javax.faces.convert.Converter;
+import javax.faces.convert.FacesConverter;
 
 /**
  *
@@ -33,9 +40,9 @@ public class GitMatrizBean implements Serializable {
     private GenericDao dao;
     private OutLog out;
     private EntityRepository repository;
+    private Class serviceClass;
+    private Map params;
     private String message;
-    private Date beginDate;
-    private Date endDate;
     private Thread process;
     private Integer progress;
     private boolean initialized;
@@ -47,6 +54,7 @@ public class GitMatrizBean implements Serializable {
      */
     public GitMatrizBean() {
         out = new OutLog();
+        params = new HashMap();
     }
 
     public boolean isFail() {
@@ -73,28 +81,25 @@ public class GitMatrizBean implements Serializable {
         this.repository = repository;
     }
 
+    public Class getServiceClass() {
+        return serviceClass;
+    }
+
+    public void setServiceClass(Class serviceClass) {
+        this.serviceClass = serviceClass;
+    }
+
+    public void addParamValue(Object value, String key) {
+        System.out.println("value:" + value + " key:" + key);
+        params.put(value, key);
+    }
+
     public GenericDao getDao() {
         return dao;
     }
 
     public void setDao(GenericDao dao) {
         this.dao = dao;
-    }
-
-    public Date getBeginDate() {
-        return beginDate;
-    }
-
-    public void setBeginDate(Date beginDate) {
-        this.beginDate = beginDate;
-    }
-
-    public Date getEndDate() {
-        return endDate;
-    }
-
-    public void setEndDate(Date endDate) {
-        this.endDate = endDate;
     }
 
     public boolean isInitialized() {
@@ -106,10 +111,7 @@ public class GitMatrizBean implements Serializable {
     }
 
     public String getLog() {
-        if (out.getLog().length() > 999999) {
-            return out.getLog().substring(0, 999999);
-        }
-        return out.getLog();
+        return out.getSingleLog();
     }
 
     public Integer getProgress() {
@@ -139,12 +141,11 @@ public class GitMatrizBean implements Serializable {
 
         out.printLog("Geração da rede iniciada!");
         out.printLog("");
-        out.printLog("Begin Date: " + beginDate);
-        out.printLog("End Date: " + endDate);
+        out.printLog("Params: " + params);
         out.printLog("Repository: " + repository);
         out.printLog("");
 
-        entityNet.setLog(out.getLog());
+        entityNet.setLog(out.getLog().toString());
         dao.edit(entityNet);
 
         if (repository == null) {
@@ -153,14 +154,14 @@ public class GitMatrizBean implements Serializable {
             progress = new Integer(0);
             initialized = false;
             fail = true;
-            entityNet.setLog(out.getLog());
+            entityNet.setLog(out.getLog().toString());
             dao.edit(entityNet);
         } else {
             initialized = true;
             progress = new Integer(10);
             entityNet.setRepository(repository);
 
-            final MatrizServices netServices = new UserCommentInIssueMatrizServices(dao, repository, beginDate, endDate);
+            final MatrizServices netServices = createMatrizServiceInstance();
 
             process = new Thread(netServices) {
                 @Override
@@ -187,7 +188,7 @@ public class GitMatrizBean implements Serializable {
                     out.setCurrentProcess(message);
                     progress = new Integer(100);
                     initialized = false;
-                    entityNet.setLog(out.getLog());
+                    entityNet.setLog(out.getLog().toString());
                     entityNet.setStoped(new Date());
                     dao.edit(entityNet);
                 }
@@ -216,5 +217,64 @@ public class GitMatrizBean implements Serializable {
         } else {
             JsfUtil.addSuccessMessage(message);
         }
+    }
+
+    public List<Class> getServicesClasses() {
+        List<Class> cls = null;
+        try {
+            cls = JsfUtil.getClasses("br.edu.utfpr.cm.JGitMinerWeb.services.matriz", Arrays.asList("MatrizServices"));
+            for (Class cl : cls) {
+                System.out.println(cl.getName());
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        return cls;
+    }
+
+    private MatrizServices createMatrizServiceInstance() {
+        try {
+            return (MatrizServices) serviceClass.getConstructor(GenericDao.class, EntityRepository.class, Map.class).newInstance(dao, repository, JsfUtil.getContext().getExternalContext().getRequestParameterMap());
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        return null;
+    }
+
+    // ######### CONVERTER ###########
+    @FacesConverter(forClass = Class.class)
+    public static class ClassConverter implements Converter {
+
+        @Override
+        public Object getAsObject(FacesContext facesContext, UIComponent component, String value) {
+            if (value == null || value.length() == 0 || value.equals("null")) {
+                return null;
+            }
+            System.out.println("VALUEEE: " + value);
+            Class classValue = null;
+            try {
+                classValue = Class.forName(value);
+            } catch (ClassNotFoundException ex) {
+                ex.printStackTrace();
+            }
+            return classValue;
+        }
+
+        @Override
+        public String getAsString(FacesContext facesContext, UIComponent component, Object object) {
+            if (object == null) {
+                return null;
+            }
+            if (object instanceof Class) {
+                Class o = (Class) object;
+                return o.getName();
+            } else {
+                throw new IllegalArgumentException("object " + object + " is of type " + object.getClass().getName() + "; expected type: " + Class.class.getName());
+            }
+        }
+    }
+
+    public ClassConverter getConverterClass() {
+        return new ClassConverter();
     }
 }

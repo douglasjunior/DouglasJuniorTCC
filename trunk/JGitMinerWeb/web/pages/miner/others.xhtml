@@ -68,7 +68,7 @@
             <br />
 
             <p:commandButton widgetVar="startButton" type="submit" actionListener="#{gitMinerOthersBean.start()}" value="Start" 
-                             onclick="startButton.disable();progress.start();subProgress.start();textAreaUpdater.start();" update="loadingImage,logTextArea" />
+                             onclick="startButton.disable();progress.start();subProgress.start();" update="loadingImage,logTextArea" />
 
             <p:commandButton value="Cancel" actionListener="#{gitMinerOthersBean.cancel()}" oncomplete="startButton.enable();progress.cancel();subProgress.start();" />
 
@@ -76,7 +76,7 @@
             <br />
 
             <p:progressBar id="progress" widgetVar="progress" ajax="true" value="#{gitMinerOthersBean.progress}" labelTemplate="{value}%" styleClass="animated" interval="3000" >
-                <p:ajax event="complete" listener="#{gitMinerOthersBean.onComplete()}" update="messages,loadingImage,logTextArea" oncomplete="startButton.enable();textAreaUpdater.stop();"/>
+                <p:ajax event="complete" listener="#{gitMinerOthersBean.onComplete()}" update="messages,loadingImage,logTextArea" oncomplete="startButton.enable();"/>
             </p:progressBar>
             <br />
             <p:progressBar id="subProgress" widgetVar="subProgress" ajax="true" value="#{gitMinerOthersBean.subProgress}" labelTemplate="{value}%" styleClass="animated" interval="3000" >  
@@ -90,9 +90,11 @@
             </div>
             <br />
 
-            <p:poll id="textAreaUpdater" widgetVar="textAreaUpdater" async="true" interval="4" update="logTextArea,loadingImage" autoStart="#{gitMinerOthersBean.initialized}" />
+            <!--       <p:poll id="textAreaUpdater" widgetVar="textAreaUpdater" async="true" interval="4" update="logTextArea,loadingImage" autoStart="{gitMinerOthersBean.initialized}" /> -->
 
             <h3>Log de mineração:</h3>
+            <br />
+            <p:commandButton value="Refresh Log" ajax="true" async="true" update="logTextArea" />
             <br />
             <p:inputTextarea value="#{gitMinerOthersBean.log}" id="logTextArea" style="width: 100%" rows="30" autoResize="autoResize" readonly="true" />
 

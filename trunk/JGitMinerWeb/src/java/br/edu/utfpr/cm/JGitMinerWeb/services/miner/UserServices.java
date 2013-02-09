@@ -7,6 +7,7 @@ package br.edu.utfpr.cm.JGitMinerWeb.services.miner;
 import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericDao;
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.EntityUser;
 import br.edu.utfpr.cm.JGitMinerWeb.util.OutLog;
+import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
 import org.eclipse.egit.github.core.Repository;
@@ -18,7 +19,7 @@ import org.eclipse.egit.github.core.service.WatcherService;
  *
  * @author Douglas
  */
-public class UserServices {
+public class UserServices implements Serializable {
 
     private static EntityUser getUserByLogin(String login, GenericDao dao) {
         List<EntityUser> users = dao.executeNamedQueryComParametros("User.findByLogin", new String[]{"login"}, new Object[]{login});

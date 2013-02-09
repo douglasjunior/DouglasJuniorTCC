@@ -7,6 +7,7 @@ package br.edu.utfpr.cm.JGitMinerWeb.services.miner;
 import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericDao;
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.EntityMilestone;
 import br.edu.utfpr.cm.JGitMinerWeb.util.OutLog;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import org.eclipse.egit.github.core.Milestone;
@@ -17,7 +18,7 @@ import org.eclipse.egit.github.core.service.MilestoneService;
  *
  * @author Douglas
  */
-public class MilestoneServices {
+public class MilestoneServices implements Serializable  {
 
     public static EntityMilestone createEntity(Milestone gitMilestone, GenericDao dao) {
         if (gitMilestone == null) {

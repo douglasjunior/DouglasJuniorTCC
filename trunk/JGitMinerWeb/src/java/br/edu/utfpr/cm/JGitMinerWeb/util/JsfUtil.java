@@ -5,6 +5,9 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.Serializable;
+import java.net.URLDecoder;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Level;
@@ -18,7 +21,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-public class JsfUtil {
+public class JsfUtil implements Serializable  {
 
     private static final String[] CARACTERES = {"{", "}", "(", ")", "\\[", "\\]", "<", ">",
         ":", ";", ".", ",", "!", "?", "\\", "/", "~", "`", "\"", "\'", "\\\\",
@@ -181,8 +184,9 @@ public class JsfUtil {
 
     /**
      * Retorna a Session
+     *
      * @param create
-     * @return 
+     * @return
      */
     public static HttpSession getSession(Boolean create) {
         FacesContext fc = FacesContext.getCurrentInstance();
@@ -283,5 +287,44 @@ public class JsfUtil {
     public static void removeAttributeFromSession(String name) {
         HttpSession hs = JsfUtil.getSession(false);
         hs.removeAttribute(name);
+    }
+
+    /**
+     *
+     * @param pckgname Name of package.
+     * @param exceptionsClassNames Name of classes exception.
+     * @return Classes founds.
+     * @throws ClassNotFoundException
+     */
+    public static List<Class> getClasses(String pckgname, List<String> exceptionsClassNames) throws ClassNotFoundException {
+        List classes = new ArrayList();
+        // Get a File object for the package
+        File directory = null;
+        try {
+            directory = new File(URLDecoder.decode(Thread.currentThread().getContextClassLoader().getResource('/' + pckgname.replace('.', '/')).getFile(), "ASCII"));
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            throw new ClassNotFoundException(pckgname + " does not appear to be a valid package");
+        }
+        if (directory.exists()) {
+            // Get the list of the files contained in the package
+            String[] files = directory.list();
+            for (int i = 0; i < files.length; i++) {
+                // we are only interested in .class files
+                if (files[i].endsWith(".class")) {
+                    // get class simple name
+                    String classSimpleName = files[i].substring(0, files[i].length() - 6);
+                    // verify exceptions
+                    if (exceptionsClassNames.contains(classSimpleName)) {
+                        continue;
+                    }
+                    // removes the .class extension
+                    classes.add(Class.forName(pckgname + '.' + classSimpleName));
+                }
+            }
+        } else {
+            throw new ClassNotFoundException(directory.getAbsolutePath() + " does not appear to be a valid package");
+        }
+        return classes;
     }
 }
