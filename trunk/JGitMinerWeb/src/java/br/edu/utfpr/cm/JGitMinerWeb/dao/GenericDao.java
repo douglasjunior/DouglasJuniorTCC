@@ -14,6 +14,7 @@ public class GenericDao implements Serializable {
 
     @PersistenceContext(unitName = "pu")
     private EntityManager em;
+    private int transCount;
 
     private EntityManager getEntityManager() {
         return em;
@@ -32,6 +33,7 @@ public class GenericDao implements Serializable {
     }
 
     public Object findByID(Object id, Class classe) {
+        verifyClearCache();
         return getEntityManager().find(classe, id);
     }
 
@@ -48,12 +50,14 @@ public class GenericDao implements Serializable {
     }
 
     public List selectAll(Class classe) {
+        verifyClearCache();
         CriteriaQuery cq = getEntityManager().getCriteriaBuilder().createQuery();
         cq.select(cq.from(classe));
         return getEntityManager().createQuery(cq).getResultList();
     }
 
     public List selectBy(int[] intervalo, Class classe) {
+        verifyClearCache();
         CriteriaQuery cq = getEntityManager().getCriteriaBuilder().createQuery();
         cq.select(cq.from(classe));
         Query q = getEntityManager().createQuery(cq);
@@ -63,6 +67,7 @@ public class GenericDao implements Serializable {
     }
 
     public int count(Class classe) {
+        verifyClearCache();
         CriteriaQuery cq = getEntityManager().getCriteriaBuilder().createQuery();
         Root rt = cq.from(classe);
         cq.select(getEntityManager().getCriteriaBuilder().count(rt));
@@ -71,6 +76,7 @@ public class GenericDao implements Serializable {
     }
 
     public List executeNamedQueryComParametros(String namedQuery, String[] parametros, Object[] objetos) {
+        verifyClearCache();
         Query query = getEntityManager().createNamedQuery(namedQuery);
         if (parametros.length != objetos.length) {
             System.err.println("A quantidade de parametros difere da quantidade de atributos.");
@@ -86,10 +92,13 @@ public class GenericDao implements Serializable {
     }
 
     public List executeNamedQuery(String namedQuery) {
-        return getEntityManager().createNamedQuery(namedQuery).getResultList();
+        verifyClearCache();
+        List list = getEntityManager().createNamedQuery(namedQuery).getResultList();
+        return list;
     }
 
     public List selectWithParams(String select, String[] params, Object[] objects) {
+        verifyClearCache();
         Query query = em.createQuery(select);
         if (params.length != objects.length) {
             throw new IndexOutOfBoundsException("The lenght of params array is not equals lenght of objects array.");
@@ -100,5 +109,24 @@ public class GenericDao implements Serializable {
             query.setParameter(atributo, parametro);
         }
         return query.getResultList();
+    }
+
+    public void clearCache() {
+        try {
+            em.getEntityManagerFactory().getCache().evictAll();
+            em.clear();
+            System.out.println("######### LIMPOU CACHE #########");
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }
+
+    private void verifyClearCache() {
+        if (transCount > 100) {
+            clearCache();
+            transCount = 0;
+        } else {
+            transCount++;
+        }
     }
 }
