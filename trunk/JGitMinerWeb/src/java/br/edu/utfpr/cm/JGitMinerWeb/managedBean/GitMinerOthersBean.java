@@ -29,9 +29,7 @@ import br.edu.utfpr.cm.JGitMinerWeb.services.miner.TeamServices;
 import br.edu.utfpr.cm.JGitMinerWeb.services.miner.UserServices;
 import br.edu.utfpr.cm.JGitMinerWeb.util.JsfUtil;
 import br.edu.utfpr.cm.JGitMinerWeb.util.OutLog;
-import java.io.IOException;
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import javax.ejb.EJB;
@@ -281,7 +279,7 @@ public class GitMinerOthersBean implements Serializable {
                             subProgress = new Integer(0);
                             out.setCurrentProcess("Minerando RepositoryCommits...\n");
                             List<RepositoryCommit> gitRepoCommits = RepositoryCommitServices.getGitCommitsFromRepository(gitRepo, out);
-                            minerRepositoryCommits(gitRepoCommits, gitRepo, true);
+                            minerRepositoryCommits(gitRepoCommits, gitRepo, null);
                             dao.edit(mineration);
                         }
                         progress = new Integer(33);
@@ -552,9 +550,8 @@ public class GitMinerOthersBean implements Serializable {
             if (pullRequest.getRepositoryCommits().isEmpty()) {
                 out.printLog("Baixando commits do Pull Request...");
                 List<RepositoryCommit> gitRepoCommits = RepositoryCommitServices.getGitRepoCommitsFromPullRequest(pullRequest, repositoryToMiner);
-                List<EntityRepositoryCommit> repoCommits = minerRepositoryCommits(gitRepoCommits, gitRepo, false);
-                pullRequest.setRepositoryCommits(repoCommits);
-                out.printLog(repoCommits.size() + " commits baixados do Pull Request...");
+                minerRepositoryCommits(gitRepoCommits, gitRepo, pullRequest);
+                out.printLog(pullRequest.getRepositoryCommits().size() + " commits baixados do Pull Request...");
             }
             repositoryToMiner.addPullRequest(pullRequest);
             dao.edit(pullRequest);
@@ -600,27 +597,26 @@ public class GitMinerOthersBean implements Serializable {
         return fork;
     }
 
-    private List<EntityRepositoryCommit> minerRepositoryCommits(List<RepositoryCommit> gitRepoCommits, Repository gitRepo, boolean calcSubProgress) throws Exception {
-        List<EntityRepositoryCommit> repoCommits = new ArrayList<EntityRepositoryCommit>();
+    private void minerRepositoryCommits(List<RepositoryCommit> gitRepoCommits, Repository gitRepo, EntityPullRequest pullRequest) throws Exception {
         int i = 0;
         while (!canceled && i < gitRepoCommits.size()) {
-            if (calcSubProgress) {
-                calculeSubProgress(i, gitRepoCommits.size());
-            }
             RepositoryCommit gitRepoCommit = gitRepoCommits.get(i);
             EntityRepositoryCommit repoCommit = minerRepositoryCommit(gitRepoCommit);
             if (minerStatsAndFilesOfCommits) {
                 minerStatsAndFilesOfCommit(repoCommit, gitRepoCommit, gitRepo);
             }
-            if (minerCommentsOfRepositoryCommits) {
+            if (minerCommentsOfRepositoryCommits && pullRequest == null) {
                 minerCommentsOfRepoCommit(repoCommit, gitRepo);
             }
-            repositoryToMiner.addRepoCommit(repoCommit);
+            repoCommit.setRepository(repositoryToMiner);
+            if (pullRequest == null) {
+                calculeSubProgress(i, gitRepoCommits.size());
+            } else {
+                pullRequest.addRepoCommit(repoCommit);
+            }
             dao.edit(repoCommit);
             i++;
-            repoCommits.add(repoCommit);
         }
-        return repoCommits;
     }
 
     private EntityRepositoryCommit minerRepositoryCommit(RepositoryCommit gitRepoCommit) {
@@ -637,8 +633,8 @@ public class GitMinerOthersBean implements Serializable {
     }
 
     private void minerStatsAndFilesOfCommit(EntityRepositoryCommit repoCommit, RepositoryCommit gitRepoCommit, Repository gitRepo) throws Exception {
-        out.printLog("Baixando Stats and Files do Commit...");
         if (repoCommit.getFiles().isEmpty() || repoCommit.getStats() == null) {
+            out.printLog("Baixando Stats and Files do Commit...");
             gitRepoCommit = new CommitService(AuthServices.getGitHubCliente()).getCommit(gitRepo, gitRepoCommit.getSha());
             if (repoCommit.getStats() == null) {
                 minerStatsOfCommit(repoCommit, gitRepoCommit.getStats());
@@ -652,8 +648,8 @@ public class GitMinerOthersBean implements Serializable {
     private void minerCommentsOfRepoCommit(EntityRepositoryCommit repoCommit, Repository gitRepo) throws Exception {
         out.printLog("Baixando Comentários do Commit...");
         List<CommitComment> gitCommitComments = new CommitService(AuthServices.getGitHubCliente()).getComments(gitRepo, repoCommit.getSha());
-        out.printLog(gitCommitComments.size() + " Comentários baixados.");
-        if (gitCommitComments.size() > repoCommit.getComments().size()) {
+        if (gitCommitComments.size() != repoCommit.getComments().size()) {
+            out.printLog("Gravando " + gitCommitComments.size() + " Comentarios no Commit...");
             int i = 0;
             while (!canceled && i < gitCommitComments.size()) {
                 CommitComment gitCommitComment = gitCommitComments.get(i);

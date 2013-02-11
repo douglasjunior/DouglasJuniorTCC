@@ -5,9 +5,9 @@
 package br.edu.utfpr.cm.JGitMinerWeb.pojo.miner;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 import javax.persistence.*;
 
 /**
@@ -77,11 +77,11 @@ public class EntityPullRequest implements InterfaceEntity, Serializable {
     @ManyToOne
     private EntityRepository repository;
     @OneToMany
-    private List<EntityRepositoryCommit> repositoryCommits;
+    private Set<EntityRepositoryCommit> repositoryCommits;
 
     public EntityPullRequest() {
         mineredAt = new Date();
-        repositoryCommits = new ArrayList<EntityRepositoryCommit>();
+        repositoryCommits = new HashSet<EntityRepositoryCommit>();
     }
 
     public Long getId() {
@@ -324,11 +324,11 @@ public class EntityPullRequest implements InterfaceEntity, Serializable {
         this.commitsCount = commitsCount;
     }
 
-    public List<EntityRepositoryCommit> getRepositoryCommits() {
+    public Set<EntityRepositoryCommit> getRepositoryCommits() {
         return repositoryCommits;
     }
 
-    public void setRepositoryCommits(List<EntityRepositoryCommit> repositoryCommits) {
+    public void setRepositoryCommits(Set<EntityRepositoryCommit> repositoryCommits) {
         this.repositoryCommits = repositoryCommits;
     }
 
@@ -362,5 +362,9 @@ public class EntityPullRequest implements InterfaceEntity, Serializable {
     @Override
     public String toString() {
         return "br.edu.utfpr.cm.JGitMiner.pojo.EntityPullRequest[ id=" + id + " ]";
+    }
+
+    public void addRepoCommit(EntityRepositoryCommit repoCommit) {
+        repositoryCommits.add(repoCommit);
     }
 }
