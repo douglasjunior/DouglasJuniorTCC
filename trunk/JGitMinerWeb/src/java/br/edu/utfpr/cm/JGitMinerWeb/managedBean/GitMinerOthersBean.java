@@ -604,13 +604,13 @@ public class GitMinerOthersBean implements Serializable {
             if (minerStatsAndFilesOfCommits) {
                 minerStatsAndFilesOfCommit(repoCommit, gitRepoCommit, gitRepo);
             }
-            if (minerCommentsOfRepositoryCommits) {
+            if (minerCommentsOfRepositoryCommits && pullRequest == null) {
                 minerCommentsOfRepoCommit(repoCommit, gitRepo);
             }
             repoCommit.setRepository(repositoryToMiner);
             if (pullRequest == null) {
                 calculeSubProgress(i, gitRepoCommits.size());
-            }else{
+            } else {
                 pullRequest.addRepoCommit(repoCommit);
             }
             dao.edit(repoCommit);
@@ -632,8 +632,8 @@ public class GitMinerOthersBean implements Serializable {
     }
 
     private void minerStatsAndFilesOfCommit(EntityRepositoryCommit repoCommit, RepositoryCommit gitRepoCommit, Repository gitRepo) throws Exception {
-        out.printLog("Baixando Stats and Files do Commit...");
         if (repoCommit.getFiles().isEmpty() || repoCommit.getStats() == null) {
+            out.printLog("Baixando Stats and Files do Commit...");
             gitRepoCommit = new CommitService(AuthServices.getGitHubCliente()).getCommit(gitRepo, gitRepoCommit.getSha());
             if (repoCommit.getStats() == null) {
                 minerStatsOfCommit(repoCommit, gitRepoCommit.getStats());
@@ -647,8 +647,8 @@ public class GitMinerOthersBean implements Serializable {
     private void minerCommentsOfRepoCommit(EntityRepositoryCommit repoCommit, Repository gitRepo) throws Exception {
         out.printLog("Baixando Comentários do Commit...");
         List<CommitComment> gitCommitComments = new CommitService(AuthServices.getGitHubCliente()).getComments(gitRepo, repoCommit.getSha());
-        out.printLog(gitCommitComments.size() + " Comentários baixados.");
-        if (gitCommitComments.size() > repoCommit.getComments().size()) {
+        if (gitCommitComments.size() != repoCommit.getComments().size()) {
+            out.printLog("Gravando " + gitCommitComments.size() + " Comentarios no Commit...");
             int i = 0;
             while (!canceled && i < gitCommitComments.size()) {
                 CommitComment gitCommitComment = gitCommitComments.get(i);

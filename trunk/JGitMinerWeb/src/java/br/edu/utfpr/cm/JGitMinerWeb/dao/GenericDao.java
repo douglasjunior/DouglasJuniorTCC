@@ -115,6 +115,7 @@ public class GenericDao implements Serializable {
         try {
             em.getEntityManagerFactory().getCache().evictAll();
             em.clear();
+            System.gc();
             System.out.println("######### LIMPOU CACHE #########");
         } catch (Exception ex) {
             ex.printStackTrace();
