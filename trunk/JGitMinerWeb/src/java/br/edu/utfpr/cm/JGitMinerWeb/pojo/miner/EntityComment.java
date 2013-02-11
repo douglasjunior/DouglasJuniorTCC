@@ -17,7 +17,7 @@ import javax.persistence.*;
 @NamedQueries({
     @NamedQuery(name = "Comment.findByIdComment", query = "SELECT c FROM EntityComment c WHERE c.idComment = :idComment")
 })
-public class EntityComment implements Serializable {
+public class EntityComment implements InterfaceEntity, Serializable {
 
     private static final long serialVersionUID = 1L;
     @Id

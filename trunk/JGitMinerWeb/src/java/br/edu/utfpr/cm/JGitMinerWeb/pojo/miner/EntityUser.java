@@ -19,7 +19,7 @@ import javax.persistence.*;
 @NamedQueries({
     @NamedQuery(name = "User.findByLogin", query = "SELECT u FROM EntityUser u WHERE u.login = :login")
 })
-public class EntityUser implements Serializable {
+public class EntityUser implements InterfaceEntity, Serializable {
 
     private static final long serialVersionUID = 1L;
     @Id
@@ -30,16 +30,16 @@ public class EntityUser implements Serializable {
     private Date mineredAt;
     @Temporal(javax.persistence.TemporalType.TIMESTAMP)
     private Date createdAt;
-    private int collaborators;
-    private int diskUsage;
-    private int followers;
-    private int following;
-    private int idUser;
-    private int ownedPrivateRepos;
-    private int privateGists;
-    private int publicGists;
-    private int publicRepos;
-    private int totalPrivateRepos;
+    private Integer collaborators;
+    private Integer diskUsage;
+    private Integer followers;
+    private Integer following;
+    private Integer idUser;
+    private Integer ownedPrivateRepos;
+    private Integer privateGists;
+    private Integer publicGists;
+    private Integer publicRepos;
+    private Integer totalPrivateRepos;
     @Column(columnDefinition = "text")
     private String avatarUrl;
     @Column(columnDefinition = "text")
@@ -78,10 +78,12 @@ public class EntityUser implements Serializable {
         mineredAt = new Date();
     }
 
+    @Override
     public Long getId() {
         return id;
     }
 
+    @Override
     public void setId(Long id) {
         this.id = id;
     }
@@ -110,11 +112,11 @@ public class EntityUser implements Serializable {
         this.blog = blog;
     }
 
-    public int getCollaborators() {
+    public Integer getCollaborators() {
         return collaborators;
     }
 
-    public void setCollaborators(int collaborators) {
+    public void setCollaborators(Integer collaborators) {
         this.collaborators = collaborators;
     }
 
@@ -134,11 +136,11 @@ public class EntityUser implements Serializable {
         this.createdAt = createdAt;
     }
 
-    public int getDiskUsage() {
+    public Integer getDiskUsage() {
         return diskUsage;
     }
 
-    public void setDiskUsage(int diskUsage) {
+    public void setDiskUsage(Integer diskUsage) {
         this.diskUsage = diskUsage;
     }
 
@@ -150,19 +152,19 @@ public class EntityUser implements Serializable {
         this.email = email;
     }
 
-    public int getFollowers() {
+    public Integer getFollowers() {
         return followers;
     }
 
-    public void setFollowers(int followers) {
+    public void setFollowers(Integer followers) {
         this.followers = followers;
     }
 
-    public int getFollowing() {
+    public Integer getFollowing() {
         return following;
     }
 
-    public void setFollowing(int following) {
+    public void setFollowing(Integer following) {
         this.following = following;
     }
 
@@ -190,11 +192,11 @@ public class EntityUser implements Serializable {
         this.htmlUrl = htmlUrl;
     }
 
-    public int getIdUser() {
+    public Integer getIdUser() {
         return idUser;
     }
 
-    public void setIdUser(int idGit) {
+    public void setIdUser(Integer idGit) {
         this.idUser = idGit;
     }
 
@@ -222,43 +224,43 @@ public class EntityUser implements Serializable {
         this.name = name;
     }
 
-    public int getOwnedPrivateRepos() {
+    public Integer getOwnedPrivateRepos() {
         return ownedPrivateRepos;
     }
 
-    public void setOwnedPrivateRepos(int ownedPrivateRepos) {
+    public void setOwnedPrivateRepos(Integer ownedPrivateRepos) {
         this.ownedPrivateRepos = ownedPrivateRepos;
     }
 
-    public int getPrivateGists() {
+    public Integer getPrivateGists() {
         return privateGists;
     }
 
-    public void setPrivateGists(int privateGists) {
+    public void setPrivateGists(Integer privateGists) {
         this.privateGists = privateGists;
     }
 
-    public int getPublicGists() {
+    public Integer getPublicGists() {
         return publicGists;
     }
 
-    public void setPublicGists(int publicGists) {
+    public void setPublicGists(Integer publicGists) {
         this.publicGists = publicGists;
     }
 
-    public int getPublicRepos() {
+    public Integer getPublicRepos() {
         return publicRepos;
     }
 
-    public void setPublicRepos(int publicRepos) {
+    public void setPublicRepos(Integer publicRepos) {
         this.publicRepos = publicRepos;
     }
 
-    public int getTotalPrivateRepos() {
+    public Integer getTotalPrivateRepos() {
         return totalPrivateRepos;
     }
 
-    public void setTotalPrivateRepos(int totalPrivateRepos) {
+    public void setTotalPrivateRepos(Integer totalPrivateRepos) {
         this.totalPrivateRepos = totalPrivateRepos;
     }
 

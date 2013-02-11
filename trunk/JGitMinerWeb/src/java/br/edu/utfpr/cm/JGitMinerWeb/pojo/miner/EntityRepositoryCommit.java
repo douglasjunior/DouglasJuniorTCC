@@ -20,7 +20,7 @@ import javax.persistence.*;
     @NamedQuery(name = "RepositoryCommit.findByURL", query = "SELECT c FROM EntityRepositoryCommit c WHERE c.url = :url"),
     @NamedQuery(name = "RepositoryCommit.findBySHA", query = "SELECT c FROM EntityRepositoryCommit c WHERE c.sha = :sha")
 })
-public class EntityRepositoryCommit implements Serializable {
+public class EntityRepositoryCommit implements InterfaceEntity, Serializable {
 
     private static final long serialVersionUID = 1L;
     @Id

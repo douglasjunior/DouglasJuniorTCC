@@ -21,7 +21,7 @@ import javax.persistence.*;
     @NamedQuery(name = "Issue.findByNumberAndRepository", query = "SELECT i FROM EntityIssue i WHERE i.number = :number AND i.repository = :repository"),
     @NamedQuery(name = "Issue.findByRepository", query = "SELECT i FROM EntityIssue i WHERE i.repository = :repository")
 })
-public class EntityIssue implements Serializable {
+public class EntityIssue implements InterfaceEntity, Serializable {
 
     private static final long serialVersionUID = 1L;
     @Id
@@ -37,8 +37,8 @@ public class EntityIssue implements Serializable {
     private Date createdAt;
     @Temporal(javax.persistence.TemporalType.TIMESTAMP)
     private Date updatedAt;
-    private int commentsCount;
-    private int number;
+    private Integer commentsCount;
+    private Integer number;
     @OneToMany
     private List<EntityLabel> labels;
     @ManyToOne
@@ -196,19 +196,19 @@ public class EntityIssue implements Serializable {
         this.milestone = milestone;
     }
 
-    public int getCommentsCount() {
+    public Integer getCommentsCount() {
         return commentsCount;
     }
 
-    public void setCommentsCount(int commentsCount) {
+    public void setCommentsCount(Integer commentsCount) {
         this.commentsCount = commentsCount;
     }
 
-    public int getNumber() {
+    public Integer getNumber() {
         return number;
     }
 
-    public void setNumber(int number) {
+    public void setNumber(Integer number) {
         this.number = number;
     }
 

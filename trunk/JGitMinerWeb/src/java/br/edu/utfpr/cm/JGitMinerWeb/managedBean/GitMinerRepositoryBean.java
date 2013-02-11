@@ -14,10 +14,6 @@ import java.util.List;
 import javax.ejb.EJB;
 import javax.faces.bean.ManagedBean;
 import javax.faces.bean.RequestScoped;
-import javax.faces.component.UIComponent;
-import javax.faces.context.FacesContext;
-import javax.faces.convert.Converter;
-import javax.faces.convert.FacesConverter;
 import org.eclipse.egit.github.core.Repository;
 import org.eclipse.egit.github.core.service.RepositoryService;
 
@@ -96,48 +92,5 @@ public class GitMinerRepositoryBean implements Serializable {
 
     public List<EntityRepository> getRepositoriesPrimaryMiner() {
         return dao.executeNamedQuery("Repository.findByPrimaryMiner");
-    }
-
-    @FacesConverter(forClass = EntityRepository.class)
-    public static class RepositoryConverter implements Converter {
-
-        @Override
-        public Object getAsObject(FacesContext facesContext, UIComponent component, String value) {
-            if (value == null || value.length() == 0 || value.equals("null")) {
-                return null;
-            }
-            GitMinerRepositoryBean bean = (GitMinerRepositoryBean) facesContext.getApplication().getELResolver().
-                    getValue(facesContext.getELContext(), null, "gitMinerRepositoryBean");
-            return bean.dao.findByID(getKey(value), EntityRepository.class);
-        }
-
-        java.lang.Long getKey(String value) {
-            java.lang.Long key;
-            key = Long.valueOf(value);
-            return key;
-        }
-
-        String getStringKey(java.lang.Long value) {
-            StringBuilder sb = new StringBuilder();
-            sb.append(value);
-            return sb.toString();
-        }
-
-        @Override
-        public String getAsString(FacesContext facesContext, UIComponent component, Object object) {
-            if (object == null) {
-                return null;
-            }
-            if (object instanceof EntityRepository) {
-                EntityRepository o = (EntityRepository) object;
-                return getStringKey(o.getId());
-            } else {
-                throw new IllegalArgumentException("object " + object + " is of type " + object.getClass().getName() + "; expected type: " + GitMinerRepositoryBean.class.getName());
-            }
-        }
-    }
-
-    public RepositoryConverter getConverter() {
-        return new RepositoryConverter();
     }
 }

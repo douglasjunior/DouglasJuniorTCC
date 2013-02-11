@@ -9,6 +9,7 @@ import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
 import javax.persistence.Basic;
+import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
@@ -47,9 +48,9 @@ public class EntityMatriz implements Serializable {
     private String log;
     @ManyToOne(fetch = FetchType.LAZY)
     private EntityRepository repository;
-    @OneToMany(orphanRemoval = true)
+    @OneToMany(orphanRemoval = true, cascade = CascadeType.REMOVE)
     private List<EntityMatrizRecord> records;
-    private String classServices;
+    private String classServicesName;
 
     public EntityMatriz() {
         started = new Date();
@@ -104,12 +105,20 @@ public class EntityMatriz implements Serializable {
         this.records = records;
     }
 
-    public String getClassServices() {
-        return classServices;
+    public String getClassServicesName() {
+        return classServicesName;
     }
 
-    public void setClassServices(String classServices) {
-        this.classServices = classServices;
+    public String getClassServicesSingleName() {
+        String[] tokens = classServicesName.split("\\.");
+        if (tokens.length > 0) {
+            return tokens[tokens.length - 1];
+        }
+        return classServicesName;
+    }
+
+    public void setClassServicesName(String classServices) {
+        this.classServicesName = classServices;
     }
 
     public EntityRepository getRepository() {

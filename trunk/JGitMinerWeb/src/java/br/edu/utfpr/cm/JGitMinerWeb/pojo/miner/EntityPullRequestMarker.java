@@ -7,7 +7,6 @@ package br.edu.utfpr.cm.JGitMinerWeb.pojo.miner;
 import java.io.Serializable;
 import java.util.Date;
 import javax.persistence.*;
-import org.eclipse.egit.github.core.PullRequestMarker;
 
 /**
  *
@@ -15,7 +14,7 @@ import org.eclipse.egit.github.core.PullRequestMarker;
  */
 @Entity
 @Table(name = "gitPullRequestMaker")
-public class EntityPullRequestMarker implements Serializable {
+public class EntityPullRequestMarker implements InterfaceEntity, Serializable {
 
     private static final long serialVersionUID = 1L;
     @Id
@@ -35,7 +34,6 @@ public class EntityPullRequestMarker implements Serializable {
     private EntityUser user;
 
     public EntityPullRequestMarker() {
-
     }
 
     public Long getId() {

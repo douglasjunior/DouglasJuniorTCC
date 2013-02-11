@@ -22,6 +22,10 @@
                     <h:outputText value="#{net.repository.name}" />
                 </p:column>
 
+                <p:column headerText="Class Service">
+                    <h:outputText value="#{net.classServicesSingleName}" />
+                </p:column>
+
                 <p:column headerText="Started" >
                     <h:outputText value="#{net.started}" >
                         <f:convertDateTime pattern="MM/dd/yyyy HH:mm:ss" />

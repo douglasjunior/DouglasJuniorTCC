@@ -11,7 +11,6 @@ import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import javax.management.openmbean.KeyAlreadyExistsException;
 
 /**
  *
@@ -21,7 +20,7 @@ public abstract class MatrizServices implements Runnable, Serializable {
 
     protected GenericDao dao;
     protected EntityRepository repository;
-    protected List<EntityMatrizRecord> records;
+    private List<EntityMatrizRecord> records;
     protected Map params;
 
     public MatrizServices(GenericDao dao) {
@@ -42,14 +41,18 @@ public abstract class MatrizServices implements Runnable, Serializable {
         return records;
     }
 
+    public void setRecords(List<EntityMatrizRecord> records) {
+        this.records = records;
+    }
+
     @Override
     public abstract void run();
 
-    public abstract String convertToCSV();
+    public abstract String convertToCSV(List<EntityMatrizRecord> records);
 
     public static MatrizServices createInstance(GenericDao dao, String className) {
         try {
-            return (MatrizServices) Class.forName(className).getConstructor(dao.getClass()).newInstance(dao);
+            return (MatrizServices) Class.forName(className).getConstructor(GenericDao.class).newInstance(dao);
         } catch (Exception ex) {
             ex.printStackTrace();
         }
@@ -58,12 +61,16 @@ public abstract class MatrizServices implements Runnable, Serializable {
 
     protected Date getDateParam(Object key) {
         if (!params.containsKey(key)) {
-            throw new KeyAlreadyExistsException(key + "");
+            throw new IndexOutOfBoundsException(key + "");
         }
         Object obj = params.get(key);
-        if (!(obj instanceof Date)) {
-            throw new ClassCastException(key + "");
+        if (obj != null) {
+            if (obj instanceof Date) {
+                return (Date) obj;
+            } else {
+                throw new ClassCastException(key + "");
+            }
         }
-        return (Date) obj;
+        return null;
     }
 }

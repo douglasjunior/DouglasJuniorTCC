@@ -17,7 +17,7 @@ import javax.persistence.*;
 @NamedQueries({
     @NamedQuery(name = "Miner.findAllTheLatest", query = "SELECT m FROM EntityMiner m ORDER BY m.minerStart DESC")
 })
-public class EntityMiner implements Serializable {
+public class EntityMiner implements InterfaceEntity, Serializable {
 
     private static final long serialVersionUID = 1L;
     @Id

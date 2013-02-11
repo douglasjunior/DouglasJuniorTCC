@@ -311,7 +311,7 @@ public class JsfUtil implements Serializable  {
             String[] files = directory.list();
             for (int i = 0; i < files.length; i++) {
                 // we are only interested in .class files
-                if (files[i].endsWith(".class")) {
+                if (files[i].endsWith("Services.class")) {
                     // get class simple name
                     String classSimpleName = files[i].substring(0, files[i].length() - 6);
                     // verify exceptions

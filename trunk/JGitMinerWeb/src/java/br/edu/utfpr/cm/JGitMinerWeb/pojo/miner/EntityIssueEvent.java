@@ -27,7 +27,7 @@ import javax.persistence.Temporal;
     @NamedQuery(name = "IssueEvent.findByURL", query = "SELECT e FROM EntityIssueEvent e WHERE e.url = :url"),
     @NamedQuery(name = "IssueEvent.findByEventIssueID", query = "SELECT e FROM EntityIssueEvent e WHERE e.idIssueEvent = :idIssueEvent")
 })
-public class EntityIssueEvent implements Serializable {
+public class EntityIssueEvent implements InterfaceEntity, Serializable {
 
     private static final long serialVersionUID = 1L;
     @Id
@@ -50,7 +50,6 @@ public class EntityIssueEvent implements Serializable {
     private EntityUser actor;
 
     public EntityIssueEvent() {
-
     }
 
     public Long getId() {

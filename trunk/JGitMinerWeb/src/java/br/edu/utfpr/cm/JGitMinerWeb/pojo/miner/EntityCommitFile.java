@@ -17,7 +17,7 @@ import javax.persistence.*;
 @NamedQueries({
     @NamedQuery(name = "CommitFile.findBySHA", query = "SELECT f FROM EntityCommitFile f WHERE f.sha = :sha")
 })
-public class EntityCommitFile implements Serializable {
+public class EntityCommitFile implements InterfaceEntity, Serializable {
 
     private static final long serialVersionUID = 1L;
     @Id
@@ -25,9 +25,9 @@ public class EntityCommitFile implements Serializable {
     private Long id;
     @Temporal(javax.persistence.TemporalType.TIMESTAMP)
     private Date mineredAt;
-    private int additions;
-    private int changes;
-    private int deletions;
+    private Integer additions;
+    private Integer changes;
+    private Integer deletions;
     @Column(columnDefinition = "text")
     private String blobUrl;
     @Column(columnDefinition = "text")
@@ -54,11 +54,11 @@ public class EntityCommitFile implements Serializable {
         this.id = id;
     }
 
-    public int getAdditions() {
+    public Integer getAdditions() {
         return additions;
     }
 
-    public void setAdditions(int additions) {
+    public void setAdditions(Integer additions) {
         this.additions = additions;
     }
 
@@ -70,19 +70,19 @@ public class EntityCommitFile implements Serializable {
         this.blobUrl = blobUrl;
     }
 
-    public int getChanges() {
+    public Integer getChanges() {
         return changes;
     }
 
-    public void setChanges(int changes) {
+    public void setChanges(Integer changes) {
         this.changes = changes;
     }
 
-    public int getDeletions() {
+    public Integer getDeletions() {
         return deletions;
     }
 
-    public void setDeletions(int deletions) {
+    public void setDeletions(Integer deletions) {
         this.deletions = deletions;
     }
 

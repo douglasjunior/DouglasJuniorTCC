@@ -13,6 +13,7 @@ import br.edu.utfpr.cm.JGitMinerWeb.util.JsfUtil;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -31,7 +32,7 @@ public class UserCommentInIssueMatrizServices extends MatrizServices {
     }
 
     public Date getBegin() {
-        Date begin = getDateParam("begin");
+        Date begin = getDateParam("beginDate");
         if (begin == null) {
             try {
                 return new SimpleDateFormat("MM/dd/yyyy").parse("01/01/1970");
@@ -43,7 +44,7 @@ public class UserCommentInIssueMatrizServices extends MatrizServices {
     }
 
     public Date getEnd() {
-        Date end = getDateParam("end");
+        Date end = getDateParam("endDate");
         if (end == null) {
             try {
                 return new SimpleDateFormat("MM/dd/yyyy").parse("01/01/2999");
@@ -60,28 +61,29 @@ public class UserCommentInIssueMatrizServices extends MatrizServices {
             throw new IllegalArgumentException("Parâmetro Repository não pode ser nulo.");
         }
 
-        String jpql = "SELECT NEW br.edu.utfpr.cm.JGitMinerWeb.pojo.matriz.EntityMatrizRecord(\"" + EntityUser.class.getName() + "\", u.id,\"" + EntityIssue.class.getName() + "\" , i.id, count(u.id))"
+        String jpql = "SELECT NEW br.edu.utfpr.cm.JGitMinerWeb.pojo.matriz.EntityMatrizRecord(\"" + EntityUser.class.getName() + "\", u.id,\"" + EntityIssue.class.getName() + "\" , i.id, \"\", count(u.id)) "
                 + "FROM EntityIssue i JOIN i.comments c JOIN c.user u "
                 + "WHERE i.repository = :repo "
                 + "AND i.createdAt >= :dataInicial "
                 + "AND i.createdAt <= :dataFinal "
                 + "GROUP BY i.id, u.id ";
-        //      + "ORDER BY u.id, i.id";
 
         System.out.println(jpql);
 
-        records = dao.selectWithParams(jpql, new String[]{"repo", "dataInicial", "dataFinal"}, new Object[]{getRepository(), getBegin(), getEnd()});
+        List<EntityMatrizRecord> records = dao.selectWithParams(jpql, new String[]{"repo", "dataInicial", "dataFinal"}, new Object[]{getRepository(), getBegin(), getEnd()});
+
+        setRecords(records);
 
         System.out.println("Results: " + records.size());
     }
 
     @Override
-    public String convertToCSV() {
-        StringBuilder sb = new StringBuilder();
+    public String convertToCSV(List<EntityMatrizRecord> records) {
+        StringBuilder sb = new StringBuilder("user;issue;comments\n");
         for (EntityMatrizRecord record : records) {
-            EntityUser user = dao.findByID(record.getIdX(), record.getClassX());
-            EntityIssue issue = dao.findByID(record.getIdY(), record.getClassY());
-            sb.append(user.getLogin()).append(JsfUtil.TOKEN_SEPARATOR).append(issue.getNumber()).append(JsfUtil.TOKEN_SEPARATOR).append(record.getAmount()).append("\n");
+            EntityUser user = dao.findByID(record.getValueX(), record.getClassX());
+            EntityIssue issue = dao.findByID(record.getValueY(), record.getClassY());
+            sb.append(user.getLogin()).append(JsfUtil.TOKEN_SEPARATOR).append(issue.getNumber()).append(JsfUtil.TOKEN_SEPARATOR).append(record.getValueZ()).append("\n");
         }
         return sb.toString();
     }

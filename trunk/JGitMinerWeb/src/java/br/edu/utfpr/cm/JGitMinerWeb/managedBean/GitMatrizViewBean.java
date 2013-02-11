@@ -4,10 +4,10 @@
  */
 package br.edu.utfpr.cm.JGitMinerWeb.managedBean;
 
+import br.edu.utfpr.cm.JGitMinerWeb.converter.ClassConverter;
 import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericDao;
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.matriz.EntityMatriz;
 import br.edu.utfpr.cm.JGitMinerWeb.services.matriz.MatrizServices;
-import br.edu.utfpr.cm.JGitMinerWeb.services.matriz.UserCommentInIssueMatrizServices;
 import br.edu.utfpr.cm.JGitMinerWeb.util.JsfUtil;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintWriter;
@@ -68,7 +68,7 @@ public class GitMatrizViewBean implements Serializable {
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             PrintWriter pw = new PrintWriter(baos);
 
-            pw.println(MatrizServices.createInstance(dao, matriz.getClassServices()).convertToCSV());
+            pw.println(MatrizServices.createInstance(dao, matriz.getClassServicesName()).convertToCSV(matriz.getRecords()));
 
             pw.flush();
             pw.close();
@@ -99,7 +99,7 @@ public class GitMatrizViewBean implements Serializable {
             pw.close();
 
             JsfUtil.downloadFile(fileName, baos.toByteArray());
-            
+
             baos.close();
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -110,4 +110,5 @@ public class GitMatrizViewBean implements Serializable {
     private String generateFileName(EntityMatriz net) {
         return net.getRepository().getName() + "-" + net.getStarted();
     }
+
 }

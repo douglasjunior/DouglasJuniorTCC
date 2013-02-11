@@ -17,7 +17,7 @@ import javax.persistence.*;
 @NamedQueries({
     @NamedQuery(name = "Milestone.findByURL", query = "SELECT m FROM EntityMilestone m WHERE m.url = :url")
 })
-public class EntityMilestone implements Serializable {
+public class EntityMilestone implements InterfaceEntity, Serializable {
 
     private static final long serialVersionUID = 1L;
     @Id
@@ -29,9 +29,9 @@ public class EntityMilestone implements Serializable {
     private Date createdAt;
     @Temporal(javax.persistence.TemporalType.TIMESTAMP)
     private Date dueOn;
-    private int closedIssues;
-    private int number;
-    private int openIssues;
+    private Integer closedIssues;
+    private Integer number;
+    private Integer openIssues;
     @Column(columnDefinition = "text")
     private String description;
     private String stateMilestone;
@@ -63,11 +63,11 @@ public class EntityMilestone implements Serializable {
         this.mineredAt = mineredAt;
     }
 
-    public int getClosedIssues() {
+    public Integer getClosedIssues() {
         return closedIssues;
     }
 
-    public void setClosedIssues(int closedIssues) {
+    public void setClosedIssues(Integer closedIssues) {
         this.closedIssues = closedIssues;
     }
 
@@ -111,19 +111,19 @@ public class EntityMilestone implements Serializable {
         this.dueOn = dueOn;
     }
 
-    public int getNumber() {
+    public Integer getNumber() {
         return number;
     }
 
-    public void setNumber(int number) {
+    public void setNumber(Integer number) {
         this.number = number;
     }
 
-    public int getOpenIssues() {
+    public Integer getOpenIssues() {
         return openIssues;
     }
 
-    public void setOpenIssues(int openIssues) {
+    public void setOpenIssues(Integer openIssues) {
         this.openIssues = openIssues;
     }
 

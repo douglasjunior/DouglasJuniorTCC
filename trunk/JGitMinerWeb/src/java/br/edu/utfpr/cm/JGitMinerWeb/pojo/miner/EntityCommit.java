@@ -17,7 +17,7 @@ import javax.persistence.*;
 @NamedQueries({
     @NamedQuery(name = "Commit.findByURL", query = "SELECT c FROM EntityCommit c WHERE c.url = :url")
 })
-public class EntityCommit implements Serializable {
+public class EntityCommit implements InterfaceEntity, Serializable {
 
     private static final long serialVersionUID = 1L;
     @Id
@@ -35,7 +35,7 @@ public class EntityCommit implements Serializable {
     private String url;
     @ManyToOne
     private EntityTree tree;
-    private int commentCount;
+    private Integer commentCount;
 
     public EntityCommit() {
     }
@@ -144,11 +144,11 @@ public class EntityCommit implements Serializable {
         return "br.edu.utfpr.cm.JGitMiner.pojo.EntityCommity[ id=" + id + " ]";
     }
 
-    public void setCommentCount(int commentCount) {
+    public void setCommentCount(Integer commentCount) {
         this.commentCount = commentCount;
     }
 
-    public int getCommentCount() {
+    public Integer getCommentCount() {
         return commentCount;
     }
 }

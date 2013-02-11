@@ -19,7 +19,7 @@ import javax.persistence.*;
 @NamedQueries({
     @NamedQuery(name = "Tree.findByURL", query = "SELECT t FROM EntityTree t WHERE t.url = :url")
 })
-public class EntityTree implements Serializable {
+public class EntityTree implements InterfaceEntity, Serializable {
 
     private static final long serialVersionUID = 1L;
     @Id

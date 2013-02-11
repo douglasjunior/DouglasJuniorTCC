@@ -17,7 +17,7 @@ import javax.persistence.*;
 @NamedQueries({
     @NamedQuery(name = "CommitUser.findByEmail", query = "SELECT u FROM EntityCommitUser u WHERE u.email = :email")
 })
-public class EntityCommitUser implements Serializable {
+public class EntityCommitUser implements InterfaceEntity, Serializable {
 
     private static final long serialVersionUID = 1L;
     @Id

@@ -17,7 +17,7 @@ import javax.persistence.*;
 @NamedQueries({
     @NamedQuery(name = "CommitStats.findByRepositoryCommit", query = "SELECT s FROM EntityCommitStats s WHERE s.repositoryCommit = :repositoryCommit")
 })
-public class EntityCommitStats implements Serializable {
+public class EntityCommitStats implements InterfaceEntity, Serializable {
 
     private static final long serialVersionUID = 1L;
     @Id
@@ -25,9 +25,9 @@ public class EntityCommitStats implements Serializable {
     private Long id;
     @Temporal(javax.persistence.TemporalType.TIMESTAMP)
     private Date mineredAt;
-    private int additions;
-    private int deletions;
-    private int total;
+    private Integer additions;
+    private Integer deletions;
+    private Integer total;
     @OneToOne(mappedBy = "stats")
     private EntityRepositoryCommit repositoryCommit;
 
@@ -59,27 +59,27 @@ public class EntityCommitStats implements Serializable {
         this.repositoryCommit = repositoryCommit;
     }
 
-    public int getAdditions() {
+    public Integer getAdditions() {
         return additions;
     }
 
-    public void setAdditions(int additions) {
+    public void setAdditions(Integer additions) {
         this.additions = additions;
     }
 
-    public int getDeletions() {
+    public Integer getDeletions() {
         return deletions;
     }
 
-    public void setDeletions(int deletions) {
+    public void setDeletions(Integer deletions) {
         this.deletions = deletions;
     }
 
-    public int getTotal() {
+    public Integer getTotal() {
         return total;
     }
 
-    public void setTotal(int total) {
+    public void setTotal(Integer total) {
         this.total = total;
     }
 

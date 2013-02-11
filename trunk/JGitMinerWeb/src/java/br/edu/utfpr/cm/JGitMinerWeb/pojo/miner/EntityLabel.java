@@ -17,7 +17,7 @@ import javax.persistence.*;
 @NamedQueries({
     @NamedQuery(name = "Label.findByURL", query = "SELECT l FROM EntityLabel l WHERE l.url = :url")
 })
-public class EntityLabel implements Serializable {
+public class EntityLabel implements InterfaceEntity, Serializable {
 
     private static final long serialVersionUID = 1L;
     @Id

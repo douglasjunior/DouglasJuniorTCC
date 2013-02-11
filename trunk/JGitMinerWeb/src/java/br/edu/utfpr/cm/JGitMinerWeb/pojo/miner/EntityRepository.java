@@ -24,7 +24,7 @@ import javax.persistence.*;
     @NamedQuery(name = "Repository.findByPrimaryMiner",
     query = "SELECT r FROM EntityRepository r WHERE r.primaryMiner = TRUE")
 })
-public class EntityRepository implements Serializable {
+public class EntityRepository implements InterfaceEntity, Serializable {
 
     private static final long serialVersionUID = 1L;
     @Id
@@ -45,8 +45,8 @@ public class EntityRepository implements Serializable {
     @Temporal(javax.persistence.TemporalType.TIMESTAMP)
     private Date updatedAt;
     @Column(unique = true)
-    private long idRepository;
-    private int sizeRepository;
+    private Long idRepository;
+    private Integer sizeRepository;
     @ManyToOne
     private EntityRepository parent;
     @ManyToOne
@@ -196,11 +196,11 @@ public class EntityRepository implements Serializable {
         this.htmlUrl = htmlUrl;
     }
 
-    public long getIdRepository() {
+    public Long getIdRepository() {
         return idRepository;
     }
 
-    public void setIdRepository(long idRepository) {
+    public void setIdRepository(Long idRepository) {
         this.idRepository = idRepository;
     }
 
@@ -308,11 +308,11 @@ public class EntityRepository implements Serializable {
         this.pushedAt = pushedAt;
     }
 
-    public int getSizeRepository() {
+    public Integer getSizeRepository() {
         return sizeRepository;
     }
 
-    public void setSizeRepository(int sizeRepository) {
+    public void setSizeRepository(Integer sizeRepository) {
         this.sizeRepository = sizeRepository;
     }
 

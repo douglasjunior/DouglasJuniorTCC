@@ -24,21 +24,22 @@ public class EntityMatrizRecord implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String classX;
-    private String idX;
+    private String valueX;
     private String classY;
-    private String idY;
-    private String amount;
+    private String valueY;
+    private String classZ;
+    private String valueZ;
 
     public EntityMatrizRecord() {
     }
 
-    public EntityMatrizRecord(Object classX, Object idX, Object classY, Object idY, Object amount) {
-        this();
+    public EntityMatrizRecord(Object classX, Object valueX, Object classY, Object valueY, Object classZ, Object valueZ) {
         this.classX = classX + "";
-        this.idX = idX + "";
+        this.valueX = valueX + "";
         this.classY = classY + "";
-        this.idY = idY + "";
-        this.amount = amount + "";
+        this.valueY = valueY + "";
+        this.classZ = classZ + "";
+        this.valueZ = valueZ + "";
     }
 
     public Long getId() {
@@ -57,12 +58,12 @@ public class EntityMatrizRecord implements Serializable {
         this.classX = classX;
     }
 
-    public String getIdX() {
-        return idX;
+    public String getValueX() {
+        return valueX;
     }
 
-    public void setIdX(String idX) {
-        this.idX = idX;
+    public void setValueX(String valueX) {
+        this.valueX = valueX;
     }
 
     public String getClassY() {
@@ -73,20 +74,28 @@ public class EntityMatrizRecord implements Serializable {
         this.classY = classY;
     }
 
-    public String getIdY() {
-        return idY;
+    public String getValueY() {
+        return valueY;
     }
 
-    public void setIdY(String idY) {
-        this.idY = idY;
+    public void setValueY(String valueY) {
+        this.valueY = valueY;
     }
 
-    public String getAmount() {
-        return amount;
+    public String getClassZ() {
+        return classZ;
     }
 
-    public void setAmount(String amount) {
-        this.amount = amount;
+    public void setClassZ(String classZ) {
+        this.classZ = classZ;
+    }
+
+    public String getValueZ() {
+        return valueZ;
+    }
+
+    public void setValueZ(String valueZ) {
+        this.valueZ = valueZ;
     }
 
     @Override
@@ -107,5 +116,10 @@ public class EntityMatrizRecord implements Serializable {
             return false;
         }
         return true;
+    }
+
+    @Override
+    public String toString() {
+        return classX + "\t\t" + valueX + "\t\t" + classY + "\t\t" + valueY + "\t\t" + classZ + "\t\t" + valueZ;
     }
 }

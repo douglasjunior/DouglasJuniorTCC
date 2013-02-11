@@ -49,6 +49,7 @@ public class GitMinerOthersBean implements Serializable {
     private GenericDao dao;
     private OutLog out;
     private EntityRepository repositoryToMiner;
+    private String repositoryToMinerId;
     private boolean minerOpenIssues;
     private boolean minerClosedIssues;
     private boolean minerCommentsOfIssues;
@@ -202,12 +203,12 @@ public class GitMinerOthersBean implements Serializable {
         this.minerWatchers = minerWatchers;
     }
 
-    public EntityRepository getRepositoryToMiner() {
-        return repositoryToMiner;
+    public String getRepositoryToMinerId() {
+        return repositoryToMinerId;
     }
 
-    public void setRepositoryToMiner(EntityRepository repositoryToMiner) {
-        this.repositoryToMiner = repositoryToMiner;
+    public void setRepositoryToMinerId(String repositoryToMinerId) {
+        this.repositoryToMinerId = repositoryToMinerId;
     }
 
     public String getCurrentProcess() {
@@ -227,7 +228,7 @@ public class GitMinerOthersBean implements Serializable {
         subProgress = new Integer(0);
         final EntityMiner mineration = new EntityMiner();
 
-
+        repositoryToMiner = dao.findByID(repositoryToMinerId, EntityRepository.class);
 
         out.printLog("Repositorio: " + repositoryToMiner);
         out.printLog("minerOpenIssues: " + minerOpenIssues);

@@ -17,7 +17,7 @@ import javax.persistence.*;
 @NamedQueries({
     @NamedQuery(name = "CommitComment.findByURL", query = "SELECT c FROM EntityCommitComment c WHERE c.url = :url")
 })
-public class EntityCommitComment implements Serializable {
+public class EntityCommitComment implements InterfaceEntity, Serializable {
 
     private static final long serialVersionUID = 1L;
     @Id
@@ -36,10 +36,10 @@ public class EntityCommitComment implements Serializable {
     @Column(columnDefinition = "text")
     private String bodyText;
     @Column(unique = true)
-    private long idComment;
+    private Long idComment;
     private String url;
-    private int line;
-    private int position;
+    private Integer line;
+    private Integer position;
     @Column(columnDefinition = "text")
     private String commitId;
     @Column(columnDefinition = "text")
@@ -69,11 +69,11 @@ public class EntityCommitComment implements Serializable {
         this.commitId = commitId;
     }
 
-    public int getLine() {
+    public Integer getLine() {
         return line;
     }
 
-    public void setLine(int line) {
+    public void setLine(Integer line) {
         this.line = line;
     }
 
@@ -109,11 +109,11 @@ public class EntityCommitComment implements Serializable {
         this.mineredAt = mineredAt;
     }
 
-    public int getPosition() {
+    public Integer getPosition() {
         return position;
     }
 
-    public void setPosition(int position) {
+    public void setPosition(Integer position) {
         this.position = position;
     }
 
@@ -149,11 +149,11 @@ public class EntityCommitComment implements Serializable {
         this.createdAt = createdAt;
     }
 
-    public long getIdComment() {
+    public Long getIdComment() {
         return idComment;
     }
 
-    public void setIdComment(long idComment) {
+    public void setIdComment(Long idComment) {
         this.idComment = idComment;
     }
 

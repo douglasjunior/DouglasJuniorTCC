@@ -35,11 +35,21 @@ public class GenericDao implements Serializable {
         return getEntityManager().find(classe, id);
     }
 
+    public <T> T findByID(String strId, Class classe) {
+        try {
+            Long lId = Long.valueOf(strId);
+            Object obj = findByID(lId, classe);
+            return (T) obj;
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        return null;
+    }
+
     public <T> T findByID(String strId, String strClasse) {
         try {
             Class cClass = Class.forName(strClasse);
-            Long lId = Long.valueOf(strId);
-            Object obj = findByID(lId, cClass);
+            Object obj = findByID(strId, cClass);
             return (T) obj;
         } catch (Exception ex) {
             ex.printStackTrace();

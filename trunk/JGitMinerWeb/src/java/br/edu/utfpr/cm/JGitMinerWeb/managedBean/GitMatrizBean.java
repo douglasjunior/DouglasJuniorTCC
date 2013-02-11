@@ -4,6 +4,7 @@
  */
 package br.edu.utfpr.cm.JGitMinerWeb.managedBean;
 
+import br.edu.utfpr.cm.JGitMinerWeb.converter.ClassConverter;
 import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericDao;
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.matriz.EntityMatriz;
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.EntityRepository;
@@ -19,10 +20,6 @@ import java.util.Map;
 import javax.ejb.EJB;
 import javax.faces.bean.ManagedBean;
 import javax.faces.bean.SessionScoped;
-import javax.faces.component.UIComponent;
-import javax.faces.context.FacesContext;
-import javax.faces.convert.Converter;
-import javax.faces.convert.FacesConverter;
 
 /**
  *
@@ -40,6 +37,7 @@ public class GitMatrizBean implements Serializable {
     private GenericDao dao;
     private OutLog out;
     private EntityRepository repository;
+    private String repositoryId;
     private Class serviceClass;
     private Map params;
     private String message;
@@ -73,12 +71,12 @@ public class GitMatrizBean implements Serializable {
         this.canceled = canceled;
     }
 
-    public EntityRepository getRepository() {
-        return repository;
+    public String getRepositoryId() {
+        return repositoryId;
     }
 
-    public void setRepository(EntityRepository repository) {
-        this.repository = repository;
+    public void setRepositoryId(String repositoryId) {
+        this.repositoryId = repositoryId;
     }
 
     public Class getServiceClass() {
@@ -89,9 +87,8 @@ public class GitMatrizBean implements Serializable {
         this.serviceClass = serviceClass;
     }
 
-    public void addParamValue(Object value, String key) {
-        System.out.println("value:" + value + " key:" + key);
-        params.put(value, key);
+    public Map getParamValue() {
+        return params;
     }
 
     public GenericDao getDao() {
@@ -131,35 +128,39 @@ public class GitMatrizBean implements Serializable {
     }
 
     public void start() {
-        final EntityMatriz entityNet = new EntityMatriz();
-        dao.insert(entityNet);
+        final EntityMatriz entityMatriz = new EntityMatriz();
+        dao.insert(entityMatriz);
         out.resetLog();
         initialized = false;
         canceled = false;
         fail = false;
         progress = new Integer(0);
 
+        repository = dao.findByID(repositoryId, EntityRepository.class);
+
         out.printLog("Geração da rede iniciada!");
         out.printLog("");
         out.printLog("Params: " + params);
+        out.printLog("Class Service: " + serviceClass);
         out.printLog("Repository: " + repository);
         out.printLog("");
 
-        entityNet.setLog(out.getLog().toString());
-        dao.edit(entityNet);
+        entityMatriz.setLog(out.getLog().toString());
+        entityMatriz.setClassServicesName(serviceClass.getName());
+        dao.edit(entityMatriz);
 
-        if (repository == null) {
-            message = "Erro: Escolha o repositorio desejado.";
+        if (repository == null || serviceClass == null) {
+            message = "Erro: Escolha o repositorio e o service desejado.";
             out.printLog(message);
             progress = new Integer(0);
             initialized = false;
             fail = true;
-            entityNet.setLog(out.getLog().toString());
-            dao.edit(entityNet);
+            entityMatriz.setLog(out.getLog().toString());
+            dao.edit(entityMatriz);
         } else {
             initialized = true;
             progress = new Integer(10);
-            entityNet.setRepository(repository);
+            entityMatriz.setRepository(repository);
 
             final MatrizServices netServices = createMatrizServiceInstance();
 
@@ -169,15 +170,15 @@ public class GitMatrizBean implements Serializable {
                     try {
                         out.setCurrentProcess("Iniciando consulta ao banco de dados.");
                         super.run();
-                        out.printLog("Consulta ao banco de dados concluída!");
+                        out.printLog(netServices.getRecords().size() + " Registros encontrados na consulta!");
                         progress = new Integer(50);
                         out.printLog("");
-                        out.setCurrentProcess("Iniciando processamento dos dados coletados.");
-                        entityNet.setRecords(netServices.getRecords());
-                        out.printLog("Processamento dos dados concluído!");
-                        entityNet.setComplete(true);
-                        dao.edit(entityNet);
-                        message = "Geração da rede concluída.";
+                        out.setCurrentProcess("Iniciando salvamento dos dados gerados.");
+                        entityMatriz.setRecords(netServices.getRecords());
+                        entityMatriz.setComplete(true);
+                        dao.edit(entityMatriz);
+                        out.printLog("Salvamento dos dados concluído!");
+                        message = "Geração da matriz concluída.";
                     } catch (Exception ex) {
                         ex.printStackTrace();
                         message = "Geração da rede abortada: " + ex.toString();
@@ -188,9 +189,10 @@ public class GitMatrizBean implements Serializable {
                     out.setCurrentProcess(message);
                     progress = new Integer(100);
                     initialized = false;
-                    entityNet.setLog(out.getLog().toString());
-                    entityNet.setStoped(new Date());
-                    dao.edit(entityNet);
+                    entityMatriz.setLog(out.getLog().toString());
+                    entityMatriz.setStoped(new Date());
+                    dao.edit(entityMatriz);
+                    params.clear();
                 }
             };
             process.start();
@@ -223,9 +225,6 @@ public class GitMatrizBean implements Serializable {
         List<Class> cls = null;
         try {
             cls = JsfUtil.getClasses("br.edu.utfpr.cm.JGitMinerWeb.services.matriz", Arrays.asList("MatrizServices"));
-            for (Class cl : cls) {
-                System.out.println(cl.getName());
-            }
         } catch (Exception ex) {
             ex.printStackTrace();
         }
@@ -234,44 +233,11 @@ public class GitMatrizBean implements Serializable {
 
     private MatrizServices createMatrizServiceInstance() {
         try {
-            return (MatrizServices) serviceClass.getConstructor(GenericDao.class, EntityRepository.class, Map.class).newInstance(dao, repository, JsfUtil.getContext().getExternalContext().getRequestParameterMap());
+            return (MatrizServices) serviceClass.getConstructor(GenericDao.class, EntityRepository.class, Map.class).newInstance(dao, repository, params);
         } catch (Exception ex) {
             ex.printStackTrace();
         }
         return null;
-    }
-
-    // ######### CONVERTER ###########
-    @FacesConverter(forClass = Class.class)
-    public static class ClassConverter implements Converter {
-
-        @Override
-        public Object getAsObject(FacesContext facesContext, UIComponent component, String value) {
-            if (value == null || value.length() == 0 || value.equals("null")) {
-                return null;
-            }
-            System.out.println("VALUEEE: " + value);
-            Class classValue = null;
-            try {
-                classValue = Class.forName(value);
-            } catch (ClassNotFoundException ex) {
-                ex.printStackTrace();
-            }
-            return classValue;
-        }
-
-        @Override
-        public String getAsString(FacesContext facesContext, UIComponent component, Object object) {
-            if (object == null) {
-                return null;
-            }
-            if (object instanceof Class) {
-                Class o = (Class) object;
-                return o.getName();
-            } else {
-                throw new IllegalArgumentException("object " + object + " is of type " + object.getClass().getName() + "; expected type: " + Class.class.getName());
-            }
-        }
     }
 
     public ClassConverter getConverterClass() {

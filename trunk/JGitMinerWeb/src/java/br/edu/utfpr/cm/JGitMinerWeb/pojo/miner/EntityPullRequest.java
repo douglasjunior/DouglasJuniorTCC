@@ -21,7 +21,7 @@ import javax.persistence.*;
     @NamedQuery(name = "PullRequest.findByNumberAndRepository", query = "SELECT p FROM EntityPullRequest p WHERE p.number = :number AND p.repository = :repository"),
     @NamedQuery(name = "PullRequest.findByIssue", query = "SELECT p FROM EntityPullRequest p WHERE p.issue = :issue")
 })
-public class EntityPullRequest implements Serializable {
+public class EntityPullRequest implements InterfaceEntity, Serializable {
 
     private static final long serialVersionUID = 1L;
     @Id
@@ -40,12 +40,12 @@ public class EntityPullRequest implements Serializable {
     @Temporal(javax.persistence.TemporalType.TIMESTAMP)
     private Date createdAt;
     private long idPullRequest;
-    private int additions;
-    private int changedFiles;
-    private int commentsCount;
-    private int commitsCount;
-    private int deletions;
-    private int number;
+    private Integer additions;
+    private Integer changedFiles;
+    private Integer commentsCount;
+    private Integer commitsCount;
+    private Integer deletions;
+    private Integer number;
     @ManyToOne
     private EntityPullRequestMarker base;
     @ManyToOne
@@ -92,11 +92,11 @@ public class EntityPullRequest implements Serializable {
         this.id = id;
     }
 
-    public int getAdditions() {
+    public Integer getAdditions() {
         return additions;
     }
 
-    public void setAdditions(int additions) {
+    public void setAdditions(Integer additions) {
         this.additions = additions;
     }
 
@@ -132,11 +132,11 @@ public class EntityPullRequest implements Serializable {
         this.bodyText = bodyText;
     }
 
-    public int getChangedFiles() {
+    public Integer getChangedFiles() {
         return changedFiles;
     }
 
-    public void setChangedFiles(int changedFiles) {
+    public void setChangedFiles(Integer changedFiles) {
         this.changedFiles = changedFiles;
     }
 
@@ -148,11 +148,11 @@ public class EntityPullRequest implements Serializable {
         this.closedAt = closedAt;
     }
 
-    public int getCommentsCount() {
+    public Integer getCommentsCount() {
         return commentsCount;
     }
 
-    public void setCommentsCount(int commentsCount) {
+    public void setCommentsCount(Integer commentsCount) {
         this.commentsCount = commentsCount;
     }
 
@@ -164,11 +164,11 @@ public class EntityPullRequest implements Serializable {
         this.createdAt = createdAt;
     }
 
-    public int getDeletions() {
+    public Integer getDeletions() {
         return deletions;
     }
 
-    public void setDeletions(int deletions) {
+    public void setDeletions(Integer deletions) {
         this.deletions = deletions;
     }
 
@@ -244,11 +244,11 @@ public class EntityPullRequest implements Serializable {
         this.mergedBy = mergedBy;
     }
 
-    public int getNumber() {
+    public Integer getNumber() {
         return number;
     }
 
-    public void setNumber(int number) {
+    public void setNumber(Integer number) {
         this.number = number;
     }
 
@@ -316,11 +316,11 @@ public class EntityPullRequest implements Serializable {
         this.repository = repository;
     }
 
-    public int getCommitsCount() {
+    public Integer getCommitsCount() {
         return commitsCount;
     }
 
-    public void setCommitsCount(int commitsCount) {
+    public void setCommitsCount(Integer commitsCount) {
         this.commitsCount = commitsCount;
     }
 

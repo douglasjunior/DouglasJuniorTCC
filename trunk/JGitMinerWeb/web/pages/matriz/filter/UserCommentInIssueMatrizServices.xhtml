@@ -1,0 +1,15 @@
+<div xmlns="http://www.w3.org/1999/xhtml"
+     xmlns:h="http://java.sun.com/jsf/html" 
+     xmlns:p="http://primefaces.org/ui">
+
+    <h2>Usuarios que comentaram em uma issue</h2>
+
+    <br />
+
+    <h:outputText value="Date: " />  
+    <p:calendar value="#{gitMatrizBean.paramValue['beginDate']}" id="beginDate" effect="explode" navigator="true" size="10" />
+    <h:outputText value=" to " />  
+    <p:calendar value="#{gitMatrizBean.paramValue['endDate']}" id="endDate" effect="explode" navigator="true" size="10"/>
+
+</div>
+

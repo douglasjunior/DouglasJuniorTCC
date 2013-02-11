@@ -19,7 +19,7 @@ import javax.persistence.*;
 @NamedQueries({
     @NamedQuery(name = "Team.findByTeamID", query = "SELECT t FROM EntityTeam t WHERE t.idTeam = :idTeam")
 })
-public class EntityTeam implements Serializable {
+public class EntityTeam implements InterfaceEntity, Serializable {
 
     private static final long serialVersionUID = 1L;
     @Id
@@ -27,9 +27,9 @@ public class EntityTeam implements Serializable {
     private Long id;
     @Temporal(javax.persistence.TemporalType.TIMESTAMP)
     private Date mineratedAt;
-    private int idTeam;
-    private int membersCount;
-    private int reposCount;
+    private Integer idTeam;
+    private Integer membersCount;
+    private Integer reposCount;
     private String name;
     private String permission;
     private String url;
@@ -52,11 +52,11 @@ public class EntityTeam implements Serializable {
         this.id = id;
     }
 
-    public int getIdTeam() {
+    public Integer getIdTeam() {
         return idTeam;
     }
 
-    public void setIdTeam(int idTeam) {
+    public void setIdTeam(Integer idTeam) {
         this.idTeam = idTeam;
     }
 
@@ -76,11 +76,11 @@ public class EntityTeam implements Serializable {
         this.repositories = repositories;
     }
 
-    public int getMembersCount() {
+    public Integer getMembersCount() {
         return membersCount;
     }
 
-    public void setMembersCount(int membersCount) {
+    public void setMembersCount(Integer membersCount) {
         this.membersCount = membersCount;
     }
 
@@ -108,11 +108,11 @@ public class EntityTeam implements Serializable {
         this.permission = permission;
     }
 
-    public int getReposCount() {
+    public Integer getReposCount() {
         return reposCount;
     }
 
-    public void setReposCount(int reposCount) {
+    public void setReposCount(Integer reposCount) {
         this.reposCount = reposCount;
     }
 
