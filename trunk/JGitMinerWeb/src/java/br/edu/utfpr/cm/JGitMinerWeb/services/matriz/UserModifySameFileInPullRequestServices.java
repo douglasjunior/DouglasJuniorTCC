@@ -72,12 +72,15 @@ public class UserModifySameFileInPullRequestServices extends MatrizServices {
         String jpql = "SELECT NEW br.edu.utfpr.cm.JGitMinerWeb.services.matriz.auxiliary.AuxUserFilePull(u, p, f.filename) "
                 + "FROM "
                 + "EntityPullRequest p JOIN p.repositoryCommits c JOIN c.committer u JOIN c.files f "
+                + "WHERE "
+                + "p.number >= :beginPull AND "
+                + "p.number <= :endPull AND "
+                + "p.repository <= :repo "
                 + "ORDER BY p.number";
 
         System.out.println(jpql);
 
-        //   List<EntityMatrizRecord> records = dao.selectWithParams(jpql, new String[]{"repo", "beginPull", "endPull"}, new Object[]{getRepository(), getBeginPullRequestNumber(), getEndPullRequestNumber()});
-        List<AuxUserFilePull> query = dao.selectWithParams(jpql, new String[]{}, new Object[]{});
+        List<AuxUserFilePull> query = dao.selectWithParams(jpql, new String[]{"repo", "beginPull", "endPull"}, new Object[]{getRepository(), getBeginPullRequestNumber(), getEndPullRequestNumber()});
 
         System.out.println("query: " + query.size());
 
@@ -102,12 +105,6 @@ public class UserModifySameFileInPullRequestServices extends MatrizServices {
         }
 
         setRecords(records);
-
-        System.out.println("records: " + records.size());
-
-        for (EntityMatrizRecord rec : records) {
-            System.out.println(rec);
-        }
     }
 
     @Override

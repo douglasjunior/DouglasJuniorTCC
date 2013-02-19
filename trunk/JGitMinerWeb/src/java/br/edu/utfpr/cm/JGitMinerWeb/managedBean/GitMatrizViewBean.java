@@ -4,7 +4,6 @@
  */
 package br.edu.utfpr.cm.JGitMinerWeb.managedBean;
 
-import br.edu.utfpr.cm.JGitMinerWeb.converter.ClassConverter;
 import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericDao;
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.matriz.EntityMatriz;
 import br.edu.utfpr.cm.JGitMinerWeb.services.matriz.MatrizServices;

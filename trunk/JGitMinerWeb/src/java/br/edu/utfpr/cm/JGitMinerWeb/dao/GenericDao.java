@@ -1,5 +1,6 @@
 package br.edu.utfpr.cm.JGitMinerWeb.dao;
 
+import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.InterfaceEntity;
 import java.io.Serializable;
 import java.util.List;
 import javax.ejb.Stateless;
@@ -20,21 +21,23 @@ public class GenericDao implements Serializable {
         return em;
     }
 
-    public void insert(Object entidade) {
-        getEntityManager().persist(entidade);
+    public void insert(InterfaceEntity entity) {
+        getEntityManager().persist(entity);
+        getEntityManager().flush();
     }
 
-    public void edit(Object entidade) {
-        getEntityManager().merge(entidade);
+    public void edit(InterfaceEntity entity) {
+        getEntityManager().merge(entity);
+        getEntityManager().flush();
     }
 
-    public void remove(Object entidade) {
-        getEntityManager().remove(getEntityManager().merge(entidade));
+    public void remove(InterfaceEntity entity) {
+        getEntityManager().remove(getEntityManager().merge(entity));
     }
 
-    public Object findByID(Object id, Class classe) {
+    public <T> T findByID(Long id, Class classe) {
         verifyClearCache();
-        return getEntityManager().find(classe, id);
+        return (T) getEntityManager().find(classe, id);
     }
 
     public <T> T findByID(String strId, Class classe) {

@@ -4,6 +4,7 @@
  */
 package br.edu.utfpr.cm.JGitMinerWeb.pojo.matriz;
 
+import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.InterfaceEntity;
 import java.io.Serializable;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -17,7 +18,7 @@ import javax.persistence.Table;
  */
 @Entity
 @Table(name = "matrizRecord")
-public class EntityMatrizRecord implements Serializable {
+public class EntityMatrizRecord implements InterfaceEntity, Serializable {
 
     private static final long serialVersionUID = 1L;
     @Id

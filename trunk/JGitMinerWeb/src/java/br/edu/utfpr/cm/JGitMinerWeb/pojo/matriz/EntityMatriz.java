@@ -5,6 +5,7 @@
 package br.edu.utfpr.cm.JGitMinerWeb.pojo.matriz;
 
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.EntityRepository;
+import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.InterfaceEntity;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
@@ -32,7 +33,7 @@ import javax.persistence.Temporal;
 @NamedQueries({
     @NamedQuery(name = "Matriz.findAllTheLatest", query = "SELECT m FROM EntityMatriz m ORDER BY m.started DESC")
 })
-public class EntityMatriz implements Serializable {
+public class EntityMatriz implements InterfaceEntity, Serializable {
 
     private static final long serialVersionUID = 1L;
     @Id
