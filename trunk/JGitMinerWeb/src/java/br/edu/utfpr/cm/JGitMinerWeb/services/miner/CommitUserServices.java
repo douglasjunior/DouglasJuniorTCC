@@ -15,7 +15,7 @@ import org.eclipse.egit.github.core.CommitUser;
  *
  * @author Douglas
  */
-public class CommitUserServices implements Serializable  {
+public class CommitUserServices implements Serializable {
 
     public static EntityCommitUser createEntity(CommitUser gitCommitUser, GenericDao dao) {
         if (gitCommitUser == null) {
@@ -26,24 +26,20 @@ public class CommitUserServices implements Serializable  {
 
         if (commitUser == null) {
             commitUser = new EntityCommitUser();
-        }
 
-        commitUser.setMineredAt(new Date());
-        commitUser.setDateCommitUser(gitCommitUser.getDate());
-        commitUser.setEmail(gitCommitUser.getEmail());
-        commitUser.setName(gitCommitUser.getName());
+            commitUser.setMineredAt(new Date());
+            commitUser.setDateCommitUser(gitCommitUser.getDate());
+            commitUser.setEmail(gitCommitUser.getEmail());
+            commitUser.setName(gitCommitUser.getName());
 
-        if (commitUser.getId() == null || commitUser.getId().equals(new Long(0))) {
             dao.insert(commitUser);
-        } else {
-            dao.edit(commitUser);
         }
 
         return commitUser;
     }
 
     private static EntityCommitUser getCommitUserByEmail(String email, GenericDao dao) {
-        List<EntityCommitUser> users = dao.executeNamedQueryComParametros("CommitUser.findByEmail", new String[]{"email"}, new Object[]{email});
+        List<EntityCommitUser> users = dao.executeNamedQueryComParametros("CommitUser.findByEmail", new String[]{"email"}, new Object[]{email}, true);
         if (!users.isEmpty()) {
             return users.get(0);
         }

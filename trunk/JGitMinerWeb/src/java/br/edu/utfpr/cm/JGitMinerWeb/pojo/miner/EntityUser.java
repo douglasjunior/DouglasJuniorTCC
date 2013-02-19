@@ -59,9 +59,9 @@ public class EntityUser implements InterfaceEntity, Serializable {
     private String type;
     @Column(columnDefinition = "text")
     private String url;
-    @OneToMany(mappedBy = "userIssue")
+    @OneToMany(mappedBy = "userIssue", fetch = FetchType.LAZY)
     private List<EntityIssue> issues;
-    @OneToMany(mappedBy = "assignee")
+    @OneToMany(mappedBy = "assignee", fetch = FetchType.LAZY)
     private List<EntityIssue> issuesAssigned;
     @JoinTable(name = "gitRepository_userWatchers")
     @ManyToMany

@@ -28,20 +28,20 @@ public class EntityRepositoryCommit implements InterfaceEntity, Serializable {
     private Long id;
     @Temporal(javax.persistence.TemporalType.TIMESTAMP)
     private Date mineredAt;
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     private EntityRepository repository;
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     private EntityCommit commit;
     @OneToOne(fetch = FetchType.LAZY)
     private EntityCommitStats stats;
     @OneToMany(mappedBy = "repositoryCommit", fetch = FetchType.LAZY)
     private Set<EntityCommitFile> files;
-    @Column(columnDefinition = "text")
+    @Column(columnDefinition = "text", unique = true)
     private String sha;
     private String url;
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     private EntityUser author;
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     private EntityUser committer;
     @OneToMany(mappedBy = "repositoryCommit", fetch = FetchType.LAZY)
     private Set<EntityCommitComment> comments;

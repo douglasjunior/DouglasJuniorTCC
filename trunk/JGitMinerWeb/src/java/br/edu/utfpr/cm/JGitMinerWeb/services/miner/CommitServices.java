@@ -15,7 +15,7 @@ import org.eclipse.egit.github.core.Commit;
  *
  * @author Douglas
  */
-public class CommitServices implements Serializable  {
+public class CommitServices implements Serializable {
 
     public static EntityCommit createEntity(Commit gitCommit, GenericDao dao) {
         if (gitCommit == null) {
@@ -48,7 +48,7 @@ public class CommitServices implements Serializable  {
     }
 
     public static EntityCommit getCommitByURL(String url, GenericDao dao) {
-        List<EntityCommit> commits = dao.executeNamedQueryComParametros("Commit.findByURL", new String[]{"url"}, new Object[]{url});
+        List<EntityCommit> commits = dao.executeNamedQueryComParametros("Commit.findByURL", new String[]{"url"}, new Object[]{url}, true);
         if (!commits.isEmpty()) {
             return commits.get(0);
         }

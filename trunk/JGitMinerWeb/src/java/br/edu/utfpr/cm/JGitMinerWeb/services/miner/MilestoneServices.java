@@ -18,7 +18,7 @@ import org.eclipse.egit.github.core.service.MilestoneService;
  *
  * @author Douglas
  */
-public class MilestoneServices implements Serializable  {
+public class MilestoneServices implements Serializable {
 
     public static EntityMilestone createEntity(Milestone gitMilestone, GenericDao dao) {
         if (gitMilestone == null) {
@@ -29,18 +29,18 @@ public class MilestoneServices implements Serializable  {
 
         if (milestone == null) {
             milestone = new EntityMilestone();
+            milestone.setCreator(UserServices.createEntity(gitMilestone.getCreator(), dao, false));
+            milestone.setUrl(gitMilestone.getUrl());
+            milestone.setNumber(gitMilestone.getNumber());
+            milestone.setCreatedAt(gitMilestone.getCreatedAt());
         }
 
-        milestone.setCreatedAt(gitMilestone.getCreatedAt());
         milestone.setDueOn(gitMilestone.getDueOn());
         milestone.setClosedIssues(gitMilestone.getClosedIssues());
-        milestone.setNumber(gitMilestone.getNumber());
         milestone.setOpenIssues(gitMilestone.getOpenIssues());
         milestone.setDescription(gitMilestone.getDescription());
         milestone.setStateMilestone(gitMilestone.getState());
         milestone.setTitle(gitMilestone.getTitle());
-        milestone.setUrl(gitMilestone.getUrl());
-        milestone.setCreator(UserServices.createEntity(gitMilestone.getCreator(), dao, false));
 
         if (milestone.getId() == null || milestone.getId().equals(new Long(0))) {
             dao.insert(milestone);
@@ -52,7 +52,7 @@ public class MilestoneServices implements Serializable  {
     }
 
     private static EntityMilestone getMilestoneByURL(String url, GenericDao dao) {
-        List<EntityMilestone> miles = dao.executeNamedQueryComParametros("Milestone.findByURL", new String[]{"url"}, new Object[]{url});
+        List<EntityMilestone> miles = dao.executeNamedQueryComParametros("Milestone.findByURL", new String[]{"url"}, new Object[]{url}, true);
         if (!miles.isEmpty()) {
             return miles.get(0);
         }
@@ -80,7 +80,7 @@ public class MilestoneServices implements Serializable  {
             out.printLog(milestones.size() + " Milestones baixados no total!");
         } catch (Exception ex) {
             ex.printStackTrace();
-            out.printLog(milestones.size() + " Milestones baixados no total! Erro: " + ex.toString());
+            out.printLog("Erro: " + ex.toString());
         }
         return milestones;
     }

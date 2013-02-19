@@ -13,9 +13,12 @@ import javax.persistence.*;
  * @author Douglas
  */
 @Entity
-@Table(name = "gitCommitFile")
+@Table(name = "gitCommitFile",
+uniqueConstraints = {
+    @UniqueConstraint(columnNames = {"repositoryCommit_id", "sha"})
+})
 @NamedQueries({
-    @NamedQuery(name = "CommitFile.findBySHA", query = "SELECT f FROM EntityCommitFile f WHERE f.sha = :sha")
+    @NamedQuery(name = "CommitFile.findByCommitAndSHA", query = "SELECT f FROM EntityCommitFile f WHERE f.repositoryCommit = :repoCommit AND f.sha = :sha ")
 })
 public class EntityCommitFile implements InterfaceEntity, Serializable {
 
@@ -39,17 +42,20 @@ public class EntityCommitFile implements InterfaceEntity, Serializable {
     @Column(columnDefinition = "text")
     private String sha;
     private String status;
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "repositoryCommit_id")
     private EntityRepositoryCommit repositoryCommit;
 
     public EntityCommitFile() {
         mineredAt = new Date();
     }
 
+    @Override
     public Long getId() {
         return id;
     }
 
+    @Override
     public void setId(Long id) {
         this.id = id;
     }

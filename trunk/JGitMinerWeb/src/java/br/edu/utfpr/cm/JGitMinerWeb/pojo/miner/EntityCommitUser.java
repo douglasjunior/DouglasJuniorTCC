@@ -27,6 +27,7 @@ public class EntityCommitUser implements InterfaceEntity, Serializable {
     private Date mineredAt;
     @Temporal(javax.persistence.TemporalType.TIMESTAMP)
     private Date dateCommitUser;
+    @Column(unique = true)
     private String email;
     private String name;
 

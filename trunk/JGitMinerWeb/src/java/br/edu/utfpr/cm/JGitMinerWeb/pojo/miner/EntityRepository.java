@@ -47,9 +47,9 @@ public class EntityRepository implements InterfaceEntity, Serializable {
     @Column(unique = true)
     private Long idRepository;
     private Integer sizeRepository;
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     private EntityRepository parent;
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     private EntityRepository source;
     private String cloneUrl;
     @Column(columnDefinition = "text")
@@ -69,23 +69,23 @@ public class EntityRepository implements InterfaceEntity, Serializable {
     @Column(columnDefinition = "text")
     private String svnUrl;
     private String url;
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     private EntityUser owner;
-    @OneToMany(mappedBy = "repository")
+    @OneToMany(mappedBy = "repository", fetch = FetchType.LAZY)
     private List<EntityIssue> issues;
-    @OneToMany(mappedBy = "repository")
+    @OneToMany(mappedBy = "repository", fetch = FetchType.LAZY)
     private List<EntityPullRequest> pullRequests;
-    @OneToMany(mappedBy = "repository")
+    @OneToMany(mappedBy = "repository", fetch = FetchType.LAZY)
     private List<EntityRepositoryCommit> repoCommits;
-    @ManyToMany(mappedBy = "collaboratedRepositories")
+    @ManyToMany(mappedBy = "collaboratedRepositories", fetch = FetchType.LAZY)
     private List<EntityUser> collaborators;
-    @ManyToMany(mappedBy = "watchedRepositories")
+    @ManyToMany(mappedBy = "watchedRepositories", fetch = FetchType.LAZY)
     private List<EntityUser> watchers;
-    @OneToMany(mappedBy = "parent")
+    @OneToMany(mappedBy = "parent", fetch = FetchType.LAZY)
     private List<EntityRepository> forks;
-    @ManyToMany(mappedBy = "repositories")
+    @ManyToMany(mappedBy = "repositories", fetch = FetchType.LAZY)
     private List<EntityTeam> teams;
-    @OneToMany(mappedBy = "repository")
+    @OneToMany(mappedBy = "repository", fetch = FetchType.LAZY)
     private List<EntityMilestone> milestones;
 
     public EntityRepository() {

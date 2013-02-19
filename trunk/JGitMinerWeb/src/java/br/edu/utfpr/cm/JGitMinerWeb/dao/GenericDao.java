@@ -15,7 +15,7 @@ public class GenericDao implements Serializable {
 
     @PersistenceContext(unitName = "pu")
     private EntityManager em;
-    private int transCount;
+    private static int transCount;
 
     private EntityManager getEntityManager() {
         return em;
@@ -89,8 +89,15 @@ public class GenericDao implements Serializable {
     }
 
     public List executeNamedQueryComParametros(String namedQuery, String[] parametros, Object[] objetos) {
+       return executeNamedQueryComParametros(namedQuery, parametros, objetos, false);
+    }
+
+    public List executeNamedQueryComParametros(String namedQuery, String[] parametros, Object[] objetos, boolean singleResult) {
         verifyClearCache();
         Query query = getEntityManager().createNamedQuery(namedQuery);
+        if (singleResult) {
+            query.setFirstResult(0);
+        }
         if (parametros.length != objetos.length) {
             System.err.println("A quantidade de parametros difere da quantidade de atributos.");
             return null;
@@ -136,7 +143,7 @@ public class GenericDao implements Serializable {
     }
 
     private void verifyClearCache() {
-        if (transCount > 100) {
+        if (transCount > 500) {
             clearCache();
             transCount = 0;
         } else {

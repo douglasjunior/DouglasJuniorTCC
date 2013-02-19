@@ -21,31 +21,35 @@ import org.eclipse.egit.github.core.client.PagedRequest;
  *
  * @author douglas
  */
-public class IssueEventServices implements Serializable  {
+public class IssueEventServices implements Serializable {
 
     public static List<IssueEvent> getEventsByIssue(EntityIssue issue, String ownerRepositoryLogin, String repositoryName) {
         // repos/:owner/:repo/issues/:issue_number/events
-
-        StringBuilder uri = new StringBuilder("/repos");
-        uri.append('/').append(ownerRepositoryLogin);
-        uri.append('/').append(repositoryName);
-        uri.append("/issues");
-        uri.append('/').append(issue.getNumber());
-        uri.append("/events");
-        PagedRequest<IssueEvent> request = new PagedRequest<IssueEvent>(1, 100);
-        request.setUri(uri);
-        request.setType(new TypeToken<List<IssueEvent>>() {
-        }.getType());
-        PageIterator<IssueEvent> pageIterator = new PageIterator<IssueEvent>(request, AuthServices.getGitHubCliente());
-        List<IssueEvent> elements = new ArrayList<IssueEvent>();
         try {
-            while (pageIterator.hasNext()) {
-                elements.addAll(pageIterator.next());
+            StringBuilder uri = new StringBuilder("/repos");
+            uri.append('/').append(ownerRepositoryLogin);
+            uri.append('/').append(repositoryName);
+            uri.append("/issues");
+            uri.append('/').append(issue.getNumber());
+            uri.append("/events");
+            PagedRequest<IssueEvent> request = new PagedRequest<IssueEvent>(1, 100);
+            request.setUri(uri);
+            request.setType(new TypeToken<List<IssueEvent>>() {
+            }.getType());
+            PageIterator<IssueEvent> pageIterator = new PageIterator<IssueEvent>(request, AuthServices.getGitHubCliente());
+            List<IssueEvent> elements = new ArrayList<IssueEvent>();
+            try {
+                while (pageIterator.hasNext()) {
+                    elements.addAll(pageIterator.next());
+                }
+            } catch (NoSuchPageException pageException) {
+                throw pageException;
             }
-        } catch (NoSuchPageException pageException) {
-            throw pageException;
+            return elements;
+        } catch (RuntimeException ex) {
+            ex.printStackTrace();
+            return getEventsByIssue(issue, ownerRepositoryLogin, repositoryName);
         }
-        return elements;
     }
 
     public static EntityIssueEvent createEntity(IssueEvent gitIssueEvent, GenericDao dao) {
@@ -73,7 +77,7 @@ public class IssueEventServices implements Serializable  {
     }
 
     private static EntityIssueEvent getEventByIssueEventID(long issueEventID, GenericDao dao) {
-        List<EntityIssueEvent> events = dao.executeNamedQueryComParametros("IssueEvent.findByEventIssueID", new String[]{"idIssueEvent"}, new Object[]{issueEventID});
+        List<EntityIssueEvent> events = dao.executeNamedQueryComParametros("IssueEvent.findByEventIssueID", new String[]{"idIssueEvent"}, new Object[]{issueEventID}, true);
         if (!events.isEmpty()) {
             return events.get(0);
         }

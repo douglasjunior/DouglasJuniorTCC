@@ -27,6 +27,7 @@ public class EntityTeam implements InterfaceEntity, Serializable {
     private Long id;
     @Temporal(javax.persistence.TemporalType.TIMESTAMP)
     private Date mineratedAt;
+    @Column(unique = true)
     private Integer idTeam;
     private Integer membersCount;
     private Integer reposCount;

@@ -49,27 +49,21 @@ public class RepositoryCommitServices implements Serializable {
 
         if (repoCommit == null) {
             repoCommit = new EntityRepositoryCommit();
-        }
-
-        repoCommit.setMineredAt(new Date());
-        repoCommit.setAuthor(UserServices.createEntity(gitRepoCommit.getAuthor(), dao, false));
-        repoCommit.setCommit(CommitServices.createEntity(gitRepoCommit.getCommit(), dao));
-        repoCommit.setCommitter(UserServices.createEntity(gitRepoCommit.getCommitter(), dao, false));
+            repoCommit.setMineredAt(new Date());
+            repoCommit.setAuthor(UserServices.createEntity(gitRepoCommit.getAuthor(), dao, false));
+            repoCommit.setCommit(CommitServices.createEntity(gitRepoCommit.getCommit(), dao));
+            repoCommit.setCommitter(UserServices.createEntity(gitRepoCommit.getCommitter(), dao, false));
 //        createParents(repoCommit, gitRepoCommit.getParents(), gitRepo, dao);
-        repoCommit.setSha(gitRepoCommit.getSha());
-        repoCommit.setUrl(gitRepoCommit.getUrl());
-
-        if (repoCommit.getId() == null || repoCommit.getId().equals(new Long(0))) {
+            repoCommit.setSha(gitRepoCommit.getSha());
+            repoCommit.setUrl(gitRepoCommit.getUrl());
             dao.insert(repoCommit);
-        } else {
-            dao.edit(repoCommit);
         }
 
         return repoCommit;
     }
 
     private static EntityRepositoryCommit getRepoCommitBySHA(String sha, GenericDao dao) {
-        List<EntityRepositoryCommit> repoCommits = dao.executeNamedQueryComParametros("RepositoryCommit.findBySHA", new String[]{"sha"}, new Object[]{sha});
+        List<EntityRepositoryCommit> repoCommits = dao.executeNamedQueryComParametros("RepositoryCommit.findBySHA", new String[]{"sha"}, new Object[]{sha}, true);
         if (!repoCommits.isEmpty()) {
             return repoCommits.get(0);
         }
@@ -101,13 +95,23 @@ public class RepositoryCommitServices implements Serializable {
             while (iterator.hasNext()) {
                 elements.addAll(iterator.next());
             }
-        } catch (NoSuchPageException pageException) {
-            throw pageException;
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            return getGitRepoCommitsFromPullRequest(pullRequest, repositoryToMiner);
         }
         return elements;
     }
 
     private static String getId(EntityRepository repository) {
         return "/" + repository.getOwner().getLogin() + "/" + repository.getName();
+    }
+
+    public static RepositoryCommit getGitRepositoryCommit(Repository gitRepo, RepositoryCommit gitRepoCommit) throws Exception {
+        try {
+            return new CommitService(AuthServices.getGitHubCliente()).getCommit(gitRepo, gitRepoCommit.getSha());
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            return getGitRepositoryCommit(gitRepo, gitRepoCommit);
+        }
     }
 }
