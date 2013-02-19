@@ -32,6 +32,7 @@ public class EntityCommit implements InterfaceEntity, Serializable {
     @Column(columnDefinition = "text")
     private String message;
     private String sha;
+    @Column(unique = true)
     private String url;
     @ManyToOne
     private EntityTree tree;

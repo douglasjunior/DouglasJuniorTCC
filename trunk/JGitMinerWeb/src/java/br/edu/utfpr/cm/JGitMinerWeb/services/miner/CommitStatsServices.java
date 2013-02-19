@@ -16,29 +16,21 @@ import org.eclipse.egit.github.core.CommitStats;
  *
  * @author Douglas
  */
-public class CommitStatsServices implements Serializable  {
+public class CommitStatsServices implements Serializable {
 
     public static EntityCommitStats createEntity(CommitStats gitStats, EntityRepositoryCommit repoCommit, GenericDao dao) {
         if (gitStats == null) {
             return null;
         }
 
-        EntityCommitStats stats = getStatsByRepoCommit(repoCommit, dao);
-
-        if (stats == null) {
-            stats = new EntityCommitStats();
-        }
+        EntityCommitStats stats = new EntityCommitStats();
 
         stats.setMineredAt(new Date());
         stats.setAdditions(gitStats.getAdditions());
         stats.setDeletions(gitStats.getDeletions());
         stats.setTotal(gitStats.getTotal());
 
-        if (stats.getId() == null || stats.getId().equals(new Long(0))) {
-            dao.insert(stats);
-        } else {
-            dao.edit(stats);
-        }
+        dao.insert(stats);
 
         return stats;
     }

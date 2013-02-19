@@ -18,7 +18,7 @@ import org.eclipse.egit.github.core.service.TeamService;
  *
  * @author douglas
  */
-public class TeamServices implements Serializable  {
+public class TeamServices implements Serializable {
 
     public static List<Team> getGitTeamsFromRepository(Repository gitRepo, OutLog out) {
         List<Team> teams = new ArrayList<Team>();
@@ -61,7 +61,7 @@ public class TeamServices implements Serializable  {
     }
 
     private static EntityTeam getTeamByTeamID(int idTeam, GenericDao dao) {
-        List<EntityTeam> teams = dao.executeNamedQueryComParametros("Team.findByTeamID", new String[]{"idTeam"}, new Object[]{idTeam});
+        List<EntityTeam> teams = dao.executeNamedQueryComParametros("Team.findByTeamID", new String[]{"idTeam"}, new Object[]{idTeam}, true);
         if (!teams.isEmpty()) {
             return teams.get(0);
         }

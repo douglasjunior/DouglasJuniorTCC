@@ -8,6 +8,7 @@ import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericDao;
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.EntityUser;
 import br.edu.utfpr.cm.JGitMinerWeb.util.OutLog;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import org.eclipse.egit.github.core.Repository;
@@ -22,7 +23,7 @@ import org.eclipse.egit.github.core.service.WatcherService;
 public class UserServices implements Serializable {
 
     private static EntityUser getUserByLogin(String login, GenericDao dao) {
-        List<EntityUser> users = dao.executeNamedQueryComParametros("User.findByLogin", new String[]{"login"}, new Object[]{login});
+        List<EntityUser> users = dao.executeNamedQueryComParametros("User.findByLogin", new String[]{"login"}, new Object[]{login}, true);
         if (!users.isEmpty()) {
             return users.get(0);
         }
@@ -75,9 +76,15 @@ public class UserServices implements Serializable {
     }
 
     public static List<User> getGitCollaboratorsFromRepository(Repository gitRepo, OutLog out) throws Exception {
-        out.printLog("Baixando Collaborators...\n");
-        List<User> users = new CollaboratorService(AuthServices.getGitHubCliente()).getCollaborators(gitRepo);
-        out.printLog(users.size() + " Collaborators baixados!");
+        List<User> users = new ArrayList<User>();
+        try {
+            out.printLog("Baixando Collaborators...\n");
+            users.addAll(new CollaboratorService(AuthServices.getGitHubCliente()).getCollaborators(gitRepo));
+            out.printLog(users.size() + " Collaborators baixados!");
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            out.printLog("Erro: " + ex.toString());
+        }
         return users;
     }
 

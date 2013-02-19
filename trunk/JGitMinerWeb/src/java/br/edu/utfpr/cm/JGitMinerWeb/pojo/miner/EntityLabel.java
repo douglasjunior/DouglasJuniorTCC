@@ -27,6 +27,7 @@ public class EntityLabel implements InterfaceEntity, Serializable {
     private Date mineredAt;
     private String color;
     private String name;
+    @Column(unique = true)
     private String url;
 
     public EntityLabel() {

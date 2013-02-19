@@ -39,6 +39,7 @@ public class EntityIssueEvent implements InterfaceEntity, Serializable {
     private Date createdAt;
     @ManyToOne
     private EntityIssue issue;
+    @Column(unique = true)
     private long idIssueEvent;
     @Column(columnDefinition = "text")
     private String commitId;

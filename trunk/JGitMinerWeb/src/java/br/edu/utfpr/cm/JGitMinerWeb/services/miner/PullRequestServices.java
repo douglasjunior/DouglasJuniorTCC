@@ -20,7 +20,7 @@ import org.eclipse.egit.github.core.service.PullRequestService;
  *
  * @author Douglas
  */
-public class PullRequestServices implements Serializable  {
+public class PullRequestServices implements Serializable {
 
     public static EntityPullRequest createEntity(PullRequest gitPullRequest, GenericDao dao) {
         if (gitPullRequest == null) {
@@ -76,7 +76,7 @@ public class PullRequestServices implements Serializable  {
     }
 
     public static EntityPullRequest getPullRequestByIdPull(long idPullRequest, GenericDao dao) {
-        List<EntityPullRequest> pulls = dao.executeNamedQueryComParametros("PullRequest.findByIdPullRequest", new String[]{"idPullRequest"}, new Object[]{idPullRequest});
+        List<EntityPullRequest> pulls = dao.executeNamedQueryComParametros("PullRequest.findByIdPullRequest", new String[]{"idPullRequest"}, new Object[]{idPullRequest}, true);
         if (!pulls.isEmpty()) {
             return pulls.get(0);
         }

@@ -39,7 +39,8 @@ public class EntityPullRequest implements InterfaceEntity, Serializable {
     private Date updatedAt;
     @Temporal(javax.persistence.TemporalType.TIMESTAMP)
     private Date createdAt;
-    private long idPullRequest;
+    @Column(unique = true)
+    private Long idPullRequest;
     private Integer additions;
     private Integer changedFiles;
     private Integer commentsCount;
@@ -196,11 +197,11 @@ public class EntityPullRequest implements InterfaceEntity, Serializable {
         this.htmlUrl = htmlUrl;
     }
 
-    public long getIdPullRequest() {
+    public Long getIdPullRequest() {
         return idPullRequest;
     }
 
-    public void setIdPullRequest(long idPullRequest) {
+    public void setIdPullRequest(Long idPullRequest) {
         this.idPullRequest = idPullRequest;
     }
 

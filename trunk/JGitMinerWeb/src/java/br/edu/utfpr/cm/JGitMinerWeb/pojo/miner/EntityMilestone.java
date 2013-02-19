@@ -37,10 +37,11 @@ public class EntityMilestone implements InterfaceEntity, Serializable {
     private String stateMilestone;
     @Column(columnDefinition = "text")
     private String title;
+    @Column(unique = true)
     private String url;
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     private EntityUser creator;
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     private EntityRepository repository;
 
     public EntityMilestone() {
