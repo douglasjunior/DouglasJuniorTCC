@@ -4,15 +4,15 @@
 
     <p:panel>
         <h:form prependId="false">
-            <p:menubar>
+            <p:menubar autoDisplay="false">
                 <p:submenu label="Miner" icon="ui-icon ui-icon-document" id="minerMenu">
-                    <p:menuitem action="#{pagesManager.minerRepository}" ajax="false" value="Repository" id="minerRepository"></p:menuitem>
-                    <p:menuitem action="#{pagesManager.minerOthers}" ajax="false" value="Others data" id="minerOthersData"></p:menuitem>
+                    <p:menuitem action="#{pagesManager.minerRepository}" ajax="false" value="Repository" id="minerRepository" />
+                    <p:menuitem action="#{pagesManager.minerOthers}" ajax="false" value="Others data" id="minerOthersData" />
                     <p:menuitem action="#{pagesManager.minerView}" ajax="false" value="View" id="minerView"></p:menuitem>
                 </p:submenu>
                 <p:submenu label="Matriz" icon="ui-icon ui-icon-document" id="matrizMenu">
-                    <p:menuitem action="#{pagesManager.matrizGit}" ajax="false" value="Create" id="matrizCreate"></p:menuitem>
-                    <p:menuitem action="#{pagesManager.matrizView}" ajax="false" value="View" id="matrizView"></p:menuitem>
+                    <p:menuitem action="#{pagesManager.matrizGit}" ajax="false" value="Create" id="matrizCreate" />
+                    <p:menuitem action="#{pagesManager.matrizView}" ajax="false" value="View" id="matrizView" />
                 </p:submenu>
             </p:menubar>
         </h:form>

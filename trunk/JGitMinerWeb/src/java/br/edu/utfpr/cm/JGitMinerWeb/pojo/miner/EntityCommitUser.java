@@ -31,10 +31,12 @@ public class EntityCommitUser implements InterfaceEntity, Serializable {
     private String email;
     private String name;
 
+    @Override
     public Long getId() {
         return id;
     }
 
+    @Override
     public void setId(Long id) {
         this.id = id;
     }

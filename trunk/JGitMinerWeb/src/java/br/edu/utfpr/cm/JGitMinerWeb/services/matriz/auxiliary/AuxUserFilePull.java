@@ -4,6 +4,7 @@
  */
 package br.edu.utfpr.cm.JGitMinerWeb.services.matriz.auxiliary;
 
+import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.EntityCommitUser;
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.EntityPullRequest;
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.EntityUser;
 
@@ -13,25 +14,25 @@ import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.EntityUser;
  */
 public class AuxUserFilePull {
 
-    private EntityUser user;
+    private EntityCommitUser commitUser;
     private EntityPullRequest pull;
     private String file;
 
     public AuxUserFilePull() {
     }
 
-    public AuxUserFilePull(EntityUser user, EntityPullRequest pull, String file) {
-        this.user = user;
+    public AuxUserFilePull(EntityCommitUser commitUser, EntityPullRequest pull, String file) {
+        this.commitUser = commitUser;
         this.pull = pull;
         this.file = file;
     }
 
-    public EntityUser getUser() {
-        return user;
+    public EntityCommitUser getCommitUser() {
+        return commitUser;
     }
 
-    public void setUser(EntityUser user) {
-        this.user = user;
+    public void setCommitUser(EntityCommitUser commitUser) {
+        this.commitUser = commitUser;
     }
 
     public EntityPullRequest getPull() {
