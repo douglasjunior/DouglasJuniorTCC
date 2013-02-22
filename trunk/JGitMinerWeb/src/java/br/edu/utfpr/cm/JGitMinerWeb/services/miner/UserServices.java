@@ -36,9 +36,16 @@ public class UserServices implements Serializable {
         }
 
         EntityUser user = getUserByLogin(gitUser.getLogin(), dao);
+
         if (user == null) {
             user = new EntityUser();
         }
+
+        user.setMineredAt(new Date());
+        user.setGravatarId(gitUser.getGravatarId());
+        user.setIdUser(gitUser.getId());
+        user.setLogin(gitUser.getLogin());
+        user.setUrl(gitUser.getUrl());
 
         if (firstMiner) {
             user.setCreatedAt(gitUser.getCreatedAt());
@@ -60,11 +67,6 @@ public class UserServices implements Serializable {
             user.setType(gitUser.getType());
         }
 
-        user.setMineredAt(new Date());
-        user.setGravatarId(gitUser.getGravatarId());
-        user.setIdUser(gitUser.getId());
-        user.setLogin(gitUser.getLogin());
-        user.setUrl(gitUser.getUrl());
 
         if (user.getId() == null || user.getId().equals(new Long(0))) {
             dao.insert(user);

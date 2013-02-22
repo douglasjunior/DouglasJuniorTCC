@@ -5,9 +5,9 @@
 package br.edu.utfpr.cm.JGitMinerWeb.pojo.miner;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 import javax.persistence.*;
 
 /**
@@ -72,38 +72,40 @@ public class EntityRepository implements InterfaceEntity, Serializable {
     @ManyToOne(fetch = FetchType.LAZY)
     private EntityUser owner;
     @OneToMany(mappedBy = "repository", fetch = FetchType.LAZY)
-    private List<EntityIssue> issues;
+    private Set<EntityIssue> issues;
     @OneToMany(mappedBy = "repository", fetch = FetchType.LAZY)
-    private List<EntityPullRequest> pullRequests;
+    private Set<EntityPullRequest> pullRequests;
     @OneToMany(mappedBy = "repository", fetch = FetchType.LAZY)
-    private List<EntityRepositoryCommit> repoCommits;
+    private Set<EntityRepositoryCommit> repoCommits;
     @ManyToMany(mappedBy = "collaboratedRepositories", fetch = FetchType.LAZY)
-    private List<EntityUser> collaborators;
+    private Set<EntityUser> collaborators;
     @ManyToMany(mappedBy = "watchedRepositories", fetch = FetchType.LAZY)
-    private List<EntityUser> watchers;
+    private Set<EntityUser> watchers;
     @OneToMany(mappedBy = "parent", fetch = FetchType.LAZY)
-    private List<EntityRepository> forks;
+    private Set<EntityRepository> forks;
     @ManyToMany(mappedBy = "repositories", fetch = FetchType.LAZY)
-    private List<EntityTeam> teams;
+    private Set<EntityTeam> teams;
     @OneToMany(mappedBy = "repository", fetch = FetchType.LAZY)
-    private List<EntityMilestone> milestones;
+    private Set<EntityMilestone> milestones;
 
     public EntityRepository() {
-        issues = new ArrayList<EntityIssue>();
-        pullRequests = new ArrayList<EntityPullRequest>();
-        repoCommits = new ArrayList<EntityRepositoryCommit>();
-        collaborators = new ArrayList<EntityUser>();
-        watchers = new ArrayList<EntityUser>();
-        forks = new ArrayList<EntityRepository>();
-        teams = new ArrayList<EntityTeam>();
-        milestones = new ArrayList<EntityMilestone>();
+        issues = new HashSet<EntityIssue>();
+        pullRequests = new HashSet<EntityPullRequest>();
+        repoCommits = new HashSet<EntityRepositoryCommit>();
+        collaborators = new HashSet<EntityUser>();
+        watchers = new HashSet<EntityUser>();
+        forks = new HashSet<EntityRepository>();
+        teams = new HashSet<EntityTeam>();
+        milestones = new HashSet<EntityMilestone>();
         mineredAt = new Date();
     }
 
+    @Override
     public Long getId() {
         return id;
     }
 
+    @Override
     public void setId(Long id) {
         this.id = id;
     }
@@ -252,44 +254,68 @@ public class EntityRepository implements InterfaceEntity, Serializable {
         this.owner = owner;
     }
 
-    public List<EntityIssue> getIssues() {
+    public Set<EntityIssue> getIssues() {
         return issues;
     }
 
-    public void setIssues(List<EntityIssue> issues) {
+    public void setIssues(Set<EntityIssue> issues) {
         this.issues = issues;
     }
 
-    public List<EntityRepository> getForks() {
-        return forks;
-    }
-
-    public void setForks(List<EntityRepository> forks) {
-        this.forks = forks;
-    }
-
-    public List<EntityTeam> getTeams() {
-        return teams;
-    }
-
-    public void setTeams(List<EntityTeam> teams) {
-        this.teams = teams;
-    }
-
-    public List<EntityPullRequest> getPullRequests() {
+    public Set<EntityPullRequest> getPullRequests() {
         return pullRequests;
     }
 
-    public void setPullRequests(List<EntityPullRequest> pullRequests) {
+    public void setPullRequests(Set<EntityPullRequest> pullRequests) {
         this.pullRequests = pullRequests;
     }
 
-    public List<EntityRepositoryCommit> getRepoCommits() {
+    public Set<EntityRepositoryCommit> getRepoCommits() {
         return repoCommits;
     }
 
-    public void setRepoCommits(List<EntityRepositoryCommit> repoCommits) {
+    public void setRepoCommits(Set<EntityRepositoryCommit> repoCommits) {
         this.repoCommits = repoCommits;
+    }
+
+    public Set<EntityUser> getCollaborators() {
+        return collaborators;
+    }
+
+    public void setCollaborators(Set<EntityUser> collaborators) {
+        this.collaborators = collaborators;
+    }
+
+    public Set<EntityUser> getWatchers() {
+        return watchers;
+    }
+
+    public void setWatchers(Set<EntityUser> watchers) {
+        this.watchers = watchers;
+    }
+
+    public Set<EntityRepository> getForks() {
+        return forks;
+    }
+
+    public void setForks(Set<EntityRepository> forks) {
+        this.forks = forks;
+    }
+
+    public Set<EntityTeam> getTeams() {
+        return teams;
+    }
+
+    public void setTeams(Set<EntityTeam> teams) {
+        this.teams = teams;
+    }
+
+    public Set<EntityMilestone> getMilestones() {
+        return milestones;
+    }
+
+    public void setMilestones(Set<EntityMilestone> milestones) {
+        this.milestones = milestones;
     }
 
     public EntityRepository getParent() {
@@ -356,26 +382,8 @@ public class EntityRepository implements InterfaceEntity, Serializable {
         this.url = url;
     }
 
-    public List<EntityUser> getCollaborators() {
-        return collaborators;
-    }
-
-    public void setCollaborators(List<EntityUser> collaborators) {
-        this.collaborators = collaborators;
-    }
-
     public void addCollaborator(EntityUser collaborator) {
-        if (!collaborators.contains(collaborator)) {
-            collaborators.add(collaborator);
-        }
-    }
-
-    public List<EntityUser> getWatchers() {
-        return watchers;
-    }
-
-    public void setWatchers(List<EntityUser> watchers) {
-        this.watchers = watchers;
+        collaborators.add(collaborator);
     }
 
     public void addWatcher(EntityUser watcher) {
@@ -432,9 +440,7 @@ public class EntityRepository implements InterfaceEntity, Serializable {
     }
 
     public void addPullRequest(EntityPullRequest pullRequest) {
-        if (!pullRequests.contains(pullRequest)) {
-            pullRequests.add(pullRequest);
-        }
+        pullRequests.add(pullRequest);
         pullRequest.setRepository(this);
     }
 

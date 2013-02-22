@@ -40,6 +40,8 @@ public class EntityComment implements InterfaceEntity, Serializable {
     private String url;
     @ManyToOne
     private EntityUser user;
+    @ManyToOne
+    private EntityIssue issue;
 
     public EntityComment() {
         mineredAt = new Date();
@@ -125,6 +127,14 @@ public class EntityComment implements InterfaceEntity, Serializable {
 
     public void setUser(EntityUser user) {
         this.user = user;
+    }
+
+    public EntityIssue getIssue() {
+        return issue;
+    }
+
+    public void setIssue(EntityIssue issue) {
+        this.issue = issue;
     }
 
     @Override

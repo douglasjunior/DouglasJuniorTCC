@@ -5,9 +5,9 @@
 package br.edu.utfpr.cm.JGitMinerWeb.pojo.miner;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 import javax.persistence.*;
 
 /**
@@ -40,7 +40,7 @@ public class EntityIssue implements InterfaceEntity, Serializable {
     private Integer commentsCount;
     private Integer number;
     @OneToMany
-    private List<EntityLabel> labels;
+    private Set<EntityLabel> labels;
     @ManyToOne
     private EntityMilestone milestone;
     @OneToOne(mappedBy = "issue")
@@ -62,24 +62,26 @@ public class EntityIssue implements InterfaceEntity, Serializable {
     private EntityUser assignee;
     @ManyToOne
     private EntityUser userIssue;
-    @OneToMany
-    private List<EntityComment> comments;
+    @OneToMany(mappedBy = "issue")
+    private Set<EntityComment> comments;
     @ManyToOne
     private EntityRepository repository;
     @OneToMany(mappedBy = "issue")
-    private List<EntityIssueEvent> events;
+    private Set<EntityIssueEvent> events;
 
     public EntityIssue() {
-        comments = new ArrayList<EntityComment>();
-        labels = new ArrayList<EntityLabel>();
+        comments = new HashSet<EntityComment>();
+        labels = new HashSet<EntityLabel>();
         mineredAt = new Date();
-        events = new ArrayList<EntityIssueEvent>();
+        events = new HashSet<EntityIssueEvent>();
     }
 
+    @Override
     public Long getId() {
         return id;
     }
 
+    @Override
     public void setId(Long id) {
         this.id = id;
     }
@@ -132,11 +134,19 @@ public class EntityIssue implements InterfaceEntity, Serializable {
         this.closedAt = closedAt;
     }
 
-    public List<EntityComment> getComments() {
+    public Set<EntityLabel> getLabels() {
+        return labels;
+    }
+
+    public void setLabels(Set<EntityLabel> labels) {
+        this.labels = labels;
+    }
+
+    public Set<EntityComment> getComments() {
         return comments;
     }
 
-    public void setComments(List<EntityComment> comments) {
+    public void setComments(Set<EntityComment> comments) {
         this.comments = comments;
     }
 
@@ -148,11 +158,11 @@ public class EntityIssue implements InterfaceEntity, Serializable {
         this.repository = repository;
     }
 
-    public List<EntityIssueEvent> getEvents() {
+    public Set<EntityIssueEvent> getEvents() {
         return events;
     }
 
-    public void setEvents(List<EntityIssueEvent> events) {
+    public void setEvents(Set<EntityIssueEvent> events) {
         this.events = events;
     }
 
@@ -178,14 +188,6 @@ public class EntityIssue implements InterfaceEntity, Serializable {
 
     public void setIdIssue(long idIssue) {
         this.idIssue = idIssue;
-    }
-
-    public List<EntityLabel> getLabels() {
-        return labels;
-    }
-
-    public void setLabels(List<EntityLabel> labels) {
-        this.labels = labels;
     }
 
     public EntityMilestone getMilestone() {
@@ -286,9 +288,8 @@ public class EntityIssue implements InterfaceEntity, Serializable {
     }
 
     public void addComment(EntityComment comment) {
-        if (!getComments().contains(comment) || comment.getId() == null || comment.getId().equals(new Long(0))) {
-            getComments().add(comment);
-        }
+        comments.add(comment);
+        comment.setIssue(this);
     }
 
     public void addLabel(EntityLabel label) {
@@ -298,9 +299,7 @@ public class EntityIssue implements InterfaceEntity, Serializable {
     }
 
     public void addEvent(EntityIssueEvent issueEvent) {
-        if (!events.contains(issueEvent)) {
-            events.add(issueEvent);
-        }
+        events.add(issueEvent);
         issueEvent.setIssue(this);
     }
 }

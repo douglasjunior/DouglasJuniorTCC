@@ -16,7 +16,6 @@ import java.util.Date;
 import java.util.List;
 import org.eclipse.egit.github.core.Repository;
 import org.eclipse.egit.github.core.RepositoryCommit;
-import org.eclipse.egit.github.core.client.NoSuchPageException;
 import org.eclipse.egit.github.core.client.PageIterator;
 import org.eclipse.egit.github.core.client.PagedRequest;
 import org.eclipse.egit.github.core.service.CommitService;
@@ -50,13 +49,20 @@ public class RepositoryCommitServices implements Serializable {
         if (repoCommit == null) {
             repoCommit = new EntityRepositoryCommit();
             repoCommit.setMineredAt(new Date());
-            repoCommit.setAuthor(UserServices.createEntity(gitRepoCommit.getAuthor(), dao, false));
-            repoCommit.setCommit(CommitServices.createEntity(gitRepoCommit.getCommit(), dao));
-            repoCommit.setCommitter(UserServices.createEntity(gitRepoCommit.getCommitter(), dao, false));
-//        createParents(repoCommit, gitRepoCommit.getParents(), gitRepo, dao);
+
+//          createParents(repoCommit, gitRepoCommit.getParents(), gitRepo, dao);
             repoCommit.setSha(gitRepoCommit.getSha());
             repoCommit.setUrl(gitRepoCommit.getUrl());
             dao.insert(repoCommit);
+        }
+        if (repoCommit.getCommit() == null) {
+            repoCommit.setCommit(CommitServices.createEntity(gitRepoCommit.getCommit(), dao));
+        }
+        if (repoCommit.getAuthor() == null) {
+            repoCommit.setAuthor(UserServices.createEntity(gitRepoCommit.getAuthor(), dao, false));
+        }
+        if (repoCommit.getCommitter() == null) {
+            repoCommit.setCommitter(UserServices.createEntity(gitRepoCommit.getCommitter(), dao, false));
         }
 
         return repoCommit;
