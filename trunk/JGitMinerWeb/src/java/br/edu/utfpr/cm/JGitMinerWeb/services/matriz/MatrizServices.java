@@ -19,7 +19,7 @@ import java.util.Map;
 public abstract class MatrizServices implements Runnable, Serializable {
 
     protected GenericDao dao;
-    protected EntityRepository repository;
+    private EntityRepository repository;
     private List<EntityMatrizRecord> records;
     protected Map params;
 

@@ -1,0 +1,17 @@
+<div xmlns="http://www.w3.org/1999/xhtml"
+     xmlns:h="http://java.sun.com/jsf/html" 
+     xmlns:p="http://primefaces.org/ui">
+
+    <h2>Usuarios que modificaram o mesmo arquivo em um PullRequest</h2>
+
+    <br />
+
+    <h:outputText value="Pull Request Number: " />  
+    <p:inputText value="#{gitMatrizBean.paramValue['beginPull']}" id="beginPull" type="number"  size="10" />
+    <h:outputText value=" to " />  
+    <p:inputText value="#{gitMatrizBean.paramValue['endPull']}" id="endPull" type="number" size="10" />
+    <h:message for="beginPull" />
+    <h:message for="endPull" />
+
+</div>
+

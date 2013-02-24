@@ -72,7 +72,7 @@ public class UserModifySameFileInPullRequestServices extends MatrizServices {
     public void run() {
         System.out.println(params);
 
-        if (getRepository() == null) {
+        if (repository == null) {
             throw new IllegalArgumentException("Parâmetro Repository não pode ser nulo.");
         }
 

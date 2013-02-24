@@ -111,9 +111,11 @@ public class EntityMatriz implements InterfaceEntity, Serializable {
     }
 
     public String getClassServicesSingleName() {
-        String[] tokens = classServicesName.split("\\.");
-        if (tokens.length > 0) {
-            return tokens[tokens.length - 1];
+        if (classServicesName != null) {
+            String[] tokens = classServicesName.split("\\.");
+            if (tokens.length > 0) {
+                return tokens[tokens.length - 1];
+            }
         }
         return classServicesName;
     }

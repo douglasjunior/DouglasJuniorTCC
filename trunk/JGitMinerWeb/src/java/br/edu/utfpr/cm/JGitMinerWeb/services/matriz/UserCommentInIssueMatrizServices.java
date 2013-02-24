@@ -57,7 +57,7 @@ public class UserCommentInIssueMatrizServices extends MatrizServices {
 
     @Override
     public void run() {
-        if (repository == null) {
+        if (getRepository() == null) {
             throw new IllegalArgumentException("Parâmetro Repository não pode ser nulo.");
         }
 
