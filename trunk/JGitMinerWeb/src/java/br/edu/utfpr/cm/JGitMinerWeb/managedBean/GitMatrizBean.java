@@ -168,9 +168,9 @@ public class GitMatrizBean implements Serializable {
                 @Override
                 public void run() {
                     try {
-                        out.setCurrentProcess("Iniciando consulta ao banco de dados.");
+                        out.setCurrentProcess("Iniciando coleta dos dados para geração da matriz da matriz.");
                         super.run();
-                        out.printLog(netServices.getRecords().size() + " Registros encontrados na consulta!");
+                        out.printLog(netServices.getRecords().size() + " Registros coletados!");
                         progress = new Integer(50);
                         out.printLog("");
                         out.setCurrentProcess("Iniciando salvamento dos dados gerados.");
@@ -183,16 +183,17 @@ public class GitMatrizBean implements Serializable {
                         ex.printStackTrace();
                         message = "Geração da rede abortada: " + ex.toString();
                         fail = true;
+                    } finally {
+                        System.gc();
+                        out.printLog("");
+                        out.setCurrentProcess(message);
+                        progress = new Integer(100);
+                        initialized = false;
+                        entityMatriz.setLog(out.getLog().toString());
+                        entityMatriz.setStoped(new Date());
+                        dao.edit(entityMatriz);
+                        params.clear();
                     }
-                    System.gc();
-                    out.printLog("");
-                    out.setCurrentProcess(message);
-                    progress = new Integer(100);
-                    initialized = false;
-                    entityMatriz.setLog(out.getLog().toString());
-                    entityMatriz.setStoped(new Date());
-                    dao.edit(entityMatriz);
-                    params.clear();
                 }
             };
             process.start();

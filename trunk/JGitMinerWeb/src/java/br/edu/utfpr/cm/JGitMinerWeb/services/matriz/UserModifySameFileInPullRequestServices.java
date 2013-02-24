@@ -8,7 +8,6 @@ import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericDao;
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.matriz.EntityMatrizRecord;
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.EntityCommitUser;
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.EntityRepository;
-import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.EntityUser;
 import br.edu.utfpr.cm.JGitMinerWeb.services.matriz.auxiliary.AuxUserFilePull;
 import br.edu.utfpr.cm.JGitMinerWeb.services.matriz.auxiliary.AuxUserUserPullFile;
 import br.edu.utfpr.cm.JGitMinerWeb.util.JsfUtil;
@@ -77,8 +76,6 @@ public class UserModifySameFileInPullRequestServices extends MatrizServices {
             throw new IllegalArgumentException("Parâmetro Repository não pode ser nulo.");
         }
 
-        List<EntityMatrizRecord> records = new ArrayList<EntityMatrizRecord>();
-
         String jpql = "SELECT NEW br.edu.utfpr.cm.JGitMinerWeb.services.matriz.auxiliary.AuxUserFilePull(uc, p, f.filename) "
                 + "FROM "
                 + "EntityPullRequest p JOIN p.repositoryCommits c JOIN c.commit cm JOIN cm.committer uc JOIN c.files f "
@@ -86,15 +83,30 @@ public class UserModifySameFileInPullRequestServices extends MatrizServices {
                 + "p.number >= :beginPull AND "
                 + "p.number <= :endPull AND "
                 + "p.repository = :repo "
-                + "ORDER BY p.number";
+                + "ORDER BY p.number ";
+
+        // INICIO QUERY
+        //query é feita por intervalos para evitar estouro de RAM e CPU
+        int queryCount = 0;
+        int offset = 1;
+        final int limit = 10000;
 
         System.out.println(jpql);
 
-        List<AuxUserFilePull> query = dao.selectWithParams(jpql, new String[]{"repo", "beginPull", "endPull"}, new Object[]{getRepository(), getBeginPullRequestNumber(), getEndPullRequestNumber()});
+        List<AuxUserFilePull> query = new ArrayList<AuxUserFilePull>();
 
-        System.out.println(getRepository() + " " + getBeginPullRequestNumber() + " " + getEndPullRequestNumber());
+        do {
+            List result = dao.selectWithParams(jpql, new String[]{"repo", "beginPull", "endPull"}, new Object[]{getRepository(), getBeginPullRequestNumber(), getEndPullRequestNumber()}, offset, limit);
+            query.addAll(result);
+            offset += limit;
+            queryCount = result.size();
+        } while (queryCount >= limit);
 
         System.out.println("query: " + query.size());
+        // FIM QUERY
+
+
+        List< EntityMatrizRecord> records = new ArrayList<EntityMatrizRecord>();
 
         List<AuxUserUserPullFile> controls = new ArrayList<AuxUserUserPullFile>(); // lista pata controle de repetição
         for (AuxUserFilePull aufp : query) {
@@ -111,7 +123,7 @@ public class UserModifySameFileInPullRequestServices extends MatrizServices {
                         // aqui sim ele cria o registro a ser salvo
                         EntityMatrizRecord rec = new EntityMatrizRecord(EntityCommitUser.class, aufp.getCommitUser().getId(),
                                 EntityCommitUser.class, aufp2.getCommitUser().getId(), aufp.getPull().getNumber(), aufp.getFile());
-                         records.add(rec);
+                        records.add(rec);
                     }
                 }
             }

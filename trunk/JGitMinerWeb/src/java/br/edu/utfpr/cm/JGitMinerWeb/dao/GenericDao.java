@@ -111,6 +111,10 @@ public class GenericDao implements Serializable {
     }
 
     public List selectWithParams(String select, String[] params, Object[] objects) {
+        return selectWithParams(select, params, objects, 0, 0);
+    }
+
+    public List selectWithParams(String select, String[] params, Object[] objects, int offset, int limit) {
         Query query = em.createQuery(select);
         if (params.length != objects.length) {
             throw new IndexOutOfBoundsException("The lenght of params array is not equals lenght of objects array.");
@@ -119,6 +123,12 @@ public class GenericDao implements Serializable {
             String atributo = params[i];
             Object parametro = objects[i];
             query.setParameter(atributo, parametro);
+        }
+        if (offset > 0) {
+            query.setFirstResult(offset);
+        }
+        if (limit > 0) {
+            query.setMaxResults(limit);
         }
         return query.getResultList();
     }
