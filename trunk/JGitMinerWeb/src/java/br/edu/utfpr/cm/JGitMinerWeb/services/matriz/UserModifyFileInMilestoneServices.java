@@ -19,7 +19,7 @@ import java.util.Map;
  *
  * @author douglas
  */
-public class UserModifyFileInMilestoneServices extends MatrizServices {
+public class UserModifyFileInMilestoneServices extends AbstractMatrizServices {
 
     public UserModifyFileInMilestoneServices(GenericDao dao) {
         super(dao);
@@ -29,9 +29,17 @@ public class UserModifyFileInMilestoneServices extends MatrizServices {
         super(dao, repository, params);
     }
 
-    public int getMilestoneNumber() {
+    private int getMilestoneNumber() {
         String mileNumber = params.get("milestoneNumber") + "";
         return Util.tratarStringParaInt(mileNumber);
+    }
+
+    private String getPrefixFile() {
+        return params.get("prefixFile") + "%";
+    }
+
+    private String getSuffixFile() {
+        return "%" + params.get("suffixFile");
     }
 
     @Override
@@ -52,13 +60,17 @@ public class UserModifyFileInMilestoneServices extends MatrizServices {
                 + "FROM "
                 + "EntityPullRequest p JOIN p.issue i JOIN i.milestone m JOIN p.repositoryCommits rc JOIN rc.files f JOIN rc.commit c JOIN c.committer cu "
                 + "WHERE "
+                + "p.repository = :repository AND "
                 + "m.number = :milestoneNumber AND "
-                + "p.repository = :repository "
+                + "f.filename LIKE :prefixFile AND "
+                + "f.filename LIKE :suffixFile "
                 + "GROUP BY cu, f.filename";
 
         System.out.println(jpql);
 
-        List<AuxUserFileCount> query = dao.selectWithParams(jpql, new String[]{"repository", "milestoneNumber"}, new Object[]{getRepository(), mileNumber});
+        List<AuxUserFileCount> query = dao.selectWithParams(jpql,
+                new String[]{"repository", "milestoneNumber", "prefixFile", "suffixFile"},
+                new Object[]{getRepository(), mileNumber, getPrefixFile(), getSuffixFile()});
 
         System.out.println("query: " + query.size());
 

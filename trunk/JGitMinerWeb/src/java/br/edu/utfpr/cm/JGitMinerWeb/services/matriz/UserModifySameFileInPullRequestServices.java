@@ -20,7 +20,7 @@ import java.util.Map;
  *
  * @author douglas
  */
-public class UserModifySameFileInPullRequestServices extends MatrizServices {
+public class UserModifySameFileInPullRequestServices extends AbstractMatrizServices {
 
     public UserModifySameFileInPullRequestServices(GenericDao dao) {
         super(dao);
@@ -68,6 +68,14 @@ public class UserModifySameFileInPullRequestServices extends MatrizServices {
         return Util.tratarStringParaLong(idPull);
     }
 
+    private String getPrefixFile() {
+        return params.get("prefixFile") + "%";
+    }
+
+    private String getSuffixFile() {
+        return "%" + params.get("suffixFile");
+    }
+
     @Override
     public void run() {
         System.out.println(params);
@@ -82,7 +90,9 @@ public class UserModifySameFileInPullRequestServices extends MatrizServices {
                 + "WHERE "
                 + "p.number >= :beginPull AND "
                 + "p.number <= :endPull AND "
-                + "p.repository = :repo "
+                + "p.repository = :repo AND "
+                + "f.filename LIKE :prefixFile AND "
+                + "f.filename LIKE :suffixFile"
                 + "ORDER BY p.number ";
 
         // INICIO QUERY
@@ -96,7 +106,10 @@ public class UserModifySameFileInPullRequestServices extends MatrizServices {
         List<AuxUserFilePull> query = new ArrayList<AuxUserFilePull>();
 
         do {
-            List result = dao.selectWithParams(jpql, new String[]{"repo", "beginPull", "endPull"}, new Object[]{getRepository(), getBeginPullRequestNumber(), getEndPullRequestNumber()}, offset, limit);
+            List result = dao.selectWithParams(jpql,
+                    new String[]{"repo", "beginPull", "endPull", "prefixFile", "suffixFile"},
+                    new Object[]{getRepository(), getBeginPullRequestNumber(), getEndPullRequestNumber(), getPrefixFile(), getSuffixFile()},
+                    offset, limit);
             query.addAll(result);
             offset += limit;
             queryCount = result.size();

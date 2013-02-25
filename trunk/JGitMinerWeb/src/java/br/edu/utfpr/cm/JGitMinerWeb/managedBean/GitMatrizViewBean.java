@@ -6,7 +6,7 @@ package br.edu.utfpr.cm.JGitMinerWeb.managedBean;
 
 import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericDao;
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.matriz.EntityMatriz;
-import br.edu.utfpr.cm.JGitMinerWeb.services.matriz.MatrizServices;
+import br.edu.utfpr.cm.JGitMinerWeb.services.matriz.AbstractMatrizServices;
 import br.edu.utfpr.cm.JGitMinerWeb.util.JsfUtil;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintWriter;
@@ -67,7 +67,7 @@ public class GitMatrizViewBean implements Serializable {
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             PrintWriter pw = new PrintWriter(baos);
 
-            pw.println(MatrizServices.createInstance(dao, matriz.getClassServicesName()).convertToCSV(matriz.getRecords()));
+            pw.println(AbstractMatrizServices.createInstance(dao, matriz.getClassServicesName()).convertToCSV(matriz.getRecords()));
 
             pw.flush();
             pw.close();

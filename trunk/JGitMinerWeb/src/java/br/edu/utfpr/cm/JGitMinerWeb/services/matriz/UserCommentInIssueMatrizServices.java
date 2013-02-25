@@ -20,7 +20,7 @@ import java.util.Map;
  *
  * @author douglas
  */
-public class UserCommentInIssueMatrizServices extends MatrizServices {
+public class UserCommentInIssueMatrizServices extends AbstractMatrizServices {
 
     public UserCommentInIssueMatrizServices(GenericDao dao) {
         super(dao);

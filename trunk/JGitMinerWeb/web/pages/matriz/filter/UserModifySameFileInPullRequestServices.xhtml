@@ -10,8 +10,12 @@
     <p:inputText value="#{gitMatrizBean.paramValue['beginPull']}" id="beginPull" type="number"  size="10" />
     <h:outputText value=" to " />  
     <p:inputText value="#{gitMatrizBean.paramValue['endPull']}" id="endPull" type="number" size="10" />
-    <h:message for="beginPull" />
-    <h:message for="endPull" />
+    <br />
+    <h:outputText value="File prefix: " />  
+    <p:inputText value="#{gitMatrizBean.paramValue['prefixFile']}" id="prefixFile"  size="20" />
+    <br />
+    <h:outputText value="File suffix: " />  
+    <p:inputText value="#{gitMatrizBean.paramValue['suffixFile']}" id="suffixFile"  size="20" />
 
 </div>
 

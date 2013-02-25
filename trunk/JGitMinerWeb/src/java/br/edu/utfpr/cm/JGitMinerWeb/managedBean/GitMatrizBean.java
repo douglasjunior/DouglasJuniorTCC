@@ -8,7 +8,7 @@ import br.edu.utfpr.cm.JGitMinerWeb.converter.ClassConverter;
 import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericDao;
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.matriz.EntityMatriz;
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.EntityRepository;
-import br.edu.utfpr.cm.JGitMinerWeb.services.matriz.MatrizServices;
+import br.edu.utfpr.cm.JGitMinerWeb.services.matriz.AbstractMatrizServices;
 import br.edu.utfpr.cm.JGitMinerWeb.util.JsfUtil;
 import br.edu.utfpr.cm.JGitMinerWeb.util.OutLog;
 import java.io.Serializable;
@@ -162,37 +162,45 @@ public class GitMatrizBean implements Serializable {
             progress = new Integer(10);
             entityMatriz.setRepository(repository);
 
-            final MatrizServices netServices = createMatrizServiceInstance();
+            final AbstractMatrizServices netServices = createMatrizServiceInstance();
 
             process = new Thread(netServices) {
                 @Override
                 public void run() {
                     try {
-                        out.setCurrentProcess("Iniciando coleta dos dados para geração da matriz da matriz.");
-                        super.run();
-                        out.printLog(netServices.getRecords().size() + " Registros coletados!");
+                        if (!canceled) {
+                            out.setCurrentProcess("Iniciando coleta dos dados para geração da matriz da matriz.");
+                            super.run();
+                            out.printLog(netServices.getRecords().size() + " Registros coletados!");
+                        }
                         progress = new Integer(50);
                         out.printLog("");
-                        out.setCurrentProcess("Iniciando salvamento dos dados gerados.");
-                        entityMatriz.setRecords(netServices.getRecords());
-                        entityMatriz.setComplete(true);
-                        dao.edit(entityMatriz);
-                        out.printLog("Salvamento dos dados concluído!");
-                        message = "Geração da matriz concluída.";
+                        if (!canceled) {
+                            out.setCurrentProcess("Iniciando salvamento dos dados gerados.");
+                            entityMatriz.setRecords(netServices.getRecords());
+                            entityMatriz.setComplete(true);
+                            dao.edit(entityMatriz);
+                            out.printLog("Salvamento dos dados concluído!");
+                        }
+                        message = "Geração da matriz finalizada.";
                     } catch (Exception ex) {
                         ex.printStackTrace();
-                        message = "Geração da rede abortada: " + ex.toString();
+                        message = "Geração da rede abortada, erro: " + ex.toString();
                         fail = true;
                     } finally {
-                        System.gc();
                         out.printLog("");
-                        out.setCurrentProcess(message);
+                        if (canceled) {
+                            out.setCurrentProcess("Geração da matriz abortada pelo usuário.");
+                        } else {
+                            out.setCurrentProcess(message);
+                        }
                         progress = new Integer(100);
                         initialized = false;
                         entityMatriz.setLog(out.getLog().toString());
                         entityMatriz.setStoped(new Date());
                         dao.edit(entityMatriz);
                         params.clear();
+                        System.gc();
                     }
                 }
             };
@@ -225,16 +233,16 @@ public class GitMatrizBean implements Serializable {
     public List<Class> getServicesClasses() {
         List<Class> cls = null;
         try {
-            cls = JsfUtil.getClasses("br.edu.utfpr.cm.JGitMinerWeb.services.matriz", Arrays.asList("MatrizServices"));
+            cls = JsfUtil.getClasses("br.edu.utfpr.cm.JGitMinerWeb.services.matriz", Arrays.asList("AbstractMatrizServices"));
         } catch (Exception ex) {
             ex.printStackTrace();
         }
         return cls;
     }
 
-    private MatrizServices createMatrizServiceInstance() {
+    private AbstractMatrizServices createMatrizServiceInstance() {
         try {
-            return (MatrizServices) serviceClass.getConstructor(GenericDao.class, EntityRepository.class, Map.class).newInstance(dao, repository, params);
+            return (AbstractMatrizServices) serviceClass.getConstructor(GenericDao.class, EntityRepository.class, Map.class).newInstance(dao, repository, params);
         } catch (Exception ex) {
             ex.printStackTrace();
         }

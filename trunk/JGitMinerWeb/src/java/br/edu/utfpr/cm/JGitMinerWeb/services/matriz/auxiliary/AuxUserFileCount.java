@@ -4,7 +4,6 @@
  */
 package br.edu.utfpr.cm.JGitMinerWeb.services.matriz.auxiliary;
 
-import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.EntityCommit;
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.EntityCommitUser;
 
 /**
@@ -48,26 +47,5 @@ public class AuxUserFileCount {
 
     public void setCount(Long count) {
         this.count = count;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (obj == null || !(obj instanceof AuxUserFileCount)) {
-            return false;
-        }
-        AuxUserFileCount other = (AuxUserFileCount) obj;
-        if (!this.commitUser.equals(other.commitUser)
-                || !this.fileName.equals(other.fileName)) {
-            return false;
-        }
-        return true;
-    }
-
-    @Override
-    public int hashCode() {
-        int hash = 7;
-        hash = 89 * hash + (this.commitUser != null ? this.commitUser.hashCode() : 0);
-        hash = 89 * hash + (this.fileName != null ? this.fileName.hashCode() : 0);
-        return hash;
     }
 }
