@@ -300,18 +300,14 @@ public class EntityUser implements InterfaceEntity, Serializable {
         if (!collaboratedRepositories.contains(repo)) {
             collaboratedRepositories.add(repo);
         }
-        if (!repo.getCollaborators().contains(this)) {
-            repo.getCollaborators().add(this);
-        }
+        repo.getCollaborators().add(this);
     }
 
     public void addWatchedRepository(EntityRepository repo) {
         if (!watchedRepositories.contains(repo)) {
             watchedRepositories.add(repo);
         }
-        if (!repo.getWatchers().contains(this)) {
-            repo.getWatchers().add(this);
-        }
+        repo.getWatchers().add(this);
     }
 
     @Override

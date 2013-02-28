@@ -215,7 +215,7 @@ public class GitMinerOthersBean implements Serializable {
 
     public void start() {
         out.resetLog();
-        initialized = false;
+        initialized = true;
         canceled = false;
         fail = false;
         progress = new Integer(0);
@@ -260,7 +260,6 @@ public class GitMinerOthersBean implements Serializable {
 
                     try {
                         Repository gitRepo = RepositoryServices.getGitRepository(repositoryToMiner.getOwner().getLogin(), repositoryToMiner.getName());
-                        initialized = true;
                         progress = new Integer(10);
                         if (!canceled && (minerOpenIssues || minerClosedIssues)) {
                             subProgress = new Integer(0);

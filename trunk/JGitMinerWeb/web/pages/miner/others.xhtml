@@ -67,19 +67,19 @@
             <br />
             <br />
 
-            <p:commandButton widgetVar="startButton" type="submit" actionListener="#{gitMinerOthersBean.start()}" value="Start" 
-                             onclick="startButton.disable();progress.start();subProgress.start();" update="loadingImage,logTextArea" />
+            <p:commandButton widgetVar="startButtonVar" type="submit" actionListener="#{gitMinerOthersBean.start()}" value="Start" 
+                             onclick="startButtonVar.disable();progressVar.start();subProgressVar.start();textAreaUpdaterVar.start();" update="loadingImage,logTextArea" />
 
-            <p:commandButton value="Cancel" actionListener="#{gitMinerOthersBean.cancel()}" oncomplete="startButton.enable();progress.cancel();subProgress.start();" />
+            <p:commandButton value="Cancel" actionListener="#{gitMinerOthersBean.cancel()}" oncomplete="startButtonVar.enable();progressVar.cancel();subProgressVar.cancel();" />
 
             <br />
             <br />
 
-            <p:progressBar id="progress" widgetVar="progress" ajax="true" value="#{gitMinerOthersBean.progress}" labelTemplate="{value}%" styleClass="animated" interval="3000" >
+            <p:progressBar id="progress" widgetVar="progressVar" ajax="true" value="#{gitMinerOthersBean.progress}" labelTemplate="{value}%" styleClass="animated" interval="3000" >
                 <p:ajax event="complete" listener="#{gitMinerOthersBean.onComplete()}" update="messages,loadingImage,logTextArea" oncomplete="startButton.enable();"/>
             </p:progressBar>
             <br />
-            <p:progressBar id="subProgress" widgetVar="subProgress" ajax="true" value="#{gitMinerOthersBean.subProgress}" labelTemplate="{value}%" styleClass="animated" interval="3000" >  
+            <p:progressBar id="subProgress" widgetVar="subProgressVar" ajax="true" value="#{gitMinerOthersBean.subProgress}" labelTemplate="{value}%" styleClass="animated" interval="3000" >  
             </p:progressBar>
 
             <br />
@@ -90,7 +90,7 @@
             </div>
             <br />
 
-            <!--       <p:poll id="textAreaUpdater" widgetVar="textAreaUpdater" async="true" interval="4" update="logTextArea,loadingImage" autoStart="{gitMinerOthersBean.initialized}" /> -->
+            <p:poll id="textAreaUpdater" widgetVar="textAreaUpdaterVar" async="true" interval="4" update="logTextArea,loadingImage" autoStart="#{gitMinerOthersBean.initialized}" />
 
             <h3>Log de mineração:</h3>
             <br />
