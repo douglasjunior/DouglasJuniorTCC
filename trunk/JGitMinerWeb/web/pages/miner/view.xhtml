@@ -17,6 +17,10 @@
                     <h:outputText value="Miners"/>
                 </f:facet>
 
+                <p:column headerText="ID">
+                    <h:outputText value="#{miner.id}" />
+                </p:column>
+                
                 <p:column headerText="Repository">
                     <h:outputText value="#{miner.repository.name}" />
                 </p:column>

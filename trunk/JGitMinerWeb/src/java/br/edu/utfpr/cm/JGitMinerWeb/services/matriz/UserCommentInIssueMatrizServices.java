@@ -12,6 +12,7 @@ import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.EntityUser;
 import br.edu.utfpr.cm.JGitMinerWeb.util.JsfUtil;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -78,7 +79,7 @@ public class UserCommentInIssueMatrizServices extends AbstractMatrizServices {
     }
 
     @Override
-    public String convertToCSV(List<EntityMatrizRecord> records) {
+    public String convertToCSV(Collection<EntityMatrizRecord> records) {
         StringBuilder sb = new StringBuilder("user;issue;comments\n");
         for (EntityMatrizRecord record : records) {
             EntityUser user = dao.findByID(record.getValueX(), record.getClassX());

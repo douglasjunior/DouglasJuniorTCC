@@ -9,10 +9,11 @@ import br.edu.utfpr.cm.JGitMinerWeb.pojo.matriz.EntityMatrizRecord;
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.EntityCommitUser;
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.EntityRepository;
 import br.edu.utfpr.cm.JGitMinerWeb.services.matriz.auxiliary.AuxUserFilePull;
-import br.edu.utfpr.cm.JGitMinerWeb.services.matriz.auxiliary.AuxUserUserPullFile;
+import br.edu.utfpr.cm.JGitMinerWeb.services.matriz.auxiliary.AuxUserUserFile;
 import br.edu.utfpr.cm.JGitMinerWeb.util.JsfUtil;
 import br.edu.utfpr.cm.JGitMinerWeb.util.Util;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -84,7 +85,7 @@ public class UserModifySameFileInPullRequestServices extends AbstractMatrizServi
             throw new IllegalArgumentException("Parâmetro Repository não pode ser nulo.");
         }
 
-        String jpql = "SELECT NEW br.edu.utfpr.cm.JGitMinerWeb.services.matriz.auxiliary.AuxUserFilePull(uc, p, f.filename) "
+        String jpql = "SELECT DISTINCT NEW br.edu.utfpr.cm.JGitMinerWeb.services.matriz.auxiliary.AuxUserFilePull(uc, p, f.filename) "
                 + "FROM "
                 + "EntityPullRequest p JOIN p.repositoryCommits c JOIN c.commit cm JOIN cm.committer uc JOIN c.files f "
                 + "WHERE "
@@ -92,7 +93,7 @@ public class UserModifySameFileInPullRequestServices extends AbstractMatrizServi
                 + "p.number <= :endPull AND "
                 + "p.repository = :repo AND "
                 + "f.filename LIKE :prefixFile AND "
-                + "f.filename LIKE :suffixFile"
+                + "f.filename LIKE :suffixFile "
                 + "ORDER BY p.number ";
 
         // INICIO QUERY
@@ -113,44 +114,54 @@ public class UserModifySameFileInPullRequestServices extends AbstractMatrizServi
             query.addAll(result);
             offset += limit;
             queryCount = result.size();
+            System.out.println("query: " + query.size());
         } while (queryCount >= limit);
 
-        System.out.println("query: " + query.size());
         // FIM QUERY
 
 
         List< EntityMatrizRecord> records = new ArrayList<EntityMatrizRecord>();
 
-        List<AuxUserUserPullFile> controls = new ArrayList<AuxUserUserPullFile>(); // lista pata controle de repetição
-        for (AuxUserFilePull aufp : query) {
-            for (AuxUserFilePull aufp2 : query) {
+        List<AuxUserUserFile> controls = new ArrayList<AuxUserUserFile>(); // lista pata controle de repetição
+        for (int i = 0; i < query.size(); i++) {
+            AuxUserFilePull aufp = query.get(i);
+            for (int j = i + 1; j < query.size(); j++) {
+                AuxUserFilePull aufp2 = query.get(j);
                 if (!aufp.getCommitUser().equals(aufp2.getCommitUser()) // se o user é diferente
                         && aufp.getPull().equals(aufp2.getPull()) // se o file é igual
                         && aufp.getFile().equals(aufp2.getFile())) { // e se o pull é igual
                     // então eles mexeram no mesmo arquivo no mesmo pull request
-                    AuxUserUserPullFile control = new AuxUserUserPullFile(aufp.getCommitUser(), aufp2.getCommitUser(), aufp.getPull(), aufp.getFile());
+                    AuxUserUserFile control = new AuxUserUserFile(aufp.getCommitUser(), aufp2.getCommitUser(),  aufp.getFile());
                     // verifica se já foi gravado registo semelhante
-                    if (!controls.contains(control)) {
-                        // salva o controle
-                        controls.add(control);
-                        // aqui sim ele cria o registro a ser salvo
-                        EntityMatrizRecord rec = new EntityMatrizRecord(EntityCommitUser.class, aufp.getCommitUser().getId(),
-                                EntityCommitUser.class, aufp2.getCommitUser().getId(), aufp.getPull().getNumber(), aufp.getFile());
-                        records.add(rec);
+                    if (controls.contains(control)) {
+                        continue;
                     }
+                    // salva o controle
+                    controls.add(control);
+                    // aqui sim ele cria o registro a ser salvo
+                    EntityMatrizRecord rec = new EntityMatrizRecord(
+                            EntityCommitUser.class, aufp.getCommitUser().getId(),
+                            EntityCommitUser.class, aufp2.getCommitUser().getId(),
+                            "", aufp.getFile());
+                    records.add(rec);
                 }
             }
+            System.out.println(i + "/" + query.size());
         }
         setRecords(records);
     }
 
     @Override
-    public String convertToCSV(List<EntityMatrizRecord> records) {
+    public String convertToCSV(Collection<EntityMatrizRecord> records) {
         StringBuilder sb = new StringBuilder("user;user2;file\n");
         for (EntityMatrizRecord record : records) {
             EntityCommitUser user = dao.findByID(record.getValueX(), EntityCommitUser.class);
+            sb.append(user.getEmail()).append(JsfUtil.TOKEN_SEPARATOR);
+
             EntityCommitUser user2 = dao.findByID(record.getValueY(), EntityCommitUser.class);
-            sb.append(user.getEmail()).append(JsfUtil.TOKEN_SEPARATOR).append(user2.getEmail()).append(JsfUtil.TOKEN_SEPARATOR).append(record.getValueZ()).append("\n");
+            sb.append(user2.getEmail()).append(JsfUtil.TOKEN_SEPARATOR);
+
+            sb.append(record.getValueZ()).append("\n");
         }
         return sb.toString();
     }

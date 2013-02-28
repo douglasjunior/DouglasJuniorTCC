@@ -12,6 +12,7 @@ import br.edu.utfpr.cm.JGitMinerWeb.services.matriz.auxiliary.AuxUserFileCount;
 import br.edu.utfpr.cm.JGitMinerWeb.util.JsfUtil;
 import br.edu.utfpr.cm.JGitMinerWeb.util.Util;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -86,7 +87,7 @@ public class UserModifyFileInMilestoneServices extends AbstractMatrizServices {
     }
 
     @Override
-    public String convertToCSV(List<EntityMatrizRecord> records) {
+    public String convertToCSV(Collection<EntityMatrizRecord> records) {
         StringBuilder sb = new StringBuilder("user;file;count\n");
         for (EntityMatrizRecord record : records) {
             EntityCommitUser user = dao.findByID(record.getValueX(), EntityCommitUser.class);

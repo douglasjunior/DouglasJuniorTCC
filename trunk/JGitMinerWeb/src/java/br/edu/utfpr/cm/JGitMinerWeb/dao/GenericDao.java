@@ -12,32 +12,32 @@ import javax.persistence.criteria.Root;
 
 @Stateless
 public class GenericDao implements Serializable {
-
+    
     @PersistenceContext(unitName = "pu")
     private EntityManager em;
-
+    
     private EntityManager getEntityManager() {
         return em;
     }
-
+    
     public void insert(InterfaceEntity entity) {
         getEntityManager().persist(entity);
         getEntityManager().flush();
     }
-
+    
     public void edit(InterfaceEntity entity) {
         getEntityManager().merge(entity);
         getEntityManager().flush();
     }
-
+    
     public void remove(InterfaceEntity entity) {
         getEntityManager().remove(getEntityManager().merge(entity));
     }
-
+    
     public <T> T findByID(Long id, Class classe) {
         return (T) getEntityManager().find(classe, id);
     }
-
+    
     public <T> T findByID(String strId, Class classe) {
         try {
             Long lId = Long.valueOf(strId);
@@ -48,7 +48,7 @@ public class GenericDao implements Serializable {
         }
         return null;
     }
-
+    
     public <T> T findByID(String strId, String strClasse) {
         try {
             Class cClass = Class.forName(strClasse);
@@ -59,13 +59,13 @@ public class GenericDao implements Serializable {
         }
         return null;
     }
-
+       
     public List selectAll(Class classe) {
         CriteriaQuery cq = getEntityManager().getCriteriaBuilder().createQuery();
         cq.select(cq.from(classe));
         return getEntityManager().createQuery(cq).getResultList();
     }
-
+    
     public List selectBy(int[] intervalo, Class classe) {
         CriteriaQuery cq = getEntityManager().getCriteriaBuilder().createQuery();
         cq.select(cq.from(classe));
@@ -74,7 +74,7 @@ public class GenericDao implements Serializable {
         q.setFirstResult(intervalo[0]);
         return q.getResultList();
     }
-
+    
     public int count(Class classe) {
         CriteriaQuery cq = getEntityManager().getCriteriaBuilder().createQuery();
         Root rt = cq.from(classe);
@@ -82,11 +82,11 @@ public class GenericDao implements Serializable {
         Query q = getEntityManager().createQuery(cq);
         return ((Long) q.getSingleResult()).intValue();
     }
-
+    
     public List executeNamedQueryComParametros(String namedQuery, String[] parametros, Object[] objetos) {
         return executeNamedQueryComParametros(namedQuery, parametros, objetos, false);
     }
-
+    
     public List executeNamedQueryComParametros(String namedQuery, String[] parametros, Object[] objetos, boolean singleResult) {
         Query query = getEntityManager().createNamedQuery(namedQuery);
         if (singleResult) {
@@ -104,16 +104,16 @@ public class GenericDao implements Serializable {
         List list = query.getResultList();
         return list;
     }
-
+    
     public List executeNamedQuery(String namedQuery) {
         List list = getEntityManager().createNamedQuery(namedQuery).getResultList();
         return list;
     }
-
+    
     public List selectWithParams(String select, String[] params, Object[] objects) {
         return selectWithParams(select, params, objects, 0, 0);
     }
-
+    
     public List selectWithParams(String select, String[] params, Object[] objects, int offset, int limit) {
         Query query = em.createQuery(select);
         if (params.length != objects.length) {
@@ -132,14 +132,15 @@ public class GenericDao implements Serializable {
         }
         return query.getResultList();
     }
-//    public void clearCache() {
-//        try {
-//         //   em.getEntityManagerFactory().getCache().evictAll();
-//         //   em.clear();
-//         //   System.gc();
-//            System.out.println("######### LIMPOU CACHE #########");
-//        } catch (Exception ex) {
-//            ex.printStackTrace();
-//        }
-//    }
+
+    public void clearCache() {
+        try {
+            em.getEntityManagerFactory().getCache().evictAll();
+            em.clear();
+            System.gc();
+            System.out.println("######### LIMPOU CACHE #########");
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }
 }

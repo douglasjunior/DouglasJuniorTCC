@@ -10,6 +10,7 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
 /**
@@ -30,6 +31,8 @@ public class EntityMatrizRecord implements InterfaceEntity, Serializable {
     private String valueY;
     private String classZ;
     private String valueZ;
+    @ManyToOne
+    private EntityMatriz matriz;
 
     public EntityMatrizRecord() {
     }
@@ -43,10 +46,12 @@ public class EntityMatrizRecord implements InterfaceEntity, Serializable {
         this.valueZ = valueZ + "";
     }
 
+    @Override
     public Long getId() {
         return id;
     }
 
+    @Override
     public void setId(Long id) {
         this.id = id;
     }
@@ -97,6 +102,14 @@ public class EntityMatrizRecord implements InterfaceEntity, Serializable {
 
     public void setValueZ(String valueZ) {
         this.valueZ = valueZ;
+    }
+
+    public EntityMatriz getMatriz() {
+        return matriz;
+    }
+
+    public void setMatriz(EntityMatriz matriz) {
+        this.matriz = matriz;
     }
 
     @Override

@@ -95,6 +95,6 @@ public class EntityCommitUser implements InterfaceEntity, Serializable {
 
     @Override
     public String toString() {
-        return "br.edu.utfpr.cm.JGitMiner.pojo.EntityCommitUser[ id=" + id + " ]";
+        return "EntityCommitUser[ id=" + id + " email=" + email + " ]";
     }
 }

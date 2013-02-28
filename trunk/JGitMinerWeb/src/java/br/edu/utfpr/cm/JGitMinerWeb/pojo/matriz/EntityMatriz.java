@@ -8,7 +8,8 @@ import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.EntityRepository;
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.InterfaceEntity;
 import java.io.Serializable;
 import java.util.Date;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 import javax.persistence.Basic;
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
@@ -49,19 +50,22 @@ public class EntityMatriz implements InterfaceEntity, Serializable {
     private String log;
     @ManyToOne(fetch = FetchType.LAZY)
     private EntityRepository repository;
-    @OneToMany(orphanRemoval = true, cascade = CascadeType.REMOVE)
-    private List<EntityMatrizRecord> records;
+    @OneToMany(mappedBy = "matriz", orphanRemoval = true, cascade = CascadeType.ALL)
+    private Set<EntityMatrizRecord> records;
     private String classServicesName;
 
     public EntityMatriz() {
         started = new Date();
         complete = false;
+        records = new HashSet<EntityMatrizRecord>();
     }
 
+    @Override
     public Long getId() {
         return id;
     }
 
+    @Override
     public void setId(Long id) {
         this.id = id;
     }
@@ -98,11 +102,11 @@ public class EntityMatriz implements InterfaceEntity, Serializable {
         this.log = log;
     }
 
-    public List<EntityMatrizRecord> getRecords() {
+    public Set<EntityMatrizRecord> getRecords() {
         return records;
     }
 
-    public void setRecords(List<EntityMatrizRecord> records) {
+    public void setRecords(Set<EntityMatrizRecord> records) {
         this.records = records;
     }
 
@@ -155,5 +159,10 @@ public class EntityMatriz implements InterfaceEntity, Serializable {
     @Override
     public String toString() {
         return "br.edu.utfpr.cm.JGitMinerWeb.pojo.EntityNet[ id=" + id + " ]";
+    }
+
+    public void addRecord(EntityMatrizRecord rec) {
+       records.add(rec);
+       rec.setMatriz(this);
     }
 }

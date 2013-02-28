@@ -8,6 +8,7 @@ import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericDao;
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.matriz.EntityMatrizRecord;
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.EntityRepository;
 import java.io.Serializable;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -48,7 +49,7 @@ public abstract class AbstractMatrizServices implements Runnable, Serializable {
     @Override
     public abstract void run();
 
-    public abstract String convertToCSV(List<EntityMatrizRecord> records);
+    public abstract String convertToCSV(Collection<EntityMatrizRecord> records);
 
     public static AbstractMatrizServices createInstance(GenericDao dao, String className) {
         try {

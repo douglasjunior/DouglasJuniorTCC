@@ -362,7 +362,7 @@ public class EntityPullRequest implements InterfaceEntity, Serializable {
 
     @Override
     public String toString() {
-        return "br.edu.utfpr.cm.JGitMiner.pojo.EntityPullRequest[ id=" + id + " ]";
+        return "EntityPullRequest[ id=" + id + " number=" + number + " ]";
     }
 
     public void addRepoCommit(EntityRepositoryCommit repoCommit) {

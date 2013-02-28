@@ -37,7 +37,7 @@ public class GitMatrizViewBean implements Serializable {
     public GitMatrizViewBean() {
     }
 
-    public void deleteNetInSession() {
+    public void deleteMatrizInSession() {
         try {
             EntityMatriz netForDelete = (EntityMatriz) JsfUtil.getObjectFromSession(STR_NET_FOR_DELETE);
             dao.remove(netForDelete);
@@ -45,29 +45,34 @@ public class GitMatrizViewBean implements Serializable {
             ex.printStackTrace();
             JsfUtil.addErrorMessage(ex.toString());
         }
-        removeNetFromSession();
+        removeMatrizFromSession();
     }
 
-    public void removeNetFromSession() {
+    public void removeMatrizFromSession() {
         JsfUtil.removeAttributeFromSession(STR_NET_FOR_DELETE);
     }
 
-    public void addNetForDeleteInSession(EntityMatriz netForDelete) {
+    public void addMatrizForDeleteInSession(EntityMatriz netForDelete) {
         JsfUtil.addAttributeInSession(STR_NET_FOR_DELETE, netForDelete);
     }
 
-    public List<EntityMatriz> getNets() {
+    public List<EntityMatriz> getMatriz() {
+        dao.clearCache();
         return dao.executeNamedQuery("Matriz.findAllTheLatest");
     }
 
     public void downloadCSV(EntityMatriz matriz) {
         try {
+            System.out.println("Matriz tem records: " + matriz.getRecords().size());
+
             String fileName = generateFileName(matriz) + ".csv";
 
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             PrintWriter pw = new PrintWriter(baos);
+            
+            AbstractMatrizServices services = AbstractMatrizServices.createInstance(dao, matriz.getClassServicesName());
 
-            pw.println(AbstractMatrizServices.createInstance(dao, matriz.getClassServicesName()).convertToCSV(matriz.getRecords()));
+            pw.println(services.convertToCSV(matriz.getRecords()));
 
             pw.flush();
             pw.close();
@@ -81,14 +86,14 @@ public class GitMatrizViewBean implements Serializable {
         }
     }
 
-    public void downloadLOG(EntityMatriz net) {
+    public void downloadLOG(EntityMatriz matriz) {
         try {
-            String fileName = generateFileName(net) + ".log";
+            String fileName = generateFileName(matriz) + ".log";
 
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             PrintWriter pw = new PrintWriter(baos);
 
-            String[] linhas = net.getLog().split("\n");
+            String[] linhas = matriz.getLog().split("\n");
 
             for (String linha : linhas) {
                 pw.println(linha);
@@ -106,8 +111,7 @@ public class GitMatrizViewBean implements Serializable {
         }
     }
 
-    private String generateFileName(EntityMatriz net) {
-        return net.getRepository().getName() + "-" + net.getStarted();
+    private String generateFileName(EntityMatriz matriz) {
+        return matriz.getRepository().getName() + "-" + matriz.getStarted();
     }
-
 }
