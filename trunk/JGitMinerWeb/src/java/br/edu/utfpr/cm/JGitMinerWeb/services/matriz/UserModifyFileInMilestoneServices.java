@@ -5,10 +5,10 @@
 package br.edu.utfpr.cm.JGitMinerWeb.services.matriz;
 
 import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericDao;
-import br.edu.utfpr.cm.JGitMinerWeb.pojo.matriz.EntityMatrizRecord;
+import br.edu.utfpr.cm.JGitMinerWeb.pojo.matriz.EntityMatrizNode;
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.EntityCommitUser;
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.EntityRepository;
-import br.edu.utfpr.cm.JGitMinerWeb.services.matriz.auxiliary.AuxUserFileCount;
+import br.edu.utfpr.cm.JGitMinerWeb.services.matriz.nodes.NodeUserFileCount;
 import br.edu.utfpr.cm.JGitMinerWeb.util.JsfUtil;
 import br.edu.utfpr.cm.JGitMinerWeb.util.Util;
 import java.util.ArrayList;
@@ -56,7 +56,7 @@ public class UserModifyFileInMilestoneServices extends AbstractMatrizServices {
             throw new IllegalArgumentException("Numero do Milestone inválido.");
         }
 
-        String jpql = "SELECT NEW br.edu.utfpr.cm.JGitMinerWeb.services.matriz.auxiliary.AuxUserFileCount(cu, f.filename, COUNT(f.filename)) "
+        String jpql = "SELECT NEW " + NodeUserFileCount.class.getName() + "(cu, f.filename, COUNT(f.filename)) "
                 + "FROM "
                 + "EntityPullRequest p JOIN p.issue i JOIN i.milestone m JOIN p.repositoryCommits rc JOIN rc.files f JOIN rc.commit c JOIN c.committer cu "
                 + "WHERE "
@@ -68,31 +68,30 @@ public class UserModifyFileInMilestoneServices extends AbstractMatrizServices {
 
         System.out.println(jpql);
 
-        List<AuxUserFileCount> query = dao.selectWithParams(jpql,
+        List<NodeUserFileCount> query = dao.selectWithParams(jpql,
                 new String[]{"repository", "milestoneNumber", "prefixFile", "suffixFile"},
                 new Object[]{getRepository(), mileNumber, getPrefixFile(), getSuffixFile()});
 
         System.out.println("query: " + query.size());
 
-        List<EntityMatrizRecord> records = new ArrayList<EntityMatrizRecord>();
-        for (AuxUserFileCount aux : query) {
-            EntityMatrizRecord rec = new EntityMatrizRecord(
-                    aux.getCommitUser().getClass().getName(), aux.getCommitUser().getId(),
-                    "", aux.getFileName(),
-                    "", aux.getCount());
+        List<EntityMatrizNode> records = new ArrayList<EntityMatrizNode>();
+        for (NodeUserFileCount aux : query) {
+            EntityMatrizNode rec = new EntityMatrizNode(
+                    aux.getCommitUser().getEmail(),
+                    aux.getFileName(),
+                    aux.getWeight());
             records.add(rec);
         }
-        setRecords(records);
+        setNodes(records);
     }
 
     @Override
-    public String convertToCSV(List<EntityMatrizRecord> records) {
+    public String convertToCSV(List<EntityMatrizNode> records) {
         StringBuilder sb = new StringBuilder("user;file;count\n");
-        for (EntityMatrizRecord record : records) {
-            EntityCommitUser user = dao.findByID(record.getValueX(), EntityCommitUser.class);
-            sb.append(user.getEmail()).append(JsfUtil.TOKEN_SEPARATOR);
-            sb.append(record.getValueY()).append(JsfUtil.TOKEN_SEPARATOR);
-            sb.append(record.getValueZ()).append("\n");
+        for (EntityMatrizNode node : records) {
+            sb.append(node.getFrom()).append(JsfUtil.TOKEN_SEPARATOR);
+            sb.append(node.getTo()).append(JsfUtil.TOKEN_SEPARATOR);
+            sb.append(node.getWeight()).append("\n");
         }
         return sb.toString();
     }

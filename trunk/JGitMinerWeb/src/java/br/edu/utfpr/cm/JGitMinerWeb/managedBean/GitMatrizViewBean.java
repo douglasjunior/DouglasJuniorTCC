@@ -67,7 +67,7 @@ public class GitMatrizViewBean implements Serializable {
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             PrintWriter pw = new PrintWriter(baos);
 
-            pw.println(AbstractMatrizServices.createInstance(dao, matriz.getClassServicesName()).convertToCSV(matriz.getRecords()));
+            pw.println(AbstractMatrizServices.createInstance(dao, matriz.getClassServicesName()).convertToCSV(matriz.getNodes()));
 
             pw.flush();
             pw.close();

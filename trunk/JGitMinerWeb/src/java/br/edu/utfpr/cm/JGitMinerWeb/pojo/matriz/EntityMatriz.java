@@ -49,8 +49,8 @@ public class EntityMatriz implements InterfaceEntity, Serializable {
     private String log;
     @ManyToOne(fetch = FetchType.LAZY)
     private EntityRepository repository;
-    @OneToMany(orphanRemoval = true, cascade = CascadeType.REMOVE)
-    private List<EntityMatrizRecord> records;
+    @OneToMany(mappedBy = "matriz", orphanRemoval = true, cascade = CascadeType.REMOVE)
+    private List<EntityMatrizNode> nodes;
     private String classServicesName;
 
     public EntityMatriz() {
@@ -58,10 +58,12 @@ public class EntityMatriz implements InterfaceEntity, Serializable {
         complete = false;
     }
 
+    @Override
     public Long getId() {
         return id;
     }
 
+    @Override
     public void setId(Long id) {
         this.id = id;
     }
@@ -98,12 +100,12 @@ public class EntityMatriz implements InterfaceEntity, Serializable {
         this.log = log;
     }
 
-    public List<EntityMatrizRecord> getRecords() {
-        return records;
+    public List<EntityMatrizNode> getNodes() {
+        return nodes;
     }
 
-    public void setRecords(List<EntityMatrizRecord> records) {
-        this.records = records;
+    public void setNodes(List<EntityMatrizNode> nodes) {
+        this.nodes = nodes;
     }
 
     public String getClassServicesName() {
@@ -141,7 +143,6 @@ public class EntityMatriz implements InterfaceEntity, Serializable {
 
     @Override
     public boolean equals(Object object) {
-        // TODO: Warning - this method won't work in the case the id fields are not set
         if (!(object instanceof EntityMatriz)) {
             return false;
         }

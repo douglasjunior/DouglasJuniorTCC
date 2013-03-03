@@ -10,45 +10,45 @@ import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.EntityPullRequest;
  *
  * @author douglas
  */
-public class AuxFileFilePull {
-    
+public class AuxFileFilePull  {
+
     private String fileName;
     private String fileName2;
     private EntityPullRequest pull;
-    
+
     public AuxFileFilePull() {
     }
-    
+
     public AuxFileFilePull(String fileName, String fileName2, EntityPullRequest pull) {
         this.fileName = fileName;
         this.fileName2 = fileName2;
         this.pull = pull;
     }
-    
+
     public String getFileName() {
         return fileName;
     }
-    
+
     public void setFileName(String fileName) {
         this.fileName = fileName;
     }
-    
+
     public EntityPullRequest getPull() {
         return pull;
     }
-    
+
     public void setPull(EntityPullRequest pull) {
         this.pull = pull;
     }
-    
+
     public String getFileName2() {
         return fileName2;
     }
-    
+
     public void setFileName2(String fileName2) {
         this.fileName2 = fileName2;
     }
-    
+
     @Override
     public boolean equals(Object obj) {
         if (obj != null && obj instanceof AuxFileFilePull) {
@@ -66,7 +66,7 @@ public class AuxFileFilePull {
         }
         return false;
     }
-    
+
     @Override
     public int hashCode() {
         int hash = 3;
@@ -75,4 +75,5 @@ public class AuxFileFilePull {
         hash = 67 * hash + (this.pull != null ? this.pull.hashCode() : 0);
         return hash;
     }
+
 }

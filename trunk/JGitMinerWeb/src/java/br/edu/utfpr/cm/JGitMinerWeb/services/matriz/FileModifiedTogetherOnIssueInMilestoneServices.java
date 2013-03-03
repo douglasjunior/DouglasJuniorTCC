@@ -5,11 +5,11 @@
 package br.edu.utfpr.cm.JGitMinerWeb.services.matriz;
 
 import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericDao;
-import br.edu.utfpr.cm.JGitMinerWeb.pojo.matriz.EntityMatrizRecord;
+import br.edu.utfpr.cm.JGitMinerWeb.pojo.matriz.EntityMatrizNode;
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.EntityRepository;
-import br.edu.utfpr.cm.JGitMinerWeb.services.matriz.auxiliary.AuxFileFileCount;
 import br.edu.utfpr.cm.JGitMinerWeb.services.matriz.auxiliary.AuxFileFilePull;
 import br.edu.utfpr.cm.JGitMinerWeb.services.matriz.auxiliary.AuxFilePull;
+import br.edu.utfpr.cm.JGitMinerWeb.services.matriz.nodes.NodeFileFileCount;
 import br.edu.utfpr.cm.JGitMinerWeb.util.JsfUtil;
 import br.edu.utfpr.cm.JGitMinerWeb.util.Util;
 import java.util.ArrayList;
@@ -74,9 +74,9 @@ public class FileModifiedTogetherOnIssueInMilestoneServices extends AbstractMatr
 
         System.out.println("query: " + query.size());
 
-        List<EntityMatrizRecord> records = new ArrayList<EntityMatrizRecord>();
+        List<EntityMatrizNode> records = new ArrayList<EntityMatrizNode>();
 
-        List<AuxFileFileCount> coochangesGeneral = new ArrayList<AuxFileFileCount>(); // contabiliza a quantidade de coochanges
+        List<NodeFileFileCount> coochangesGeneral = new ArrayList<NodeFileFileCount>(); // contabiliza a quantidade de coochanges
         List<AuxFileFilePull> coochangesPull = new ArrayList<AuxFileFilePull>(); // controla os coochanges em cada pull request
 
         int total = query.size() * query.size();
@@ -96,7 +96,7 @@ public class FileModifiedTogetherOnIssueInMilestoneServices extends AbstractMatr
                             coochangesPull.add(cooPull); // se o coochange ainda não existe no pull então registra-o
                         }
                         // cria uma linha de coochange entre arquivos
-                        AuxFileFileCount coo = new AuxFileFileCount(aux.getFileName(), aux2.getFileName());
+                        NodeFileFileCount coo = new NodeFileFileCount(aux.getFileName(), aux2.getFileName());
                         // pega o index caso o coochange ja exista
                         int index = coochangesGeneral.indexOf(coo);
                         // verifica se o index existe
@@ -104,7 +104,7 @@ public class FileModifiedTogetherOnIssueInMilestoneServices extends AbstractMatr
                             coochangesGeneral.add(coo); // se nao existe adiciona
                             //   System.out.println(i + "/" + total + " Primeiro registro: " + aux.getFileName() + " " + aux2.getFileName() + " " + aux.getPull());
                         } else {
-                            coochangesGeneral.get(index).incCount(); // se ja existe incrementa
+                            coochangesGeneral.get(index).incWeight(); // se ja existe incrementa
                             //   System.out.println(i + "/" + total + " Registro incrementado: " + aux.getFileName() + " " + aux2.getFileName() + " " + aux.getPull());
                         }
                     }
@@ -113,16 +113,16 @@ public class FileModifiedTogetherOnIssueInMilestoneServices extends AbstractMatr
         }
 
         System.out.println("coochanges: " + coochangesGeneral.size());
-        setRecords(records);
+        setNodes(records);
     }
 
     @Override
-    public String convertToCSV(List<EntityMatrizRecord> records) {
+    public String convertToCSV(List<EntityMatrizNode> records) {
         StringBuilder sb = new StringBuilder("file;file2;count\n");
-        for (EntityMatrizRecord record : records) {
-            sb.append(record.getValueX()).append(JsfUtil.TOKEN_SEPARATOR);
-            sb.append(record.getValueY()).append(JsfUtil.TOKEN_SEPARATOR);
-            sb.append(record.getValueZ()).append("\n");
+        for (EntityMatrizNode record : records) {
+            sb.append(record.getFrom()).append(JsfUtil.TOKEN_SEPARATOR);
+            sb.append(record.getTo()).append(JsfUtil.TOKEN_SEPARATOR);
+            sb.append(record.getWeight()).append("\n");
         }
         return sb.toString();
     }

@@ -5,7 +5,7 @@
 package br.edu.utfpr.cm.JGitMinerWeb.services.matriz;
 
 import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericDao;
-import br.edu.utfpr.cm.JGitMinerWeb.pojo.matriz.EntityMatrizRecord;
+import br.edu.utfpr.cm.JGitMinerWeb.pojo.matriz.EntityMatrizNode;
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.EntityRepository;
 import java.io.Serializable;
 import java.util.Date;
@@ -20,7 +20,7 @@ public abstract class AbstractMatrizServices implements Runnable, Serializable {
 
     protected GenericDao dao;
     private EntityRepository repository;
-    private List<EntityMatrizRecord> records;
+    private List<EntityMatrizNode> nodes;
     protected Map params;
 
     public AbstractMatrizServices(GenericDao dao) {
@@ -37,18 +37,18 @@ public abstract class AbstractMatrizServices implements Runnable, Serializable {
         return repository;
     }
 
-    public List<EntityMatrizRecord> getRecords() {
-        return records;
+    public List<EntityMatrizNode> getNodes() {
+        return nodes;
     }
 
-    public void setRecords(List<EntityMatrizRecord> records) {
-        this.records = records;
+    public void setNodes(List<EntityMatrizNode> nodes) {
+        this.nodes = nodes;
     }
 
     @Override
     public abstract void run();
 
-    public abstract String convertToCSV(List<EntityMatrizRecord> records);
+    public abstract String convertToCSV(List<EntityMatrizNode> records);
 
     public static AbstractMatrizServices createInstance(GenericDao dao, String className) {
         try {

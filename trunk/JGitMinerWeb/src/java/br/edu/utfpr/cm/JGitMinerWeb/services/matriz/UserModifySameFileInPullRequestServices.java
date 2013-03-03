@@ -5,8 +5,7 @@
 package br.edu.utfpr.cm.JGitMinerWeb.services.matriz;
 
 import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericDao;
-import br.edu.utfpr.cm.JGitMinerWeb.pojo.matriz.EntityMatrizRecord;
-import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.EntityCommitUser;
+import br.edu.utfpr.cm.JGitMinerWeb.pojo.matriz.EntityMatrizNode;
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.EntityRepository;
 import br.edu.utfpr.cm.JGitMinerWeb.services.matriz.auxiliary.AuxUserFilePull;
 import br.edu.utfpr.cm.JGitMinerWeb.services.matriz.auxiliary.AuxUserUserPullFile;
@@ -119,7 +118,7 @@ public class UserModifySameFileInPullRequestServices extends AbstractMatrizServi
         // FIM QUERY
 
 
-        List< EntityMatrizRecord> records = new ArrayList<EntityMatrizRecord>();
+        List< EntityMatrizNode> nodes = new ArrayList<EntityMatrizNode>();
 
         List<AuxUserUserPullFile> controls = new ArrayList<AuxUserUserPullFile>(); // lista pata controle de repetição
         for (AuxUserFilePull aufp : query) {
@@ -134,23 +133,30 @@ public class UserModifySameFileInPullRequestServices extends AbstractMatrizServi
                         // salva o controle
                         controls.add(control);
                         // aqui sim ele cria o registro a ser salvo
-                        EntityMatrizRecord rec = new EntityMatrizRecord(EntityCommitUser.class, aufp.getCommitUser().getId(),
-                                EntityCommitUser.class, aufp2.getCommitUser().getId(), aufp.getPull().getNumber(), aufp.getFile());
-                        records.add(rec);
+                        incrementNode(nodes, new EntityMatrizNode(control.getCommitUserX().getEmail(), control.getCommitUserY().getEmail()));
                     }
                 }
             }
         }
-        setRecords(records);
+        setNodes(nodes);
+    }
+
+    private void incrementNode(List<EntityMatrizNode> nodes, EntityMatrizNode node) {
+        int i = nodes.indexOf(node);
+        if (i >= 0) {
+            nodes.get(i).incWeight();
+        } else {
+            nodes.add(node);
+        }
     }
 
     @Override
-    public String convertToCSV(List<EntityMatrizRecord> records) {
+    public String convertToCSV(List<EntityMatrizNode> records) {
         StringBuilder sb = new StringBuilder("user;user2;file\n");
-        for (EntityMatrizRecord record : records) {
-            EntityCommitUser user = dao.findByID(record.getValueX(), EntityCommitUser.class);
-            EntityCommitUser user2 = dao.findByID(record.getValueY(), EntityCommitUser.class);
-            sb.append(user.getEmail()).append(JsfUtil.TOKEN_SEPARATOR).append(user2.getEmail()).append(JsfUtil.TOKEN_SEPARATOR).append(record.getValueZ()).append("\n");
+        for (EntityMatrizNode node : records) {
+            sb.append(node.getFrom()).append(JsfUtil.TOKEN_SEPARATOR);
+            sb.append(node.getTo()).append(JsfUtil.TOKEN_SEPARATOR);
+            sb.append(node.getWeight()).append("\n");
         }
         return sb.toString();
     }

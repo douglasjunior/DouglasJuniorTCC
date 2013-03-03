@@ -2,25 +2,27 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package br.edu.utfpr.cm.JGitMinerWeb.services.matriz.auxiliary;
+package br.edu.utfpr.cm.JGitMinerWeb.services.matriz.nodes;
+
+import br.edu.utfpr.cm.JGitMinerWeb.util.matriz.NodeConnection;
 
 /**
  *
  * @author douglas
  */
-public class AuxFileFileCount {
+public class NodeFileFileCount implements NodeConnection<String, String> {
 
     private String fileName;
     private String fileName2;
-    private int count;
+    private double weight;
 
-    public AuxFileFileCount() {
+    public NodeFileFileCount() {
     }
 
-    public AuxFileFileCount(String fileName, String fileName2) {
+    public NodeFileFileCount(String fileName, String fileName2) {
         this.fileName = fileName;
         this.fileName2 = fileName2;
-        this.count = 1;
+        this.weight = 1;
     }
 
     public String getFileName() {
@@ -39,22 +41,34 @@ public class AuxFileFileCount {
         this.fileName2 = fileName2;
     }
 
-    public int getCount() {
-        return count;
+    @Override
+    public double getWeight() {
+        return weight;
     }
 
-    public void setCount(int count) {
-        this.count = count;
+    @Override
+    public void setWeight(double weight) {
+        this.weight = weight;
     }
 
-    public void incCount() {
-        count++;
+    public void incWeight() {
+        weight++;
+    }
+
+    @Override
+    public String getFrom() {
+        return fileName;
+    }
+
+    @Override
+    public String getTo() {
+        return fileName2;
     }
 
     @Override
     public boolean equals(Object obj) {
-        if (obj != null && obj instanceof AuxFileFileCount) {
-            AuxFileFileCount other = (AuxFileFileCount) obj;
+        if (obj != null && obj instanceof NodeFileFileCount) {
+            NodeFileFileCount other = (NodeFileFileCount) obj;
             if (this.fileName.equals(other.fileName)
                     && this.fileName2.equals(other.fileName2)) {
                 return true;

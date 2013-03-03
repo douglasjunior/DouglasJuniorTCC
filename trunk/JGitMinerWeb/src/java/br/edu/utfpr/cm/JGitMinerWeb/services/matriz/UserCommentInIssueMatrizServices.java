@@ -5,7 +5,7 @@
 package br.edu.utfpr.cm.JGitMinerWeb.services.matriz;
 
 import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericDao;
-import br.edu.utfpr.cm.JGitMinerWeb.pojo.matriz.EntityMatrizRecord;
+import br.edu.utfpr.cm.JGitMinerWeb.pojo.matriz.EntityMatrizNode;
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.EntityIssue;
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.EntityRepository;
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.EntityUser;
@@ -70,20 +70,20 @@ public class UserCommentInIssueMatrizServices extends AbstractMatrizServices {
 
         System.out.println(jpql);
 
-        List<EntityMatrizRecord> records = dao.selectWithParams(jpql, new String[]{"repo", "dataInicial", "dataFinal"}, new Object[]{getRepository(), getBegin(), getEnd()});
+        List<EntityMatrizNode> records = dao.selectWithParams(jpql, new String[]{"repo", "dataInicial", "dataFinal"}, new Object[]{getRepository(), getBegin(), getEnd()});
 
-        setRecords(records);
+        setNodes(records);
 
         System.out.println("Results: " + records.size());
     }
 
     @Override
-    public String convertToCSV(List<EntityMatrizRecord> records) {
-        StringBuilder sb = new StringBuilder("user;issue;comments\n");
-        for (EntityMatrizRecord record : records) {
-            EntityUser user = dao.findByID(record.getValueX(), record.getClassX());
-            EntityIssue issue = dao.findByID(record.getValueY(), record.getClassY());
-            sb.append(user.getLogin()).append(JsfUtil.TOKEN_SEPARATOR).append(issue.getNumber()).append(JsfUtil.TOKEN_SEPARATOR).append(record.getValueZ()).append("\n");
+    public String convertToCSV(List<EntityMatrizNode> records) {
+        StringBuilder sb = new StringBuilder("user;issue;countComments\n");
+        for (EntityMatrizNode node : records) {
+            sb.append(node.getFrom()).append(JsfUtil.TOKEN_SEPARATOR);
+            sb.append(node.getTo()).append(JsfUtil.TOKEN_SEPARATOR);
+            sb.append(node.getWeight()).append("\n");
         }
         return sb.toString();
     }
