@@ -12,6 +12,7 @@ import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.EntityUser;
 import br.edu.utfpr.cm.JGitMinerWeb.util.JsfUtil;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -78,9 +79,9 @@ public class UserCommentInIssueMatrizServices extends AbstractMatrizServices {
     }
 
     @Override
-    public String convertToCSV(List<EntityMatrizNode> records) {
+    public String convertToCSV(Collection<EntityMatrizNode> nodes) {
         StringBuilder sb = new StringBuilder("user;issue;countComments\n");
-        for (EntityMatrizNode node : records) {
+        for (EntityMatrizNode node : nodes) {
             sb.append(node.getFrom()).append(JsfUtil.TOKEN_SEPARATOR);
             sb.append(node.getTo()).append(JsfUtil.TOKEN_SEPARATOR);
             sb.append(node.getWeight()).append("\n");

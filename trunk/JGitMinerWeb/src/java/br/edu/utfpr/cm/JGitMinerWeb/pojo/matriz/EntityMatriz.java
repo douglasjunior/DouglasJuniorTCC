@@ -8,7 +8,8 @@ import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.EntityRepository;
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.InterfaceEntity;
 import java.io.Serializable;
 import java.util.Date;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 import javax.persistence.Basic;
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
@@ -49,13 +50,14 @@ public class EntityMatriz implements InterfaceEntity, Serializable {
     private String log;
     @ManyToOne(fetch = FetchType.LAZY)
     private EntityRepository repository;
-    @OneToMany(mappedBy = "matriz", orphanRemoval = true, cascade = CascadeType.REMOVE)
-    private List<EntityMatrizNode> nodes;
+    @OneToMany(mappedBy = "matriz", orphanRemoval = true, cascade = CascadeType.ALL)
+    private Set<EntityMatrizNode> nodes;
     private String classServicesName;
 
     public EntityMatriz() {
         started = new Date();
         complete = false;
+        nodes = new HashSet<EntityMatrizNode>();
     }
 
     @Override
@@ -100,11 +102,11 @@ public class EntityMatriz implements InterfaceEntity, Serializable {
         this.log = log;
     }
 
-    public List<EntityMatrizNode> getNodes() {
+    public Set<EntityMatrizNode> getNodes() {
         return nodes;
     }
 
-    public void setNodes(List<EntityMatrizNode> nodes) {
+    public void setNodes(Set<EntityMatrizNode> nodes) {
         this.nodes = nodes;
     }
 

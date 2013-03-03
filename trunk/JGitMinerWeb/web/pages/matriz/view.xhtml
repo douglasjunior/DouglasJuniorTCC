@@ -9,7 +9,7 @@
         <h:form prependId="false" >
             <p:growl globalOnly="true" id="messages" />
 
-            <p:dataTable var="net" value="#{gitMatrizViewBean.nets}" id="netList" rows="10"
+            <p:dataTable var="matriz" value="#{gitMatrizViewBean.matriz}" id="netList" rows="10"
                          emptyMessage="No records found." paginator="true" paginatorPosition="bottom"
                          paginatorTemplate="{CurrentPageReport}  {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
                          rowsPerPageTemplate="5,10,15">
@@ -18,51 +18,55 @@
                     <h:outputText value="Nets"/>
                 </f:facet>
 
+                <p:column headerText="ID">
+                    <h:outputText value="#{matriz.id}" />
+                </p:column>
+
                 <p:column headerText="Repository">
-                    <h:outputText value="#{net.repository.name}" />
+                    <h:outputText value="#{matriz.repository.name}" />
                 </p:column>
 
                 <p:column headerText="Class Service">
-                    <h:outputText value="#{net.classServicesSingleName}" />
+                    <h:outputText value="#{matriz.classServicesSingleName}" />
                 </p:column>
 
                 <p:column headerText="Started" >
-                    <h:outputText value="#{net.started}" >
+                    <h:outputText value="#{matriz.started}" >
                         <f:convertDateTime pattern="MM/dd/yyyy HH:mm:ss" />
                     </h:outputText>
                 </p:column>
 
                 <p:column headerText="Stoped" >
-                    <h:outputText value="#{net.stoped}" >
+                    <h:outputText value="#{matriz.stoped}" >
                         <f:convertDateTime pattern="MM/dd/yyyy HH:mm:ss" />
                     </h:outputText>
                 </p:column>
 
                 <p:column headerText="Completed">
-                    <h:outputText value="#{net.complete}" />
+                    <h:outputText value="#{matriz.complete}" />
                 </p:column>
 
                 <p:column headerText="Download Files">
-                    <p:commandButton id="netDownloadLog" value="Log" actionListener="#{gitMatrizViewBean.downloadLOG(net)}" ajax="false" />
-                    <p:commandButton id="netDownloadCSV" value="CSV" actionListener="#{gitMatrizViewBean.downloadCSV(net)}" ajax="false" />
-                    <p:commandButton id="netDownloadNET" value="Pajek" actionListener="#{gitMatrizViewBean.downloadCSV(net)}" ajax="false" />
-                    <p:commandButton id="netDownloadARFF" value="ARFF" actionListener="#{gitMatrizViewBean.downloadCSV(net)}" ajax="false" />
+                    <p:commandButton id="matrizDownloadLog" value="Log" actionListener="#{gitMatrizViewBean.downloadLOG(matriz)}" ajax="false" />
+                    <p:commandButton id="matrizDownloadCSV" value="CSV" actionListener="#{gitMatrizViewBean.downloadCSV(matriz)}" ajax="false" />
+                    <p:commandButton id="matrizDownloadNET" value="Pajek" actionListener="#{gitMatrizViewBean.downloadCSV(matriz)}" ajax="false" />
+                    <p:commandButton id="matrizDownloadARFF" value="ARFF" actionListener="#{gitMatrizViewBean.downloadCSV(matriz)}" ajax="false" />
                 </p:column>
 
                 <p:column headerText="Options">
-                    <p:commandButton  icon="ui-icon-trash" title="Delete this Net"  actionListener="#{gitMatrizViewBean.addNetForDeleteInSession(net)}"
-                                      id="netDelete" oncomplete="confirmation.show()" />
+                    <p:commandButton  icon="ui-icon-trash" title="Delete this Matriz"  actionListener="#{gitMatrizViewBean.addMatrizForDeleteInSession(matriz)}"
+                                      id="matrizDelete" oncomplete="confirmation.show()" />
                 </p:column>
             </p:dataTable>
 
             <p:confirmDialog  id="confirmDelete" widgetVar="confirmation"
-                              message="Really delete this network?" header="Confirmation" 
+                              message="Really delete this matriz?" header="Confirmation" 
                               severity="alert"  closable="false" >
                 <p:commandButton value="Yes" id="confirmYes" update="netList messages" oncomplete="confirmation.hide()" style="position: relative;left: 80px"
-                                 actionListener="#{gitMatrizViewBean.deleteNetInSession()}">
+                                 actionListener="#{gitMatrizViewBean.deleteMatrizInSession()}">
                 </p:commandButton>
                 <p:commandButton value="No" id="confirmNo" oncomplete="confirmation.hide()" style="position: relative;left: 80px"
-                                 actionListener="#{gitMatrizViewBean.removeNetFromSession()}"/>
+                                 actionListener="#{gitMatrizViewBean.removeMatrizFromSession()}"/>
             </p:confirmDialog>
         </h:form>
     </p:panel>

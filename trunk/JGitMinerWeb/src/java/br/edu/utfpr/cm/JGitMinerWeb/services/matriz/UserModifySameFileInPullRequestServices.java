@@ -12,8 +12,10 @@ import br.edu.utfpr.cm.JGitMinerWeb.services.matriz.auxiliary.AuxUserUserPullFil
 import br.edu.utfpr.cm.JGitMinerWeb.util.JsfUtil;
 import br.edu.utfpr.cm.JGitMinerWeb.util.Util;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import org.eclipse.egit.github.core.service.CollaboratorService;
 
 /**
  *
@@ -83,7 +85,7 @@ public class UserModifySameFileInPullRequestServices extends AbstractMatrizServi
             throw new IllegalArgumentException("Parâmetro Repository não pode ser nulo.");
         }
 
-        String jpql = "SELECT NEW br.edu.utfpr.cm.JGitMinerWeb.services.matriz.auxiliary.AuxUserFilePull(uc, p, f.filename) "
+        String jpql = "SELECT DISTINCT NEW br.edu.utfpr.cm.JGitMinerWeb.services.matriz.auxiliary.AuxUserFilePull(uc, p, f.filename) "
                 + "FROM "
                 + "EntityPullRequest p JOIN p.repositoryCommits c JOIN c.commit cm JOIN cm.committer uc JOIN c.files f "
                 + "WHERE "
@@ -91,7 +93,7 @@ public class UserModifySameFileInPullRequestServices extends AbstractMatrizServi
                 + "p.number <= :endPull AND "
                 + "p.repository = :repo AND "
                 + "f.filename LIKE :prefixFile AND "
-                + "f.filename LIKE :suffixFile"
+                + "f.filename LIKE :suffixFile "
                 + "ORDER BY p.number ";
 
         // INICIO QUERY
@@ -133,7 +135,7 @@ public class UserModifySameFileInPullRequestServices extends AbstractMatrizServi
                         // salva o controle
                         controls.add(control);
                         // aqui sim ele cria o registro a ser salvo
-                        incrementNode(nodes, new EntityMatrizNode(control.getCommitUserX().getEmail(), control.getCommitUserY().getEmail()));
+                        incrementNode(nodes, new EntityMatrizNode(control.getCommitUser().getEmail(), control.getCommitUser2().getEmail()));
                     }
                 }
             }
@@ -151,9 +153,9 @@ public class UserModifySameFileInPullRequestServices extends AbstractMatrizServi
     }
 
     @Override
-    public String convertToCSV(List<EntityMatrizNode> records) {
+    public String convertToCSV(Collection<EntityMatrizNode> nodes) {
         StringBuilder sb = new StringBuilder("user;user2;file\n");
-        for (EntityMatrizNode node : records) {
+        for (EntityMatrizNode node : nodes) {
             sb.append(node.getFrom()).append(JsfUtil.TOKEN_SEPARATOR);
             sb.append(node.getTo()).append(JsfUtil.TOKEN_SEPARATOR);
             sb.append(node.getWeight()).append("\n");

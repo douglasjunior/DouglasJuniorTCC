@@ -55,63 +55,63 @@ public class GitMatrizBean implements Serializable {
         out = new OutLog();
         params = new HashMap();
     }
-    
+
     public boolean isFail() {
         return fail;
     }
-    
+
     public void setFail(boolean fail) {
         this.fail = fail;
     }
-    
+
     public boolean isCanceled() {
         return canceled;
     }
-    
+
     public void setCanceled(boolean canceled) {
         this.canceled = canceled;
     }
-    
+
     public String getRepositoryId() {
         return repositoryId;
     }
-    
+
     public void setRepositoryId(String repositoryId) {
         this.repositoryId = repositoryId;
     }
-    
+
     public Class getServiceClass() {
         return serviceClass;
     }
-    
+
     public void setServiceClass(Class serviceClass) {
         this.serviceClass = serviceClass;
     }
-    
+
     public Map getParamValue() {
         return params;
     }
-    
+
     public GenericDao getDao() {
         return dao;
     }
-    
+
     public void setDao(GenericDao dao) {
         this.dao = dao;
     }
-    
+
     public boolean isInitialized() {
         return initialized;
     }
-    
+
     public void setInitialized(boolean initialized) {
         this.initialized = initialized;
     }
-    
+
     public String getLog() {
         return out.getSingleLog();
     }
-    
+
     public Integer getProgress() {
         if (fail) {
             progress = new Integer(100);
@@ -123,11 +123,11 @@ public class GitMatrizBean implements Serializable {
         System.out.println("progress: " + progress);
         return progress;
     }
-    
+
     public void setProgress(Integer progress) {
         this.progress = progress;
     }
-    
+
     public void start() {
         final EntityMatriz entityMatriz = new EntityMatriz();
         dao.insert(entityMatriz);
@@ -136,20 +136,20 @@ public class GitMatrizBean implements Serializable {
         canceled = false;
         fail = false;
         progress = new Integer(0);
-        
+
         repository = dao.findByID(repositoryId, EntityRepository.class);
-        
+
         out.printLog("Geração da rede iniciada!");
         out.printLog("");
         out.printLog("Params: " + params);
         out.printLog("Class Service: " + serviceClass);
         out.printLog("Repository: " + repository);
         out.printLog("");
-        
+
         entityMatriz.setLog(out.getLog().toString());
         entityMatriz.setClassServicesName(serviceClass.getName());
         dao.edit(entityMatriz);
-        
+
         if (repository == null || serviceClass == null) {
             message = "Erro: Escolha o repositorio e o service desejado.";
             out.printLog(message);
@@ -162,9 +162,9 @@ public class GitMatrizBean implements Serializable {
             initialized = true;
             progress = new Integer(10);
             entityMatriz.setRepository(repository);
-            
+
             final AbstractMatrizServices netServices = createMatrizServiceInstance();
-            
+
             process = new Thread(netServices) {
                 @Override
                 public void run() {
@@ -208,16 +208,15 @@ public class GitMatrizBean implements Serializable {
             process.start();
         }
     }
-    
+
     private void saveRecordsInMatriz(EntityMatriz matriz, List<EntityMatrizNode> nodes) {
         for (EntityMatrizNode node : nodes) {
             dao.insert(node);
             node.setMatriz(matriz);
             dao.edit(node);
-         //   matriz.addRecord(rec);
         }
     }
-    
+
     public void cancel() {
         if (initialized) {
             out.printLog("Pedido de cancelamento enviado.\n");
@@ -228,7 +227,7 @@ public class GitMatrizBean implements Serializable {
             }
         }
     }
-    
+
     public void onComplete() {
         out.printLog("onComplete" + '\n');
         initialized = false;
@@ -239,7 +238,7 @@ public class GitMatrizBean implements Serializable {
             JsfUtil.addSuccessMessage(message);
         }
     }
-    
+
     public List<Class> getServicesClasses() {
         List<Class> cls = null;
         try {
@@ -249,7 +248,7 @@ public class GitMatrizBean implements Serializable {
         }
         return cls;
     }
-    
+
     private AbstractMatrizServices createMatrizServiceInstance() {
         try {
             return (AbstractMatrizServices) serviceClass.getConstructor(GenericDao.class, EntityRepository.class, Map.class).newInstance(dao, repository, params);
@@ -258,7 +257,7 @@ public class GitMatrizBean implements Serializable {
         }
         return null;
     }
-    
+
     public ClassConverter getConverterClass() {
         return new ClassConverter();
     }

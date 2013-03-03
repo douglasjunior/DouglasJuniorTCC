@@ -6,12 +6,12 @@ package br.edu.utfpr.cm.JGitMinerWeb.services.matriz;
 
 import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericDao;
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.matriz.EntityMatrizNode;
-import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.EntityCommitUser;
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.EntityRepository;
 import br.edu.utfpr.cm.JGitMinerWeb.services.matriz.nodes.NodeUserFileCount;
 import br.edu.utfpr.cm.JGitMinerWeb.util.JsfUtil;
 import br.edu.utfpr.cm.JGitMinerWeb.util.Util;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -74,21 +74,21 @@ public class UserModifyFileInMilestoneServices extends AbstractMatrizServices {
 
         System.out.println("query: " + query.size());
 
-        List<EntityMatrizNode> records = new ArrayList<EntityMatrizNode>();
+        List<EntityMatrizNode> nodes = new ArrayList<EntityMatrizNode>();
         for (NodeUserFileCount aux : query) {
             EntityMatrizNode rec = new EntityMatrizNode(
                     aux.getCommitUser().getEmail(),
                     aux.getFileName(),
                     aux.getWeight());
-            records.add(rec);
+            nodes.add(rec);
         }
-        setNodes(records);
+        setNodes(nodes);
     }
 
     @Override
-    public String convertToCSV(List<EntityMatrizNode> records) {
+    public String convertToCSV(Collection<EntityMatrizNode> nodes) {
         StringBuilder sb = new StringBuilder("user;file;count\n");
-        for (EntityMatrizNode node : records) {
+        for (EntityMatrizNode node : nodes) {
             sb.append(node.getFrom()).append(JsfUtil.TOKEN_SEPARATOR);
             sb.append(node.getTo()).append(JsfUtil.TOKEN_SEPARATOR);
             sb.append(node.getWeight()).append("\n");

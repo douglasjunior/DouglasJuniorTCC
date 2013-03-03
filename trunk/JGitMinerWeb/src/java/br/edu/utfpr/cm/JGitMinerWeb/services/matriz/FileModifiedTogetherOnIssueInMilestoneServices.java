@@ -13,6 +13,7 @@ import br.edu.utfpr.cm.JGitMinerWeb.services.matriz.nodes.NodeFileFileCount;
 import br.edu.utfpr.cm.JGitMinerWeb.util.JsfUtil;
 import br.edu.utfpr.cm.JGitMinerWeb.util.Util;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -117,12 +118,12 @@ public class FileModifiedTogetherOnIssueInMilestoneServices extends AbstractMatr
     }
 
     @Override
-    public String convertToCSV(List<EntityMatrizNode> records) {
+    public String convertToCSV(Collection<EntityMatrizNode> nodes) {
         StringBuilder sb = new StringBuilder("file;file2;count\n");
-        for (EntityMatrizNode record : records) {
-            sb.append(record.getFrom()).append(JsfUtil.TOKEN_SEPARATOR);
-            sb.append(record.getTo()).append(JsfUtil.TOKEN_SEPARATOR);
-            sb.append(record.getWeight()).append("\n");
+        for (EntityMatrizNode node : nodes) {
+            sb.append(node.getFrom()).append(JsfUtil.TOKEN_SEPARATOR);
+            sb.append(node.getTo()).append(JsfUtil.TOKEN_SEPARATOR);
+            sb.append(node.getWeight()).append("\n");
         }
         return sb.toString();
     }
