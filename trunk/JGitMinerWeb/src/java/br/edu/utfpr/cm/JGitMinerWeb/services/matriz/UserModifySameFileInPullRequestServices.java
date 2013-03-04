@@ -15,7 +15,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import org.eclipse.egit.github.core.service.CollaboratorService;
 
 /**
  *
@@ -85,7 +84,7 @@ public class UserModifySameFileInPullRequestServices extends AbstractMatrizServi
             throw new IllegalArgumentException("Parâmetro Repository não pode ser nulo.");
         }
 
-        String jpql = "SELECT DISTINCT NEW br.edu.utfpr.cm.JGitMinerWeb.services.matriz.auxiliary.AuxUserFilePull(uc, p, f.filename) "
+        String jpql = "SELECT DISTINCT NEW " + AuxUserFilePull.class.getName() + "(uc, p, f.filename) "
                 + "FROM "
                 + "EntityPullRequest p JOIN p.repositoryCommits c JOIN c.commit cm JOIN cm.committer uc JOIN c.files f "
                 + "WHERE "
@@ -93,8 +92,7 @@ public class UserModifySameFileInPullRequestServices extends AbstractMatrizServi
                 + "p.number <= :endPull AND "
                 + "p.repository = :repo AND "
                 + "f.filename LIKE :prefixFile AND "
-                + "f.filename LIKE :suffixFile "
-                + "ORDER BY p.number ";
+                + "f.filename LIKE :suffixFile";
 
         // INICIO QUERY
         //query é feita por intervalos para evitar estouro de RAM e CPU
@@ -104,7 +102,7 @@ public class UserModifySameFileInPullRequestServices extends AbstractMatrizServi
 
         System.out.println(jpql);
 
-        List<AuxUserFilePull> query = new ArrayList<AuxUserFilePull>();
+        List<AuxUserFilePull> query = new ArrayList<>();
 
         do {
             List result = dao.selectWithParams(jpql,
@@ -121,10 +119,13 @@ public class UserModifySameFileInPullRequestServices extends AbstractMatrizServi
 
 
         List< EntityMatrizNode> nodes = new ArrayList<EntityMatrizNode>();
-
         List<AuxUserUserPullFile> controls = new ArrayList<AuxUserUserPullFile>(); // lista pata controle de repetição
-        for (AuxUserFilePull aufp : query) {
-            for (AuxUserFilePull aufp2 : query) {
+
+        for (int i = 0; i < query.size(); i++) {
+            System.out.println(i + "/" + query.size());
+            AuxUserFilePull aufp = query.get(i);
+            for (int j = i; j < query.size(); j++) {
+                AuxUserFilePull aufp2 = query.get(j);
                 if (!aufp.getCommitUser().equals(aufp2.getCommitUser()) // se o user é diferente
                         && aufp.getPull().equals(aufp2.getPull()) // se o file é igual
                         && aufp.getFile().equals(aufp2.getFile())) { // e se o pull é igual

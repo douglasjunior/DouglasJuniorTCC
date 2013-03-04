@@ -24,14 +24,14 @@ public class DoubleDenseMatrix<T, K> {
 
     public DoubleDenseMatrix(Collection<T> columns, Collection<K> rows,
             double[][] matrix) {
-        this.columnKeys = new LinkedList<T>(columns);
-        this.columns = new LinkedHashMap<T, Integer>();
+        this.columnKeys = new LinkedList<>(columns);
+        this.columns = new LinkedHashMap<>();
         int i = 0;
         for (T t : columns) {
             this.columns.put(t, i++);
         }
-        this.rowKeys = new LinkedList<K>(rows);
-        this.rows = new LinkedHashMap<K, Integer>();
+        this.rowKeys = new LinkedList<>(rows);
+        this.rows = new LinkedHashMap<>();
         i = 0;
         for (K k : rows) {
             this.rows.put(k, i++);
@@ -56,11 +56,11 @@ public class DoubleDenseMatrix<T, K> {
     }
 
     public Map<T, Integer> getColumnsIndexes() {
-        return new LinkedHashMap<T, Integer>(this.columns);
+        return new LinkedHashMap<>(this.columns);
     }
 
     public Map<K, Integer> getRowsIndexes() {
-        return new LinkedHashMap<K, Integer>(this.rows);
+        return new LinkedHashMap<>(this.rows);
     }
 
     public double[][] getMatrix() {
@@ -110,14 +110,9 @@ public class DoubleDenseMatrix<T, K> {
     }
 
     public void toCsv(File destination) throws IOException {
-
         if (!destination.exists()) {
             destination.createNewFile();
         }
-
-        BufferedWriter out = new BufferedWriter(new FileWriter(destination));
-//        CSVWriter writer = new CSVWriter(out, ',');
-        CSVWriter writer = new CSVWriter(out, ';');
 
         String[] data = new String[this.columns.size() + 1];
 
@@ -127,10 +122,11 @@ public class DoubleDenseMatrix<T, K> {
         for (T t : columnKeys) {
             data[++index] = this.itemToString(t);
         }
+        CSVWriter writer = new CSVWriter(new BufferedWriter(new FileWriter(destination)), ';');
 
         writer.writeNext(data);
 
-        List<K> rowSet = new LinkedList<K>(this.rows.keySet());
+        List<K> rowSet = new LinkedList<>(this.rows.keySet());
 
         //rows
         for (int j = 0; j < this.rows.size(); j++) {
@@ -140,11 +136,9 @@ public class DoubleDenseMatrix<T, K> {
                 data[i + 1] = String.valueOf(this.matrix[j][i]);
             }
             writer.writeNext(data);
-
         }
 
-        out.close();
-
+        writer.close();
     }
 
     public DoubleDenseMatrix<K, T> transpose() {

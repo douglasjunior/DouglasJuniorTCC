@@ -9,13 +9,14 @@ import br.edu.utfpr.cm.JGitMinerWeb.pojo.matriz.EntityMatrizNode;
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.EntityRepository;
 import br.edu.utfpr.cm.JGitMinerWeb.services.matriz.auxiliary.AuxFileFilePull;
 import br.edu.utfpr.cm.JGitMinerWeb.services.matriz.auxiliary.AuxFilePull;
-import br.edu.utfpr.cm.JGitMinerWeb.services.matriz.nodes.NodeFileFileCount;
 import br.edu.utfpr.cm.JGitMinerWeb.util.JsfUtil;
 import br.edu.utfpr.cm.JGitMinerWeb.util.Util;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  *
@@ -58,14 +59,14 @@ public class FileModifiedTogetherOnIssueInMilestoneServices extends AbstractMatr
             throw new IllegalArgumentException("Numero do Milestone inválido.");
         }
 
-        String jpql = "SELECT DISTINCT NEW br.edu.utfpr.cm.JGitMinerWeb.services.matriz.auxiliary.AuxFilePull(f.filename, p) "
+        String jpql = "SELECT DISTINCT NEW " + AuxFilePull.class.getName() + "(f.filename, p) "
                 + "FROM "
                 + "EntityPullRequest p JOIN p.issue i JOIN i.milestone m JOIN p.repositoryCommits rc JOIN rc.files f "
                 + "WHERE "
                 + "p.repository = :repository AND "
                 + "m.number = :milestoneNumber AND "
                 + "f.filename LIKE :prefixFile AND "
-                + "f.filename LIKE :suffixFile ";
+                + "f.filename LIKE :suffixFile";
 
         System.out.println(jpql);
 
@@ -75,46 +76,36 @@ public class FileModifiedTogetherOnIssueInMilestoneServices extends AbstractMatr
 
         System.out.println("query: " + query.size());
 
-        List<EntityMatrizNode> records = new ArrayList<EntityMatrizNode>();
+        List<EntityMatrizNode> nodes = new ArrayList<>();
 
-        List<NodeFileFileCount> coochangesGeneral = new ArrayList<NodeFileFileCount>(); // contabiliza a quantidade de coochanges
-        List<AuxFileFilePull> coochangesPull = new ArrayList<AuxFileFilePull>(); // controla os coochanges em cada pull request
+        Set<AuxFileFilePull> controls = new HashSet<>(); // controla os coochanges em cada pull request
 
-        int total = query.size() * query.size();
-        int i = 0;
-        for (AuxFilePull aux : query) {
-            System.out.println(i + "/" + total);
-            for (AuxFilePull aux2 : query) {
-                i++;
+        for (int i = 0; i < query.size(); i++) {
+            System.out.println(i + "/" + query.size());
+            AuxFilePull aux = query.get(i);
+            for (int j = i; j < query.size(); j++) {
+                AuxFilePull aux2 = query.get(j);
                 if (aux.getPull().equals(aux2.getPull())) {
                     if (!aux.getFileName().equals(aux2.getFileName())) {
-                        AuxFileFilePull cooPull = new AuxFileFilePull(aux.getFileName(), aux2.getFileName(), aux.getPull());
+                        AuxFileFilePull control = new AuxFileFilePull(aux.getFileName(), aux2.getFileName(), aux.getPull());
                         // verifica se o coochange ja foi registrado no pull
-                        if (coochangesPull.contains(cooPull)) {
-                            //    System.out.println(i + "/" + total + " Já existe neste pull: " + aux.getFileName() + " " + aux2.getFileName() + " " + aux.getPull());
-                            continue; // se o coochange ja foi contabilizado no pull request então pula para o proximo
-                        } else {
-                            coochangesPull.add(cooPull); // se o coochange ainda não existe no pull então registra-o
-                        }
-                        // cria uma linha de coochange entre arquivos
-                        NodeFileFileCount coo = new NodeFileFileCount(aux.getFileName(), aux2.getFileName());
-                        // pega o index caso o coochange ja exista
-                        int index = coochangesGeneral.indexOf(coo);
-                        // verifica se o index existe
-                        if (index == -1) {
-                            coochangesGeneral.add(coo); // se nao existe adiciona
-                            //   System.out.println(i + "/" + total + " Primeiro registro: " + aux.getFileName() + " " + aux2.getFileName() + " " + aux.getPull());
-                        } else {
-                            coochangesGeneral.get(index).incWeight(); // se ja existe incrementa
-                            //   System.out.println(i + "/" + total + " Registro incrementado: " + aux.getFileName() + " " + aux2.getFileName() + " " + aux.getPull());
+                        if (controls.add(control)) {
+                            incrementNode(nodes, new EntityMatrizNode(aux.getFileName(), aux2.getFileName()));
                         }
                     }
                 }
             }
         }
+        setNodes(nodes);
+    }
 
-        System.out.println("coochanges: " + coochangesGeneral.size());
-        setNodes(records);
+    private void incrementNode(List<EntityMatrizNode> nodes, EntityMatrizNode node) {
+        int i = nodes.indexOf(node);
+        if (i >= 0) {
+            nodes.get(i).incWeight();
+        } else {
+            nodes.add(node);
+        }
     }
 
     @Override
