@@ -74,7 +74,7 @@ public class UserModifyFileInMilestoneServices extends AbstractMatrizServices {
 
         System.out.println("query: " + query.size());
 
-        List<EntityMatrizNode> nodes = new ArrayList<EntityMatrizNode>();
+        List<EntityMatrizNode> nodes = new ArrayList<>();
         for (NodeUserFileCount aux : query) {
             EntityMatrizNode rec = new EntityMatrizNode(
                     aux.getCommitUser().getEmail(),

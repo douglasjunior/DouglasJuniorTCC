@@ -6,9 +6,7 @@ package br.edu.utfpr.cm.JGitMinerWeb.services.matriz;
 
 import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericDao;
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.matriz.EntityMatrizNode;
-import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.EntityIssue;
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.EntityRepository;
-import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.EntityUser;
 import br.edu.utfpr.cm.JGitMinerWeb.util.JsfUtil;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -62,12 +60,12 @@ public class UserCommentInIssueMatrizServices extends AbstractMatrizServices {
             throw new IllegalArgumentException("Parâmetro Repository não pode ser nulo.");
         }
 
-        String jpql = "SELECT NEW br.edu.utfpr.cm.JGitMinerWeb.pojo.matriz.EntityMatrizRecord(\"" + EntityUser.class.getName() + "\", u.id,\"" + EntityIssue.class.getName() + "\" , i.id, \"\", count(u.id)) "
+        String jpql = "SELECT NEW " + EntityMatrizNode.class.getName() + "(u.login, i.number, count(u.id)) "
                 + "FROM EntityIssue i JOIN i.comments c JOIN c.user u "
                 + "WHERE i.repository = :repo "
                 + "AND i.createdAt >= :dataInicial "
                 + "AND i.createdAt <= :dataFinal "
-                + "GROUP BY i.id, u.id ";
+                + "GROUP BY u.login, i.number";
 
         System.out.println(jpql);
 

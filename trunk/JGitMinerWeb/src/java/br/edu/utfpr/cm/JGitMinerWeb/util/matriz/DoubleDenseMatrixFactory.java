@@ -16,8 +16,8 @@ public class DoubleDenseMatrixFactory<T, K> {
     private Collection<K> rows;
 
     public DoubleDenseMatrixFactory() {
-        this.columns = new LinkedList<T>();
-        this.rows = new LinkedList<K>();
+        this.columns = new LinkedList<>();
+        this.rows = new LinkedList<>();
     }
 
     public void addColumn(T column) {
@@ -42,8 +42,8 @@ public class DoubleDenseMatrixFactory<T, K> {
 
     public DoubleDenseMatrix<T, K> join(DoubleDenseMatrix<T, K> left, DoubleDenseMatrix<T, K> right, boolean overrideValues) {
 
-        Set<T> cs = new HashSet<T>();
-        Set<K> rs = new HashSet<K>();
+        Set<T> cs = new HashSet<>();
+        Set<K> rs = new HashSet<>();
         cs.addAll(left.getColumnKeys());
         cs.addAll(right.getColumnKeys());
         this.addColumns(cs);
@@ -80,8 +80,8 @@ public class DoubleDenseMatrixFactory<T, K> {
     public DoubleDenseMatrix<T, K> build(List<NodeConnection<K, T>> connections, double initWith,
             boolean simetric) {
 
-        Set<K> rws = new HashSet<K>();
-        Set<T> cls = new HashSet<T>();
+        Set<K> rws = new HashSet<>();
+        Set<T> cls = new HashSet<>();
         Class<T> tClazz = null;
         Class<K> kClazz = null;
         for (NodeConnection<K, T> nc : connections) {
