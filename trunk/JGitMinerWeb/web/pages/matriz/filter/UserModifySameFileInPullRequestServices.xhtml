@@ -6,6 +6,9 @@
 
     <br />
 
+    <h:outputText value="Milestone Number: " />  
+    <p:inputText value="#{gitMatrizBean.paramValue['milestoneNumber']}" id="mileNumber" type="number"  size="10" />
+    <br />
     <h:outputText value="Pull Request Number: " />  
     <p:inputText value="#{gitMatrizBean.paramValue['beginPull']}" id="beginPull" type="number"  size="10" />
     <h:outputText value=" to " />  
@@ -16,6 +19,6 @@
     <br />
     <h:outputText value="File suffix: " />  
     <p:inputText value="#{gitMatrizBean.paramValue['suffixFile']}" id="suffixFile"  size="20" />
-
+    
 </div>
 

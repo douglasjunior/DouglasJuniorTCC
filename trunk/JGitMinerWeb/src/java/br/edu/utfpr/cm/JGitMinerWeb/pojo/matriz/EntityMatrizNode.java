@@ -43,7 +43,7 @@ public class EntityMatrizNode implements InterfaceEntity, Serializable, NodeConn
     public EntityMatrizNode(Object from, Object to, Object weight) {
         this.from = from + "";
         this.to = to + "";
-        this.weight = Util.tratarStringParaDouble(weight + "");
+        this.weight = Double.parseDouble(weight + "");
     }
 
     public EntityMatrizNode(Object from, Object to) {

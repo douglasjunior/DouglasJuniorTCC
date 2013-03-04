@@ -13,8 +13,10 @@ import br.edu.utfpr.cm.JGitMinerWeb.util.JsfUtil;
 import br.edu.utfpr.cm.JGitMinerWeb.util.Util;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  *
@@ -76,6 +78,11 @@ public class UserModifySameFileInPullRequestServices extends AbstractMatrizServi
         return "%" + params.get("suffixFile");
     }
 
+    private int getMilestoneNumber() {
+        String mileNumber = params.get("milestoneNumber") + "";
+        return Util.tratarStringParaInt(mileNumber);
+    }
+
     @Override
     public void run() {
         System.out.println(params);
@@ -84,13 +91,16 @@ public class UserModifySameFileInPullRequestServices extends AbstractMatrizServi
             throw new IllegalArgumentException("Parâmetro Repository não pode ser nulo.");
         }
 
+        int mileNumber = getMilestoneNumber();
+
         String jpql = "SELECT DISTINCT NEW " + AuxUserFilePull.class.getName() + "(uc, p, f.filename) "
                 + "FROM "
-                + "EntityPullRequest p JOIN p.repositoryCommits c JOIN c.commit cm JOIN cm.committer uc JOIN c.files f "
+                + "EntityPullRequest p JOIN p.issue i JOIN i.milestone m JOIN p.repositoryCommits c JOIN c.commit cm JOIN cm.committer uc JOIN c.files f "
                 + "WHERE "
+                + "p.repository = :repo AND "
+                + (mileNumber > 0 ? "m.number = :milestoneNumber AND " : "")
                 + "p.number >= :beginPull AND "
                 + "p.number <= :endPull AND "
-                + "p.repository = :repo AND "
                 + "f.filename LIKE :prefixFile AND "
                 + "f.filename LIKE :suffixFile";
 
@@ -106,20 +116,31 @@ public class UserModifySameFileInPullRequestServices extends AbstractMatrizServi
 
         do {
             List result = dao.selectWithParams(jpql,
-                    new String[]{"repo", "beginPull", "endPull", "prefixFile", "suffixFile"},
-                    new Object[]{getRepository(), getBeginPullRequestNumber(), getEndPullRequestNumber(), getPrefixFile(), getSuffixFile()},
+                    new String[]{
+                        "repo",
+                        "beginPull",
+                        "endPull",
+                        "prefixFile",
+                        "suffixFile",
+                        mileNumber > 0 ? "milestoneNumber" : "#none#"},
+                    new Object[]{
+                        getRepository(),
+                        getBeginPullRequestNumber(),
+                        getEndPullRequestNumber(),
+                        getPrefixFile(),
+                        getSuffixFile(),
+                        mileNumber},
                     offset, limit);
             query.addAll(result);
             offset += limit;
             queryCount = result.size();
+            System.out.println("query: " + query.size());
         } while (queryCount >= limit);
 
-        System.out.println("query: " + query.size());
         // FIM QUERY
 
-
-        List< EntityMatrizNode> nodes = new ArrayList<EntityMatrizNode>();
-        List<AuxUserUserPullFile> controls = new ArrayList<AuxUserUserPullFile>(); // lista pata controle de repetição
+        List<EntityMatrizNode> nodes = new ArrayList<>();
+        Set<AuxUserUserPullFile> controls = new HashSet<>(); // lista pata controle de repetição
 
         for (int i = 0; i < query.size(); i++) {
             System.out.println(i + "/" + query.size());
@@ -131,23 +152,22 @@ public class UserModifySameFileInPullRequestServices extends AbstractMatrizServi
                         && aufp.getFile().equals(aufp2.getFile())) { // e se o pull é igual
                     // então eles mexeram no mesmo arquivo no mesmo pull request
                     AuxUserUserPullFile control = new AuxUserUserPullFile(aufp.getCommitUser(), aufp2.getCommitUser(), aufp.getPull(), aufp.getFile());
-                    // verifica se já foi gravado registo semelhante
-                    if (!controls.contains(control)) {
-                        // salva o controle
-                        controls.add(control);
+                    // verifica se já foi gravado registo semelhante, se não foi então grave
+                    if (controls.add(control)) {
                         // aqui sim ele cria o registro a ser salvo
-                        incrementNode(nodes, new EntityMatrizNode(control.getCommitUser().getEmail(), control.getCommitUser2().getEmail()));
+                        incrementNode(nodes, new EntityMatrizNode(control.getCommitUser().getEmail(), control.getCommitUser2().getEmail(), 1));
                     }
                 }
             }
         }
+        System.out.println("Nodes: " + nodes.size());
         setNodes(nodes);
     }
 
     private void incrementNode(List<EntityMatrizNode> nodes, EntityMatrizNode node) {
-        int i = nodes.indexOf(node);
-        if (i >= 0) {
-            nodes.get(i).incWeight();
+        int index = nodes.indexOf(node);
+        if (index >= 0) {
+            nodes.get(index).incWeight();
         } else {
             nodes.add(node);
         }
