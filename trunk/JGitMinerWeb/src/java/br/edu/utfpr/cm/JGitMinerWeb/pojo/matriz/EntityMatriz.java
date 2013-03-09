@@ -50,14 +50,14 @@ public class EntityMatriz implements InterfaceEntity, Serializable {
     private String log;
     @ManyToOne(fetch = FetchType.LAZY)
     private EntityRepository repository;
-    @OneToMany(mappedBy = "matriz", orphanRemoval = true, cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "matriz", orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Set<EntityMatrizNode> nodes;
     private String classServicesName;
 
     public EntityMatriz() {
         started = new Date();
         complete = false;
-        nodes = new HashSet<EntityMatrizNode>();
+        nodes = new HashSet<>();
     }
 
     @Override

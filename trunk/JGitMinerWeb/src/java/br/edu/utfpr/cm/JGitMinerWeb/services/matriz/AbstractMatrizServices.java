@@ -60,6 +60,15 @@ public abstract class AbstractMatrizServices implements Runnable, Serializable {
         return null;
     }
 
+    protected void incrementNode(List<EntityMatrizNode> nodes, EntityMatrizNode node) {
+        int index = nodes.indexOf(node);
+        if (index >= 0) {
+            nodes.get(index).incWeight();
+        } else {
+            nodes.add(node);
+        }
+    }
+
     protected Date getDateParam(Object key) {
         if (!params.containsKey(key)) {
             throw new IndexOutOfBoundsException(key + "");

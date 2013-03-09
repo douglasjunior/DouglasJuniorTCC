@@ -32,41 +32,13 @@ public class UserModifySameFileInPullRequestServices extends AbstractMatrizServi
         super(dao, repository, params);
     }
 
-//    public Date getBegin() {
-//        Date begin = getDateParam("beginDate");
-//        if (begin == null) {
-//            try {
-//                return new SimpleDateFormat("MM/dd/yyyy").parse("01/01/1970");
-//            } catch (ParseException ex) {
-//                ex.printStackTrace();
-//            }
-//        }
-//        return begin;
-//    }
-//    public Date getEnd() {
-//        Date end = getDateParam("endDate");
-//        if (end == null) {
-//            try {
-//                return new SimpleDateFormat("MM/dd/yyyy").parse("01/01/2999");
-//            } catch (ParseException ex) {
-//                ex.printStackTrace();
-//            }
-//        }
-//        return end;
-//    }
     public Long getBeginPullRequestNumber() {
         String idPull = params.get("beginPull") + "";
-        if (idPull == null || idPull.isEmpty()) {
-            return 0l;
-        }
         return Util.tratarStringParaLong(idPull);
     }
 
     public Long getEndPullRequestNumber() {
         String idPull = params.get("endPull") + "";
-        if (idPull == null || idPull.isEmpty()) {
-            return 99999999999999l;
-        }
         return Util.tratarStringParaLong(idPull);
     }
 
@@ -93,14 +65,14 @@ public class UserModifySameFileInPullRequestServices extends AbstractMatrizServi
 
         int mileNumber = getMilestoneNumber();
 
-        String jpql = "SELECT DISTINCT NEW " + AuxUserFilePull.class.getName() + "(uc, p, f.filename) "
+        String jpql = "SELECT DISTINCT NEW " + AuxUserFilePull.class.getName() + "(rc.committer.login, c.committer.email, p.number, f.filename) "
                 + "FROM "
-                + "EntityPullRequest p JOIN p.issue i JOIN i.milestone m JOIN p.repositoryCommits c JOIN c.commit cm JOIN cm.committer uc JOIN c.files f "
+                + "EntityPullRequest p JOIN p.issue i JOIN i.milestone m JOIN p.repositoryCommits rc JOIN rc.files f JOIN rc.commit c "
                 + "WHERE "
                 + "p.repository = :repo AND "
                 + (mileNumber > 0 ? "m.number = :milestoneNumber AND " : "")
-                + "p.number >= :beginPull AND "
-                + "p.number <= :endPull AND "
+                + (getBeginPullRequestNumber() > 0 ? "p.number >= :beginPull AND " : "")
+                + (getEndPullRequestNumber() > 0 ? "p.number <= :endPull AND " : "")
                 + "f.filename LIKE :prefixFile AND "
                 + "f.filename LIKE :suffixFile";
 
@@ -118,18 +90,20 @@ public class UserModifySameFileInPullRequestServices extends AbstractMatrizServi
             List result = dao.selectWithParams(jpql,
                     new String[]{
                         "repo",
-                        "beginPull",
-                        "endPull",
+                        getBeginPullRequestNumber() > 0 ? "beginPull" : "#none#",
+                        getEndPullRequestNumber() > 0 ? "endPull" : "#none#",
                         "prefixFile",
                         "suffixFile",
-                        mileNumber > 0 ? "milestoneNumber" : "#none#"},
+                        mileNumber > 0 ? "milestoneNumber" : "#none#"
+                    },
                     new Object[]{
                         getRepository(),
                         getBeginPullRequestNumber(),
                         getEndPullRequestNumber(),
                         getPrefixFile(),
                         getSuffixFile(),
-                        mileNumber},
+                        mileNumber
+                    },
                     offset, limit);
             query.addAll(result);
             offset += limit;
@@ -144,18 +118,19 @@ public class UserModifySameFileInPullRequestServices extends AbstractMatrizServi
 
         for (int i = 0; i < query.size(); i++) {
             System.out.println(i + "/" + query.size());
-            AuxUserFilePull aufp = query.get(i);
-            for (int j = i; j < query.size(); j++) {
-                AuxUserFilePull aufp2 = query.get(j);
-                if (!aufp.getCommitUser().equals(aufp2.getCommitUser()) // se o user é diferente
-                        && aufp.getPull().equals(aufp2.getPull()) // se o file é igual
-                        && aufp.getFile().equals(aufp2.getFile())) { // e se o pull é igual
-                    // então eles mexeram no mesmo arquivo no mesmo pull request
-                    AuxUserUserPullFile control = new AuxUserUserPullFile(aufp.getCommitUser(), aufp2.getCommitUser(), aufp.getPull(), aufp.getFile());
-                    // verifica se já foi gravado registo semelhante, se não foi então grave
-                    if (controls.add(control)) {
-                        // aqui sim ele cria o registro a ser salvo
-                        incrementNode(nodes, new EntityMatrizNode(control.getCommitUser().getEmail(), control.getCommitUser2().getEmail(), 1));
+            AuxUserFilePull aux = query.get(i);
+            for (int j = i + 1; j < query.size(); j++) {
+                AuxUserFilePull aux2 = query.get(j);
+                if (aux.getPullNumber().equals(aux2.getPullNumber())) { // se o pull é igual 
+                    if (!aux.getUserIdentity().equals(aux2.getUserIdentity())) {// se o user é diferente
+                        if (aux.getFileName().equals(aux.getFileName())) { // se o file é igual  
+                            // então eles mexeram no mesmo arquivo no mesmo pull request
+                            AuxUserUserPullFile control = new AuxUserUserPullFile(aux.getUserIdentity(), aux2.getUserIdentity(), aux.getPullNumber(), aux.getFileName());
+                            // verifica se já foi gravado registo semelhante, se não foi então grave
+                            if (controls.add(control)) {
+                                incrementNode(nodes, new EntityMatrizNode(control.getUserIdentity(), control.getUserIdentity2(), 1));
+                            }
+                        }
                     }
                 }
             }
@@ -164,22 +139,13 @@ public class UserModifySameFileInPullRequestServices extends AbstractMatrizServi
         setNodes(nodes);
     }
 
-    private void incrementNode(List<EntityMatrizNode> nodes, EntityMatrizNode node) {
-        int index = nodes.indexOf(node);
-        if (index >= 0) {
-            nodes.get(index).incWeight();
-        } else {
-            nodes.add(node);
-        }
-    }
-
     @Override
     public String convertToCSV(Collection<EntityMatrizNode> nodes) {
         StringBuilder sb = new StringBuilder("user;user2;file\n");
         for (EntityMatrizNode node : nodes) {
             sb.append(node.getFrom()).append(JsfUtil.TOKEN_SEPARATOR);
             sb.append(node.getTo()).append(JsfUtil.TOKEN_SEPARATOR);
-            sb.append(node.getWeight()).append("\n");
+            sb.append(Util.tratarDoubleParaString(node.getWeight(), 0)).append("\n");
         }
         return sb.toString();
     }

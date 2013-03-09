@@ -4,25 +4,23 @@
  */
 package br.edu.utfpr.cm.JGitMinerWeb.services.matriz.auxiliary;
 
-import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.EntityPullRequest;
-
 /**
  *
  * @author douglas
  */
-public class AuxFileFilePull  {
+public class AuxFileFilePull {
 
     private String fileName;
     private String fileName2;
-    private EntityPullRequest pull;
+    private Integer pullNumber;
 
     public AuxFileFilePull() {
     }
 
-    public AuxFileFilePull(String fileName, String fileName2, EntityPullRequest pull) {
+    public AuxFileFilePull(String fileName, String fileName2, Integer pullNumber) {
         this.fileName = fileName;
         this.fileName2 = fileName2;
-        this.pull = pull;
+        this.pullNumber = pullNumber;
     }
 
     public String getFileName() {
@@ -33,14 +31,6 @@ public class AuxFileFilePull  {
         this.fileName = fileName;
     }
 
-    public EntityPullRequest getPull() {
-        return pull;
-    }
-
-    public void setPull(EntityPullRequest pull) {
-        this.pull = pull;
-    }
-
     public String getFileName2() {
         return fileName2;
     }
@@ -49,11 +39,19 @@ public class AuxFileFilePull  {
         this.fileName2 = fileName2;
     }
 
+    public Integer getPullNumber() {
+        return pullNumber;
+    }
+
+    public void setPullNumber(Integer pullNumber) {
+        this.pullNumber = pullNumber;
+    }
+
     @Override
     public boolean equals(Object obj) {
         if (obj != null && obj instanceof AuxFileFilePull) {
             AuxFileFilePull other = (AuxFileFilePull) obj;
-            if (this.pull.equals(other.pull)) {
+            if (this.pullNumber.equals(other.pullNumber)) {
                 if (this.fileName.equals(other.fileName)
                         && this.fileName2.equals(other.fileName2)) {
                     return true;
@@ -69,11 +67,10 @@ public class AuxFileFilePull  {
 
     @Override
     public int hashCode() {
-        int hash = 3;
-        hash = 67 * hash + (this.fileName != null ? this.fileName.hashCode() : 0);
-        hash = 67 * hash + (this.fileName2 != null ? this.fileName2.hashCode() : 0);
-        hash = 67 * hash + (this.pull != null ? this.pull.hashCode() : 0);
+        int hash = 0;
+        hash += hash + (this.fileName != null ? this.fileName.hashCode() : 0);
+        hash += hash + (this.fileName2 != null ? this.fileName2.hashCode() : 0);
+        hash += (this.pullNumber != null ? this.pullNumber.hashCode() : 0);
         return hash;
     }
-
 }

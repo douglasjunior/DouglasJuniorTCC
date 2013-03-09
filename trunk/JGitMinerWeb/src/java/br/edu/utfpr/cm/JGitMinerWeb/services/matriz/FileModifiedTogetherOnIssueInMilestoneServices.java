@@ -8,15 +8,13 @@ import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericDao;
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.matriz.EntityMatrizNode;
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.EntityRepository;
 import br.edu.utfpr.cm.JGitMinerWeb.services.matriz.auxiliary.AuxFileFilePull;
-import br.edu.utfpr.cm.JGitMinerWeb.services.matriz.auxiliary.AuxFilePull;
 import br.edu.utfpr.cm.JGitMinerWeb.util.JsfUtil;
 import br.edu.utfpr.cm.JGitMinerWeb.util.Util;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
  *
@@ -59,53 +57,47 @@ public class FileModifiedTogetherOnIssueInMilestoneServices extends AbstractMatr
             throw new IllegalArgumentException("Numero do Milestone inválido.");
         }
 
-        String jpql = "SELECT DISTINCT NEW " + AuxFilePull.class.getName() + "(f.filename, p) "
+        String jpql = "SELECT DISTINCT NEW " + AuxFileFilePull.class.getName() + "(f.filename, f2.filename, p.number) "
                 + "FROM "
-                + "EntityPullRequest p JOIN p.issue i JOIN i.milestone m JOIN p.repositoryCommits rc JOIN rc.files f "
+                + "EntityPullRequest p JOIN p.issue i JOIN i.milestone m JOIN p.repositoryCommits rc JOIN p.repositoryCommits rc2 JOIN rc.files f JOIN rc2.files f2 "
                 + "WHERE "
                 + "p.repository = :repository AND "
                 + "m.number = :milestoneNumber AND "
                 + "f.filename LIKE :prefixFile AND "
-                + "f.filename LIKE :suffixFile";
+                + "f.filename LIKE :suffixFile AND "
+                + "f2.filename LIKE :prefixFile AND "
+                + "f2.filename LIKE :suffixFile AND "
+                + "f.filename <> f2.filename ";
 
         System.out.println(jpql);
 
-        List<AuxFilePull> query = dao.selectWithParams(jpql,
-                new String[]{"repository", "milestoneNumber", "prefixFile", "suffixFile"},
-                new Object[]{getRepository(), mileNumber, getPrefixFile(), getSuffixFile()});
-
-        System.out.println("query: " + query.size());
+        int countTemp = 0;
+        int offset = 1;
+        final int limit = 50000;
+        int countTotal = 0;
 
         List<EntityMatrizNode> nodes = new ArrayList<>();
-
-        Set<AuxFileFilePull> controls = new HashSet<>(); // controla os coochanges em cada pull request
-
-        for (int i = 0; i < query.size(); i++) {
-            System.out.println(i + "/" + query.size());
-            AuxFilePull aux = query.get(i);
-            for (int j = i; j < query.size(); j++) {
-                AuxFilePull aux2 = query.get(j);
-                if (aux.getPull().equals(aux2.getPull())) {
-                    if (!aux.getFileName().equals(aux2.getFileName())) {
-                        AuxFileFilePull control = new AuxFileFilePull(aux.getFileName(), aux2.getFileName(), aux.getPull());
-                        // verifica se o coochange ja foi registrado no pull
-                        if (controls.add(control)) {
-                            incrementNode(nodes, new EntityMatrizNode(aux.getFileName(), aux2.getFileName()));
-                        }
-                    }
-                }
+        do {
+            List<AuxFileFilePull> resultTemp = dao.selectWithParams(jpql,
+                    new String[]{"repository", "milestoneNumber", "prefixFile", "suffixFile"},
+                    new Object[]{getRepository(), mileNumber, getPrefixFile(), getSuffixFile()},
+                    offset, limit);
+            countTemp = resultTemp.size();
+            countTotal += countTemp;
+            System.out.println("countTemp: " + countTemp);
+            System.out.println("countTotal: " + countTotal);
+            System.out.println("Transformando em Nodes...");
+            for (Iterator<AuxFileFilePull> it = resultTemp.iterator(); it.hasNext();) {
+                AuxFileFilePull aux = it.next();
+                incrementNode(nodes, new EntityMatrizNode(aux.getFileName(), aux.getFileName2()));
             }
-        }
-        setNodes(nodes);
-    }
+            System.out.println("Transformação concluída!");
+            offset += limit;
+            System.gc();
+        } while (countTemp >= limit);
 
-    private void incrementNode(List<EntityMatrizNode> nodes, EntityMatrizNode node) {
-        int i = nodes.indexOf(node);
-        if (i >= 0) {
-            nodes.get(i).incWeight();
-        } else {
-            nodes.add(node);
-        }
+        System.out.println("Nodes: " + nodes.size());
+        setNodes(nodes);
     }
 
     @Override
@@ -114,7 +106,7 @@ public class FileModifiedTogetherOnIssueInMilestoneServices extends AbstractMatr
         for (EntityMatrizNode node : nodes) {
             sb.append(node.getFrom()).append(JsfUtil.TOKEN_SEPARATOR);
             sb.append(node.getTo()).append(JsfUtil.TOKEN_SEPARATOR);
-            sb.append(node.getWeight()).append("\n");
+            sb.append(Util.tratarDoubleParaString(node.getWeight(), 0)).append("\n");
         }
         return sb.toString();
     }

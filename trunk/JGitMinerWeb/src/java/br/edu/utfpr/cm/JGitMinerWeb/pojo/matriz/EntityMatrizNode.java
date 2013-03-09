@@ -5,11 +5,11 @@
 package br.edu.utfpr.cm.JGitMinerWeb.pojo.matriz;
 
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.InterfaceEntity;
-import br.edu.utfpr.cm.JGitMinerWeb.util.Util;
 import br.edu.utfpr.cm.JGitMinerWeb.util.matriz.NodeConnection;
 import java.io.Serializable;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -34,7 +34,7 @@ public class EntityMatrizNode implements InterfaceEntity, Serializable, NodeConn
     private String to;
     @Column(name = "mWeight")
     private double weight;
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     private EntityMatriz matriz;
 
     public EntityMatrizNode() {

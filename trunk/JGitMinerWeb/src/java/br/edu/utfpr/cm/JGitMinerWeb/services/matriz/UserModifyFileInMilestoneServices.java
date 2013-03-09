@@ -7,7 +7,7 @@ package br.edu.utfpr.cm.JGitMinerWeb.services.matriz;
 import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericDao;
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.matriz.EntityMatrizNode;
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.EntityRepository;
-import br.edu.utfpr.cm.JGitMinerWeb.services.matriz.nodes.NodeUserFileCount;
+import br.edu.utfpr.cm.JGitMinerWeb.services.matriz.nodes.NodeUserFile;
 import br.edu.utfpr.cm.JGitMinerWeb.util.JsfUtil;
 import br.edu.utfpr.cm.JGitMinerWeb.util.Util;
 import java.util.ArrayList;
@@ -56,31 +56,30 @@ public class UserModifyFileInMilestoneServices extends AbstractMatrizServices {
             throw new IllegalArgumentException("Numero do Milestone inválido.");
         }
 
-        String jpql = "SELECT NEW " + NodeUserFileCount.class.getName() + "(cu, f.filename, COUNT(f.filename)) "
+        String jpql = "SELECT NEW " + NodeUserFile.class.getName() + "(rc.committer.login, c.committer.email, f.filename) "
                 + "FROM "
-                + "EntityPullRequest p JOIN p.issue i JOIN i.milestone m JOIN p.repositoryCommits rc JOIN rc.files f JOIN rc.commit c JOIN c.committer cu "
+                + "EntityPullRequest p JOIN p.issue i JOIN i.milestone m JOIN p.repositoryCommits rc JOIN rc.files f JOIN rc.commit c "
                 + "WHERE "
                 + "p.repository = :repository AND "
                 + "m.number = :milestoneNumber AND "
                 + "f.filename LIKE :prefixFile AND "
-                + "f.filename LIKE :suffixFile "
-                + "GROUP BY cu, f.filename";
+                + "f.filename LIKE :suffixFile ";
 
         System.out.println(jpql);
 
-        List<NodeUserFileCount> query = dao.selectWithParams(jpql,
+        List<NodeUserFile> query = dao.selectWithParams(jpql,
                 new String[]{"repository", "milestoneNumber", "prefixFile", "suffixFile"},
                 new Object[]{getRepository(), mileNumber, getPrefixFile(), getSuffixFile()});
 
         System.out.println("query: " + query.size());
 
         List<EntityMatrizNode> nodes = new ArrayList<>();
-        for (NodeUserFileCount aux : query) {
+        for (NodeUserFile aux : query) {
             EntityMatrizNode rec = new EntityMatrizNode(
-                    aux.getCommitUser().getEmail(),
+                    aux.getUserIdentity(),
                     aux.getFileName(),
-                    aux.getWeight());
-            nodes.add(rec);
+                    1);
+            incrementNode(nodes, rec);
         }
         setNodes(nodes);
     }
@@ -91,7 +90,7 @@ public class UserModifyFileInMilestoneServices extends AbstractMatrizServices {
         for (EntityMatrizNode node : nodes) {
             sb.append(node.getFrom()).append(JsfUtil.TOKEN_SEPARATOR);
             sb.append(node.getTo()).append(JsfUtil.TOKEN_SEPARATOR);
-            sb.append(node.getWeight()).append("\n");
+            sb.append(Util.tratarDoubleParaString(node.getWeight(), 0)).append("\n");
         }
         return sb.toString();
     }

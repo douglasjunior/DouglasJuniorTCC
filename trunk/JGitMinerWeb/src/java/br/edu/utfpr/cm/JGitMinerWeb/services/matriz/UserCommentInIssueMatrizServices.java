@@ -8,6 +8,7 @@ import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericDao;
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.matriz.EntityMatrizNode;
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.EntityRepository;
 import br.edu.utfpr.cm.JGitMinerWeb.util.JsfUtil;
+import br.edu.utfpr.cm.JGitMinerWeb.util.Util;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Collection;
@@ -82,7 +83,7 @@ public class UserCommentInIssueMatrizServices extends AbstractMatrizServices {
         for (EntityMatrizNode node : nodes) {
             sb.append(node.getFrom()).append(JsfUtil.TOKEN_SEPARATOR);
             sb.append(node.getTo()).append(JsfUtil.TOKEN_SEPARATOR);
-            sb.append(node.getWeight()).append("\n");
+            sb.append(Util.tratarDoubleParaString(node.getWeight(), 0)).append("\n");
         }
         return sb.toString();
     }

@@ -4,8 +4,7 @@
  */
 package br.edu.utfpr.cm.JGitMinerWeb.services.matriz.auxiliary;
 
-import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.EntityCommitUser;
-import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.EntityPullRequest;
+import java.util.Objects;
 
 /**
  *
@@ -13,59 +12,59 @@ import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.EntityPullRequest;
  */
 public class AuxUserUserPullFile {
 
-    private EntityCommitUser commitUser;
-    private EntityCommitUser commitUser2;
-    private EntityPullRequest pull;
-    private String file;
+    private String userIdentity;
+    private String userIdentity2;
+    private Integer pullNumber;
+    private String fileName;
 
-    public AuxUserUserPullFile(EntityCommitUser commitUser, EntityCommitUser commitUser2, EntityPullRequest pull, String file) {
-        this.commitUser = commitUser;
-        this.commitUser2 = commitUser2;
-        this.pull = pull;
-        this.file = file;
+    public AuxUserUserPullFile(String userIdentity, String userIdentity2, Integer pullNumber, String fileName) {
+        this.userIdentity = userIdentity;
+        this.userIdentity2 = userIdentity2;
+        this.pullNumber = pullNumber;
+        this.fileName = fileName;
     }
 
-    public EntityPullRequest getPull() {
-        return pull;
+    public String getUserIdentity() {
+        return userIdentity;
     }
 
-    public void setPull(EntityPullRequest pull) {
-        this.pull = pull;
+    public void setUserIdentity(String userIdentity) {
+        this.userIdentity = userIdentity;
     }
 
-    public String getFile() {
-        return file;
+    public String getUserIdentity2() {
+        return userIdentity2;
     }
 
-    public EntityCommitUser getCommitUser() {
-        return commitUser;
+    public void setUserIdentity2(String userIdentity2) {
+        this.userIdentity2 = userIdentity2;
     }
 
-    public void setCommitUser(EntityCommitUser commitUser) {
-        this.commitUser = commitUser;
+    public Integer getPullNumber() {
+        return pullNumber;
     }
 
-    public EntityCommitUser getCommitUser2() {
-        return commitUser2;
+    public void setPullNumber(Integer pullNumber) {
+        this.pullNumber = pullNumber;
     }
 
-    public void setCommitUser2(EntityCommitUser commitUser2) {
-        this.commitUser2 = commitUser2;
+    public String getFileName() {
+        return fileName;
     }
 
-    public void setFile(String file) {
-        this.file = file;
+    public void setFileName(String fileName) {
+        this.fileName = fileName;
     }
 
     @Override
     public boolean equals(Object obj) {
         if (obj != null && obj instanceof AuxUserUserPullFile) {
             AuxUserUserPullFile other = (AuxUserUserPullFile) obj;
-            if (this.pull.equals(other.pull) && this.file.equals(other.file)) {
-                if (this.commitUser.equals(other.commitUser) && this.commitUser2.equals(other.commitUser2)) {
+            if (this.pullNumber.equals(other.pullNumber) && this.fileName.equals(other.fileName)) {
+                if (this.userIdentity.equals(other.userIdentity) && this.userIdentity2.equals(other.userIdentity2)) {
                     return true;
                 }
-                if (this.commitUser.equals(other.commitUser2) && this.commitUser2.equals(other.commitUser)) {
+                if (this.userIdentity.equals(other.userIdentity2) && this.userIdentity2.equals(other.userIdentity)) {
                     return true;
                 }
             }
@@ -75,16 +74,16 @@ public class AuxUserUserPullFile {
 
     @Override
     public int hashCode() {
-        int hash = 0;
-        hash += (this.commitUser != null ? this.commitUser.hashCode() : 0);
-        hash += (this.commitUser2 != null ? this.commitUser2.hashCode() : 0);
-        hash += (this.pull != null ? this.pull.hashCode() : 0);
-        hash += (this.file != null ? this.file.hashCode() : 0);
+        int hash = 7;
+        hash = 31 * hash + Objects.hashCode(this.userIdentity);
+        hash = 31 * hash + Objects.hashCode(this.userIdentity2);
+        hash = 31 * hash + Objects.hashCode(this.pullNumber);
+        hash = 31 * hash + Objects.hashCode(this.fileName);
         return hash;
     }
 
     @Override
     public String toString() {
-        return commitUser + " | " + commitUser2 + " | " + pull + " | " + file;
+        return userIdentity + " | " + userIdentity2 + " | " + pullNumber + " | " + fileName;
     }
 }

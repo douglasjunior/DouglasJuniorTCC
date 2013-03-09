@@ -16,6 +16,7 @@ import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import javax.ejb.EJB;
@@ -210,10 +211,17 @@ public class GitMatrizBean implements Serializable {
     }
 
     private void saveRecordsInMatriz(EntityMatriz matriz, List<EntityMatrizNode> nodes) {
-        for (EntityMatrizNode node : nodes) {
-            dao.insert(node);
+        int j = 0;
+        for (Iterator<EntityMatrizNode> it = nodes.iterator(); it.hasNext();) {
+            EntityMatrizNode node = it.next();
             node.setMatriz(matriz);
-            dao.edit(node);
+            dao.insert(node);
+            it.remove();
+            j++;
+            if (j >= 1000) {
+                dao.clearCache(false);
+                j = 0;
+            }
         }
     }
 
@@ -224,6 +232,7 @@ public class GitMatrizBean implements Serializable {
             try {
                 process.interrupt();
             } catch (Exception ex) {
+                ex.printStackTrace();
             }
         }
     }

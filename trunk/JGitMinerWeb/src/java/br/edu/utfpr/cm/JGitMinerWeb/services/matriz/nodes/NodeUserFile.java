@@ -2,31 +2,21 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package br.edu.utfpr.cm.JGitMinerWeb.services.matriz.auxiliary;
+package br.edu.utfpr.cm.JGitMinerWeb.services.matriz.nodes;
 
 /**
  *
  * @author douglas
  */
-public class AuxUserFilePull {
+public class NodeUserFile {
 
-    private String fileName;
     private String userLogin;
     private String userEmail;
-    private Integer pullNumber;
+    private String fileName;
 
-    public AuxUserFilePull(String userLogin, String userEmail, Integer pullNumber, String fileName) {
+    public NodeUserFile(String userLogin, String userEmail, String fileName) {
         this.userLogin = userLogin;
         this.userEmail = userEmail;
-        this.pullNumber = pullNumber;
-        this.fileName = fileName;
-    }
-
-    public String getFileName() {
-        return fileName;
-    }
-
-    public void setFileName(String fileName) {
         this.fileName = fileName;
     }
 
@@ -46,15 +36,15 @@ public class AuxUserFilePull {
         this.userEmail = userEmail;
     }
 
-    public Integer getPullNumber() {
-        return pullNumber;
+    public String getFileName() {
+        return fileName;
     }
 
-    public void setPullNumber(Integer pullNumber) {
-        this.pullNumber = pullNumber;
+    public void setFileName(String fileName) {
+        this.fileName = fileName;
     }
 
-    public String getUserIdentity() {
+    public Object getUserIdentity() {
         if (userLogin != null && !userLogin.isEmpty()) {
             return userLogin;
         }

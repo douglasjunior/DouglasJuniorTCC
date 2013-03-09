@@ -17,7 +17,7 @@ public class GenericDao implements Serializable {
     @PersistenceContext(unitName = "pu")
     private EntityManager em;
 
-    private EntityManager getEntityManager() {
+    public EntityManager getEntityManager() {
         return em;
     }
 
@@ -137,9 +137,11 @@ public class GenericDao implements Serializable {
         return query.getResultList();
     }
 
-    public void clearCache() {
+    public void clearCache(boolean evictAll) {
         try {
-            em.getEntityManagerFactory().getCache().evictAll();
+            if (evictAll) {
+                em.getEntityManagerFactory().getCache().evictAll();
+            }
             em.clear();
             System.gc();
             System.out.println("######### LIMPOU CACHE #########");

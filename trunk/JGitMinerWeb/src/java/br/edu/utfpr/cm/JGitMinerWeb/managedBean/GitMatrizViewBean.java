@@ -57,7 +57,7 @@ public class GitMatrizViewBean implements Serializable {
     }
 
     public List<EntityMatriz> getMatriz() {
-        dao.clearCache();
+        dao.clearCache(true);
         return dao.executeNamedQuery("Matriz.findAllTheLatest");
     }
 
@@ -112,6 +112,6 @@ public class GitMatrizViewBean implements Serializable {
     }
 
     private String generateFileName(EntityMatriz matriz) {
-        return matriz.getRepository().getName() + "-" + matriz.getStarted();
+        return matriz.getRepository() + "-" + matriz.getStarted();
     }
 }
