@@ -251,7 +251,7 @@ public class GitMatrizBean implements Serializable {
     public List<Class> getServicesClasses() {
         List<Class> cls = null;
         try {
-            cls = JsfUtil.getClasses("br.edu.utfpr.cm.JGitMinerWeb.services.matriz", Arrays.asList("AbstractMatrizServices"));
+            cls = JsfUtil.getClasses("br.edu.utfpr.cm.JGitMinerWeb.services.matriz", Arrays.asList(AbstractMatrizServices.class.getSimpleName()));
         } catch (Exception ex) {
             ex.printStackTrace();
         }

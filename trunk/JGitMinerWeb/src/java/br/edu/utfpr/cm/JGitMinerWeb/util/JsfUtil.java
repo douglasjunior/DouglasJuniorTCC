@@ -1,10 +1,10 @@
 package br.edu.utfpr.cm.JGitMinerWeb.util;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.io.Serializable;
 import java.net.URLDecoder;
 import java.util.ArrayList;
@@ -18,10 +18,11 @@ import javax.faces.component.UIViewRoot;
 import javax.faces.context.FacesContext;
 import javax.faces.convert.Converter;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import org.primefaces.model.DefaultStreamedContent;
+import org.primefaces.model.StreamedContent;
 
-public class JsfUtil implements Serializable  {
+public class JsfUtil implements Serializable {
 
     private static final String[] CARACTERES = {"{", "}", "(", ")", "\\[", "\\]", "<", ">",
         ":", ";", ".", ",", "!", "?", "\\", "/", "~", "`", "\"", "\'", "\\\\",
@@ -245,22 +246,8 @@ public class JsfUtil implements Serializable  {
      * @param file
      * @throws IOException
      */
-    public static void downloadFile(String fileName, byte[] bytesFile) throws IOException {
-        HttpServletResponse response = (HttpServletResponse) getContext().getExternalContext().getResponse();
-
-        //configura o arquivo que vai voltar para o usuario.
-        response.setHeader("Content-Disposition", "attachment;filename=\"" + fileName + "\"");
-        response.setContentLength(bytesFile.length);
-
-        //isso faz abrir a janelinha de download
-        response.setContentType("application/download");
-
-        //envia o arquivo de volta
-        OutputStream out = response.getOutputStream();
-        out.write(bytesFile);
-        out.flush();
-        out.close();
-        getContext().responseComplete();
+    public static StreamedContent downloadFile(String fileName, byte[] bytesFile) throws IOException {
+        return new DefaultStreamedContent(new ByteArrayInputStream(bytesFile), "application/download", fileName);
     }
 
     /**

@@ -6,10 +6,12 @@
 
     <br />
 
+    <h:outputText value="Milestone Number:* " />  
+    <p:inputText value="#{gitMatrizBean.paramValue['milestoneNumber']}" id="mileNumber" type="number"  size="10" />
+    <br />
     <h:outputText value="Date: " />  
     <p:calendar value="#{gitMatrizBean.paramValue['beginDate']}" id="beginDate" effect="explode" navigator="true" size="10" />
     <h:outputText value=" to " />  
     <p:calendar value="#{gitMatrizBean.paramValue['endDate']}" id="endDate" effect="explode" navigator="true" size="10"/>
 
 </div>
-

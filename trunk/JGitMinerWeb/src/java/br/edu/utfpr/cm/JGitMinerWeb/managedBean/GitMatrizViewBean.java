@@ -15,6 +15,7 @@ import java.util.List;
 import javax.ejb.EJB;
 import javax.faces.bean.ManagedBean;
 import javax.faces.bean.RequestScoped;
+import org.primefaces.model.StreamedContent;
 
 /**
  *
@@ -61,7 +62,8 @@ public class GitMatrizViewBean implements Serializable {
         return dao.executeNamedQuery("Matriz.findAllTheLatest");
     }
 
-    public void downloadCSV(EntityMatriz matriz) {
+    public StreamedContent downloadCSV(EntityMatriz matriz) {
+        StreamedContent file = null;
         try {
             System.out.println("Matriz tem records: " + matriz.getNodes().size());
 
@@ -77,16 +79,18 @@ public class GitMatrizViewBean implements Serializable {
             pw.flush();
             pw.close();
 
-            JsfUtil.downloadFile(fileName, baos.toByteArray());
+            file = JsfUtil.downloadFile(fileName, baos.toByteArray());
 
             baos.close();
         } catch (Exception ex) {
             ex.printStackTrace();
             JsfUtil.addErrorMessage(ex.toString());
         }
+        return file;
     }
 
-    public void downloadLOG(EntityMatriz matriz) {
+    public StreamedContent downloadLOG(EntityMatriz matriz) {
+        StreamedContent file = null;
         try {
             String fileName = generateFileName(matriz) + ".log";
 
@@ -102,13 +106,14 @@ public class GitMatrizViewBean implements Serializable {
             pw.flush();
             pw.close();
 
-            JsfUtil.downloadFile(fileName, baos.toByteArray());
+            file = JsfUtil.downloadFile(fileName, baos.toByteArray());
 
             baos.close();
         } catch (Exception ex) {
             ex.printStackTrace();
             JsfUtil.addErrorMessage(ex.toString());
         }
+        return file;
     }
 
     private String generateFileName(EntityMatriz matriz) {

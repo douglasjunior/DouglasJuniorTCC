@@ -32,27 +32,16 @@ public class UserCommentInIssueMatrizServices extends AbstractMatrizServices {
     }
 
     public Date getBegin() {
-        Date begin = getDateParam("beginDate");
-        if (begin == null) {
-            try {
-                return new SimpleDateFormat("MM/dd/yyyy").parse("01/01/1970");
-            } catch (ParseException ex) {
-                ex.printStackTrace();
-            }
-        }
-        return begin;
+        return getDateParam("beginDate");
     }
 
     public Date getEnd() {
-        Date end = getDateParam("endDate");
-        if (end == null) {
-            try {
-                return new SimpleDateFormat("MM/dd/yyyy").parse("01/01/2999");
-            } catch (ParseException ex) {
-                ex.printStackTrace();
-            }
-        }
-        return end;
+        return getDateParam("endDate");
+    }
+
+    private int getMilestoneNumber() {
+        String mileNumber = params.get("milestoneNumber") + "";
+        return Util.tratarStringParaInt(mileNumber);
     }
 
     @Override
@@ -64,17 +53,28 @@ public class UserCommentInIssueMatrizServices extends AbstractMatrizServices {
         String jpql = "SELECT NEW " + EntityMatrizNode.class.getName() + "(u.login, i.number, count(u.id)) "
                 + "FROM EntityIssue i JOIN i.comments c JOIN c.user u "
                 + "WHERE i.repository = :repo "
-                + "AND i.createdAt >= :dataInicial "
-                + "AND i.createdAt <= :dataFinal "
+                + (getMilestoneNumber() != 0 ? "AND i.milestone.number >= :milestoneNumber " : "")
+                + (getBegin() != null ? "AND i.createdAt >= :dataInicial " : "")
+                + (getEnd() != null ? "AND i.createdAt <= :dataFinal " : "")
                 + "GROUP BY u.login, i.number";
 
         System.out.println(jpql);
 
-        List<EntityMatrizNode> records = dao.selectWithParams(jpql, new String[]{"repo", "dataInicial", "dataFinal"}, new Object[]{getRepository(), getBegin(), getEnd()});
+        List<EntityMatrizNode> nodes = dao.selectWithParams(jpql,
+                new String[]{
+                    "repo",
+                    getMilestoneNumber() != 0 ? "milestoneNumber" : "#none#",
+                    getBegin() != null ? "dataInicial" : "#none#",
+                    getEnd() != null ? "dataFinal" : "#none#"
+                }, new Object[]{
+                    getRepository(),
+                    getBegin(),
+                    getEnd()
+                });
 
-        setNodes(records);
+        setNodes(nodes);
 
-        System.out.println("Results: " + records.size());
+        System.out.println("Results: " + nodes.size());
     }
 
     @Override

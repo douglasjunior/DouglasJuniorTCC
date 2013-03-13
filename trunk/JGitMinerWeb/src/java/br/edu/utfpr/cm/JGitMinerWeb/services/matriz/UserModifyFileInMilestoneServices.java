@@ -61,15 +61,25 @@ public class UserModifyFileInMilestoneServices extends AbstractMatrizServices {
                 + "EntityPullRequest p JOIN p.issue i JOIN i.milestone m JOIN p.repositoryCommits rc JOIN rc.files f JOIN rc.commit c "
                 + "WHERE "
                 + "p.repository = :repository AND "
-                + "m.number = :milestoneNumber AND "
+                + (mileNumber > 0 ? "m.number = :milestoneNumber AND " : "")
                 + "f.filename LIKE :prefixFile AND "
                 + "f.filename LIKE :suffixFile ";
 
         System.out.println(jpql);
 
         List<NodeUserFile> query = dao.selectWithParams(jpql,
-                new String[]{"repository", "milestoneNumber", "prefixFile", "suffixFile"},
-                new Object[]{getRepository(), mileNumber, getPrefixFile(), getSuffixFile()});
+                new String[]{
+                    "repository",
+                    mileNumber > 0 ? "milestoneNumber" : "#none#",
+                    "prefixFile",
+                    "suffixFile"
+                },
+                new Object[]{
+                    getRepository(),
+                    mileNumber,
+                    getPrefixFile(),
+                    getSuffixFile()
+                });
 
         System.out.println("query: " + query.size());
 

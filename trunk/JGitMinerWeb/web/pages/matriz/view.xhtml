@@ -6,6 +6,9 @@
     <p:panel>
         <h2>Página de listagem das redes.</h2>
         <br /> 
+
+
+
         <h:form prependId="false" >
             <p:growl globalOnly="true" id="messages" />
 
@@ -47,10 +50,18 @@
                 </p:column>
 
                 <p:column headerText="Download Files">
-                    <p:commandButton id="matrizDownloadLog" value="Log" actionListener="#{gitMatrizViewBean.downloadLOG(matriz)}" ajax="false" />
-                    <p:commandButton id="matrizDownloadCSV" value="CSV" actionListener="#{gitMatrizViewBean.downloadCSV(matriz)}" ajax="false" />
-                    <p:commandButton id="matrizDownloadNET" value="Pajek" actionListener="#{gitMatrizViewBean.downloadCSV(matriz)}" ajax="false" />
-                    <p:commandButton id="matrizDownloadARFF" value="ARFF" actionListener="#{gitMatrizViewBean.downloadCSV(matriz)}" ajax="false" />
+                    <p:commandButton onclick="PrimeFaces.monitorDownload(start, stop)" ajax="false" value="Log">
+                        <p:fileDownload value="#{gitMatrizViewBean.downloadLOG(matriz)}" />  
+                    </p:commandButton> 
+                    <p:commandButton onclick="PrimeFaces.monitorDownload(start, stop)" ajax="false" value="CSV">
+                        <p:fileDownload value="#{gitMatrizViewBean.downloadCSV(matriz)}" />  
+                    </p:commandButton> 
+                    <p:commandButton onclick="PrimeFaces.monitorDownload(start, stop)"  ajax="false" value="Pajek">
+                        <p:fileDownload value="#{gitMatrizViewBean.downloadCSV(matriz)}" />  
+                    </p:commandButton> 
+                    <p:commandButton onclick="PrimeFaces.monitorDownload(start, stop)" ajax="false" value="ARFF">
+                        <p:fileDownload value="#{gitMatrizViewBean.downloadCSV(matriz)}" />  
+                    </p:commandButton>  
                 </p:column>
 
                 <p:column headerText="Options">
@@ -69,5 +80,19 @@
                                  actionListener="#{gitMatrizViewBean.removeMatrizFromSession()}"/>
             </p:confirmDialog>
         </h:form>
+        <p:dialog modal="true" widgetVar="statusDialog" header="Loading..." draggable="false" closable="false" resizable="false">
+            <p:graphicImage value="resources/images/ajaxloadingbar.gif" />  
+        </p:dialog> 
+
+        <script type="text/javascript">  
+            function start() {  
+                statusDialog.show();  
+            }  
+  
+            function stop() {  
+                statusDialog.hide();  
+            }  
+        </script>  
     </p:panel>
+
 </div>
