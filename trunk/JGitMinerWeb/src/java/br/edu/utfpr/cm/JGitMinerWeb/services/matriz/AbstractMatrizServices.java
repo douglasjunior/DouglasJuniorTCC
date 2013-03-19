@@ -38,6 +38,14 @@ public abstract class AbstractMatrizServices implements Runnable, Serializable {
         return repository;
     }
 
+    public Date getBeginDate() {
+        return getDateParam("beginDate");
+    }
+
+    public Date getEndDate() {
+        return getDateParam("endDate");
+    }
+
     public List<EntityMatrizNode> getNodes() {
         return nodes;
     }

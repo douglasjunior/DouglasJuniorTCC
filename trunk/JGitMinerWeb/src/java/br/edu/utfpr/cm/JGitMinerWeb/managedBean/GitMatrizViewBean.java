@@ -42,6 +42,7 @@ public class GitMatrizViewBean implements Serializable {
         try {
             EntityMatriz netForDelete = (EntityMatriz) JsfUtil.getObjectFromSession(STR_NET_FOR_DELETE);
             dao.remove(netForDelete);
+            reloadList();
         } catch (Exception ex) {
             ex.printStackTrace();
             JsfUtil.addErrorMessage(ex.toString());
@@ -57,9 +58,19 @@ public class GitMatrizViewBean implements Serializable {
         JsfUtil.addAttributeInSession(STR_NET_FOR_DELETE, netForDelete);
     }
 
-    public List<EntityMatriz> getMatriz() {
+    public void reloadList() {
         dao.clearCache(true);
-        return dao.executeNamedQuery("Matriz.findAllTheLatest");
+        List<EntityMatriz> matrizes = dao.executeNamedQuery("Matriz.findAllTheLatest");
+        JsfUtil.addAttributeInSession("listMatrizes", matrizes);
+    }
+
+    public List<EntityMatriz> getMatriz() {
+        List<EntityMatriz> matrizes = (List<EntityMatriz>) JsfUtil.getObjectFromSession("listMatrizes");
+        if (matrizes == null) {
+            reloadList();
+            return getMatriz();
+        }
+        return matrizes;
     }
 
     public StreamedContent downloadCSV(EntityMatriz matriz) {

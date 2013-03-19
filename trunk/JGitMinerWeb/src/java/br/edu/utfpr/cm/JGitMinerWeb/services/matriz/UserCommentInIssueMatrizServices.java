@@ -9,10 +9,7 @@ import br.edu.utfpr.cm.JGitMinerWeb.pojo.matriz.EntityMatrizNode;
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.EntityRepository;
 import br.edu.utfpr.cm.JGitMinerWeb.util.JsfUtil;
 import br.edu.utfpr.cm.JGitMinerWeb.util.Util;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.Collection;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -31,14 +28,6 @@ public class UserCommentInIssueMatrizServices extends AbstractMatrizServices {
         System.out.println(params);
     }
 
-    public Date getBegin() {
-        return getDateParam("beginDate");
-    }
-
-    public Date getEnd() {
-        return getDateParam("endDate");
-    }
-
     private int getMilestoneNumber() {
         String mileNumber = params.get("milestoneNumber") + "";
         return Util.tratarStringParaInt(mileNumber);
@@ -54,8 +43,8 @@ public class UserCommentInIssueMatrizServices extends AbstractMatrizServices {
                 + "FROM EntityIssue i JOIN i.comments c JOIN c.user u "
                 + "WHERE i.repository = :repo "
                 + (getMilestoneNumber() != 0 ? "AND i.milestone.number >= :milestoneNumber " : "")
-                + (getBegin() != null ? "AND i.createdAt >= :dataInicial " : "")
-                + (getEnd() != null ? "AND i.createdAt <= :dataFinal " : "")
+                + (getBeginDate() != null ? "AND i.createdAt >= :dataInicial " : "")
+                + (getEndDate() != null ? "AND i.createdAt <= :dataFinal " : "")
                 + "GROUP BY u.login, i.number";
 
         System.out.println(jpql);
@@ -64,12 +53,12 @@ public class UserCommentInIssueMatrizServices extends AbstractMatrizServices {
                 new String[]{
                     "repo",
                     getMilestoneNumber() != 0 ? "milestoneNumber" : "#none#",
-                    getBegin() != null ? "dataInicial" : "#none#",
-                    getEnd() != null ? "dataFinal" : "#none#"
+                    getBeginDate() != null ? "dataInicial" : "#none#",
+                    getEndDate() != null ? "dataFinal" : "#none#"
                 }, new Object[]{
                     getRepository(),
-                    getBegin(),
-                    getEnd()
+                    getBeginDate(),
+                    getEndDate()
                 });
 
         setNodes(nodes);

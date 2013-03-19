@@ -27,11 +27,13 @@
 
             <br />
             <br />
-            <p:panel header="Filters:" id="matrizFilter">
-                <c:if id="matrizFilterIf" test="#{gitMatrizBean.serviceClass != null}" >
-                    <ui:include id="matrizFilterInclude" src="./filter/#{gitMatrizBean.serviceClass.simpleName}.xhtml" />
+            <h:panelGroup id="matrizFilter">
+                <c:if test="#{gitMatrizBean.serviceClass != null}" >
+                    <p:panel header="Filters for #{gitMatrizBean.serviceClass.simpleName}:" >
+                        <ui:include src="./filter/#{gitMatrizBean.serviceClass.simpleName}.xhtml" />
+                    </p:panel>
                 </c:if>
-            </p:panel>
+            </h:panelGroup>
             <br />
             <br />
 

@@ -32,14 +32,6 @@ public class FilesModifiedMoreServices extends AbstractMatrizServices {
         super(dao, repository, params);
     }
 
-    private Date getBeginDate() {
-        return getDateParam("beginDate");
-    }
-
-    private Date getEndDate() {
-        return getDateParam("endDate");
-    }
-
     private int getMilestoneNumber() {
         String mileNumber = params.get("milestoneNumber") + "";
         return Util.tratarStringParaInt(mileNumber);

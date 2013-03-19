@@ -7,16 +7,16 @@
         <h2>Página de listagem das redes.</h2>
         <br /> 
 
-
+        <h:form prependId="false" >
+            <h:outputText value="#{gitMatrizViewBean.reloadList()}" />
+        </h:form>
 
         <h:form prependId="false" >
             <p:growl globalOnly="true" id="messages" />
-
-            <p:dataTable var="matriz" value="#{gitMatrizViewBean.matriz}" id="netList" rows="10"
+            <p:dataTable var="matriz" value="#{gitMatrizViewBean.matriz}" id="netList" rows="10" lazy="false"
                          emptyMessage="No records found." paginator="true" paginatorPosition="bottom"
                          paginatorTemplate="{CurrentPageReport}  {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
                          rowsPerPageTemplate="5,10,15">
-
                 <f:facet name="header">
                     <h:outputText value="Nets"/>
                 </f:facet>

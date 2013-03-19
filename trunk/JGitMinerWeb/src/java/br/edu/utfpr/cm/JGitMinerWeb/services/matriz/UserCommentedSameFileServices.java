@@ -7,16 +7,13 @@ package br.edu.utfpr.cm.JGitMinerWeb.services.matriz;
 import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericDao;
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.matriz.EntityMatrizNode;
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.EntityRepository;
-import br.edu.utfpr.cm.JGitMinerWeb.services.matriz.auxiliary.AuxUserFilePull;
-import br.edu.utfpr.cm.JGitMinerWeb.services.matriz.auxiliary.AuxUserUserPullFile;
+import br.edu.utfpr.cm.JGitMinerWeb.services.matriz.auxiliary.AuxUserUserFile;
 import br.edu.utfpr.cm.JGitMinerWeb.util.JsfUtil;
 import br.edu.utfpr.cm.JGitMinerWeb.util.Util;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
  *
@@ -42,17 +39,24 @@ public class UserCommentedSameFileServices extends AbstractMatrizServices {
         return Util.tratarStringParaLong(idPull);
     }
 
-    private String getPrefixFile() {
-        return params.get("prefixFile") + "%";
+    private List<String> getFilesName() {
+        List<String> filesName = new ArrayList<>();
+        for (String fileName : (params.get("filesName") + "").split("\n")) {
+            fileName = fileName.trim();
+            if (!fileName.isEmpty()) {
+                filesName.add(fileName);
+            }
+        }
+        return filesName;
     }
 
-    private String getSuffixFile() {
-        return "%" + params.get("suffixFile");
-    }
-
-    private int getMilestoneNumber() {
+    private Integer getMilestoneNumber() {
         String mileNumber = params.get("milestoneNumber") + "";
         return Util.tratarStringParaInt(mileNumber);
+    }
+
+    private Boolean isIncludeGenericComments() {
+        return Boolean.parseBoolean(params.get("includeGenericsComments") + "");
     }
 
     @Override
@@ -63,90 +67,180 @@ public class UserCommentedSameFileServices extends AbstractMatrizServices {
             throw new IllegalArgumentException("Parâmetro Repository não pode ser nulo.");
         }
 
-        int mileNumber = getMilestoneNumber();
+        List<AuxUserUserFile> result;
 
-        String jpql = "SELECT DISTINCT NEW " + AuxUserFilePull.class.getName() + "(rc.committer.login, c.committer.email, p.number, f.filename) "
-                + "FROM "
-                + "EntityPullRequest p JOIN p.issue i JOIN i.milestone m JOIN p.repositoryCommits rc JOIN rc.files f JOIN rc.commit c "
-                + "WHERE "
-                + "p.repository = :repo AND "
-                + (mileNumber > 0 ? "m.number = :milestoneNumber AND " : "")
-                + (getBeginPullRequestNumber() > 0 ? "p.number >= :beginPull AND " : "")
-                + (getEndPullRequestNumber() > 0 ? "p.number <= :endPull AND " : "")
-                + "f.filename LIKE :prefixFile AND "
-                + "f.filename LIKE :suffixFile";
-
-        // INICIO QUERY
-        //query é feita por intervalos para evitar estouro de RAM e CPU
-        int queryCount = 0;
-        int offset = 1;
-        final int limit = 10000;
-
-        System.out.println(jpql);
-
-        List<AuxUserFilePull> query = new ArrayList<>();
-
-        do {
-            List result = dao.selectWithParams(jpql,
-                    new String[]{
-                        "repo",
-                        getBeginPullRequestNumber() > 0 ? "beginPull" : "#none#",
-                        getEndPullRequestNumber() > 0 ? "endPull" : "#none#",
-                        "prefixFile",
-                        "suffixFile",
-                        mileNumber > 0 ? "milestoneNumber" : "#none#"
-                    },
-                    new Object[]{
-                        getRepository(),
-                        getBeginPullRequestNumber(),
-                        getEndPullRequestNumber(),
-                        getPrefixFile(),
-                        getSuffixFile(),
-                        mileNumber
-                    },
-                    offset, limit);
-            query.addAll(result);
-            offset += limit;
-            queryCount = result.size();
-            System.out.println("query: " + query.size());
-        } while (queryCount >= limit);
-
-        // FIM QUERY
+        if (getMilestoneNumber() > 0) {
+            result = getByMilestoneNumber();
+        } else {
+            result = getByDate();
+        }
 
         List<EntityMatrizNode> nodes = new ArrayList<>();
-        Set<AuxUserUserPullFile> controls = new HashSet<>(); // lista pata controle de repetição
-
-        for (int i = 0; i < query.size(); i++) {
-            System.out.println(i + "/" + query.size());
-            AuxUserFilePull aux = query.get(i);
-            for (int j = i + 1; j < query.size(); j++) {
-                AuxUserFilePull aux2 = query.get(j);
-                if (aux.getPullNumber().equals(aux2.getPullNumber())) { // se o pull é igual 
-                    if (!aux.getUserIdentity().equals(aux2.getUserIdentity())) {// se o user é diferente
-                        if (aux.getFileName().equals(aux.getFileName())) { // se o file é igual  
-                            // então eles mexeram no mesmo arquivo no mesmo pull request
-                            AuxUserUserPullFile control = new AuxUserUserPullFile(aux.getUserIdentity(), aux2.getUserIdentity(), aux.getPullNumber(), aux.getFileName());
-                            // verifica se já foi gravado registo semelhante, se não foi então grave
-                            if (controls.add(control)) {
-                                incrementNode(nodes, new EntityMatrizNode(control.getUserIdentity(), control.getUserIdentity2(), 1));
-                            }
-                        }
-                    }
-                }
-            }
+        for (AuxUserUserFile aux : result) {
+            nodes.add(new EntityMatrizNode(aux.getUser() + ";" + aux.getUser2(), aux.getFileName()));
         }
+
         System.out.println("Nodes: " + nodes.size());
+
         setNodes(nodes);
     }
 
     @Override
     public String convertToCSV(Collection<EntityMatrizNode> nodes) {
-        StringBuilder sb = new StringBuilder("user;user2;file\n");
+        StringBuilder sb = new StringBuilder("user;user2;file;width\n");
         for (EntityMatrizNode node : nodes) {
             sb.append(node.getFrom()).append(JsfUtil.TOKEN_SEPARATOR);
             sb.append(node.getTo()).append(JsfUtil.TOKEN_SEPARATOR);
             sb.append(Util.tratarDoubleParaString(node.getWeight(), 0)).append("\n");
         }
         return sb.toString();
+    }
+
+    private List<AuxUserUserFile> getByMilestoneNumber() {
+        String jpql = "SELECT DISTINCT NEW " + AuxUserUserFile.class.getName() + "(cm.user.login, cm2.user.login, cm.pathCommitComment) "
+                + "FROM "
+                + "EntityPullRequest p JOIN p.repositoryCommits rc JOIN rc.comments cm, "
+                + "EntityPullRequest p2 JOIN p2.repositoryCommits rc2 JOIN rc2.comments cm2 "
+                + "WHERE "
+                + "p.repository = :repo AND "
+                + "p2.repository = :repo AND "
+                + "p.issue.milestone.number = :milestoneNumber AND "
+                + "p.issue.milestone.number = p2.issue.milestone.number AND "
+                + (!getFilesName().isEmpty() ? "cm.pathCommitComment IN :filesName AND " : "")
+                + "cm.pathCommitComment = cm2.pathCommitComment AND "
+                + "cm.user <> cm2.user ";
+
+        String[] bdParams = new String[]{
+            "repo",
+            !getFilesName().isEmpty() ? "filesName" : "#none#",
+            "milestoneNumber"
+        };
+        Object[] bdObjects = new Object[]{
+            getRepository(),
+            getFilesName(),
+            getMilestoneNumber()
+        };
+
+        System.out.println(jpql);
+
+        List<AuxUserUserFile> result = new ArrayList<>();
+        List<AuxUserUserFile> temp;
+
+        temp = dao.selectWithParams(jpql,
+                bdParams,
+                bdObjects);
+
+        System.out.println("Result temp: " + temp.size());
+
+        addAllTempInResult(temp, result);
+
+        if (isIncludeGenericComments()) {
+            jpql = "SELECT DISTINCT NEW " + AuxUserUserFile.class.getName() + "(cm.user.login, cm2.user.login, f.filename) "
+                    + "FROM "
+                    + "EntityPullRequest p JOIN p.repositoryCommits rc JOIN rc.comments cm JOIN rc.files f, "
+                    + "EntityPullRequest p2 JOIN p2.repositoryCommits rc2 JOIN rc2.comments cm2 JOIN rc2.files f2 "
+                    + "WHERE "
+                    + "p.repository = :repo "
+                    + "AND p2.repository = :repo "
+                    + "AND p.issue.milestone.number = :milestoneNumber "
+                    + "AND p.issue.milestone.number = p2.issue.milestone.number "
+                    + "AND cm.pathCommitComment IS NULL "
+                    + "AND cm2.pathCommitComment IS NULL "
+                    + (!getFilesName().isEmpty() ? "AND f.filename IN :filesName " : "")
+                    + "AND f.filename = f2.filename "
+                    + "AND cm.user <> cm2.user ";
+
+            System.out.println(jpql);
+
+            temp = dao.selectWithParams(jpql,
+                    bdParams,
+                    bdObjects);
+
+            System.out.println("Result temp2: " + temp.size());
+
+            addAllTempInResult(temp, result);
+        }
+
+        System.out.println("Result: " + result.size());
+        return result;
+    }
+
+    private List<AuxUserUserFile> getByDate() {
+        String jpql = "SELECT DISTINCT NEW " + AuxUserUserFile.class.getName() + "(cm.user.login, cm2.user.login, cm.pathCommitComment) "
+                + "FROM "
+                + "EntityCommitComment cm JOIN cm.repositoryCommit rc, "
+                + "EntityCommitComment cm2 JOIN cm2.repositoryCommit rc2 "
+                + "WHERE "
+                + "rc.repository = :repo AND "
+                + "rc2.repository = :repo AND "
+                + "rc.commit.committer.dateCommitUser BETWEEN :beginDate AND :endDate AND "
+                + "rc2.commit.committer.dateCommitUser BETWEEN :beginDate AND :endDate AND "
+                + (!getFilesName().isEmpty() ? "cm.pathCommitComment IN :filesName AND " : "")
+                + "cm.pathCommitComment = cm2.pathCommitComment AND "
+                + "cm.user <> cm2.user ";
+
+        String[] bdParams = new String[]{
+            "repo",
+            "beginDate",
+            "endDate",
+            !getFilesName().isEmpty() ? "filesName" : "#none#"
+        };
+        Object[] bdObjects = new Object[]{
+            getRepository(),
+            getBeginDate(),
+            getEndDate(),
+            getFilesName()
+        };
+
+        System.out.println(jpql);
+
+        List<AuxUserUserFile> result = new ArrayList<>();
+        List<AuxUserUserFile> temp;
+
+        temp = dao.selectWithParams(jpql,
+                bdParams,
+                bdObjects);
+
+        System.out.println("Result temp: " + temp.size());
+
+        addAllTempInResult(temp, result);
+
+        if (isIncludeGenericComments()) {
+            jpql = "SELECT DISTINCT NEW " + AuxUserUserFile.class.getName() + "(cm.user.login, cm2.user.login, f.filename) "
+                    + "FROM "
+                    + "EntityPullRequest p JOIN p.repositoryCommits rc JOIN rc.comments cm JOIN rc.files f, "
+                    + "EntityPullRequest p2 JOIN p2.repositoryCommits rc2 JOIN rc2.comments cm2 JOIN rc2.files f2 "
+                    + "WHERE "
+                    + "p.repository = :repo "
+                    + "AND p2.repository = :repo "
+                    + "AND rc.commit.committer.dateCommitUser BETWEEN :beginDate AND :endDate "
+                    + "AND rc2.commit.committer.dateCommitUser BETWEEN :beginDate AND :endDate "
+                    + "AND cm.pathCommitComment IS NULL "
+                    + "AND cm2.pathCommitComment IS NULL "
+                    + (!getFilesName().isEmpty() ? "AND f.filename IN :filesName " : "")
+                    + "AND f.filename = f2.filename "
+                    + "AND cm.user <> cm2.user ";
+
+            System.out.println(jpql);
+
+            temp = dao.selectWithParams(jpql,
+                    bdParams,
+                    bdObjects);
+
+            System.out.println("Result temp2: " + temp.size());
+
+            addAllTempInResult(temp, result);
+        }
+
+        System.out.println("Result: " + result.size());
+        return result;
+    }
+
+    private void addAllTempInResult(List<AuxUserUserFile> temp, List<AuxUserUserFile> result) {
+        for (AuxUserUserFile aux : temp) {
+            if (!result.contains(aux)) {
+                result.add(aux);
+            }
+        }
     }
 }

@@ -4,7 +4,7 @@
  */
 package br.edu.utfpr.cm.JGitMinerWeb.services.matriz.auxiliary;
 
-import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.EntityCommitUser;
+import java.util.Objects;
 
 /**
  *
@@ -12,49 +12,49 @@ import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.EntityCommitUser;
  */
 public class AuxUserUserFile {
 
-    private EntityCommitUser commitUser;
-    private EntityCommitUser commitUser2;
-    private String file;
+    private String user;
+    private String user2;
+    private String fileName;
 
-    public AuxUserUserFile(EntityCommitUser commitUser, EntityCommitUser commitUser2, String file) {
-        this.commitUser = commitUser;
-        this.commitUser2 = commitUser2;
-        this.file = file;
+    public AuxUserUserFile(String user, String user2, String fileName) {
+        this.user = user;
+        this.user2 = user2;
+        this.fileName = fileName;
     }
 
-    public String getFile() {
-        return file;
+    public String getUser() {
+        return user;
     }
 
-    public EntityCommitUser getCommitUser() {
-        return commitUser;
+    public void setUser(String user) {
+        this.user = user;
     }
 
-    public void setCommitUser(EntityCommitUser commitUser) {
-        this.commitUser = commitUser;
+    public String getUser2() {
+        return user2;
     }
 
-    public EntityCommitUser getCommitUser2() {
-        return commitUser2;
+    public void setUser2(String user2) {
+        this.user2 = user2;
     }
 
-    public void setCommitUser2(EntityCommitUser commitUser2) {
-        this.commitUser2 = commitUser2;
+    public String getFileName() {
+        return fileName;
     }
 
-    public void setFile(String file) {
-        this.file = file;
+    public void setFileName(String fileName) {
+        this.fileName = fileName;
     }
 
     @Override
     public boolean equals(Object obj) {
         if (obj != null && obj instanceof AuxUserUserFile) {
             AuxUserUserFile other = (AuxUserUserFile) obj;
-            if (this.file.equals(other.file)) {
-                if (this.commitUser.equals(other.commitUser) && this.commitUser2.equals(other.commitUser2)) {
+            if (this.fileName.equals(other.fileName)) {
+                if (this.user.equals(other.user) && this.user2.equals(other.user2)) {
                     return true;
                 }
-                if (this.commitUser.equals(other.commitUser2) && this.commitUser2.equals(other.commitUser)) {
+                if (this.user.equals(other.user2) && this.user2.equals(other.user)) {
                     return true;
                 }
             }
@@ -64,15 +64,15 @@ public class AuxUserUserFile {
 
     @Override
     public int hashCode() {
-        int hash = 0;
-        hash += (this.commitUser != null ? this.commitUser.hashCode() : 0);
-        hash += (this.commitUser2 != null ? this.commitUser2.hashCode() : 0);
-        hash += (this.file != null ? this.file.hashCode() : 0);
+        int hash = 7;
+        hash = 79 * hash + Objects.hashCode(this.user);
+        hash = 79 * hash + Objects.hashCode(this.user2);
+        hash = 79 * hash + Objects.hashCode(this.fileName);
         return hash;
     }
 
     @Override
     public String toString() {
-        return commitUser + " | " + commitUser2 + " | " + file;
+        return user + " | " + user2 + " | " + fileName;
     }
 }
