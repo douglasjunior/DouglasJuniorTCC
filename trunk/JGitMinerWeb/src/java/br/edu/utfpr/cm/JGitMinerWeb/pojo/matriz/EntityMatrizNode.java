@@ -5,14 +5,13 @@
 package br.edu.utfpr.cm.JGitMinerWeb.pojo.matriz;
 
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.InterfaceEntity;
-import br.edu.utfpr.cm.JGitMinerWeb.util.matriz.NodeConnection;
 import java.io.Serializable;
-import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.Lob;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
@@ -22,33 +21,22 @@ import javax.persistence.Table;
  */
 @Entity
 @Table(name = "matrizNode")
-public class EntityMatrizNode implements InterfaceEntity, Serializable, NodeConnection<String, String> {
+public class EntityMatrizNode implements InterfaceEntity, Serializable {
 
     private static final long serialVersionUID = 1L;
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @Column(name = "mFrom")
-    private String from;
-    @Column(name = "mTo")
-    private String to;
-    @Column(name = "mWeight")
-    private double weight;
+    @Lob
+    private String line;
     @ManyToOne(fetch = FetchType.LAZY)
     private EntityMatriz matriz;
 
     public EntityMatrizNode() {
     }
 
-    public EntityMatrizNode(Object from, Object to, Object weight) {
-        this.from = from + "";
-        this.to = to + "";
-        this.weight = Double.parseDouble(weight + "");
-    }
-
-    public EntityMatrizNode(Object from, Object to) {
-        this.from = from + "";
-        this.to = to + "";
+    public EntityMatrizNode(Object line) {
+        this.line = line + "";
     }
 
     @Override
@@ -61,14 +49,8 @@ public class EntityMatrizNode implements InterfaceEntity, Serializable, NodeConn
         this.id = id;
     }
 
-    @Override
-    public double getWeight() {
-        return weight;
-    }
-
-    @Override
-    public void setWeight(double weight) {
-        this.weight = weight;
+    public String getLine() {
+        return line;
     }
 
     public EntityMatriz getMatriz() {
@@ -80,20 +62,6 @@ public class EntityMatrizNode implements InterfaceEntity, Serializable, NodeConn
     }
 
     @Override
-    public String getFrom() {
-        return from;
-    }
-
-    @Override
-    public String getTo() {
-        return to;
-    }
-
-    public void incWeight() {
-        weight++;
-    }
-
-    @Override
     public int hashCode() {
         int hash = 0;
         hash += (id != null ? id.hashCode() : 0);
@@ -102,26 +70,19 @@ public class EntityMatrizNode implements InterfaceEntity, Serializable, NodeConn
 
     @Override
     public boolean equals(Object object) {
-        if (!(object instanceof EntityMatrizNode)) {
-            return false;
-        }
-        EntityMatrizNode other = (EntityMatrizNode) object;
-        if (this.id != null && other.id != null // verifica se nao é nulo
-                && !this.id.equals(new Long(0)) // verifica se tem id
-                && this.id.equals(other.id)) { // verifica se id são iguais
-            return true;
-        }
-        if (this.from.equals(other.from) && this.to.equals(other.to)) {
-            return true;
-        }
-        if (this.from.equals(other.to) && this.to.equals(other.from)) {
-            return true;
+        if (object instanceof EntityMatrizNode) {
+
+            EntityMatrizNode other = (EntityMatrizNode) object;
+            if (this.id != null && other.id != null // verifica se nao é nulo
+                    && this.id.equals(other.id)) { // verifica se id são iguais
+                return true;
+            }
         }
         return false;
     }
 
     @Override
     public String toString() {
-        return from + "\t\t" + to + "\t\t" + weight;
+        return line;
     }
 }

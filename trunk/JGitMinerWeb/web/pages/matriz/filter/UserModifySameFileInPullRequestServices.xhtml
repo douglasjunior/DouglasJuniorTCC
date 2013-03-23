@@ -6,19 +6,24 @@
 
     <br />
 
-    <h:outputText value="Milestone Number: " />  
-    <p:inputText value="#{gitMatrizBean.paramValue['milestoneNumber']}" id="mileNumber" type="number"  size="10" />
-    <br />
-    <h:outputText value="Pull Request Number: " />  
-    <p:inputText value="#{gitMatrizBean.paramValue['beginPull']}" id="beginPull" type="number"  size="10" />
-    <h:outputText value=" to " />  
-    <p:inputText value="#{gitMatrizBean.paramValue['endPull']}" id="endPull" type="number" size="10" />
-    <br />
-    <h:outputText value="File prefix: " />  
-    <p:inputText value="#{gitMatrizBean.paramValue['prefixFile']}" id="prefixFile"  size="20" />
-    <br />
-    <h:outputText value="File suffix: " />  
-    <p:inputText value="#{gitMatrizBean.paramValue['suffixFile']}" id="suffixFile"  size="20" />
-    
+    <h:panelGrid columns="2" cellpadding="5" columnClasses="col">
+        <h:outputLabel value="Milestone Number: " for="mileNumber" />  
+        <p:inputText value="#{gitMatrizBean.paramValue['milestoneNumber']}" id="mileNumber" type="number"  size="10" />
+        <h:outputText value="or" />
+        <br />
+        <h:outputLabel value="Pull Request Number: " for="beginPull" />  
+        <h:panelGroup>
+            <p:inputText value="#{gitMatrizBean.paramValue['beginPull']}" id="beginPull" type="number"  size="10" />
+            <h:outputLabel value=" to " for="endPull" />  
+            <p:inputText value="#{gitMatrizBean.paramValue['endPull']}" id="endPull" type="number" size="10" />
+        </h:panelGroup>
+        <p:spacer />
+        <br />
+        <h:outputLabel value="File prefix: " for="prefixFile" />  
+        <p:inputText value="#{gitMatrizBean.paramValue['prefixFile']}" id="prefixFile"  size="20" />
+        <h:outputLabel value="File suffix: " for="suffixFile" />  
+        <p:inputText value="#{gitMatrizBean.paramValue['suffixFile']}" id="suffixFile"  size="20" />
+    </h:panelGrid>
+
 </div>
 

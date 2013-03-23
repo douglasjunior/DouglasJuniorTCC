@@ -5,13 +5,11 @@
 package br.edu.utfpr.cm.JGitMinerWeb.services.matriz;
 
 import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericDao;
-import br.edu.utfpr.cm.JGitMinerWeb.pojo.matriz.EntityMatrizNode;
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.EntityRepository;
-import br.edu.utfpr.cm.JGitMinerWeb.services.matriz.nodes.NodeUserFile;
-import br.edu.utfpr.cm.JGitMinerWeb.util.JsfUtil;
+import br.edu.utfpr.cm.JGitMinerWeb.services.matriz.auxiliary.AuxUserFile;
+import br.edu.utfpr.cm.JGitMinerWeb.services.matriz.nodes.NodeGeneric;
 import br.edu.utfpr.cm.JGitMinerWeb.util.Util;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -56,7 +54,7 @@ public class UserModifyFileInMilestoneServices extends AbstractMatrizServices {
             throw new IllegalArgumentException("Numero do Milestone inválido.");
         }
 
-        String jpql = "SELECT NEW " + NodeUserFile.class.getName() + "(rc.committer.login, c.committer.email, f.filename) "
+        String jpql = "SELECT NEW " + AuxUserFile.class.getName() + "(rc.committer.login, c.committer.email, f.filename) "
                 + "FROM "
                 + "EntityPullRequest p JOIN p.issue i JOIN i.milestone m JOIN p.repositoryCommits rc JOIN rc.files f JOIN rc.commit c "
                 + "WHERE "
@@ -67,7 +65,7 @@ public class UserModifyFileInMilestoneServices extends AbstractMatrizServices {
 
         System.out.println(jpql);
 
-        List<NodeUserFile> query = dao.selectWithParams(jpql,
+        List<AuxUserFile> query = dao.selectWithParams(jpql,
                 new String[]{
                     "repository",
                     mileNumber > 0 ? "milestoneNumber" : "#none#",
@@ -83,25 +81,21 @@ public class UserModifyFileInMilestoneServices extends AbstractMatrizServices {
 
         System.out.println("query: " + query.size());
 
-        List<EntityMatrizNode> nodes = new ArrayList<>();
-        for (NodeUserFile aux : query) {
-            EntityMatrizNode rec = new EntityMatrizNode(
+        List<NodeGeneric> nodes = new ArrayList<>();
+        for (AuxUserFile aux : query) {
+            NodeGeneric rec = new NodeGeneric(
                     aux.getUserIdentity(),
-                    aux.getFileName(),
-                    1);
+                    aux.getFileName());
             incrementNode(nodes, rec);
         }
-        setNodes(nodes);
+
+        System.out.println("Result: " + query.size());
+
+        addToEntityMatrizNodeList(nodes);
     }
 
     @Override
-    public String convertToCSV(Collection<EntityMatrizNode> nodes) {
-        StringBuilder sb = new StringBuilder("user;file;count\n");
-        for (EntityMatrizNode node : nodes) {
-            sb.append(node.getFrom()).append(JsfUtil.TOKEN_SEPARATOR);
-            sb.append(node.getTo()).append(JsfUtil.TOKEN_SEPARATOR);
-            sb.append(Util.tratarDoubleParaString(node.getWeight(), 0)).append("\n");
-        }
-        return sb.toString();
+    public String getHeadMatriz() {
+        return "user;file;count";
     }
 }

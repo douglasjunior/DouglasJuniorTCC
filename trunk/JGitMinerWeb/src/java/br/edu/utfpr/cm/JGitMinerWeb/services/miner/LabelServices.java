@@ -20,7 +20,7 @@ public class LabelServices implements Serializable {
 
     public static void addLabels(EntityIssue issue, List<Label> gitLabels, GenericDao dao) {
         for (Label gitLabel : gitLabels) {
-            EntityLabel label = getLabelByURL(gitLabel.getUrl(), dao);
+            EntityLabel label = getLabelByName(gitLabel.getName(), dao);
             if (label == null) {
                 label = new EntityLabel();
                 label.setMineredAt(new Date());
@@ -34,8 +34,8 @@ public class LabelServices implements Serializable {
         }
     }
 
-    private static EntityLabel getLabelByURL(String url, GenericDao dao) {
-        List<EntityLabel> labels = dao.executeNamedQueryComParametros("Label.findByURL", new String[]{"url"}, new Object[]{url}, true);
+    private static EntityLabel getLabelByName(String name, GenericDao dao) {
+        List<EntityLabel> labels = dao.executeNamedQueryComParametros("Label.findByName", new String[]{"name"}, new Object[]{name}, true);
         if (!labels.isEmpty()) {
             return labels.get(0);
         }

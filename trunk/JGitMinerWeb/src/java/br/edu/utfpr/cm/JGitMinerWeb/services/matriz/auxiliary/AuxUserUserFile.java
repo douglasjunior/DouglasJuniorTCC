@@ -73,6 +73,6 @@ public class AuxUserUserFile {
 
     @Override
     public String toString() {
-        return user + " | " + user2 + " | " + fileName;
+        return user + ";" + user2 + ";" + fileName;
     }
 }

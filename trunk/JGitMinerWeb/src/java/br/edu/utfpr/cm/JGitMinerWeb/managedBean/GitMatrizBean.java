@@ -130,8 +130,6 @@ public class GitMatrizBean implements Serializable {
     }
 
     public void start() {
-        final EntityMatriz entityMatriz = new EntityMatriz();
-        dao.insert(entityMatriz);
         out.resetLog();
         initialized = false;
         canceled = false;
@@ -147,9 +145,6 @@ public class GitMatrizBean implements Serializable {
         out.printLog("Repository: " + repository);
         out.printLog("");
 
-        entityMatriz.setLog(out.getLog().toString());
-        entityMatriz.setClassServicesName(serviceClass.getName());
-        dao.edit(entityMatriz);
 
         if (repository == null || serviceClass == null) {
             message = "Erro: Escolha o repositorio e o service desejado.";
@@ -157,12 +152,16 @@ public class GitMatrizBean implements Serializable {
             progress = new Integer(0);
             initialized = false;
             fail = true;
-            entityMatriz.setLog(out.getLog().toString());
-            dao.edit(entityMatriz);
         } else {
+            final EntityMatriz entityMatriz = new EntityMatriz();
+            dao.insert(entityMatriz);
+            entityMatriz.setRepository(repository);
+            entityMatriz.setLog(out.getLog().toString());
+            entityMatriz.setClassServicesName(serviceClass.getName());
+            dao.edit(entityMatriz);
+            
             initialized = true;
             progress = new Integer(10);
-            entityMatriz.setRepository(repository);
 
             final AbstractMatrizServices netServices = createMatrizServiceInstance();
 

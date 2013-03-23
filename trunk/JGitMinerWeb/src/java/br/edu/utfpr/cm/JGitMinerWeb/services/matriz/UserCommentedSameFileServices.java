@@ -5,13 +5,10 @@
 package br.edu.utfpr.cm.JGitMinerWeb.services.matriz;
 
 import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericDao;
-import br.edu.utfpr.cm.JGitMinerWeb.pojo.matriz.EntityMatrizNode;
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.EntityRepository;
 import br.edu.utfpr.cm.JGitMinerWeb.services.matriz.auxiliary.AuxUserUserFile;
-import br.edu.utfpr.cm.JGitMinerWeb.util.JsfUtil;
 import br.edu.utfpr.cm.JGitMinerWeb.util.Util;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -75,25 +72,9 @@ public class UserCommentedSameFileServices extends AbstractMatrizServices {
             result = getByDate();
         }
 
-        List<EntityMatrizNode> nodes = new ArrayList<>();
-        for (AuxUserUserFile aux : result) {
-            nodes.add(new EntityMatrizNode(aux.getUser() + ";" + aux.getUser2(), aux.getFileName()));
-        }
+        System.out.println("Nodes: " + result.size());
 
-        System.out.println("Nodes: " + nodes.size());
-
-        setNodes(nodes);
-    }
-
-    @Override
-    public String convertToCSV(Collection<EntityMatrizNode> nodes) {
-        StringBuilder sb = new StringBuilder("user;user2;file;width\n");
-        for (EntityMatrizNode node : nodes) {
-            sb.append(node.getFrom()).append(JsfUtil.TOKEN_SEPARATOR);
-            sb.append(node.getTo()).append(JsfUtil.TOKEN_SEPARATOR);
-            sb.append(Util.tratarDoubleParaString(node.getWeight(), 0)).append("\n");
-        }
-        return sb.toString();
+        addToEntityMatrizNodeList(result);
     }
 
     private List<AuxUserUserFile> getByMilestoneNumber() {
@@ -242,5 +223,10 @@ public class UserCommentedSameFileServices extends AbstractMatrizServices {
                 result.add(aux);
             }
         }
+    }
+
+    @Override
+    public String getHeadMatriz() {
+        return "user;user2;file";
     }
 }

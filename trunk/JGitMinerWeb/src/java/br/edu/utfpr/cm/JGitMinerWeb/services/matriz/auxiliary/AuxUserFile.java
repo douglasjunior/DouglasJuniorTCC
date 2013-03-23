@@ -2,19 +2,19 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package br.edu.utfpr.cm.JGitMinerWeb.services.matriz.nodes;
+package br.edu.utfpr.cm.JGitMinerWeb.services.matriz.auxiliary;
 
 /**
  *
  * @author douglas
  */
-public class NodeUserFile {
+public class AuxUserFile {
 
     private String userLogin;
     private String userEmail;
     private String fileName;
 
-    public NodeUserFile(String userLogin, String userEmail, String fileName) {
+    public AuxUserFile(String userLogin, String userEmail, String fileName) {
         this.userLogin = userLogin;
         this.userEmail = userEmail;
         this.fileName = fileName;

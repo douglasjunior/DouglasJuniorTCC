@@ -15,6 +15,10 @@
         <p:inputText value="#{gitMatrizBean.paramValue['suffixFile']}" id="suffixFile"  size="20" />
         <p:spacer />
         <br />
+        <h:outputText value="Issue Labels: " />  
+        <p:inputText value="#{gitMatrizBean.paramValue['issueLabels']}" id="issueLabels" title='Separated by semicolons ";"' size="20" />
+        <p:spacer />
+        <br />
         <h:outputText value="Milestone Number: " />  
         <p:inputText value="#{gitMatrizBean.paramValue['milestoneNumber']}" id="mileNumber" type="number"  size="10" />
         <h:outputText value="or" />

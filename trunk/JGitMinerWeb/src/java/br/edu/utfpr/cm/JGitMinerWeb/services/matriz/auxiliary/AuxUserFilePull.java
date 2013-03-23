@@ -60,4 +60,9 @@ public class AuxUserFilePull {
         }
         return userEmail;
     }
+
+    @Override
+    public String toString() {
+        return getUserIdentity() + ";" + getPullNumber() + ";" + getFileName();
+    }
 }

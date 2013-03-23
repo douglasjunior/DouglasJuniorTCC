@@ -5,13 +5,11 @@
 package br.edu.utfpr.cm.JGitMinerWeb.services.matriz;
 
 import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericDao;
-import br.edu.utfpr.cm.JGitMinerWeb.pojo.matriz.EntityMatrizNode;
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.EntityRepository;
 import br.edu.utfpr.cm.JGitMinerWeb.services.matriz.auxiliary.AuxFileFilePull;
-import br.edu.utfpr.cm.JGitMinerWeb.util.JsfUtil;
+import br.edu.utfpr.cm.JGitMinerWeb.services.matriz.nodes.NodeGeneric;
 import br.edu.utfpr.cm.JGitMinerWeb.util.Util;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -76,7 +74,7 @@ public class FileModifiedTogetherOnIssueInMilestoneServices extends AbstractMatr
         final int limit = 50000;
         int countTotal = 0;
 
-        List<EntityMatrizNode> nodes = new ArrayList<>();
+        List<NodeGeneric> nodes = new ArrayList<>();
         do {
             List<AuxFileFilePull> resultTemp = dao.selectWithParams(jpql,
                     new String[]{"repository", "milestoneNumber", "prefixFile", "suffixFile"},
@@ -89,7 +87,7 @@ public class FileModifiedTogetherOnIssueInMilestoneServices extends AbstractMatr
             System.out.println("Transformando em Nodes...");
             for (Iterator<AuxFileFilePull> it = resultTemp.iterator(); it.hasNext();) {
                 AuxFileFilePull aux = it.next();
-                incrementNode(nodes, new EntityMatrizNode(aux.getFileName(), aux.getFileName2()));
+                incrementNode(nodes, new NodeGeneric(aux.getFileName(), aux.getFileName2()));
             }
             System.out.println("Transformação concluída!");
             offset += limit;
@@ -97,17 +95,11 @@ public class FileModifiedTogetherOnIssueInMilestoneServices extends AbstractMatr
         } while (countTemp >= limit);
 
         System.out.println("Nodes: " + nodes.size());
-        setNodes(nodes);
+        addToEntityMatrizNodeList(nodes);
     }
 
     @Override
-    public String convertToCSV(Collection<EntityMatrizNode> nodes) {
-        StringBuilder sb = new StringBuilder("file;file2;count\n");
-        for (EntityMatrizNode node : nodes) {
-            sb.append(node.getFrom()).append(JsfUtil.TOKEN_SEPARATOR);
-            sb.append(node.getTo()).append(JsfUtil.TOKEN_SEPARATOR);
-            sb.append(Util.tratarDoubleParaString(node.getWeight(), 0)).append("\n");
-        }
-        return sb.toString();
+    public String getHeadMatriz() {
+        return "file;file2;count";
     }
 }

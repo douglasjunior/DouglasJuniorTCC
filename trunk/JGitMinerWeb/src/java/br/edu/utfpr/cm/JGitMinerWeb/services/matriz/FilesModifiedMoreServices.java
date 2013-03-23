@@ -5,16 +5,12 @@
 package br.edu.utfpr.cm.JGitMinerWeb.services.matriz;
 
 import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericDao;
-import br.edu.utfpr.cm.JGitMinerWeb.pojo.matriz.EntityMatrizNode;
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.EntityRepository;
 import br.edu.utfpr.cm.JGitMinerWeb.services.matriz.auxiliary.AuxFileCount;
-import br.edu.utfpr.cm.JGitMinerWeb.util.JsfUtil;
 import br.edu.utfpr.cm.JGitMinerWeb.util.Util;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -60,8 +56,11 @@ public class FilesModifiedMoreServices extends AbstractMatrizServices {
 
         if (getMilestoneNumber() != 0) {
             auxs = getFilesByMilestone();
-        } else {
+        } else if (getBeginDate() != null
+                && getEndDate() != null) {
             auxs = getFilesByDate();
+        } else {
+            throw new IllegalArgumentException("Informe o número do Milestone ou um Intervalo de datas.");
         }
 
         orderByCount(auxs);
@@ -75,22 +74,20 @@ public class FilesModifiedMoreServices extends AbstractMatrizServices {
         System.out.println("percent:" + percent);
         System.out.println("cut:" + cut);
 
-        List<EntityMatrizNode> nodes = new ArrayList<>();
+        auxs = auxs.subList(0, cut);
 
-        for (AuxFileCount aux : auxs.subList(0, cut)) {
-            nodes.add(new EntityMatrizNode(aux.getFileName(), "", aux.getCount()));
-        }
+        System.out.println("Results: " + auxs.size());
 
-        setNodes(nodes);
-
-        System.out.println("Results: " + nodes.size());
+        addToEntityMatrizNodeList(auxs);
     }
 
     private List<AuxFileCount> getFilesByMilestone() {
         String jpql = "SELECT NEW " + AuxFileCount.class.getName() + "(f.filename, COUNT(f.filename)) "
                 + "FROM EntityPullRequest p JOIN p.issue i JOIN p.repositoryCommits rc JOIN rc.files f "
+                + (!getIssueLabels().isEmpty() ? "JOIN i.labels l " : "")
                 + "WHERE p.repository = :repo "
                 + "AND i.milestone.number >= :milestoneNumber "
+                + (!getIssueLabels().isEmpty() ? "AND LOWER(l.name) IN :labels " : "")
                 + "AND f.filename LIKE :prefix "
                 + "AND f.filename LIKE :suffix "
                 + "GROUP BY f.filename ";
@@ -101,11 +98,13 @@ public class FilesModifiedMoreServices extends AbstractMatrizServices {
                 new String[]{
                     "repo",
                     "milestoneNumber",
+                    !getIssueLabels().isEmpty() ? "labels" : "#none#",
                     "prefix",
                     "suffix"
                 }, new Object[]{
                     getRepository(),
                     getMilestoneNumber(),
+                    getIssueLabels(),
                     getPrefixFile(),
                     getSuffixFile()
                 });
@@ -114,8 +113,10 @@ public class FilesModifiedMoreServices extends AbstractMatrizServices {
 
     private List<AuxFileCount> getFilesByDate() {
         String jpql = "SELECT NEW " + AuxFileCount.class.getName() + "(f.filename, COUNT(f.filename)) "
-                + "FROM EntityRepositoryCommit rc JOIN rc.files f "
+                + "FROM EntityPullRequest p JOIN p.issue i JOIN p.repositoryCommits rc JOIN rc.files f "
+                + (!getIssueLabels().isEmpty() ? "JOIN i.labels l " : "")
                 + "WHERE rc.repository = :repo "
+                + (!getIssueLabels().isEmpty() ? "AND LOWER(l.name) IN :labels " : "")
                 + "AND rc.commit.committer.dateCommitUser >= :beginDate "
                 + "AND rc.commit.committer.dateCommitUser <= :endDate "
                 + "AND f.filename LIKE :prefix "
@@ -127,12 +128,14 @@ public class FilesModifiedMoreServices extends AbstractMatrizServices {
         List<AuxFileCount> auxs = dao.selectWithParams(jpql,
                 new String[]{
                     "repo",
+                    !getIssueLabels().isEmpty() ? "labels" : "#none#",
                     "beginDate",
                     "endDate",
                     "prefix",
                     "suffix"
                 }, new Object[]{
                     getRepository(),
+                    getIssueLabels(),
                     getBeginDate(),
                     getEndDate(),
                     getPrefixFile(),
@@ -156,12 +159,18 @@ public class FilesModifiedMoreServices extends AbstractMatrizServices {
     }
 
     @Override
-    public String convertToCSV(Collection<EntityMatrizNode> nodes) {
-        StringBuilder sb = new StringBuilder("file;count\n");
-        for (EntityMatrizNode node : nodes) {
-            sb.append(node.getFrom()).append(JsfUtil.TOKEN_SEPARATOR);
-            sb.append(Util.tratarDoubleParaString(node.getWeight(), 0)).append("\n");
+    public String getHeadMatriz() {
+        return "file;count";
+    }
+
+    private List<String> getIssueLabels() {
+        List<String> labels = new ArrayList<>();
+        for (String label : (params.get("issueLabels") + "").split(";")) {
+            label = label.trim();
+            if (!label.isEmpty()) {
+                labels.add(label);
+            }
         }
-        return sb.toString();
+        return labels;
     }
 }

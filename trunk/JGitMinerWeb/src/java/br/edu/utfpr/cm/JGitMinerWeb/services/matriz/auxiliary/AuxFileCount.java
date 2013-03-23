@@ -35,4 +35,9 @@ public class AuxFileCount {
     public void setFileName(String fileName) {
         this.fileName = fileName;
     }
+
+    @Override
+    public String toString() {
+        return fileName + ";" + count;
+    }
 }

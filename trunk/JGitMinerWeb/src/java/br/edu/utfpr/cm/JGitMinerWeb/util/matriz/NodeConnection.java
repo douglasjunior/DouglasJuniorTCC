@@ -17,4 +17,6 @@ public interface NodeConnection<T, K> {
     public T getFrom();
 
     public K getTo();
+
+    public void incWeight();
 }
