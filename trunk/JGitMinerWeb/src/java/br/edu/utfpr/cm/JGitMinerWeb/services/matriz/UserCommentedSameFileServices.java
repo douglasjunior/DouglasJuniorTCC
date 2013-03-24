@@ -86,8 +86,9 @@ public class UserCommentedSameFileServices extends AbstractMatrizServices {
                 + "p.repository = :repo AND "
                 + "p2.repository = :repo AND "
                 + "p.issue.milestone.number = :milestoneNumber AND "
-                + "p.issue.milestone.number = p2.issue.milestone.number AND "
+                + "p2.issue.milestone.number = :milestoneNumber AND "
                 + (!getFilesName().isEmpty() ? "cm.pathCommitComment IN :filesName AND " : "")
+                + (!getFilesName().isEmpty() ? "cm2.pathCommitComment IN :filesName AND " : "")
                 + "cm.pathCommitComment = cm2.pathCommitComment AND "
                 + "cm.user <> cm2.user ";
 
@@ -113,7 +114,7 @@ public class UserCommentedSameFileServices extends AbstractMatrizServices {
 
         System.out.println("Result temp: " + temp.size());
 
-        addAllTempInResult(temp, result);
+        addTempInResultAndRemoveDuplicate(temp, result);
 
         if (isIncludeGenericComments()) {
             jpql = "SELECT DISTINCT NEW " + AuxUserUserFile.class.getName() + "(cm.user.login, cm2.user.login, f.filename) "
@@ -128,6 +129,7 @@ public class UserCommentedSameFileServices extends AbstractMatrizServices {
                     + "AND cm.pathCommitComment IS NULL "
                     + "AND cm2.pathCommitComment IS NULL "
                     + (!getFilesName().isEmpty() ? "AND f.filename IN :filesName " : "")
+                    + (!getFilesName().isEmpty() ? "AND f2.filename IN :filesName " : "")
                     + "AND f.filename = f2.filename "
                     + "AND cm.user <> cm2.user ";
 
@@ -139,7 +141,7 @@ public class UserCommentedSameFileServices extends AbstractMatrizServices {
 
             System.out.println("Result temp2: " + temp.size());
 
-            addAllTempInResult(temp, result);
+            addTempInResultAndRemoveDuplicate(temp, result);
         }
 
         System.out.println("Result: " + result.size());
@@ -157,6 +159,7 @@ public class UserCommentedSameFileServices extends AbstractMatrizServices {
                 + "rc.commit.committer.dateCommitUser BETWEEN :beginDate AND :endDate AND "
                 + "rc2.commit.committer.dateCommitUser BETWEEN :beginDate AND :endDate AND "
                 + (!getFilesName().isEmpty() ? "cm.pathCommitComment IN :filesName AND " : "")
+                + (!getFilesName().isEmpty() ? "cm2.pathCommitComment IN :filesName AND " : "")
                 + "cm.pathCommitComment = cm2.pathCommitComment AND "
                 + "cm.user <> cm2.user ";
 
@@ -184,7 +187,7 @@ public class UserCommentedSameFileServices extends AbstractMatrizServices {
 
         System.out.println("Result temp: " + temp.size());
 
-        addAllTempInResult(temp, result);
+        addTempInResultAndRemoveDuplicate(temp, result);
 
         if (isIncludeGenericComments()) {
             jpql = "SELECT DISTINCT NEW " + AuxUserUserFile.class.getName() + "(cm.user.login, cm2.user.login, f.filename) "
@@ -199,6 +202,7 @@ public class UserCommentedSameFileServices extends AbstractMatrizServices {
                     + "AND cm.pathCommitComment IS NULL "
                     + "AND cm2.pathCommitComment IS NULL "
                     + (!getFilesName().isEmpty() ? "AND f.filename IN :filesName " : "")
+                    + (!getFilesName().isEmpty() ? "AND f2.filename IN :filesName " : "")
                     + "AND f.filename = f2.filename "
                     + "AND cm.user <> cm2.user ";
 
@@ -210,14 +214,14 @@ public class UserCommentedSameFileServices extends AbstractMatrizServices {
 
             System.out.println("Result temp2: " + temp.size());
 
-            addAllTempInResult(temp, result);
+            addTempInResultAndRemoveDuplicate(temp, result);
         }
 
         System.out.println("Result: " + result.size());
         return result;
     }
 
-    private void addAllTempInResult(List<AuxUserUserFile> temp, List<AuxUserUserFile> result) {
+    private void addTempInResultAndRemoveDuplicate(List<AuxUserUserFile> temp, List<AuxUserUserFile> result) {
         for (AuxUserUserFile aux : temp) {
             if (!result.contains(aux)) {
                 result.add(aux);
