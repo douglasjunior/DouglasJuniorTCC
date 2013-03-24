@@ -15,13 +15,13 @@ import java.util.Map;
  *
  * @author douglas
  */
-public class UserCommentInIssueMatrizServices extends AbstractMatrizServices {
+public class UserCommentInIssueServices extends AbstractMatrizServices {
 
-    public UserCommentInIssueMatrizServices(GenericDao dao) {
+    public UserCommentInIssueServices(GenericDao dao) {
         super(dao);
     }
 
-    public UserCommentInIssueMatrizServices(GenericDao dao, EntityRepository repository, Map params) {
+    public UserCommentInIssueServices(GenericDao dao, EntityRepository repository, Map params) {
         super(dao, repository, params);
         System.out.println(params);
     }

@@ -1,0 +1,30 @@
+<div xmlns="http://www.w3.org/1999/xhtml"
+     xmlns:h="http://java.sun.com/jsf/html" 
+     xmlns:p="http://primefaces.org/ui">
+
+    <h2>Usuarios que modificaram o mesmo arquivo no milestone</h2>
+
+    <br />
+
+    <h:panelGrid columns="2" cellpadding="5" columnClasses="col">
+        <h:outputLabel value="Milestone Number: " for="mileNumber" />  
+        <p:inputText value="#{gitMatrizBean.paramValue['milestoneNumber']}" id="mileNumber" type="number"  size="10" />
+        <h:outputText value="or" />
+        <br />
+        <h:outputLabel value="Date: " for="beginDate" />  
+        <h:panelGroup>
+            <p:calendar value="#{gitMatrizBean.paramValue['beginDate']}" id="beginDate" pattern="dd/MM/yyyy" navigator="true" size="10" />
+            <h:outputLabel value=" to " for="endDate" />  
+            <p:calendar value="#{gitMatrizBean.paramValue['endDate']}" id="endDate" pattern="dd/MM/yyyy" navigator="true" size="10"/>
+        </h:panelGroup>
+    </h:panelGrid>
+    <br />
+    <p:accordionPanel activeIndex="999" style="width:80%">  
+        <p:tab title="Files name: (click to open)" >  
+            <p:inputTextarea value="#{gitMatrizBean.paramValue['filesName']}" id="filesName" 
+                             style="width:100%" rows="20" autoResize="autoResize"  />
+        </p:tab>
+    </p:accordionPanel>
+
+</div>
+

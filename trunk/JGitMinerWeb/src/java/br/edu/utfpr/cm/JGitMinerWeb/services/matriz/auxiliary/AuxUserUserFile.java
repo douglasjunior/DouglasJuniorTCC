@@ -22,6 +22,13 @@ public class AuxUserUserFile {
         this.fileName = fileName;
     }
 
+    public AuxUserUserFile(String userLogin, String userMail, String userLogin2, String userMail2, String fileName) {
+        this(
+                userLogin == null || userLogin.isEmpty() ? userMail : userLogin,
+                userLogin2 == null || userLogin2.isEmpty() ? userMail2 : userLogin2,
+                fileName);
+    }
+
     public String getUser() {
         return user;
     }
