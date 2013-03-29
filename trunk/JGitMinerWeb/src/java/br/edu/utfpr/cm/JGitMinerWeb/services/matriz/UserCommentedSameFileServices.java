@@ -230,7 +230,7 @@ public class UserCommentedSameFileServices extends AbstractMatrizServices {
     }
 
     @Override
-    public String getHeadMatriz() {
+    public String getHeadCSV() {
         return "user;user2;file";
     }
 }

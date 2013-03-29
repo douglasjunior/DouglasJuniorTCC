@@ -5,9 +5,9 @@
 package br.edu.utfpr.cm.JGitMinerWeb.managedBean;
 
 import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericDao;
-import br.edu.utfpr.cm.JGitMinerWeb.pojo.matriz.EntityMatriz;
-import br.edu.utfpr.cm.JGitMinerWeb.pojo.matriz.EntityMatrizNode;
-import br.edu.utfpr.cm.JGitMinerWeb.services.matriz.AbstractMatrizServices;
+import br.edu.utfpr.cm.JGitMinerWeb.pojo.metric.EntityMetric;
+import br.edu.utfpr.cm.JGitMinerWeb.pojo.metric.EntityMetricNode;
+import br.edu.utfpr.cm.JGitMinerWeb.services.metric.AbstractMetricServices;
 import br.edu.utfpr.cm.JGitMinerWeb.util.JsfUtil;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintWriter;
@@ -22,12 +22,12 @@ import org.primefaces.model.StreamedContent;
  *
  * @author douglas
  */
-@ManagedBean(name = "gitMatrizViewBean")
+@ManagedBean(name = "gitMetricViewBean")
 @RequestScoped
-public class GitMatrizViewBean implements Serializable {
+public class GitMetricViewBean implements Serializable {
 
-    private final String FOR_DELETE = "matrizForDelete";
-    private final String LIST = "listMatrizes";
+    private final String FOR_DELETE = "metricForDelete";
+    private final String LIST = "metricList";
     /*
      * 
      */
@@ -37,59 +37,59 @@ public class GitMatrizViewBean implements Serializable {
     /**
      * Creates a new instance of GitNetView
      */
-    public GitMatrizViewBean() {
+    public GitMetricViewBean() {
     }
 
-    public void deleteMatrizInSession() {
+    public void delete() {
         try {
-            EntityMatriz matrizForDelete = (EntityMatriz) JsfUtil.getObjectFromSession(FOR_DELETE);
-            dao.remove(matrizForDelete);
+            EntityMetric forDelete = (EntityMetric) JsfUtil.getObjectFromSession(FOR_DELETE);
+            dao.remove(forDelete);
             reloadList();
         } catch (Exception ex) {
             ex.printStackTrace();
             JsfUtil.addErrorMessage(ex.toString());
         }
-        removeMatrizFromSession();
+        removeFromSession();
     }
 
-    public void removeMatrizFromSession() {
+    public void removeFromSession() {
         JsfUtil.removeAttributeFromSession(FOR_DELETE);
     }
 
-    public void addMatrizForDeleteInSession(EntityMatriz netForDelete) {
-        JsfUtil.addAttributeInSession(FOR_DELETE, netForDelete);
+    public void addForDeleteInSession(EntityMetric forDelete) {
+        JsfUtil.addAttributeInSession(FOR_DELETE, forDelete);
     }
 
     public void reloadList() {
         dao.clearCache(true);
-        List<EntityMatriz> matrizes = dao.executeNamedQuery("Matriz.findAllTheLatest");
+        List<EntityMetric> matrizes = dao.executeNamedQuery("Metric.findAllTheLatest");
         JsfUtil.addAttributeInSession(LIST, matrizes);
     }
 
-    public List<EntityMatriz> getMatrizes() {
-        List<EntityMatriz> matrizes = (List<EntityMatriz>) JsfUtil.getObjectFromSession(LIST);
-        if (matrizes == null) {
+    public List<EntityMetric> getMetrics() {
+        List<EntityMetric> metrics = (List<EntityMetric>) JsfUtil.getObjectFromSession(LIST);
+        if (metrics == null) {
             reloadList();
-            return getMatrizes();
+            return getMetrics();
         }
-        return matrizes;
+        return metrics;
     }
 
-    public StreamedContent downloadCSV(EntityMatriz matriz) {
+    public StreamedContent downloadCSV(EntityMetric metric) {
         StreamedContent file = null;
         try {
-            System.out.println("Matriz tem nodes: " + matriz.getNodes().size());
+            System.out.println("Metric tem nodes: " + metric.getNodes().size());
 
-            String fileName = generateFileName(matriz) + ".csv";
+            String fileName = generateFileName(metric) + ".csv";
 
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             PrintWriter pw = new PrintWriter(baos);
 
-            AbstractMatrizServices services = AbstractMatrizServices.createInstance(dao, matriz.getClassServicesName());
+            AbstractMetricServices services = AbstractMetricServices.createInstance(dao, metric.getClassServicesName());
 
             pw.println(services.getHeadCSV());
 
-            for (EntityMatrizNode node : matriz.getNodes()) {
+            for (EntityMetricNode node : metric.getNodes()) {
                 pw.println(node + "");
             }
 
@@ -106,15 +106,15 @@ public class GitMatrizViewBean implements Serializable {
         return file;
     }
 
-    public StreamedContent downloadLOG(EntityMatriz matriz) {
+    public StreamedContent downloadLOG(EntityMetric metric) {
         StreamedContent file = null;
         try {
-            String fileName = generateFileName(matriz) + ".log";
+            String fileName = generateFileName(metric) + ".log";
 
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             PrintWriter pw = new PrintWriter(baos);
 
-            String[] linhas = matriz.getLog().split("\n");
+            String[] linhas = metric.getLog().split("\n");
 
             for (String linha : linhas) {
                 pw.println(linha);
@@ -133,7 +133,7 @@ public class GitMatrizViewBean implements Serializable {
         return file;
     }
 
-    private String generateFileName(EntityMatriz matriz) {
-        return matriz.getRepository() + "-" + matriz.getStarted();
+    private String generateFileName(EntityMetric matriz) {
+        return matriz.getMatriz() + "-" + matriz.getStarted();
     }
 }

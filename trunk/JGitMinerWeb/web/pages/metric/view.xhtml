@@ -3,17 +3,17 @@
      xmlns:f="http://java.sun.com/jsf/core"
      xmlns:p="http://primefaces.org/ui">
 
-    <h:form>
-        <h:outputText value="#{gitMatrizViewBean.reloadList()}" />
-    </h:form>
-
     <p:panel>
-        <h2>Página de listagem das redes.</h2>
+        <h2>Página de listagem das métricas.</h2>
         <br /> 
 
         <h:form prependId="false" >
+            <h:outputText value="#{gitMatrizViewBean.reloadList()}" />
+        </h:form>
+
+        <h:form prependId="false" >
             <p:growl globalOnly="true" id="messages" />
-            <p:dataTable var="matriz" value="#{gitMatrizViewBean.matrizes}" id="list" rows="10" lazy="false"
+            <p:dataTable var="matriz" value="#{gitMatrizViewBean.matriz}" id="netList" rows="10" lazy="false"
                          emptyMessage="No records found." paginator="true" paginatorPosition="bottom"
                          paginatorTemplate="{CurrentPageReport}  {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
                          rowsPerPageTemplate="5,10,15">
@@ -26,7 +26,7 @@
                 </p:column>
 
                 <p:column headerText="Repository">
-                    <h:outputText value="#{matriz.repository.owner.login} / #{matriz.repository.name}" />
+                    <h:outputText value="#{matriz.repository.name}" />
                 </p:column>
 
                 <p:column headerText="Class Service">
@@ -73,7 +73,7 @@
             <p:confirmDialog  id="confirmDelete" widgetVar="confirmation"
                               message="Really delete this matriz?" header="Confirmation" 
                               severity="alert"  closable="false" >
-                <p:commandButton value="Yes" id="confirmYes" update="list messages" oncomplete="confirmation.hide()" style="position: relative;left: 80px"
+                <p:commandButton value="Yes" id="confirmYes" update="netList messages" oncomplete="confirmation.hide()" style="position: relative;left: 80px"
                                  actionListener="#{gitMatrizViewBean.deleteMatrizInSession()}">
                 </p:commandButton>
                 <p:commandButton value="No" id="confirmNo" oncomplete="confirmation.hide()" style="position: relative;left: 80px"

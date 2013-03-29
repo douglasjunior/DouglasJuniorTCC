@@ -12,15 +12,15 @@
             <p:growl globalOnly="true" id="messages" />
 
             <h:outputText value="Select a Repository: " /> <br />  
-            <p:selectOneListbox  id="repositories" style="height:100px;width:300px" value="#{gitMatrizBean.repositoryId}"  >
-                <f:selectItems value="#{gitMinerRepositoryBean.repositoriesPrimaryMiner}" var="repo" itemLabel="#{repo.name}, #{repo.owner.login}" itemDescription="#{repo.name}" itemValue="#{repo.id}" />
+            <p:selectOneListbox  id="repositories" style="height:100px;width:500px" value="#{gitMatrizBean.repositoryId}"  >
+                <f:selectItems value="#{gitMinerRepositoryBean.repositoriesPrimaryMiner}" var="repo" itemLabel="#{repo.name} / #{repo.owner.login}" itemDescription="#{repo.name}" itemValue="#{repo.id}" />
             </p:selectOneListbox>
 
 
             <br />
 
             <h:outputText value="Select a Matriz Service Class: " /> <br />  
-            <p:selectOneListbox id="serviceClass"  converter="#{gitMatrizBean.converterClass}" style="height:100px;width:300px" value="#{gitMatrizBean.serviceClass}" >
+            <p:selectOneListbox id="serviceClass"  converter="#{gitMatrizBean.converterClass}" style="height:100px;width:500px" value="#{gitMatrizBean.serviceClass}" >
                 <f:selectItems value="#{gitMatrizBean.servicesClasses}" var="serviceClass" itemLabel="#{serviceClass.simpleName}" itemDescription="#{serviceClass.name}" itemValue="#{serviceClass}" />
                 <f:ajax render="matrizFilter" />
             </p:selectOneListbox>

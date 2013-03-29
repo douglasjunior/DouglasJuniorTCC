@@ -2,11 +2,9 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package br.edu.utfpr.cm.JGitMinerWeb.pojo.matriz;
+package br.edu.utfpr.cm.JGitMinerWeb.pojo.metric;
 
-import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.EntityRepository;
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.InterfaceEntity;
-import br.edu.utfpr.cm.JGitMinerWeb.util.Util;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Date;
@@ -19,7 +17,6 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Lob;
-import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
@@ -31,11 +28,11 @@ import javax.persistence.Temporal;
  * @author douglas
  */
 @Entity
-@Table(name = "matriz")
+@Table(name = "metric")
 @NamedQueries({
-    @NamedQuery(name = "Matriz.findAllTheLatest", query = "SELECT m FROM EntityMatriz m ORDER BY m.started DESC")
+    @NamedQuery(name = "Metric.findAllTheLatest", query = "SELECT m FROM EntityMetric m ORDER BY m.started DESC")
 })
-public class EntityMatriz implements InterfaceEntity, Serializable {
+public class EntityMetric implements InterfaceEntity, Serializable {
 
     private static final long serialVersionUID = 1L;
     @Id
@@ -49,13 +46,12 @@ public class EntityMatriz implements InterfaceEntity, Serializable {
     @Lob
     @Basic(fetch = FetchType.LAZY)
     private String log;
+    @OneToMany(mappedBy = "metric", orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<EntityMetricNode> nodes;
     private String classServicesName;
-    @ManyToOne(fetch = FetchType.LAZY)
-    private EntityRepository repository;
-    @OneToMany(mappedBy = "matriz", orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<EntityMatrizNode> nodes;
+    private String matriz;
 
-    public EntityMatriz() {
+    public EntityMetric() {
         started = new Date();
         complete = false;
         nodes = new ArrayList<>();
@@ -69,6 +65,14 @@ public class EntityMatriz implements InterfaceEntity, Serializable {
     @Override
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public String getMatriz() {
+        return matriz;
+    }
+
+    public void setMatriz(String matriz) {
+        this.matriz = matriz;
     }
 
     public boolean isComplete() {
@@ -103,11 +107,11 @@ public class EntityMatriz implements InterfaceEntity, Serializable {
         this.log = log;
     }
 
-    public List<EntityMatrizNode> getNodes() {
+    public List<EntityMetricNode> getNodes() {
         return nodes;
     }
 
-    public void setNodes(List<EntityMatrizNode> nodes) {
+    public void setNodes(List<EntityMetricNode> nodes) {
         this.nodes = nodes;
     }
 
@@ -129,14 +133,6 @@ public class EntityMatriz implements InterfaceEntity, Serializable {
         this.classServicesName = classServices;
     }
 
-    public EntityRepository getRepository() {
-        return repository;
-    }
-
-    public void setRepository(EntityRepository repository) {
-        this.repository = repository;
-    }
-
     @Override
     public int hashCode() {
         int hash = 0;
@@ -146,10 +142,10 @@ public class EntityMatriz implements InterfaceEntity, Serializable {
 
     @Override
     public boolean equals(Object object) {
-        if (!(object instanceof EntityMatriz)) {
+        if (!(object instanceof EntityMetric)) {
             return false;
         }
-        EntityMatriz other = (EntityMatriz) object;
+        EntityMetric other = (EntityMetric) object;
         if ((this.id == null && other.id != null) || (this.id != null && !this.id.equals(other.id))) {
             return false;
         }
@@ -158,6 +154,6 @@ public class EntityMatriz implements InterfaceEntity, Serializable {
 
     @Override
     public String toString() {
-        return repository + " - " + getClassServicesSingleName() + " - " + Util.dateDataToString(started, "dd/MM/yyyy HH:mm");
+        return "br.edu.utfpr.cm.JGitMinerWeb.pojo.metric.EntityMetric[ id=" + id + " ]";
     }
 }

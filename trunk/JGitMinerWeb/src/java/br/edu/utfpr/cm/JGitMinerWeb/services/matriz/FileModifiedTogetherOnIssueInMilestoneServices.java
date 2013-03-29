@@ -99,7 +99,7 @@ public class FileModifiedTogetherOnIssueInMilestoneServices extends AbstractMatr
     }
 
     @Override
-    public String getHeadMatriz() {
+    public String getHeadCSV() {
         return "file;file2;count";
     }
 }

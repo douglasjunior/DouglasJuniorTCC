@@ -47,18 +47,28 @@ public class PagesManager implements Serializable {
         return "refreshPage";
     }
 
-
     public String minerView() {
         this.body = "./pages/miner/view.xhtml";
         return "refreshPage";
     }
-    public String matrizGit() {
+
+    public String matrizCreate() {
         this.body = "./pages/matriz/create.xhtml";
         return "refreshPage";
     }
 
     public String matrizView() {
         this.body = "./pages/matriz/view.xhtml";
+        return "refreshPage";
+    }
+
+    public String metricCreate() {
+        this.body = "./pages/metric/create.xhtml";
+        return "refreshPage";
+    }
+
+    public String metricView() {
+        this.body = "./pages/metric/view.xhtml";
         return "refreshPage";
     }
 }

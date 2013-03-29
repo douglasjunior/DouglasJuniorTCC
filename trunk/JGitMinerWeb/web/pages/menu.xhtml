@@ -11,8 +11,12 @@
                     <p:menuitem action="#{pagesManager.minerView}" ajax="false" value="View" id="minerView"></p:menuitem>
                 </p:submenu>
                 <p:submenu label="Matriz" icon="ui-icon ui-icon-document" id="matrizMenu">
-                    <p:menuitem action="#{pagesManager.matrizGit}" ajax="false" value="Create" id="matrizCreate" />
+                    <p:menuitem action="#{pagesManager.matrizCreate}" ajax="false" value="Create" id="matrizCreate" />
                     <p:menuitem action="#{pagesManager.matrizView}" ajax="false" value="View" id="matrizView" />
+                </p:submenu>
+                <p:submenu label="Metric" icon="ui-icon ui-icon-document" id="metricMenu">
+                    <p:menuitem action="#{pagesManager.metricCreate}" ajax="false" value="Create" id="metricCreate" />
+                    <p:menuitem action="#{pagesManager.metricView}" ajax="false" value="View" id="metricView" />
                 </p:submenu>
             </p:menubar>
         </h:form>

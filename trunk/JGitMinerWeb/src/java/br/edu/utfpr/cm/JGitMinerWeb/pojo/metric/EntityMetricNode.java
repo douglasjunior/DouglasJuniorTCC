@@ -2,7 +2,7 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package br.edu.utfpr.cm.JGitMinerWeb.pojo.matriz;
+package br.edu.utfpr.cm.JGitMinerWeb.pojo.metric;
 
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.EntityNode;
 import javax.persistence.Entity;
@@ -15,25 +15,25 @@ import javax.persistence.Table;
  * @author douglas
  */
 @Entity
-@Table(name = "matrizNode")
-public class EntityMatrizNode extends EntityNode {
+@Table(name = "metricNode")
+public class EntityMetricNode extends EntityNode {
 
     @ManyToOne(fetch = FetchType.LAZY)
-    private EntityMatriz matriz;
+    private EntityMetric metric;
 
-    public EntityMatrizNode() {
+    public EntityMetricNode() {
         super();
     }
 
-    public EntityMatrizNode(Object line) {
+    public EntityMetricNode(Object line) {
         super(line);
     }
 
-    public EntityMatriz getMatriz() {
-        return matriz;
+    public EntityMetric getMetric() {
+        return metric;
     }
 
-    public void setMatriz(EntityMatriz matriz) {
-        this.matriz = matriz;
+    public void setMetric(EntityMetric metric) {
+        this.metric = metric;
     }
 }

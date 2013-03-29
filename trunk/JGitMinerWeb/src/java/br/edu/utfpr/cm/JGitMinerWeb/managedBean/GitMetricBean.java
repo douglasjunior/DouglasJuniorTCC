@@ -7,9 +7,9 @@ package br.edu.utfpr.cm.JGitMinerWeb.managedBean;
 import br.edu.utfpr.cm.JGitMinerWeb.converter.ClassConverter;
 import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericDao;
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.matriz.EntityMatriz;
-import br.edu.utfpr.cm.JGitMinerWeb.pojo.matriz.EntityMatrizNode;
-import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.EntityRepository;
-import br.edu.utfpr.cm.JGitMinerWeb.services.matriz.AbstractMatrizServices;
+import br.edu.utfpr.cm.JGitMinerWeb.pojo.metric.EntityMetric;
+import br.edu.utfpr.cm.JGitMinerWeb.pojo.metric.EntityMetricNode;
+import br.edu.utfpr.cm.JGitMinerWeb.services.metric.AbstractMetricServices;
 import br.edu.utfpr.cm.JGitMinerWeb.util.JsfUtil;
 import br.edu.utfpr.cm.JGitMinerWeb.util.OutLog;
 import java.io.Serializable;
@@ -27,9 +27,9 @@ import javax.faces.bean.SessionScoped;
  *
  * @author douglas
  */
-@ManagedBean(name = "gitMatrizBean")
+@ManagedBean(name = "gitMetricBean")
 @SessionScoped
-public class GitMatrizBean implements Serializable {
+public class GitMetricBean implements Serializable {
 
 
     /*
@@ -38,8 +38,8 @@ public class GitMatrizBean implements Serializable {
     @EJB
     private GenericDao dao;
     private OutLog out;
-    private EntityRepository repository;
-    private String repositoryId;
+    private EntityMatriz matriz;
+    private String matrizId;
     private Class serviceClass;
     private Map params;
     private String message;
@@ -52,7 +52,7 @@ public class GitMatrizBean implements Serializable {
     /**
      * Creates a new instance of GitNet
      */
-    public GitMatrizBean() {
+    public GitMetricBean() {
         out = new OutLog();
         params = new HashMap();
     }
@@ -74,11 +74,11 @@ public class GitMatrizBean implements Serializable {
     }
 
     public String getRepositoryId() {
-        return repositoryId;
+        return matrizId;
     }
 
     public void setRepositoryId(String repositoryId) {
-        this.repositoryId = repositoryId;
+        this.matrizId = repositoryId;
     }
 
     public Class getServiceClass() {
@@ -136,51 +136,51 @@ public class GitMatrizBean implements Serializable {
         fail = false;
         progress = new Integer(0);
 
-        repository = dao.findByID(repositoryId, EntityRepository.class);
+        matriz = dao.findByID(matrizId, EntityMatriz.class);
 
         out.printLog("Geração da rede iniciada!");
         out.printLog("");
         out.printLog("Params: " + params);
         out.printLog("Class Service: " + serviceClass);
-        out.printLog("Repository: " + repository);
+        out.printLog("Matriz: " + matriz);
         out.printLog("");
 
 
-        if (repository == null || serviceClass == null) {
-            message = "Erro: Escolha o repositorio e o service desejado.";
+        if (matriz == null || serviceClass == null) {
+            message = "Erro: Escolha a Matriz e o Service desejado.";
             out.printLog(message);
             progress = new Integer(0);
             initialized = false;
             fail = true;
         } else {
-            final EntityMatriz entityMatriz = new EntityMatriz();
-            dao.insert(entityMatriz);
-            entityMatriz.setRepository(repository);
-            entityMatriz.setLog(out.getLog().toString());
-            entityMatriz.setClassServicesName(serviceClass.getName());
-            dao.edit(entityMatriz);
+            final EntityMetric entityMetric = new EntityMetric();
+            dao.insert(entityMetric);
+            entityMetric.setMatriz(matriz + "");
+            entityMetric.setLog(out.getLog().toString());
+            entityMetric.setClassServicesName(serviceClass.getName());
+            dao.edit(entityMetric);
 
             initialized = true;
             progress = new Integer(10);
 
-            final AbstractMatrizServices netServices = createMatrizServiceInstance();
+            final AbstractMetricServices services = createMetricServiceInstance();
 
-            process = new Thread(netServices) {
+            process = new Thread(services) {
                 @Override
                 public void run() {
                     try {
                         if (!canceled) {
-                            out.setCurrentProcess("Iniciando coleta dos dados para geração da matriz.");
+                            out.setCurrentProcess("Iniciando coleta dos dados para geração da metrica.");
                             super.run();
-                            out.printLog(netServices.getNodes().size() + " Registros coletados!");
+                            out.printLog(services.getNodes().size() + " Registros coletados!");
                         }
                         progress = new Integer(50);
                         out.printLog("");
                         if (!canceled) {
                             out.setCurrentProcess("Iniciando salvamento dos dados gerados.");
-                            saveRecordsInMatriz(entityMatriz, netServices.getMatrizNodes());
-                            entityMatriz.setComplete(true);
-                            dao.edit(entityMatriz);
+                            saveNodes(entityMetric, services.getMetricNodes());
+                            entityMetric.setComplete(true);
+                            dao.edit(entityMetric);
                             out.printLog("Salvamento dos dados concluído!");
                         }
                         message = "Geração da matriz finalizada.";
@@ -197,9 +197,9 @@ public class GitMatrizBean implements Serializable {
                         }
                         progress = new Integer(100);
                         initialized = false;
-                        entityMatriz.setLog(out.getLog().toString());
-                        entityMatriz.setStoped(new Date());
-                        dao.edit(entityMatriz);
+                        entityMetric.setLog(out.getLog().toString());
+                        entityMetric.setStoped(new Date());
+                        dao.edit(entityMetric);
                         params.clear();
                         System.gc();
                     }
@@ -209,11 +209,11 @@ public class GitMatrizBean implements Serializable {
         }
     }
 
-    private void saveRecordsInMatriz(EntityMatriz matriz, List<EntityMatrizNode> nodes) {
+    private void saveNodes(EntityMetric metric, List<EntityMetricNode> nodes) {
         int j = 0;
-        for (Iterator<EntityMatrizNode> it = nodes.iterator(); it.hasNext();) {
-            EntityMatrizNode node = it.next();
-            node.setMatriz(matriz);
+        for (Iterator<EntityMetricNode> it = nodes.iterator(); it.hasNext();) {
+            EntityMetricNode node = it.next();
+            node.setMetric(metric);
             dao.insert(node);
             it.remove();
             j++;
@@ -250,16 +250,16 @@ public class GitMatrizBean implements Serializable {
     public List<Class> getServicesClasses() {
         List<Class> cls = null;
         try {
-            cls = JsfUtil.getClasses(AbstractMatrizServices.class.getPackage().getName(), Arrays.asList(AbstractMatrizServices.class.getSimpleName()));
+            cls = JsfUtil.getClasses(AbstractMetricServices.class.getPackage().getName(), Arrays.asList(AbstractMetricServices.class.getSimpleName()));
         } catch (Exception ex) {
             ex.printStackTrace();
         }
         return cls;
     }
 
-    private AbstractMatrizServices createMatrizServiceInstance() {
+    private AbstractMetricServices createMetricServiceInstance() {
         try {
-            return (AbstractMatrizServices) serviceClass.getConstructor(GenericDao.class, EntityRepository.class, Map.class).newInstance(dao, repository, params);
+            return (AbstractMetricServices) serviceClass.getConstructor(GenericDao.class, EntityMatriz.class, Map.class).newInstance(dao, matriz, params);
         } catch (Exception ex) {
             ex.printStackTrace();
         }

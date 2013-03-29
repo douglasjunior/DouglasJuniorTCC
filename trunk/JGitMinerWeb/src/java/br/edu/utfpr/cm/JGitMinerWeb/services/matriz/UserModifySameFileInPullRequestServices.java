@@ -98,7 +98,7 @@ public class UserModifySameFileInPullRequestServices extends AbstractMatrizServi
     }
 
     @Override
-    public String getHeadMatriz() {
+    public String getHeadCSV() {
         return "user;user2;file";
     }
 

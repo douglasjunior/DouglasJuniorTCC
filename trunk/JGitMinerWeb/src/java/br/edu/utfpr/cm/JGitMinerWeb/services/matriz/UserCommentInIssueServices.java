@@ -54,7 +54,7 @@ public class UserCommentInIssueServices extends AbstractMatrizServices {
     }
 
     @Override
-    public String getHeadMatriz() {
+    public String getHeadCSV() {
         return "user;issue;countComments";
     }
 
