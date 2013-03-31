@@ -4,6 +4,21 @@
  */
 package br.edu.utfpr.cm.JGitMinerWeb.util;
 
+import edu.uci.ics.jung.algorithms.layout.CircleLayout;
+import edu.uci.ics.jung.algorithms.layout.Layout;
+import edu.uci.ics.jung.graph.Graph;
+import edu.uci.ics.jung.visualization.VisualizationImageServer;
+import edu.uci.ics.jung.visualization.decorators.ToStringLabeller;
+import edu.uci.ics.jung.visualization.renderers.DefaultVertexLabelRenderer;
+import edu.uci.ics.jung.visualization.renderers.Renderer;
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.Paint;
+import java.awt.Point;
+import java.awt.Stroke;
+import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -15,6 +30,8 @@ import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
+import javax.imageio.ImageIO;
+import org.apache.commons.collections15.Transformer;
 
 /**
  *
@@ -390,5 +407,57 @@ public class Util {
             return 0;
         }
         return Long.parseLong(numero);
+    }
+
+    public static void convertGraphToImage(Graph grap) {
+        try {
+            Layout layout = new CircleLayout(grap);
+
+            Dimension dime = new Dimension(grap.getEdgeCount() * 100, grap.getEdgeCount() * 100);
+
+            VisualizationImageServer vv = new VisualizationImageServer(layout, dime);
+
+            Transformer<String, Paint> vertexPaint = new Transformer<String, Paint>() {
+                @Override
+                public Paint transform(String i) {
+                    return Color.BLUE;
+                }
+            };
+
+            Transformer<String, Stroke> edgeStrokeTransformer = new Transformer<String, Stroke>() {
+                @Override
+                public Stroke transform(String s) {
+                    Stroke edgeStroke = new BasicStroke(1.0f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER);
+                    return edgeStroke;
+                }
+            };
+
+            vv.getRenderContext().setVertexFillPaintTransformer(vertexPaint);
+            vv.getRenderContext().setEdgeStrokeTransformer(edgeStrokeTransformer);
+            vv.getRenderContext().setVertexLabelTransformer(new ToStringLabeller());
+            vv.getRenderContext().setEdgeLabelTransformer(new ToStringLabeller());
+            vv.getRenderContext().setVertexLabelRenderer(new DefaultVertexLabelRenderer(Color.yellow) {
+                @Override
+                public Font getFont() {
+                    return new Font(Font.SERIF, 1, 30);
+                }
+
+                @Override
+                public Color getForeground() {
+                    return Color.YELLOW;
+                }
+            });
+            vv.getRenderer().getVertexLabelRenderer().setPosition(Renderer.VertexLabel.Position.AUTO);
+
+            BufferedImage bim = (BufferedImage) vv.getImage(new Point(), dime);
+
+            File f = new File(Util.dateDataToString(new Date(), "dd-MM-yyyy_HH-mm") + "_imagem_teste.png");
+
+            ImageIO.write(bim, "png", f);
+
+            System.out.println("wrote image for " + f.getAbsolutePath());
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
     }
 }

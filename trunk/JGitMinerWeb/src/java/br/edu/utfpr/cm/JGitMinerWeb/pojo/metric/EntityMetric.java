@@ -4,8 +4,8 @@
  */
 package br.edu.utfpr.cm.JGitMinerWeb.pojo.metric;
 
-import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.InterfaceEntity;
-import java.io.Serializable;
+import br.edu.utfpr.cm.JGitMinerWeb.pojo.InterfaceEntity;
+import br.edu.utfpr.cm.JGitMinerWeb.pojo.Startable;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -32,7 +32,7 @@ import javax.persistence.Temporal;
 @NamedQueries({
     @NamedQuery(name = "Metric.findAllTheLatest", query = "SELECT m FROM EntityMetric m ORDER BY m.started DESC")
 })
-public class EntityMetric implements InterfaceEntity, Serializable {
+public class EntityMetric implements InterfaceEntity, Startable {
 
     private static final long serialVersionUID = 1L;
     @Id
@@ -99,10 +99,12 @@ public class EntityMetric implements InterfaceEntity, Serializable {
         this.stoped = stoped;
     }
 
+    @Override
     public String getLog() {
         return log;
     }
 
+    @Override
     public void setLog(String log) {
         this.log = log;
     }
@@ -155,5 +157,10 @@ public class EntityMetric implements InterfaceEntity, Serializable {
     @Override
     public String toString() {
         return "br.edu.utfpr.cm.JGitMinerWeb.pojo.metric.EntityMetric[ id=" + id + " ]";
+    }
+
+    @Override
+    public String getDownloadFileName() {
+        return this.matriz + "-" + this.started;
     }
 }

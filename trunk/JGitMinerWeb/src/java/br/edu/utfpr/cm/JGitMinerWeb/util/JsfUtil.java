@@ -1,10 +1,13 @@
 package br.edu.utfpr.cm.JGitMinerWeb.util;
 
+import br.edu.utfpr.cm.JGitMinerWeb.pojo.Startable;
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.io.Serializable;
 import java.net.URLDecoder;
 import java.util.ArrayList;
@@ -27,7 +30,7 @@ public class JsfUtil implements Serializable {
     private static final String[] CARACTERES = {"{", "}", "(", ")", "\\[", "\\]", "<", ">",
         ":", ";", ".", ",", "!", "?", "\\", "/", "~", "`", "\"", "\'", "\\\\",
         "=", "+", "\\-", "*", "@", "#", "$", "%", "^", "&", "_", "\\|"};
-    public static final char TOKEN_SEPARATOR = ';';
+    public static final String TOKEN_SEPARATOR = ";";
 
     public static void ensureAddErrorMessage(Exception ex, String defaultMsg) {
         String msg = ex.getLocalizedMessage();
@@ -313,5 +316,27 @@ public class JsfUtil implements Serializable {
             throw new ClassNotFoundException(directory.getAbsolutePath() + " does not appear to be a valid package");
         }
         return classes;
+    }
+
+    public static StreamedContent downloadLogFile(Startable startable) throws IOException {
+        String fileName = startable.getDownloadFileName() + ".log";
+
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        PrintWriter pw = new PrintWriter(baos);
+
+        String[] linhas = startable.getLog().split("\n");
+
+        for (String linha : linhas) {
+            pw.println(linha);
+        }
+
+        pw.flush();
+        pw.close();
+
+        StreamedContent file = JsfUtil.downloadFile(fileName, baos.toByteArray());
+
+        baos.close();
+
+        return file;
     }
 }

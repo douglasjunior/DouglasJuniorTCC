@@ -12,7 +12,7 @@
     <p:panel>
         <h2>Pagina de geração de métricas.</h2>
         <br /> 
-        <h:form prependId="false" id="formMatriz" >
+        <h:form prependId="false" id="formMetric" >
             <p:growl globalOnly="true" id="messages" />
 
             <h:outputText value="Select a Matriz: " /> <br />  
@@ -23,7 +23,7 @@
             <br />
 
             <h:outputText value="Select a Metric Service Class: " /> <br />  
-            <p:selectOneListbox converter="#{gitMetricBean.converterClass}" style="height:100px;width:500px" value="#{gitMetricBean.serviceClass}" >
+            <p:selectOneListbox  converter="#{gitMetricBean.converterClass}" style="height:100px;width:500px" value="#{gitMetricBean.serviceClass}" >
                 <f:selectItems value="#{gitMetricBean.servicesClasses}" var="serviceClass" itemLabel="#{serviceClass.simpleName}" itemDescription="#{serviceClass.name}" itemValue="#{serviceClass}" />
                 <f:ajax render="filter" />
             </p:selectOneListbox>
@@ -67,5 +67,6 @@
             <p:inputTextarea value="#{gitMetricBean.log}" id="logTextArea" style="width: 100%" rows="30" autoResize="autoResize" readonly="true" />
 
         </h:form>
+
     </p:panel>
 </div>

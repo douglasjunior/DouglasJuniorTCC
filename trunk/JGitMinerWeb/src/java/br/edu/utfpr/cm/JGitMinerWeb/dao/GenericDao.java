@@ -1,6 +1,6 @@
 package br.edu.utfpr.cm.JGitMinerWeb.dao;
 
-import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.InterfaceEntity;
+import br.edu.utfpr.cm.JGitMinerWeb.pojo.InterfaceEntity;
 import br.edu.utfpr.cm.JGitMinerWeb.util.Util;
 import java.io.Serializable;
 import java.util.List;

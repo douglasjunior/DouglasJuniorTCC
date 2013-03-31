@@ -91,12 +91,12 @@ public class RepositoryCommitServices implements Serializable {
         uri.append("/pulls");
         uri.append("/").append(pullRequest.getNumber());
         uri.append("/commits");
-        PagedRequest<RepositoryCommit> request = new PagedRequest<RepositoryCommit>(1, 100);
+        PagedRequest<RepositoryCommit> request = new PagedRequest<>(1, 100);
         request.setUri(uri);
         request.setType(new TypeToken<List<RepositoryCommit>>() {
         }.getType());
-        PageIterator<RepositoryCommit> iterator = new PageIterator<RepositoryCommit>(request, AuthServices.getGitHubCliente());
-        List<RepositoryCommit> elements = new ArrayList<RepositoryCommit>();
+        PageIterator<RepositoryCommit> iterator = new PageIterator<>(request, AuthServices.getGitHubCliente());
+        List<RepositoryCommit> elements = new ArrayList<>();
         try {
             while (iterator.hasNext()) {
                 elements.addAll(iterator.next());
@@ -112,12 +112,17 @@ public class RepositoryCommitServices implements Serializable {
         return "/" + repository.getOwner().getLogin() + "/" + repository.getName();
     }
 
-    public static RepositoryCommit getGitRepositoryCommit(Repository gitRepo, RepositoryCommit gitRepoCommit) throws Exception {
+    public static RepositoryCommit getGitRepositoryCommit(Repository gitRepo, RepositoryCommit gitRepoCommit, OutLog out, int nRetries) throws Exception {
+        if (nRetries <= 0) {
+            return null;
+        }
         try {
             return new CommitService(AuthServices.getGitHubCliente()).getCommit(gitRepo, gitRepoCommit.getSha());
         } catch (Exception ex) {
             ex.printStackTrace();
-            return getGitRepositoryCommit(gitRepo, gitRepoCommit);
+            out.printLog("Erro de conexão: " + ex.toString());
+            out.printLog("Tentando novamente (" + nRetries + ") ...");
+            return getGitRepositoryCommit(gitRepo, gitRepoCommit, out, nRetries);
         }
     }
 }

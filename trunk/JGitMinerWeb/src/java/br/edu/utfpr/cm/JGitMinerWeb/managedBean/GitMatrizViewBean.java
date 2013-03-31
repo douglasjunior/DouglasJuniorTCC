@@ -109,23 +109,7 @@ public class GitMatrizViewBean implements Serializable {
     public StreamedContent downloadLOG(EntityMatriz matriz) {
         StreamedContent file = null;
         try {
-            String fileName = generateFileName(matriz) + ".log";
-
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            PrintWriter pw = new PrintWriter(baos);
-
-            String[] linhas = matriz.getLog().split("\n");
-
-            for (String linha : linhas) {
-                pw.println(linha);
-            }
-
-            pw.flush();
-            pw.close();
-
-            file = JsfUtil.downloadFile(fileName, baos.toByteArray());
-
-            baos.close();
+            file = JsfUtil.downloadLogFile(matriz);
         } catch (Exception ex) {
             ex.printStackTrace();
             JsfUtil.addErrorMessage(ex.toString());

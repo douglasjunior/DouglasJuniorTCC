@@ -266,7 +266,7 @@ public class GitMinerOthersBean implements Serializable {
                             out.setCurrentProcess("Minerando issues...\n");
                             List<Issue> gitIssues = IssueServices.getGitIssuesFromRepository(gitRepo, minerOpenIssues, minerClosedIssues, out);
                             minerIssues(gitIssues, gitRepo);
-                            mineration.setMinerLog(out.getLog().toString());
+                            mineration.setLog(out.getLog().toString());
                             dao.edit(mineration);
                         }
                         progress = new Integer(22);
@@ -291,7 +291,7 @@ public class GitMinerOthersBean implements Serializable {
                             out.setCurrentProcess("Minerando milestones...\n");
                             List<Milestone> gitMilestones = MilestoneServices.getGitMilestoneFromRepository(gitRepo, minerOpenMilestones, minerClosedMilestones, out);
                             minerMilestones(gitMilestones);
-                            mineration.setMinerLog(out.getLog().toString());
+                            mineration.setLog(out.getLog().toString());
                             dao.edit(mineration);
                         }
                         progress = new Integer(55);
@@ -300,7 +300,7 @@ public class GitMinerOthersBean implements Serializable {
                             out.setCurrentProcess("Minerando collaborators...\n");
                             List<User> collaborators = UserServices.getGitCollaboratorsFromRepository(gitRepo, out);
                             minerCollaborators(collaborators);
-                            mineration.setMinerLog(out.getLog().toString());
+                            mineration.setLog(out.getLog().toString());
                             dao.edit(mineration);
                         }
                         progress = new Integer(66);
@@ -309,7 +309,7 @@ public class GitMinerOthersBean implements Serializable {
                             out.setCurrentProcess("Minerando watchers...\n");
                             List<User> wacthers = UserServices.getGitWatchersFromRepository(gitRepo, out);
                             minerWatchers(wacthers);
-                            mineration.setMinerLog(out.getLog().toString());
+                            mineration.setLog(out.getLog().toString());
                             dao.edit(mineration);
                         }
                         progress = new Integer(77);
@@ -345,8 +345,8 @@ public class GitMinerOthersBean implements Serializable {
                     progress = new Integer(100);
                     subProgress = new Integer(100);
                     initialized = false;
-                    mineration.setMinerStop(new Date());
-                    mineration.setMinerLog(out.getLog().toString());
+                    mineration.setStoped(new Date());
+                    mineration.setLog(out.getLog().toString());
                     dao.edit(mineration);
                 }
             };
@@ -636,12 +636,15 @@ public class GitMinerOthersBean implements Serializable {
     private void minerStatsAndFilesOfCommit(EntityRepositoryCommit repoCommit, RepositoryCommit gitRepoCommit, Repository gitRepo) throws Exception {
         if (repoCommit.getFiles().isEmpty() || repoCommit.getStats() == null) {
             out.printLog("Baixando Stats and Files do Commit...");
-            gitRepoCommit = RepositoryCommitServices.getGitRepositoryCommit(gitRepo, gitRepoCommit);
-            if (repoCommit.getStats() == null) {
-                minerStatsOfCommit(repoCommit, gitRepoCommit.getStats());
-            }
-            if (repoCommit.getFiles().size() != gitRepoCommit.getFiles().size()) {
-                minerFilesOfCommit(repoCommit, gitRepoCommit.getFiles());
+            RepositoryCommit gitRepoCommitUpdated = RepositoryCommitServices.getGitRepositoryCommit(gitRepo, gitRepoCommit, out, 5);
+            if (gitRepoCommitUpdated != null) {
+                gitRepoCommit = gitRepoCommitUpdated;
+                if (repoCommit.getStats() == null) {
+                    minerStatsOfCommit(repoCommit, gitRepoCommit.getStats());
+                }
+                if (repoCommit.getFiles().size() != gitRepoCommit.getFiles().size()) {
+                    minerFilesOfCommit(repoCommit, gitRepoCommit.getFiles());
+                }
             }
         }
     }

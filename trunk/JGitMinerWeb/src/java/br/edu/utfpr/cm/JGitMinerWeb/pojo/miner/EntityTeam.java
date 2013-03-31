@@ -4,6 +4,7 @@
  */
 package br.edu.utfpr.cm.JGitMinerWeb.pojo.miner;
 
+import br.edu.utfpr.cm.JGitMinerWeb.pojo.InterfaceEntity;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Date;

@@ -4,7 +4,8 @@
  */
 package br.edu.utfpr.cm.JGitMinerWeb.pojo.miner;
 
-import java.io.Serializable;
+import br.edu.utfpr.cm.JGitMinerWeb.pojo.InterfaceEntity;
+import br.edu.utfpr.cm.JGitMinerWeb.pojo.Startable;
 import java.util.Date;
 import javax.persistence.*;
 
@@ -15,44 +16,38 @@ import javax.persistence.*;
 @Entity
 @Table(name = "miner")
 @NamedQueries({
-    @NamedQuery(name = "Miner.findAllTheLatest", query = "SELECT m FROM EntityMiner m ORDER BY m.minerStart DESC")
+    @NamedQuery(name = "Miner.findAllTheLatest", query = "SELECT m FROM EntityMiner m ORDER BY m.started DESC")
 })
-public class EntityMiner implements InterfaceEntity, Serializable {
+public class EntityMiner implements InterfaceEntity, Startable {
 
     private static final long serialVersionUID = 1L;
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     @Temporal(javax.persistence.TemporalType.TIMESTAMP)
-    private Date minerStart;
+    private Date started;
     @Temporal(javax.persistence.TemporalType.TIMESTAMP)
-    private Date minerStop;
+    private Date stoped;
     private boolean complete;
     @Lob
     @Basic(fetch = FetchType.LAZY)
-    private String minerLog;
+    private String log;
     @ManyToOne
     private EntityRepository repository;
 
     public EntityMiner() {
-        minerStart = new Date();
+        started = new Date();
         complete = false;
     }
 
+    @Override
     public Long getId() {
         return id;
     }
 
+    @Override
     public void setId(Long id) {
         this.id = id;
-    }
-
-    public String getMinerLog() {
-        return minerLog;
-    }
-
-    public void setMinerLog(String minerLog) {
-        this.minerLog = minerLog;
     }
 
     public EntityRepository getRepository() {
@@ -63,20 +58,30 @@ public class EntityMiner implements InterfaceEntity, Serializable {
         this.repository = repository;
     }
 
-    public Date getMinerStart() {
-        return minerStart;
+    public Date getStarted() {
+        return started;
     }
 
-    public void setMinerStart(Date minerStart) {
-        this.minerStart = minerStart;
+    public void setStarted(Date started) {
+        this.started = started;
     }
 
-    public Date getMinerStop() {
-        return minerStop;
+    public Date getStoped() {
+        return stoped;
     }
 
-    public void setMinerStop(Date minerStop) {
-        this.minerStop = minerStop;
+    public void setStoped(Date stoped) {
+        this.stoped = stoped;
+    }
+
+    @Override
+    public String getLog() {
+        return log;
+    }
+
+    @Override
+    public void setLog(String log) {
+        this.log = log;
     }
 
     public boolean isComplete() {
@@ -110,5 +115,10 @@ public class EntityMiner implements InterfaceEntity, Serializable {
     @Override
     public String toString() {
         return "br.edu.utfpr.cm.JGitMinerWeb.pojo.EntityMiner[ id=" + id + " ]";
+    }
+
+    @Override
+    public String getDownloadFileName() {
+        return this.repository + "-" + this.started;
     }
 }

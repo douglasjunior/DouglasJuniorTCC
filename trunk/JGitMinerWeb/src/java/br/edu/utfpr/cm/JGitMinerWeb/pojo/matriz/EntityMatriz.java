@@ -4,10 +4,10 @@
  */
 package br.edu.utfpr.cm.JGitMinerWeb.pojo.matriz;
 
+import br.edu.utfpr.cm.JGitMinerWeb.pojo.InterfaceEntity;
+import br.edu.utfpr.cm.JGitMinerWeb.pojo.Startable;
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.EntityRepository;
-import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.InterfaceEntity;
 import br.edu.utfpr.cm.JGitMinerWeb.util.Util;
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -35,7 +35,7 @@ import javax.persistence.Temporal;
 @NamedQueries({
     @NamedQuery(name = "Matriz.findAllTheLatest", query = "SELECT m FROM EntityMatriz m ORDER BY m.started DESC")
 })
-public class EntityMatriz implements InterfaceEntity, Serializable {
+public class EntityMatriz implements InterfaceEntity, Startable {
 
     private static final long serialVersionUID = 1L;
     @Id
@@ -95,10 +95,12 @@ public class EntityMatriz implements InterfaceEntity, Serializable {
         this.stoped = stoped;
     }
 
+    @Override
     public String getLog() {
         return log;
     }
 
+    @Override
     public void setLog(String log) {
         this.log = log;
     }
@@ -159,5 +161,10 @@ public class EntityMatriz implements InterfaceEntity, Serializable {
     @Override
     public String toString() {
         return repository + " - " + getClassServicesSingleName() + " - " + Util.dateDataToString(started, "dd/MM/yyyy HH:mm");
+    }
+
+    @Override
+    public String getDownloadFileName() {
+        return this.repository + "-" + this.started;
     }
 }

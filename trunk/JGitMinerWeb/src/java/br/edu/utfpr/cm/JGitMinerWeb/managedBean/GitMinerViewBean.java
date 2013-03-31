@@ -6,23 +6,21 @@ package br.edu.utfpr.cm.JGitMinerWeb.managedBean;
 
 import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericDao;
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.EntityMiner;
-import br.edu.utfpr.cm.JGitMinerWeb.pojo.matriz.EntityMatriz;
 import br.edu.utfpr.cm.JGitMinerWeb.util.JsfUtil;
-import java.io.ByteArrayOutputStream;
-import java.io.PrintWriter;
 import java.io.Serializable;
 import java.util.List;
 import javax.ejb.EJB;
 import javax.faces.bean.ManagedBean;
 import javax.faces.bean.RequestScoped;
+import org.primefaces.model.StreamedContent;
 
 /**
  *
  * @author douglas
  */
-@ManagedBean(name = "girMinerViewBean")
+@ManagedBean(name = "gitMinerViewBean")
 @RequestScoped
-public class GirMinerViewBean implements Serializable {
+public class GitMinerViewBean implements Serializable {
 
     @EJB
     private GenericDao dao;
@@ -30,7 +28,7 @@ public class GirMinerViewBean implements Serializable {
     /**
      * Creates a new instance of GirMinerView
      */
-    public GirMinerViewBean() {
+    public GitMinerViewBean() {
     }
 
 //    public void deleteNetInSession() {
@@ -55,30 +53,14 @@ public class GirMinerViewBean implements Serializable {
         return dao.executeNamedQuery("Miner.findAllTheLatest");
     }
 
-    public void downloadLOG(EntityMiner miner) {
+    public StreamedContent downloadLOG(EntityMiner miner) {
+        StreamedContent file = null;
         try {
-            String fileName = generateFileName(miner) + ".log";
-
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            PrintWriter pw = new PrintWriter(baos);
-
-            String[] linhas = miner.getMinerLog().split("\n");
-
-            for (String linha : linhas) {
-                pw.println(linha);
-            }
-
-            pw.flush();
-            pw.close();
-
-            JsfUtil.downloadFile(fileName, baos.toByteArray());
+            file = JsfUtil.downloadLogFile(miner);
         } catch (Exception ex) {
             ex.printStackTrace();
             JsfUtil.addErrorMessage(ex.toString());
         }
-    }
-
-    private String generateFileName(EntityMiner miner) {
-        return miner.getRepository().getName() + "-" + miner.getMinerStart();
+        return file;
     }
 }
