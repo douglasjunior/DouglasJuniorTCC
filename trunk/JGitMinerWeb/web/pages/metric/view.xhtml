@@ -8,76 +8,76 @@
         <br /> 
 
         <h:form prependId="false" >
-            <h:outputText value="#{gitMatrizViewBean.reloadList()}" />
+            <h:outputText value="#{gitMetricViewBean.reloadList()}" />
         </h:form>
 
         <h:form prependId="false" >
             <p:growl globalOnly="true" id="messages" />
-            <p:dataTable var="matriz" value="#{gitMatrizViewBean.matriz}" id="netList" rows="10" lazy="false"
+            <p:dataTable var="metric" value="#{gitMetricViewBean.metrics}" id="list" rows="10" lazy="false"
                          emptyMessage="No records found." paginator="true" paginatorPosition="bottom"
                          paginatorTemplate="{CurrentPageReport}  {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
-                         rowsPerPageTemplate="5,10,15">
+                         rowsPerPageTemplate="5,10,15" style="width: 100%">
                 <f:facet name="header">
                     <h:outputText value="Nets"/>
                 </f:facet>
 
                 <p:column headerText="ID">
-                    <h:outputText value="#{matriz.id}" />
+                    <h:outputText value="#{metric.id}" />
                 </p:column>
 
                 <p:column headerText="Repository">
-                    <h:outputText value="#{matriz.repository.name}" />
+                    <h:outputText value="#{metric.matriz.toString()}" />
                 </p:column>
 
                 <p:column headerText="Class Service">
-                    <h:outputText value="#{matriz.classServicesSingleName}" />
+                    <h:outputText value="#{metric.classServicesSingleName}" />
                 </p:column>
 
                 <p:column headerText="Started" >
-                    <h:outputText value="#{matriz.started}" >
+                    <h:outputText value="#{metric.started}" >
                         <f:convertDateTime pattern="MM/dd/yyyy HH:mm:ss" />
                     </h:outputText>
                 </p:column>
 
                 <p:column headerText="Stoped" >
-                    <h:outputText value="#{matriz.stoped}" >
+                    <h:outputText value="#{metric.stoped}" >
                         <f:convertDateTime pattern="MM/dd/yyyy HH:mm:ss" />
                     </h:outputText>
                 </p:column>
 
                 <p:column headerText="Completed">
-                    <h:outputText value="#{matriz.complete}" />
+                    <h:outputText value="#{metric.complete}" />
                 </p:column>
 
                 <p:column headerText="Download Files">
                     <p:commandButton onclick="PrimeFaces.monitorDownload(start, stop)" ajax="false" value="Log">
-                        <p:fileDownload value="#{gitMatrizViewBean.downloadLOG(matriz)}" />  
+                        <p:fileDownload value="#{gitMetricViewBean.downloadLOG(metric)}" />  
                     </p:commandButton> 
                     <p:commandButton onclick="PrimeFaces.monitorDownload(start, stop)" ajax="false" value="CSV">
-                        <p:fileDownload value="#{gitMatrizViewBean.downloadCSV(matriz)}" />  
+                        <p:fileDownload value="#{gitMetricViewBean.downloadCSV(metric)}" />  
                     </p:commandButton> 
                     <p:commandButton onclick="PrimeFaces.monitorDownload(start, stop)"  ajax="false" value="Pajek">
-                        <p:fileDownload value="#{gitMatrizViewBean.downloadCSV(matriz)}" />  
+                        <p:fileDownload value="#{gitMetricViewBean.downloadCSV(metric)}" />  
                     </p:commandButton> 
                     <p:commandButton onclick="PrimeFaces.monitorDownload(start, stop)" ajax="false" value="ARFF">
-                        <p:fileDownload value="#{gitMatrizViewBean.downloadCSV(matriz)}" />  
+                        <p:fileDownload value="#{gitMetricViewBean.downloadCSV(metric)}" />  
                     </p:commandButton>  
                 </p:column>
 
                 <p:column headerText="Options">
-                    <p:commandButton  icon="ui-icon-trash" title="Delete this Matriz"  actionListener="#{gitMatrizViewBean.addMatrizForDeleteInSession(matriz)}"
-                                      id="matrizDelete" oncomplete="confirmation.show()" />
+                    <p:commandButton  icon="ui-icon-trash" title="Delete this Metric"  actionListener="#{gitMetricViewBean.addForDeleteInSession(metric)}"
+                                      oncomplete="confirmation.show()" />
                 </p:column>
             </p:dataTable>
 
             <p:confirmDialog  id="confirmDelete" widgetVar="confirmation"
                               message="Really delete this matriz?" header="Confirmation" 
                               severity="alert"  closable="false" >
-                <p:commandButton value="Yes" id="confirmYes" update="netList messages" oncomplete="confirmation.hide()" style="position: relative;left: 80px"
-                                 actionListener="#{gitMatrizViewBean.deleteMatrizInSession()}">
+                <p:commandButton value="Yes" id="confirmYes" update="list messages" oncomplete="confirmation.hide()" style="position: relative;left: 80px"
+                                 actionListener="#{gitMetricViewBean.delete()}">
                 </p:commandButton>
                 <p:commandButton value="No" id="confirmNo" oncomplete="confirmation.hide()" style="position: relative;left: 80px"
-                                 actionListener="#{gitMatrizViewBean.removeMatrizFromSession()}"/>
+                                 actionListener="#{gitMetricViewBean.removeFromSession()}"/>
             </p:confirmDialog>
         </h:form>
         <!-- O código abaixo é responsavel por abrir a janela de Aguarde ao realizar o Download -->                              

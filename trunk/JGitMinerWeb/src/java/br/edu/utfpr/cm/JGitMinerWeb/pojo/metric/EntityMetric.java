@@ -6,9 +6,12 @@ package br.edu.utfpr.cm.JGitMinerWeb.pojo.metric;
 
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.InterfaceEntity;
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.Startable;
+import br.edu.utfpr.cm.JGitMinerWeb.util.Util;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
+import java.util.Properties;
 import javax.persistence.Basic;
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
@@ -46,6 +49,7 @@ public class EntityMetric implements InterfaceEntity, Startable {
     @Lob
     @Basic(fetch = FetchType.LAZY)
     private String log;
+    private Properties params;
     @OneToMany(mappedBy = "metric", orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<EntityMetricNode> nodes;
     private String classServicesName;
@@ -55,6 +59,7 @@ public class EntityMetric implements InterfaceEntity, Startable {
         started = new Date();
         complete = false;
         nodes = new ArrayList<>();
+        params = new Properties();
     }
 
     @Override
@@ -135,6 +140,14 @@ public class EntityMetric implements InterfaceEntity, Startable {
         this.classServicesName = classServices;
     }
 
+    public Properties getParams() {
+        return params;
+    }
+
+    public void setParams(Properties params) {
+        this.params = params;
+    }
+
     @Override
     public int hashCode() {
         int hash = 0;
@@ -162,5 +175,9 @@ public class EntityMetric implements InterfaceEntity, Startable {
     @Override
     public String getDownloadFileName() {
         return this.matriz + "-" + this.started;
+    }
+
+    public void setParams(Map params) {
+        Util.addMapToProperties(this.params, params);
     }
 }

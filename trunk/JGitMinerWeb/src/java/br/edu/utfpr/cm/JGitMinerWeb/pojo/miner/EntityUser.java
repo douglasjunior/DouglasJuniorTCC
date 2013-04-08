@@ -72,10 +72,10 @@ public class EntityUser implements InterfaceEntity, Serializable {
     private List<EntityRepository> collaboratedRepositories;
 
     public EntityUser() {
-        issues = new ArrayList<EntityIssue>();
-        issuesAssigned = new ArrayList<EntityIssue>();
-        collaboratedRepositories = new ArrayList<EntityRepository>();
-        watchedRepositories = new ArrayList<EntityRepository>();
+        issues = new ArrayList<>();
+        issuesAssigned = new ArrayList<>();
+        collaboratedRepositories = new ArrayList<>();
+        watchedRepositories = new ArrayList<>();
         mineredAt = new Date();
     }
 
@@ -333,6 +333,6 @@ public class EntityUser implements InterfaceEntity, Serializable {
 
     @Override
     public String toString() {
-        return "br.edu.utfpr.cm.JGitMiner.pojo.EntityUser[ id=" + id + ", login=" + login + "]";
+        return login;
     }
 }

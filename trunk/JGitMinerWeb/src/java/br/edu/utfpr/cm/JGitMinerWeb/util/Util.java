@@ -27,6 +27,8 @@ import java.text.Normalizer;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Map;
+import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
@@ -187,6 +189,10 @@ public class Util {
             ex.printStackTrace();
             return 0.0;
         }
+    }
+
+    public static String tratarDoubleParaString(double valor) {
+        return (valor + "").replace(".", ",");
     }
 
     /**
@@ -458,6 +464,16 @@ public class Util {
             System.out.println("wrote image for " + f.getAbsolutePath());
         } catch (Exception ex) {
             ex.printStackTrace();
+        }
+    }
+
+    public static void addMapToProperties(Properties params, Map<String, String> params0) {
+        if (params != null && params0 != null) {
+            for (String key : params0.keySet()) {
+                if (key != null && params0.get(key) != null) {
+                    params.put(key, params0.get(key));
+                }
+            }
         }
     }
 }

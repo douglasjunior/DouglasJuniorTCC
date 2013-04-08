@@ -90,14 +90,14 @@ public class EntityRepository implements InterfaceEntity, Serializable {
     private Set<EntityMilestone> milestones;
 
     public EntityRepository() {
-        issues = new HashSet<EntityIssue>();
-        pullRequests = new HashSet<EntityPullRequest>();
-        repoCommits = new HashSet<EntityRepositoryCommit>();
-        collaborators = new HashSet<EntityUser>();
-        watchers = new HashSet<EntityUser>();
-        forks = new HashSet<EntityRepository>();
-        teams = new HashSet<EntityTeam>();
-        milestones = new HashSet<EntityMilestone>();
+        issues = new HashSet<>();
+        pullRequests = new HashSet<>();
+        repoCommits = new HashSet<>();
+        collaborators = new HashSet<>();
+        watchers = new HashSet<>();
+        forks = new HashSet<>();
+        teams = new HashSet<>();
+        milestones = new HashSet<>();
         mineredAt = new Date();
     }
 
@@ -415,7 +415,7 @@ public class EntityRepository implements InterfaceEntity, Serializable {
 
     @Override
     public String toString() {
-        return name + " [ id=" + id + " ]";
+        return owner + "/" + name;
     }
 
     public void addIssue(EntityIssue issue) {

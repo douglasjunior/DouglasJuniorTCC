@@ -84,8 +84,8 @@ public class UserModifyFileInMilestoneServices extends AbstractMatrizServices {
         List<NodeGeneric> nodes = new ArrayList<>();
         for (AuxUserFile aux : query) {
             NodeGeneric rec = new NodeGeneric(
-                    aux.getUserIdentity(),
-                    aux.getFileName());
+                    aux.getUser(),
+                    aux.getFile());
             incrementNode(nodes, rec);
         }
 

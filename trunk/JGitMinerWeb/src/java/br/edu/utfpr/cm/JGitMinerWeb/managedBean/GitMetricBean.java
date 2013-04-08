@@ -13,6 +13,7 @@ import br.edu.utfpr.cm.JGitMinerWeb.services.metric.AbstractMetricServices;
 import br.edu.utfpr.cm.JGitMinerWeb.util.JsfUtil;
 import br.edu.utfpr.cm.JGitMinerWeb.util.OutLog;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
@@ -136,7 +137,8 @@ public class GitMetricBean implements Serializable {
         fail = false;
         progress = new Integer(0);
 
-        matriz = dao.findByID(matrizId, EntityMatriz.class);
+        matriz = getMatrizSelected();
+        params.putAll(matriz.getParams());
 
         out.printLog("Geração da rede iniciada!");
         out.printLog("");
@@ -155,6 +157,7 @@ public class GitMetricBean implements Serializable {
         } else {
             final EntityMetric entityMetric = new EntityMetric();
             dao.insert(entityMetric);
+            entityMetric.setParams(params);
             entityMetric.setMatriz(matriz + "");
             entityMetric.setLog(out.getLog().toString());
             entityMetric.setClassServicesName(serviceClass.getName());
@@ -248,13 +251,33 @@ public class GitMetricBean implements Serializable {
     }
 
     public List<Class> getServicesClasses() {
-        List<Class> cls = null;
+        List<Class> metricsServices = null;
         try {
-            cls = JsfUtil.getClasses(AbstractMetricServices.class.getPackage().getName(), Arrays.asList(AbstractMetricServices.class.getSimpleName()));
+            /*
+             * Filtra as matrizes que podem ser utilizadas nesta metrica
+             */
+            // pega a matriz selecionada
+            matriz = getMatrizSelected();
+            if (matriz != null) {
+                // pegas as classes do pacote de metricas
+                metricsServices = JsfUtil.getClasses(AbstractMetricServices.class.getPackage().getName(), Arrays.asList(AbstractMetricServices.class.getSimpleName()));
+                // faz uma iteração percorrendo cada classe
+                for (Iterator<Class> itMetricService = metricsServices.iterator(); itMetricService.hasNext();) {
+                    Class metricService = itMetricService.next();
+                    // pegas as matrizes disponíveis para esta metrica
+                    List<String> avaliableMatricesServices = ((AbstractMetricServices) metricService.getConstructor(GenericDao.class).newInstance(dao)).getAvailableMatricesPermitted();
+                    // verifica se a matriz selecionada está entre as disponíveis
+                    if (!avaliableMatricesServices.contains(matriz.getClassServicesName())) {
+                        itMetricService.remove();
+                    }
+                }
+            } else {
+                metricsServices = new ArrayList<>();
+            }
         } catch (Exception ex) {
             ex.printStackTrace();
         }
-        return cls;
+        return metricsServices;
     }
 
     private AbstractMetricServices createMetricServiceInstance() {
@@ -268,5 +291,9 @@ public class GitMetricBean implements Serializable {
 
     public ClassConverter getConverterClass() {
         return new ClassConverter();
+    }
+
+    private EntityMatriz getMatrizSelected() {
+        return dao.findByID(matrizId, EntityMatriz.class);
     }
 }

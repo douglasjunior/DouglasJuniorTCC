@@ -74,7 +74,7 @@ public class UserModifySameFileInMilestoneServices extends AbstractMatrizService
     }
 
     private List<AuxUserUserFile> getByMilestoneNumber() {
-        String jpql = "SELECT DISTINCT NEW " + AuxUserUserFile.class.getName() + "(rc.committer.login, rc.commit.committer.email, rc2.committer.login, rc2.commit.committer.email, f.filename) "
+        String jpql = "SELECT DISTINCT NEW " + AuxUserUserFile.class.getName() + "(rc.committer.login, rc.commit.committer.email, rc2.committer.login, rc2.commit.committer.email, f.filename, p.issue.milestone) "
                 + "FROM "
                 + "EntityPullRequest p JOIN p.repositoryCommits rc JOIN rc.files f, "
                 + "EntityPullRequest p2 JOIN p2.repositoryCommits rc2 JOIN rc2.files f2 "
@@ -87,6 +87,8 @@ public class UserModifySameFileInMilestoneServices extends AbstractMatrizService
                 + (!getFilesName().isEmpty() ? "f2.filename IN :filesName AND " : "")
                 + "f.filename = f2.filename AND "
                 + "rc.commit.committer.email <> rc2.commit.committer.email ";
+
+        System.out.println(jpql);
 
         String[] bdParams = new String[]{
             "repo",
@@ -107,13 +109,28 @@ public class UserModifySameFileInMilestoneServices extends AbstractMatrizService
     }
 
     private List<AuxUserUserFile> getByDate() {
-       String jpql = "SELECT DISTINCT NEW " + AuxUserUserFile.class.getName() + "(rc.committer.login, rc.commit.committer.email, rc2.committer.login, rc2.commit.committer.email, f.filename) "
-                + "FROM "
+        final String select1 = "SELECT DISTINCT NEW " + AuxUserUserFile.class.getName() + "(rc.committer.login, rc.commit.committer.email, rc2.committer.login, rc2.commit.committer.email, f.filename, p.issue.milestone) ";
+
+        final String select2 = "SELECT DISTINCT NEW " + AuxUserUserFile.class.getName() + "(rc.committer.login, rc.commit.committer.email, rc2.committer.login, rc2.commit.committer.email, f.filename) ";
+
+
+        final String from = "FROM "
                 + "EntityPullRequest p JOIN p.repositoryCommits rc JOIN rc.files f, "
                 + "EntityPullRequest p2 JOIN p2.repositoryCommits rc2 JOIN rc2.files f2 "
                 + "WHERE "
                 + "p.repository = :repo AND "
-                + "p2.repository = :repo AND "
+                + "p2.repository = :repo AND ";
+
+        final String where1 = "p.issue.milestone = p2.issue.milestone AND "
+                + "rc.commit.committer.dateCommitUser BETWEEN :beginDate AND :endDate AND "
+                + "rc2.commit.committer.dateCommitUser BETWEEN :beginDate AND :endDate AND "
+                + (!getFilesName().isEmpty() ? "f.filename IN :filesName AND " : "")
+                + (!getFilesName().isEmpty() ? "f2.filename IN :filesName AND " : "")
+                + "f.filename = f2.filename AND "
+                + "rc.commit.committer.email <> rc2.commit.committer.email ";
+
+        final String where2 = "p.issue.milestone IS NULL AND "
+                + "p2.issue.milestone IS NULL AND "
                 + "rc.commit.committer.dateCommitUser BETWEEN :beginDate AND :endDate AND "
                 + "rc2.commit.committer.dateCommitUser BETWEEN :beginDate AND :endDate AND "
                 + (!getFilesName().isEmpty() ? "f.filename IN :filesName AND " : "")
@@ -134,14 +151,24 @@ public class UserModifySameFileInMilestoneServices extends AbstractMatrizService
             getFilesName()
         };
 
-        List<AuxUserUserFile> result = dao.selectWithParams(jpql, bdParams, bdObjects);
+        System.out.println(select1 + from + where1);
 
+        List<AuxUserUserFile> result = dao.selectWithParams(select1 + from + where1, bdParams, bdObjects);
+
+        System.out.println("result1: "+result.size());
+        
+        System.out.println(select2 + from + where2);
+
+        result.addAll(dao.selectWithParams(select2 + from + where2, bdParams, bdObjects));
+
+        System.out.println("result2: "+result.size());
+        
         return removeDuplicade(result);
     }
 
     @Override
     public String getHeadCSV() {
-        return "user;user2;file";
+        return "user;user2;file;milestone";
     }
 
     private List<AuxUserUserFile> removeDuplicade(List<AuxUserUserFile> result) {

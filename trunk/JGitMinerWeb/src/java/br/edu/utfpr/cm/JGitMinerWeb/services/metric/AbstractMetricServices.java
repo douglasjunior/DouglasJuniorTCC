@@ -8,6 +8,7 @@ import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericDao;
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.matriz.EntityMatriz;
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.metric.EntityMetricNode;
 import br.edu.utfpr.cm.JGitMinerWeb.services.AbstractServices;
+import br.edu.utfpr.cm.JGitMinerWeb.services.matriz.AbstractMatrizServices;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -57,4 +58,9 @@ public abstract class AbstractMetricServices extends AbstractServices {
     public List<EntityMetricNode> getMetricNodes() {
         return (List) super.getNodes();
     }
+
+    /**
+     * @return List the names of "classes services" available matrices allowed for this metric.
+     */
+    public abstract List<String> getAvailableMatricesPermitted();
 }

@@ -155,7 +155,8 @@ public class GitMatrizBean implements Serializable {
         } else {
             final EntityMatriz entityMatriz = new EntityMatriz();
             dao.insert(entityMatriz);
-            entityMatriz.setRepository(repository);
+            entityMatriz.setParams(params);
+            entityMatriz.setRepository(repository + "");
             entityMatriz.setLog(out.getLog().toString());
             entityMatriz.setClassServicesName(serviceClass.getName());
             dao.edit(entityMatriz);
