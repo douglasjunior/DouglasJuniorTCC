@@ -20,6 +20,8 @@ import javax.persistence.*;
 @NamedQueries({
     @NamedQuery(name = "Repository.findByName",
     query = "SELECT r FROM EntityRepository r WHERE r.name = :name"),
+    @NamedQuery(name = "Repository.findByNameAndOwner",
+    query = "SELECT r FROM EntityRepository r WHERE r.name = :name AND r.owner.login = :login"),
     @NamedQuery(name = "Repository.findByIdRepository",
     query = "SELECT r FROM EntityRepository r WHERE r.idRepository = :idRepository"),
     @NamedQuery(name = "Repository.findByPrimaryMiner",

@@ -14,7 +14,7 @@ import edu.uci.ics.jung.algorithms.scoring.BetweennessCentrality;
 import edu.uci.ics.jung.algorithms.scoring.ClosenessCentrality;
 import edu.uci.ics.jung.algorithms.scoring.DegreeScorer;
 import edu.uci.ics.jung.algorithms.scoring.DistanceCentralityScorer;
-import edu.uci.ics.jung.graph.SparseGraph;
+import edu.uci.ics.jung.graph.UndirectedSparseGraph;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -44,7 +44,7 @@ public class UserBetweenessDistanceDegreeClosenessServices extends AbstractMetri
         }
 
         System.out.println("Selecionado matriz com " + getMatriz().getNodes().size() + " nodes.");
-        SparseGraph<String, String> graph = new SparseGraph<>();
+        UndirectedSparseGraph<String, String> graph = new UndirectedSparseGraph<>();
         for (int i = 0; i < getMatriz().getNodes().size(); i++) {
             EntityMatrizNode node = getMatriz().getNodes().get(i);
             String[] coluns = node.getLine().split(JsfUtil.TOKEN_SEPARATOR);
