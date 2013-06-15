@@ -16,3 +16,5 @@ A segunda forma permite a extração de medidas quantitativas que podem ser expo
 Toda a ferramenta será implementada utilizando a linguagem JAVA com o arcabouço JSF (Java Server Faces) para a interface e o servidor de aplicação GlassFish. O banco de dados escolhido para armazenamento das informações foi o PostgreSQL, por se tratar de um gerenciador de banco de dados com licença GPL (General Public License).<br />
 Optou-se pelo desenvolvimento de uma aplicação Web pensando na possibilidade de disponibiliza-la futuramente para pesquisadores em locais geográficos distintos, de modo que eles possam compartilhar os dados minerados e a geração das redes executadas.<br />
 Esta abordagem também possibilita que a mineração e análise dos dados possam ser realizadas de maneira distribuida resolvendo a necessidade de processamento de uma grande quantidade de informações.
+
+Monografia: http://coint.cm.utfpr.edu.br/ensino/tcc/projetos/ensino/tcc/projetos/douglas-nassif-roma-junior/CM_COINT_2012_2_01.pdf
