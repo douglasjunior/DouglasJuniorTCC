@@ -74,12 +74,12 @@ public class GitMetricBean implements Serializable {
         this.canceled = canceled;
     }
 
-    public String getRepositoryId() {
+    public String getMatrizId() {
         return matrizId;
     }
 
-    public void setRepositoryId(String repositoryId) {
-        this.matrizId = repositoryId;
+    public void setMatrizId(String matrizId) {
+        this.matrizId = matrizId;
     }
 
     public Class getServiceClass() {
@@ -248,6 +248,14 @@ public class GitMetricBean implements Serializable {
         } else {
             JsfUtil.addSuccessMessage(message);
         }
+    }
+
+    public String getMatrizParamsToString() {
+        matriz = getMatrizSelected();
+        if (matriz != null) {
+            return matriz.getParams() + "";
+        }
+        return "";
     }
 
     public List<Class> getServicesClasses() {

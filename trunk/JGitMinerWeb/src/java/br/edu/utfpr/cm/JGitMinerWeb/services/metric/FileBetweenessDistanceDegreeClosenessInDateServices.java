@@ -9,13 +9,11 @@ import br.edu.utfpr.cm.JGitMinerWeb.pojo.matriz.EntityMatriz;
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.matriz.EntityMatrizNode;
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.EntityRepository;
 import br.edu.utfpr.cm.JGitMinerWeb.services.matriz.UserModifySameFileInDateServices;
-import br.edu.utfpr.cm.JGitMinerWeb.services.matriz.UserModifySameFileInMilestoneServices;
 import br.edu.utfpr.cm.JGitMinerWeb.services.matriz.auxiliary.AuxFileCountSum;
 import br.edu.utfpr.cm.JGitMinerWeb.services.matriz.auxiliary.AuxUserFile;
 import br.edu.utfpr.cm.JGitMinerWeb.services.metric.auxiliary.AuxFileMetrics;
 import br.edu.utfpr.cm.JGitMinerWeb.services.metric.auxiliary.AuxUserMetrics;
 import br.edu.utfpr.cm.JGitMinerWeb.util.JsfUtil;
-import br.edu.utfpr.cm.JGitMinerWeb.util.Util;
 import edu.uci.ics.jung.algorithms.scoring.BetweennessCentrality;
 import edu.uci.ics.jung.algorithms.scoring.ClosenessCentrality;
 import edu.uci.ics.jung.algorithms.scoring.DegreeScorer;
@@ -24,6 +22,7 @@ import edu.uci.ics.jung.graph.UndirectedSparseMultigraph;
 import edu.uci.ics.jung.graph.util.EdgeType;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -31,16 +30,24 @@ import java.util.Map;
  *
  * @author Douglas
  */
-public class FileBetweenessDistanceDegreeClosenessServices extends AbstractMetricServices {
+public class FileBetweenessDistanceDegreeClosenessInDateServices extends AbstractMetricServices {
 
     private EntityRepository repository;
 
-    public FileBetweenessDistanceDegreeClosenessServices(GenericDao dao) {
+    public FileBetweenessDistanceDegreeClosenessInDateServices(GenericDao dao) {
         super(dao);
     }
 
-    public FileBetweenessDistanceDegreeClosenessServices(GenericDao dao, EntityMatriz matriz, Map params) {
+    public FileBetweenessDistanceDegreeClosenessInDateServices(GenericDao dao, EntityMatriz matriz, Map params) {
         super(dao, matriz, params);
+    }
+
+    public Date getFutureBeginDate() {
+        return getDateParam("futureBeginDate");
+    }
+
+    public Date getFutureEndDate() {
+        return getDateParam("futureEndDate");
     }
 
     /*
@@ -66,9 +73,9 @@ public class FileBetweenessDistanceDegreeClosenessServices extends AbstractMetri
         System.out.println(params);
 
         System.out.println(getMatriz().getClassServicesName());
-        
-        if (getMatriz() == null || 
-                !getAvailableMatricesPermitted().contains(getMatriz().getClassServicesName())) {
+
+        if (getMatriz() == null
+                || !getAvailableMatricesPermitted().contains(getMatriz().getClassServicesName())) {
             throw new IllegalArgumentException("Selecione uma matriz gerada pelo Services: " + getAvailableMatricesPermitted());
         }
 
@@ -118,7 +125,7 @@ public class FileBetweenessDistanceDegreeClosenessServices extends AbstractMetri
             Double btwMax = 0d, btwAve, btwSum = 0d;
             Double dgrMax = 0d, dgrAve, dgrSum = 0d;
             Double clsMax = 0d, clsAve, clsSum = 0d;
-            Double codeChurn = 0d, updates = 0d, dev = 0d;
+            Double futCodeChurn = 0d, codeChurn = 0d, futUpdates = 0d, updates = 0d, dev = 0d;
             for (String edgeFile : graphMulti.getEdges()) {
                 if (edgeFile.startsWith(file)) {
                     for (AuxUserMetrics auxUser : userMetrics) {
@@ -147,15 +154,21 @@ public class FileBetweenessDistanceDegreeClosenessServices extends AbstractMetri
             btwAve = btwSum / dev;
             dgrAve = dgrSum / dev;
             clsAve = clsSum / dev;
-
-            codeChurn = calculeCodeChurn(file);
-            updates = calculeUpdates(file);
-
+            
+            AuxFileCountSum aux = calculeCodeChurnAndUpdates(file, getBeginDate(), getEndDate());
+            codeChurn = (double) aux.getSum();
+            updates = (double) aux.getCount();
+            
+            aux = calculeCodeChurnAndUpdates(file, getFutureBeginDate(), getFutureEndDate());
+            futCodeChurn = (double) aux.getSum();
+            futUpdates = (double) aux.getCount();
+                 
             fileMetrics.add(new AuxFileMetrics(file,
                     btwMax, btwAve, btwSum,
                     dgrMax, dgrAve, dgrSum,
                     clsMax, clsAve, clsSum,
-                    dev, codeChurn, updates));
+                    dev, codeChurn, futCodeChurn, 
+                    updates, futUpdates));
         }
 
         addToEntityMetricNodeList(fileMetrics);
@@ -167,12 +180,14 @@ public class FileBetweenessDistanceDegreeClosenessServices extends AbstractMetri
                 + "btwMax;btwAve;btwSum;"
                 + "dgrMax;dgrAve;dgrSum;"
                 + "clsMax;clsAve;clsSum;"
-                + "developers;codeChurn;updates";
+                + "developers;"
+                + "codeChurn;futureCodeChurn;"
+                + "updates;futureUpdates";
     }
 
     @Override
     public List<String> getAvailableMatricesPermitted() {
-        return Arrays.asList(UserModifySameFileInMilestoneServices.class.getName());
+        return Arrays.asList(UserModifySameFileInDateServices.class.getName());
     }
 
     private void colectFile(List<String> files, String file) {
@@ -188,61 +203,37 @@ public class FileBetweenessDistanceDegreeClosenessServices extends AbstractMetri
         return vMax;
     }
 
-    private Double calculeCodeChurn(String fileName) {
-        String jpql = "SELECT NEW " + AuxFileCountSum.class.getName() + "(f.filename, SUM(f.changes)) "
+    private AuxFileCountSum calculeCodeChurnAndUpdates(String fileName, Date beginDate, Date endDate) {
+        String jpql = "SELECT NEW " + AuxFileCountSum.class.getName() + "(f.filename, COUNT(f), SUM(f.changes)) "
                 + "FROM "
-                + "EntityPullRequest p JOIN p.repositoryCommits rc JOIN rc.files f "
+                + "EntityRepositoryCommit rc JOIN rc.files f JOIN rc.commit co JOIN co.committer ct "
                 + "WHERE "
-                + "p.repository = :repo AND "
-                + "p.issue.milestone.number = :milestoneNumber AND "
+                + "rc.repository = :repo AND "
+                + "ct.dateCommitUser >= :beginDate AND "
+                + "ct.dateCommitUser <= :endDate AND "
                 + "f.filename = :fileName "
                 + "GROUP BY f.filename";
 
         String[] bdParams = new String[]{
             "repo",
             "fileName",
-            "milestoneNumber"
+            "beginDate",
+            "endDate"
         };
         Object[] bdObjects = new Object[]{
             repository,
             fileName,
-            getMilestoneNumber()
+            beginDate,
+            endDate
         };
 
         List<AuxFileCountSum> result = dao.selectWithParams(jpql, bdParams, bdObjects);
 
-        return Double.valueOf(result.get(0).getCount());
-    }
-
-    private Double calculeUpdates(String fileName) {
-        String jpql = "SELECT NEW " + AuxFileCountSum.class.getName() + "(f.filename, COUNT(f)) "
-                + "FROM "
-                + "EntityPullRequest p JOIN p.repositoryCommits rc JOIN rc.files f "
-                + "WHERE "
-                + "p.repository = :repo AND "
-                + "p.issue.milestone.number = :milestoneNumber AND "
-                + "f.filename = :fileName "
-                + "GROUP BY f.filename";
-
-        String[] bdParams = new String[]{
-            "repo",
-            "fileName",
-            "milestoneNumber"
-        };
-        Object[] bdObjects = new Object[]{
-            repository,
-            fileName,
-            getMilestoneNumber()
-        };
-
-        List<AuxFileCountSum> result = dao.selectWithParams(jpql, bdParams, bdObjects);
-
-        return Double.valueOf(result.get(0).getCount());
-    }
-
-    private Integer getMilestoneNumber() {
-        String mileNumber = params.get("milestoneNumber") + "";
-        return Util.tratarStringParaInt(mileNumber);
+        if (!result.isEmpty()) {
+            return result.get(0);
+        } else {
+            return new AuxFileCountSum(fileName, 0, 0);
+        }
     }
 
     private EntityRepository getRepository() {

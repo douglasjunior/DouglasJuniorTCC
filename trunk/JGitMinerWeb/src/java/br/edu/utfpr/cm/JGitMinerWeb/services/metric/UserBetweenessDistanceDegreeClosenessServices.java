@@ -7,6 +7,7 @@ package br.edu.utfpr.cm.JGitMinerWeb.services.metric;
 import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericDao;
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.matriz.EntityMatriz;
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.matriz.EntityMatrizNode;
+import br.edu.utfpr.cm.JGitMinerWeb.services.matriz.UserModifySameFileInDateServices;
 import br.edu.utfpr.cm.JGitMinerWeb.services.matriz.UserModifySameFileInMilestoneServices;
 import br.edu.utfpr.cm.JGitMinerWeb.services.metric.auxiliary.AuxUserMetrics;
 import br.edu.utfpr.cm.JGitMinerWeb.util.JsfUtil;
@@ -38,8 +39,7 @@ public class UserBetweenessDistanceDegreeClosenessServices extends AbstractMetri
     public void run() {
         System.out.println(params);
 
-        if (getMatriz() == null
-                || !getMatriz().getClassServicesName().equals(UserModifySameFileInMilestoneServices.class.getName())) {
+        if (getMatriz() == null && !getAvailableMatricesPermitted().contains(getMatriz().getClassServicesName())) {
             throw new IllegalArgumentException("Selecione uma matriz gerada pelo Service: " + UserModifySameFileInMilestoneServices.class.getName());
         }
 
@@ -77,6 +77,8 @@ public class UserBetweenessDistanceDegreeClosenessServices extends AbstractMetri
 
     @Override
     public List<String> getAvailableMatricesPermitted() {
-        return Arrays.asList(UserModifySameFileInMilestoneServices.class.getName());
+        return Arrays.asList(
+                UserModifySameFileInMilestoneServices.class.getName(),
+                UserModifySameFileInDateServices.class.getName());
     }
 }

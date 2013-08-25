@@ -133,7 +133,7 @@ public class GitMetricViewBean implements Serializable {
         return file;
     }
 
-    private String generateFileName(EntityMetric matriz) {
-        return matriz.getMatriz() + "-" + matriz.getStarted();
+    private String generateFileName(EntityMetric metric) {
+        return metric.getClassServicesSingleName() + " of matriz (" + metric.getMatriz() + ") - " + metric.getStarted();
     }
 }

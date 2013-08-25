@@ -6,7 +6,7 @@ package br.edu.utfpr.cm.JGitMinerWeb.services.matriz;
 
 import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericDao;
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.EntityRepository;
-import br.edu.utfpr.cm.JGitMinerWeb.services.matriz.auxiliary.AuxUserUserFile;
+import br.edu.utfpr.cm.JGitMinerWeb.services.matriz.auxiliary.AuxUserUserFileMilestone;
 import br.edu.utfpr.cm.JGitMinerWeb.util.Util;
 import java.util.ArrayList;
 import java.util.List;
@@ -60,7 +60,7 @@ public class UserModifySameFileInMilestoneServices extends AbstractMatrizService
             throw new IllegalArgumentException("Parâmetro Repository não pode ser nulo.");
         }
 
-        List<AuxUserUserFile> result;
+        List<AuxUserUserFileMilestone> result;
 
         if (getMilestoneNumber() > 0) {
             result = getByMilestoneNumber();
@@ -73,8 +73,8 @@ public class UserModifySameFileInMilestoneServices extends AbstractMatrizService
         addToEntityMatrizNodeList(result);
     }
 
-    private List<AuxUserUserFile> getByMilestoneNumber() {
-        String jpql = "SELECT DISTINCT NEW " + AuxUserUserFile.class.getName() + "(rc.committer.login, rc.commit.committer.email, rc2.committer.login, rc2.commit.committer.email, f.filename, p.issue.milestone) "
+    private List<AuxUserUserFileMilestone> getByMilestoneNumber() {
+        String jpql = "SELECT DISTINCT NEW " + AuxUserUserFileMilestone.class.getName() + "(rc.committer.login, rc.commit.committer.email, rc2.committer.login, rc2.commit.committer.email, f.filename, p.issue.milestone) "
                 + "FROM "
                 + "EntityPullRequest p JOIN p.repositoryCommits rc JOIN rc.files f, "
                 + "EntityPullRequest p2 JOIN p2.repositoryCommits rc2 JOIN rc2.files f2 "
@@ -103,15 +103,15 @@ public class UserModifySameFileInMilestoneServices extends AbstractMatrizService
 
         System.out.println(jpql);
 
-        List<AuxUserUserFile> result = dao.selectWithParams(jpql, bdParams, bdObjects);
+        List<AuxUserUserFileMilestone> result = dao.selectWithParams(jpql, bdParams, bdObjects);
 
         return removeDuplicade(result);
     }
 
-    private List<AuxUserUserFile> getByDate() {
-        final String select1 = "SELECT DISTINCT NEW " + AuxUserUserFile.class.getName() + "(rc.committer.login, rc.commit.committer.email, rc2.committer.login, rc2.commit.committer.email, f.filename, p.issue.milestone) ";
+    private List<AuxUserUserFileMilestone> getByDate() {
+        final String select1 = "SELECT DISTINCT NEW " + AuxUserUserFileMilestone.class.getName() + "(rc.committer.login, rc.commit.committer.email, rc2.committer.login, rc2.commit.committer.email, f.filename, p.issue.milestone) ";
 
-        final String select2 = "SELECT DISTINCT NEW " + AuxUserUserFile.class.getName() + "(rc.committer.login, rc.commit.committer.email, rc2.committer.login, rc2.commit.committer.email, f.filename) ";
+        final String select2 = "SELECT DISTINCT NEW " + AuxUserUserFileMilestone.class.getName() + "(rc.committer.login, rc.commit.committer.email, rc2.committer.login, rc2.commit.committer.email, f.filename) ";
 
 
         final String from = "FROM "
@@ -153,7 +153,7 @@ public class UserModifySameFileInMilestoneServices extends AbstractMatrizService
 
         System.out.println(select1 + from + where1);
 
-        List<AuxUserUserFile> result = dao.selectWithParams(select1 + from + where1, bdParams, bdObjects);
+        List<AuxUserUserFileMilestone> result = dao.selectWithParams(select1 + from + where1, bdParams, bdObjects);
 
         System.out.println("result1: "+result.size());
         
@@ -171,9 +171,9 @@ public class UserModifySameFileInMilestoneServices extends AbstractMatrizService
         return "user;user2;file;milestone";
     }
 
-    private List<AuxUserUserFile> removeDuplicade(List<AuxUserUserFile> result) {
-        List<AuxUserUserFile> newResult = new ArrayList<>();
-        for (AuxUserUserFile aux : result) {
+    private List<AuxUserUserFileMilestone> removeDuplicade(List<AuxUserUserFileMilestone> result) {
+        List<AuxUserUserFileMilestone> newResult = new ArrayList<>();
+        for (AuxUserUserFileMilestone aux : result) {
             if (!newResult.contains(aux)) {
                 newResult.add(aux);
             }

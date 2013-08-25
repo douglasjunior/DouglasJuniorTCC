@@ -5,8 +5,8 @@
         <property name="serverName" value="localhost"/>
         <property name="portNumber" value="5432"/>
         <property name="databaseName" value="jgitminerweb"/>
-        <property name="User" value="postgres"/>
-        <property name="Password" value="postgre"/>
+        <property name="User" value="aluno"/>
+        <property name="Password" value="aluno"/>
         <property name="URL" value="jdbc:postgresql://localhost:5432/jgitminerweb"/>
         <property name="driverClass" value="org.postgresql.Driver"/>
     </jdbc-connection-pool>

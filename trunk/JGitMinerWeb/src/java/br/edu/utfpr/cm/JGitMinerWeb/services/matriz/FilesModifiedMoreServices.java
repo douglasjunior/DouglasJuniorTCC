@@ -6,7 +6,7 @@ package br.edu.utfpr.cm.JGitMinerWeb.services.matriz;
 
 import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericDao;
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.EntityRepository;
-import br.edu.utfpr.cm.JGitMinerWeb.services.matriz.auxiliary.AuxFileCount;
+import br.edu.utfpr.cm.JGitMinerWeb.services.matriz.auxiliary.AuxFileCountSum;
 import br.edu.utfpr.cm.JGitMinerWeb.util.Util;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -52,7 +52,7 @@ public class FilesModifiedMoreServices extends AbstractMatrizServices {
             throw new IllegalArgumentException("Parâmetro Repository não pode ser nulo.");
         }
 
-        List<AuxFileCount> auxs;
+        List<AuxFileCountSum> auxs;
 
         if (getMilestoneNumber() != 0) {
             auxs = getFilesByMilestone();
@@ -81,8 +81,8 @@ public class FilesModifiedMoreServices extends AbstractMatrizServices {
         addToEntityMatrizNodeList(auxs);
     }
 
-    private List<AuxFileCount> getFilesByMilestone() {
-        String jpql = "SELECT NEW " + AuxFileCount.class.getName() + "(f.filename, COUNT(f.filename)) "
+    private List<AuxFileCountSum> getFilesByMilestone() {
+        String jpql = "SELECT NEW " + AuxFileCountSum.class.getName() + "(f.filename, COUNT(f.filename)) "
                 + "FROM EntityPullRequest p JOIN p.issue i JOIN p.repositoryCommits rc JOIN rc.files f "
                 + (!getIssueLabels().isEmpty() ? "JOIN i.labels l " : "")
                 + "WHERE p.repository = :repo "
@@ -94,7 +94,7 @@ public class FilesModifiedMoreServices extends AbstractMatrizServices {
 
         System.out.println(jpql);
 
-        List<AuxFileCount> auxs = dao.selectWithParams(jpql,
+        List<AuxFileCountSum> auxs = dao.selectWithParams(jpql,
                 new String[]{
                     "repo",
                     "milestoneNumber",
@@ -111,8 +111,8 @@ public class FilesModifiedMoreServices extends AbstractMatrizServices {
         return auxs;
     }
 
-    private List<AuxFileCount> getFilesByDate() {
-        String jpql = "SELECT NEW " + AuxFileCount.class.getName() + "(f.filename, COUNT(f.filename)) "
+    private List<AuxFileCountSum> getFilesByDate() {
+        String jpql = "SELECT NEW " + AuxFileCountSum.class.getName() + "(f.filename, COUNT(f.filename)) "
                 + "FROM EntityPullRequest p JOIN p.issue i JOIN p.repositoryCommits rc JOIN rc.files f "
                 + (!getIssueLabels().isEmpty() ? "JOIN i.labels l " : "")
                 + "WHERE rc.repository = :repo "
@@ -125,7 +125,7 @@ public class FilesModifiedMoreServices extends AbstractMatrizServices {
 
         System.out.println(jpql);
 
-        List<AuxFileCount> auxs = dao.selectWithParams(jpql,
+        List<AuxFileCountSum> auxs = dao.selectWithParams(jpql,
                 new String[]{
                     "repo",
                     !getIssueLabels().isEmpty() ? "labels" : "#none#",
@@ -144,12 +144,12 @@ public class FilesModifiedMoreServices extends AbstractMatrizServices {
         return auxs;
     }
 
-    private void orderByCount(List<AuxFileCount> auxs) {
+    private void orderByCount(List<AuxFileCountSum> auxs) {
         Collections.sort(auxs, new Comparator() {
             @Override
             public int compare(Object o1, Object o2) {
-                AuxFileCount v1 = (AuxFileCount) o1;
-                AuxFileCount v2 = (AuxFileCount) o2;
+                AuxFileCountSum v1 = (AuxFileCountSum) o1;
+                AuxFileCountSum v2 = (AuxFileCountSum) o2;
 
                 Comparable i1 = (Comparable) v1.getCount();
                 Comparable i2 = (Comparable) v2.getCount();

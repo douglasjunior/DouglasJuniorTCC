@@ -10,22 +10,32 @@ import br.edu.utfpr.cm.JGitMinerWeb.util.Util;
  *
  * @author douglas
  */
-public class AuxFileCount {
+public class AuxFileCountSum {
 
-    private int count;
+    private long count;
+    private long sum;
     private String fileName;
 
-    public AuxFileCount(Object fileName, Object count) {
+    public AuxFileCountSum(Object fileName, Object count, Object sum) {
         this.fileName = fileName + "";
-        this.count = Util.tratarStringParaInt(count + "");
+        this.count = Util.tratarStringParaLong(count + "");
+        this.sum = Util.tratarStringParaLong(sum + "");
     }
 
-    public int getCount() {
+    public long getCount() {
         return count;
     }
 
-    public void setCount(int count) {
+    public void setCount(long count) {
         this.count = count;
+    }
+
+    public long getSum() {
+        return sum;
+    }
+
+    public void setSum(long sum) {
+        this.sum = sum;
     }
 
     public String getFileName() {

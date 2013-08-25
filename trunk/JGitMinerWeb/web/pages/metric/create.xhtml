@@ -16,11 +16,15 @@
             <p:growl globalOnly="true" id="messages" />
 
             <h:outputText value="Select a Matriz: " /> <br />  
-            <p:selectOneListbox  style="height:100px;width:500px" value="#{gitMetricBean.repositoryId}"  >
+            <p:selectOneListbox  style="height:100px;width:500px" value="#{gitMetricBean.matrizId}"  >
                 <f:selectItems value="#{gitMatrizViewBean.matrizes}" var="matriz" itemLabel="#{matriz.toString()}" itemDescription="#{matriz.toString()}" itemValue="#{matriz.id}" />
-                <f:ajax render="listServices" />
+                <f:ajax render="listServices matrizParamsUsed" />
             </p:selectOneListbox>
-
+            
+            <b><h:outputLabel for="matrizParamsUsed" value="Used params: " /></b>
+            <h:outputText id="matrizParamsUsed" value="#{gitMetricBean.matrizParamsToString}" /> 
+            
+            <br />
             <br />
 
             <h:outputText value="Select a Metric Service Class: " /> <br />  
