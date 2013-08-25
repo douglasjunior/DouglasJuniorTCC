@@ -8,6 +8,7 @@ import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericDao;
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.matriz.EntityMatriz;
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.matriz.EntityMatrizNode;
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.EntityRepository;
+import br.edu.utfpr.cm.JGitMinerWeb.services.matriz.UserCommentedSameFileInDateServices;
 import br.edu.utfpr.cm.JGitMinerWeb.services.matriz.UserModifySameFileInDateServices;
 import br.edu.utfpr.cm.JGitMinerWeb.services.matriz.auxiliary.AuxFileCountSum;
 import br.edu.utfpr.cm.JGitMinerWeb.services.matriz.auxiliary.AuxUserFile;
@@ -187,7 +188,7 @@ public class FileBetweenessDistanceDegreeClosenessInDateServices extends Abstrac
 
     @Override
     public List<String> getAvailableMatricesPermitted() {
-        return Arrays.asList(UserModifySameFileInDateServices.class.getName());
+        return Arrays.asList(UserModifySameFileInDateServices.class.getName(), UserCommentedSameFileInDateServices.class.getName());
     }
 
     private void colectFile(List<String> files, String file) {

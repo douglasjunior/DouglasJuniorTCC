@@ -43,7 +43,7 @@ public class UserModifySameFileInDateServices extends AbstractMatrizServices {
 
         String jpql = "SELECT DISTINCT NEW " + AuxUserUserFile.class.getName() + "(rc.committer.login, rc.commit.committer.email, rc2.committer.login, rc2.commit.committer.email, f.filename) "
                 + "FROM "
-                + "EntityRepositoryCommit rc JOIN rc.files f  "
+                + "EntityRepositoryCommit rc JOIN rc.files f,  "
                 + "EntityRepositoryCommit rc2 JOIN rc2.files f2 "
                 + "WHERE "
                 + "rc.repository = :repo AND "
