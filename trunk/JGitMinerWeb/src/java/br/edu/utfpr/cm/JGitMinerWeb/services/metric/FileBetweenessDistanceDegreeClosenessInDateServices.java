@@ -154,20 +154,20 @@ public class FileBetweenessDistanceDegreeClosenessInDateServices extends Abstrac
             btwAve = btwSum / dev;
             dgrAve = dgrSum / dev;
             clsAve = clsSum / dev;
-            
+
             AuxFileCountSum aux = calculeCodeChurnAndUpdates(file, getBeginDate(), getEndDate());
             codeChurn = (double) aux.getSum();
             updates = (double) aux.getCount();
-            
+
             aux = calculeCodeChurnAndUpdates(file, getFutureBeginDate(), getFutureEndDate());
             futCodeChurn = (double) aux.getSum();
             futUpdates = (double) aux.getCount();
-                 
+
             fileMetrics.add(new AuxFileMetrics(file,
                     btwMax, btwAve, btwSum,
                     dgrMax, dgrAve, dgrSum,
                     clsMax, clsAve, clsSum,
-                    dev, codeChurn, futCodeChurn, 
+                    dev, codeChurn, futCodeChurn,
                     updates, futUpdates));
         }
 
@@ -206,11 +206,10 @@ public class FileBetweenessDistanceDegreeClosenessInDateServices extends Abstrac
     private AuxFileCountSum calculeCodeChurnAndUpdates(String fileName, Date beginDate, Date endDate) {
         String jpql = "SELECT NEW " + AuxFileCountSum.class.getName() + "(f.filename, COUNT(f), SUM(f.changes)) "
                 + "FROM "
-                + "EntityRepositoryCommit rc JOIN rc.files f JOIN rc.commit co JOIN co.committer ct "
+                + "EntityRepositoryCommit rc JOIN rc.files f  "
                 + "WHERE "
                 + "rc.repository = :repo AND "
-                + "ct.dateCommitUser >= :beginDate AND "
-                + "ct.dateCommitUser <= :endDate AND "
+                + "rc.commit.committer.dateCommitUser BETWEEN :beginDate AND :endDate AND "
                 + "f.filename = :fileName "
                 + "GROUP BY f.filename";
 

@@ -7,7 +7,6 @@ package br.edu.utfpr.cm.JGitMinerWeb.services.matriz;
 import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericDao;
 import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.EntityRepository;
 import br.edu.utfpr.cm.JGitMinerWeb.services.matriz.auxiliary.AuxUserUserFile;
-import br.edu.utfpr.cm.JGitMinerWeb.services.matriz.auxiliary.AuxUserUserFileMilestone;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -44,15 +43,17 @@ public class UserModifySameFileInDateServices extends AbstractMatrizServices {
 
         String jpql = "SELECT DISTINCT NEW " + AuxUserUserFile.class.getName() + "(rc.committer.login, rc.commit.committer.email, rc2.committer.login, rc2.commit.committer.email, f.filename) "
                 + "FROM "
-                + "EntityRepositoryCommit rc JOIN rc.files f JOIN rc.commit cm JOIN cm.committer ct, "
-                + "EntityRepositoryCommit rc2 JOIN rc2.files f2 JOIN rc2.commit cm2 JOIN cm2.committer ct2 "
+                + "EntityRepositoryCommit rc JOIN rc.files f  "
+                + "EntityRepositoryCommit rc2 JOIN rc2.files f2 "
                 + "WHERE "
                 + "rc.repository = :repo AND "
                 + "rc2.repository = :repo AND "
-                + "(ct.dateCommitUser >= :beginDate AND ct.dateCommitUser <= :endDate) AND "
-                + "(ct2.dateCommitUser >= :beginDate AND ct2.dateCommitUser <= :endDate) AND "
+                + "rc.commit.committer.dateCommitUser BETWEEN :beginDate AND :endDate AND "
+                + "rc2.commit.committer.dateCommitUser BETWEEN :beginDate AND :endDate AND "
                 + "f.filename LIKE :prefix AND "
+                + "f.filename LIKE :suffix AND "
                 + "f2.filename LIKE :prefix AND "
+                + "f2.filename LIKE :suffix AND "
                 + "f.filename = f2.filename AND "
                 + "rc.commit.committer.email <> rc2.commit.committer.email ";
 
@@ -61,14 +62,14 @@ public class UserModifySameFileInDateServices extends AbstractMatrizServices {
         String[] bdParams = new String[]{
             "repo",
             "prefix",
-            //          "suffix",
+            "suffix",
             "beginDate",
             "endDate"
         };
         Object[] bdObjects = new Object[]{
             getRepository(),
             getPrefixFile(),
-            //          getSuffixFile(),
+            getSuffixFile(),
             getBeginDate(),
             getEndDate()
         };
@@ -76,9 +77,9 @@ public class UserModifySameFileInDateServices extends AbstractMatrizServices {
         List<AuxUserUserFile> result = dao.selectWithParams(jpql, bdParams, bdObjects);
 
         System.out.println("Result: " + result.size());
-        
+
         result = removeDuplicade(result);
-        
+
         System.out.println("Result distinct: " + result.size());
 
         addToEntityMatrizNodeList(result);
