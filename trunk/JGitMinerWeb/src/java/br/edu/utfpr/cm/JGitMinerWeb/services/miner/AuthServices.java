@@ -73,6 +73,7 @@ public class AuthServices implements Serializable {
         OAuthService oauth = new OAuthService(cliente);
         Authorization auth = new Authorization();
         auth.setApp(new Application().setName(APP_NAME));
+        
         try {
             String token;
             if (oauth.getAuthorizations() == null || oauth.getAuthorizations().isEmpty()) {

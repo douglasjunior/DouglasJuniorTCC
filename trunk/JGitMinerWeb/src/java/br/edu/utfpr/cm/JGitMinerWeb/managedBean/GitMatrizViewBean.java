@@ -118,6 +118,6 @@ public class GitMatrizViewBean implements Serializable {
     }
 
     private String generateFileName(EntityMatriz matriz) {
-        return matriz.getRepository() + "-" + matriz.getStarted();
+        return matriz.getClassServicesSingleName() + " (" + matriz.getRepository() + ") - " + matriz.getStarted();
     }
 }
