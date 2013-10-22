@@ -1,5 +1,6 @@
 package br.edu.utfpr.cm.JGitMinerWeb.managedBean;
 
+import br.edu.utfpr.cm.JGitMinerWeb.services.miner.AuthServices;
 import java.io.Serializable;
 import javax.faces.bean.ManagedBean;
 import javax.faces.bean.SessionScoped;
@@ -70,5 +71,9 @@ public class PagesManager implements Serializable {
     public String metricView() {
         this.body = "./pages/metric/view.xhtml";
         return "refreshPage";
+    }
+
+    public int getClientCount() {
+        return AuthServices.getClientCount();
     }
 }

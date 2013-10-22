@@ -67,7 +67,7 @@ public class IssueServices implements Serializable {
             return null;
         }
 
-        EntityIssue issue = getIssueByIdIssue(gitIssue.getId(), dao);
+        EntityIssue issue = getIssueByIdIssue(gitIssue.getNumber(), dao);
 
         if (issue == null) {
             issue = new EntityIssue();

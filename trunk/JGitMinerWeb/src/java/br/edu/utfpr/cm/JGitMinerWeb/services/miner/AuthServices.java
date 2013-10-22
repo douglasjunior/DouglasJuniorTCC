@@ -28,11 +28,13 @@ public class AuthServices implements Serializable {
     private static int i;
     private static int rate;
     private static final String APP_NAME;
+    private static int clientCount;
 
     static {
         APP_NAME = "JGitMinerWeb";
         i = 0;
         rate = 0;
+        clientCount = 0;
         clients = new ArrayList<GitHubClient>();
         try {
             prepareAccounts();
@@ -43,7 +45,7 @@ public class AuthServices implements Serializable {
 
     public static GitHubClient getGitHubCliente() {
         rate++;
-        if (rate >= 500) {
+        if (rate >= 100) {
             rate = 0;
             i++;
             if (i >= clients.size()) {
@@ -60,20 +62,20 @@ public class AuthServices implements Serializable {
         while (bf.ready()) {
             String linha = bf.readLine();
             String[] login = linha.split("[,]");
-            GitHubClient cl = createCliente(login[0], login[1]);
+            GitHubClient cl = createClient(login[0], login[1]);
             if (cl != null) {
                 clients.add(cl);
+                clientCount++;
             }
         }
     }
 
-    private static GitHubClient createCliente(String user, String pass) {
+    private static GitHubClient createClient(String user, String pass) {
         GitHubClient cliente = new GitHubClient();
         cliente.setCredentials(user, pass);
         OAuthService oauth = new OAuthService(cliente);
         Authorization auth = new Authorization();
-        auth.setApp(new Application().setName(APP_NAME));
-        
+
         try {
             String token;
             if (oauth.getAuthorizations() == null || oauth.getAuthorizations().isEmpty()) {
@@ -92,6 +94,10 @@ public class AuthServices implements Serializable {
             ex.printStackTrace();
         }
         return null;
+    }
+
+    public static int getClientCount() {
+        return clientCount;
     }
 }
 
