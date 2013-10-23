@@ -69,7 +69,7 @@ public class RepositoryCommitServices implements Serializable {
     }
 
     private static EntityRepositoryCommit getRepoCommitBySHA(String sha, GenericDao dao) {
-        List<EntityRepositoryCommit> repoCommits = dao.executeNamedQueryComParametros("RepositoryCommit.findBySHA", new String[]{"sha"}, new Object[]{sha}, true);
+        List<EntityRepositoryCommit> repoCommits = dao.executeNamedQueryWithParams("RepositoryCommit.findBySHA", new String[]{"sha"}, new Object[]{sha}, true);
         if (!repoCommits.isEmpty()) {
             return repoCommits.get(0);
         }

@@ -84,18 +84,17 @@ public class GenericDao implements Serializable {
         return ((Long) q.getSingleResult()).intValue();
     }
 
-    public List executeNamedQueryComParametros(String namedQuery, String[] parametros, Object[] objetos) {
-        return executeNamedQueryComParametros(namedQuery, parametros, objetos, false);
+    public List executeNamedQueryWithParams(String namedQuery, String[] parametros, Object[] objetos) {
+        return executeNamedQueryWithParams(namedQuery, parametros, objetos, false);
     }
 
-    public List executeNamedQueryComParametros(String namedQuery, String[] parametros, Object[] objetos, boolean singleResult) {
+    public List executeNamedQueryWithParams(String namedQuery, String[] parametros, Object[] objetos, boolean singleResult) {
         Query query = getEntityManager().createNamedQuery(namedQuery);
         if (singleResult) {
             query.setFirstResult(0);
         }
         if (parametros.length != objetos.length) {
-            System.err.println("A quantidade de parametros difere da quantidade de atributos.");
-            return null;
+            throw new IndexOutOfBoundsException("The lenght of params array is not equals lenght of objects array.");
         }
         for (int i = 0; i < parametros.length; i++) {
             String atributo = parametros[i];

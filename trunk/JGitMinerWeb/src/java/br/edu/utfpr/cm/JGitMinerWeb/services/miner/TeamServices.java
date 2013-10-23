@@ -61,7 +61,7 @@ public class TeamServices implements Serializable {
     }
 
     private static EntityTeam getTeamByTeamID(int idTeam, GenericDao dao) {
-        List<EntityTeam> teams = dao.executeNamedQueryComParametros("Team.findByTeamID", new String[]{"idTeam"}, new Object[]{idTeam}, true);
+        List<EntityTeam> teams = dao.executeNamedQueryWithParams("Team.findByTeamID", new String[]{"idTeam"}, new Object[]{idTeam}, true);
         if (!teams.isEmpty()) {
             return teams.get(0);
         }

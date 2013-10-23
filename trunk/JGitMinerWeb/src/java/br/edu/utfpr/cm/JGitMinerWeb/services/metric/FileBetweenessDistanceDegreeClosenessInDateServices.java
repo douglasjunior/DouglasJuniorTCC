@@ -238,7 +238,7 @@ public class FileBetweenessDistanceDegreeClosenessInDateServices extends Abstrac
 
     private EntityRepository getRepository() {
         String[] repoStr = getMatriz().getRepository().split("/");
-        List<EntityRepository> repos = dao.executeNamedQueryComParametros(
+        List<EntityRepository> repos = dao.executeNamedQueryWithParams(
                 "Repository.findByNameAndOwner",
                 new String[]{"login", "name"},
                 new Object[]{repoStr[0], repoStr[1]});

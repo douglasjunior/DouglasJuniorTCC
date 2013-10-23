@@ -48,7 +48,7 @@ public class CommitServices implements Serializable {
     }
 
     public static EntityCommit getCommitByURL(String url, GenericDao dao) {
-        List<EntityCommit> commits = dao.executeNamedQueryComParametros("Commit.findByURL", new String[]{"url"}, new Object[]{url}, true);
+        List<EntityCommit> commits = dao.executeNamedQueryWithParams("Commit.findByURL", new String[]{"url"}, new Object[]{url}, true);
         if (!commits.isEmpty()) {
             return commits.get(0);
         }

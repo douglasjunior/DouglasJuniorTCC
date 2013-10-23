@@ -23,7 +23,7 @@ import org.eclipse.egit.github.core.service.WatcherService;
 public class UserServices implements Serializable {
 
     private static EntityUser getUserByLogin(String login, GenericDao dao) {
-        List<EntityUser> users = dao.executeNamedQueryComParametros("User.findByLogin", new String[]{"login"}, new Object[]{login}, true);
+        List<EntityUser> users = dao.executeNamedQueryWithParams("User.findByLogin", new String[]{"login"}, new Object[]{login}, true);
         if (!users.isEmpty()) {
             return users.get(0);
         }

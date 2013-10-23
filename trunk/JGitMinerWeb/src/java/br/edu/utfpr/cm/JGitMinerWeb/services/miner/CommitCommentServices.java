@@ -52,7 +52,7 @@ public class CommitCommentServices implements Serializable {
     }
 
     private static EntityCommitComment getCommitCommentByURL(Long idComment, GenericDao dao) {
-        List<EntityCommitComment> comments = dao.executeNamedQueryComParametros("CommitComment.findByIdComment", new String[]{"idComment"}, new Object[]{idComment}, true);
+        List<EntityCommitComment> comments = dao.executeNamedQueryWithParams("CommitComment.findByIdComment", new String[]{"idComment"}, new Object[]{idComment}, true);
         if (!comments.isEmpty()) {
             return comments.get(0);
         }

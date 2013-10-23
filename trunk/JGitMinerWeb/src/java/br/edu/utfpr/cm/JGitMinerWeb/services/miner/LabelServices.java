@@ -35,7 +35,7 @@ public class LabelServices implements Serializable {
     }
 
     private static EntityLabel getLabelByName(String name, GenericDao dao) {
-        List<EntityLabel> labels = dao.executeNamedQueryComParametros("Label.findByName", new String[]{"name"}, new Object[]{name}, true);
+        List<EntityLabel> labels = dao.executeNamedQueryWithParams("Label.findByName", new String[]{"name"}, new Object[]{name}, true);
         if (!labels.isEmpty()) {
             return labels.get(0);
         }

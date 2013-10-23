@@ -20,7 +20,7 @@ import org.eclipse.egit.github.core.service.RepositoryService;
 public class RepositoryServices implements Serializable  {
 
     private static EntityRepository getRepositoryByIdRepository(Long idRepo, GenericDao dao) {
-        List<EntityRepository> users = dao.executeNamedQueryComParametros("Repository.findByIdRepository", new String[]{"idRepository"}, new Object[]{idRepo});
+        List<EntityRepository> users = dao.executeNamedQueryWithParams("Repository.findByIdRepository", new String[]{"idRepository"}, new Object[]{idRepo});
         if (!users.isEmpty()) {
             return users.get(0);
         }

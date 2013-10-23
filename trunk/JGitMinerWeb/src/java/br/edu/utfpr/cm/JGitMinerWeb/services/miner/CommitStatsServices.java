@@ -36,7 +36,7 @@ public class CommitStatsServices implements Serializable {
     }
 
     private static EntityCommitStats getStatsByRepoCommit(EntityRepositoryCommit repoCommit, GenericDao dao) {
-        List<EntityCommitStats> stats = dao.executeNamedQueryComParametros("CommitStats.findByRepositoryCommit", new String[]{"repositoryCommit"}, new Object[]{repoCommit});
+        List<EntityCommitStats> stats = dao.executeNamedQueryWithParams("CommitStats.findByRepositoryCommit", new String[]{"repositoryCommit"}, new Object[]{repoCommit});
         if (!stats.isEmpty()) {
             return stats.get(0);
         }

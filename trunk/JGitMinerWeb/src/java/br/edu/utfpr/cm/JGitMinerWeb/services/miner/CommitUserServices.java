@@ -39,7 +39,7 @@ public class CommitUserServices implements Serializable {
     }
 
     private static EntityCommitUser getCommitUserByEmail(String email, GenericDao dao) {
-        List<EntityCommitUser> users = dao.executeNamedQueryComParametros("CommitUser.findByEmail", new String[]{"email"}, new Object[]{email}, true);
+        List<EntityCommitUser> users = dao.executeNamedQueryWithParams("CommitUser.findByEmail", new String[]{"email"}, new Object[]{email}, true);
         if (!users.isEmpty()) {
             return users.get(0);
         }

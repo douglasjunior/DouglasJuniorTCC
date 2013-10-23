@@ -25,7 +25,7 @@ import org.eclipse.egit.github.core.service.IssueService;
 public class IssueServices implements Serializable {
 
     public static EntityIssue getIssueByIdIssue(long idIssue, GenericDao dao) {
-        List<EntityIssue> issues = dao.executeNamedQueryComParametros("Issue.findByIdIssue", new String[]{"idIssue"}, new Object[]{idIssue}, true);
+        List<EntityIssue> issues = dao.executeNamedQueryWithParams("Issue.findByIdIssue", new String[]{"idIssue"}, new Object[]{idIssue}, true);
         if (!issues.isEmpty()) {
             return issues.get(0);
         }
@@ -104,7 +104,7 @@ public class IssueServices implements Serializable {
     }
 
     public static EntityIssue getIssueByNumber(int number, EntityRepository repo, GenericDao dao) {
-        List<EntityIssue> issues = dao.executeNamedQueryComParametros("Issue.findByNumberAndRepository", new String[]{"number", "repository"}, new Object[]{number, repo});
+        List<EntityIssue> issues = dao.executeNamedQueryWithParams("Issue.findByNumberAndRepository", new String[]{"number", "repository"}, new Object[]{number, repo});
         if (!issues.isEmpty()) {
             return issues.get(0);
         }

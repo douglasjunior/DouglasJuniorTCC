@@ -21,7 +21,7 @@ import org.eclipse.egit.github.core.service.IssueService;
 public class CommentServices implements Serializable {
 
     public static EntityComment getCommentByIdComment(long idComment, GenericDao dao) {
-        List<EntityComment> comments = dao.executeNamedQueryComParametros("Comment.findByIdComment", new String[]{"idComment"}, new Object[]{idComment}, true);
+        List<EntityComment> comments = dao.executeNamedQueryWithParams("Comment.findByIdComment", new String[]{"idComment"}, new Object[]{idComment}, true);
         if (!comments.isEmpty()) {
             return comments.get(0);
         }

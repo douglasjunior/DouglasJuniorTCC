@@ -76,7 +76,7 @@ public class PullRequestServices implements Serializable {
     }
 
     public static EntityPullRequest getPullRequestByIdPull(long idPullRequest, GenericDao dao) {
-        List<EntityPullRequest> pulls = dao.executeNamedQueryComParametros("PullRequest.findByIdPullRequest", new String[]{"idPullRequest"}, new Object[]{idPullRequest}, true);
+        List<EntityPullRequest> pulls = dao.executeNamedQueryWithParams("PullRequest.findByIdPullRequest", new String[]{"idPullRequest"}, new Object[]{idPullRequest}, true);
         if (!pulls.isEmpty()) {
             return pulls.get(0);
         }
@@ -110,7 +110,7 @@ public class PullRequestServices implements Serializable {
     }
 
     public static EntityPullRequest getPullRequestByNumber(int number, EntityRepository repo, GenericDao dao) {
-        List<EntityPullRequest> pulls = dao.executeNamedQueryComParametros("PullRequest.findByNumberAndRepository", new String[]{"number", "repository"}, new Object[]{number, repo});
+        List<EntityPullRequest> pulls = dao.executeNamedQueryWithParams("PullRequest.findByNumberAndRepository", new String[]{"number", "repository"}, new Object[]{number, repo});
         if (!pulls.isEmpty()) {
             return pulls.get(0);
         }

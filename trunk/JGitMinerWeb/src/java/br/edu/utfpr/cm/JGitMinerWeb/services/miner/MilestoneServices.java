@@ -52,7 +52,7 @@ public class MilestoneServices implements Serializable {
     }
 
     private static EntityMilestone getMilestoneByURL(String url, GenericDao dao) {
-        List<EntityMilestone> miles = dao.executeNamedQueryComParametros("Milestone.findByURL", new String[]{"url"}, new Object[]{url}, true);
+        List<EntityMilestone> miles = dao.executeNamedQueryWithParams("Milestone.findByURL", new String[]{"url"}, new Object[]{url}, true);
         if (!miles.isEmpty()) {
             return miles.get(0);
         }

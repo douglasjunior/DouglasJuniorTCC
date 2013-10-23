@@ -77,7 +77,7 @@ public class IssueEventServices implements Serializable {
     }
 
     private static EntityIssueEvent getEventByIssueEventID(long issueEventID, GenericDao dao) {
-        List<EntityIssueEvent> events = dao.executeNamedQueryComParametros("IssueEvent.findByEventIssueID", new String[]{"idIssueEvent"}, new Object[]{issueEventID}, true);
+        List<EntityIssueEvent> events = dao.executeNamedQueryWithParams("IssueEvent.findByEventIssueID", new String[]{"idIssueEvent"}, new Object[]{issueEventID}, true);
         if (!events.isEmpty()) {
             return events.get(0);
         }

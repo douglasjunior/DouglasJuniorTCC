@@ -53,7 +53,7 @@ public class TreeServices implements Serializable  {
     }
 
     private static EntityTree getTreeByURL(String url, GenericDao dao) {
-        List<EntityTree> trees = dao.executeNamedQueryComParametros("Tree.findByURL", new String[]{"url"}, new Object[]{url});
+        List<EntityTree> trees = dao.executeNamedQueryWithParams("Tree.findByURL", new String[]{"url"}, new Object[]{url});
         if (!trees.isEmpty()) {
             return trees.get(0);
         }
@@ -88,7 +88,7 @@ public class TreeServices implements Serializable  {
     }
 
     private static EntityTreeEntry findTreeEntryByURL(String url, GenericDao dao) {
-        List<EntityTreeEntry> treeEntrys = dao.executeNamedQueryComParametros("TreeEntry.findByURL", new String[]{"url"}, new Object[]{url});
+        List<EntityTreeEntry> treeEntrys = dao.executeNamedQueryWithParams("TreeEntry.findByURL", new String[]{"url"}, new Object[]{url});
         if (!treeEntrys.isEmpty()) {
             return treeEntrys.get(0);
         }

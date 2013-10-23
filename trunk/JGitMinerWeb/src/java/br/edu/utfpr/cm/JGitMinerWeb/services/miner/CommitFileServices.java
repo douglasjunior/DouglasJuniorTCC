@@ -44,7 +44,7 @@ public class CommitFileServices implements Serializable {
     }
 
     private static EntityCommitFile findByCommitAndSHA(String sha, EntityRepositoryCommit repoCommit, GenericDao dao) {
-        List<EntityCommitFile> files = dao.executeNamedQueryComParametros("CommitFile.findByCommitAndSHA", new String[]{"sha", "repoCommit"}, new Object[]{sha, repoCommit}, true);
+        List<EntityCommitFile> files = dao.executeNamedQueryWithParams("CommitFile.findByCommitAndSHA", new String[]{"sha", "repoCommit"}, new Object[]{sha, repoCommit}, true);
         if (!files.isEmpty()) {
             return files.get(0);
         }
