@@ -2,9 +2,9 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package br.edu.utfpr.cm.JGitMinerWeb.pojo.miner;
+package br.edu.utfpr.cm.JGitMinerWeb.model.miner;
 
-import br.edu.utfpr.cm.JGitMinerWeb.pojo.InterfaceEntity;
+import br.edu.utfpr.cm.JGitMinerWeb.model.InterfaceEntity;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.HashSet;
@@ -16,7 +16,9 @@ import javax.persistence.*;
  * @author Douglas
  */
 @Entity
-@Table(name = "gitRepository")
+@Table(name = "gitRepository", uniqueConstraints = {
+    @UniqueConstraint(columnNames = {"owner_id", "name"})
+}) 
 @NamedQueries({
     @NamedQuery(name = "Repository.findByName",
     query = "SELECT r FROM EntityRepository r WHERE r.name = :name"),

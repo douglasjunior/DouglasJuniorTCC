@@ -2,9 +2,9 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package br.edu.utfpr.cm.JGitMinerWeb.pojo.miner;
+package br.edu.utfpr.cm.JGitMinerWeb.model.miner;
 
-import br.edu.utfpr.cm.JGitMinerWeb.pojo.InterfaceEntity;
+import br.edu.utfpr.cm.JGitMinerWeb.model.InterfaceEntity;
 import java.io.Serializable;
 import java.util.Date;
 import javax.persistence.*;
@@ -14,7 +14,9 @@ import javax.persistence.*;
  * @author Douglas
  */
 @Entity
-@Table(name = "gitMilestone")
+@Table(name = "gitMilestone",uniqueConstraints = {
+    @UniqueConstraint(columnNames = {"repository_id", "number"})
+})
 @NamedQueries({
     @NamedQuery(name = "Milestone.findByURL", query = "SELECT m FROM EntityMilestone m WHERE m.url = :url")
 })
@@ -162,7 +164,6 @@ public class EntityMilestone implements InterfaceEntity, Serializable {
 
     @Override
     public boolean equals(Object object) {
-        // TODO: Warning - this method won't work in the case the id fields are not set
         if (!(object instanceof EntityMilestone)) {
             return false;
         }

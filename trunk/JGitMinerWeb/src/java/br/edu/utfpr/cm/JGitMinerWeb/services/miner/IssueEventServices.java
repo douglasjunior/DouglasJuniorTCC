@@ -5,8 +5,8 @@
 package br.edu.utfpr.cm.JGitMinerWeb.services.miner;
 
 import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericDao;
-import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.EntityIssue;
-import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.EntityIssueEvent;
+import br.edu.utfpr.cm.JGitMinerWeb.model.miner.EntityIssue;
+import br.edu.utfpr.cm.JGitMinerWeb.model.miner.EntityIssueEvent;
 import com.google.gson.reflect.TypeToken;
 import java.io.Serializable;
 import java.util.ArrayList;

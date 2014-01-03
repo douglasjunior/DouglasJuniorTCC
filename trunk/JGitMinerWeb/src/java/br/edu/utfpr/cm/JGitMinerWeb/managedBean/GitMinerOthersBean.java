@@ -1,19 +1,19 @@
 package br.edu.utfpr.cm.JGitMinerWeb.managedBean;
 
 import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericDao;
-import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.EntityComment;
-import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.EntityCommitComment;
-import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.EntityCommitFile;
-import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.EntityCommitStats;
-import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.EntityIssue;
-import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.EntityIssueEvent;
-import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.EntityMilestone;
-import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.EntityMiner;
-import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.EntityPullRequest;
-import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.EntityRepository;
-import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.EntityRepositoryCommit;
-import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.EntityTeam;
-import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.EntityUser;
+import br.edu.utfpr.cm.JGitMinerWeb.model.miner.EntityComment;
+import br.edu.utfpr.cm.JGitMinerWeb.model.miner.EntityCommitComment;
+import br.edu.utfpr.cm.JGitMinerWeb.model.miner.EntityCommitFile;
+import br.edu.utfpr.cm.JGitMinerWeb.model.miner.EntityCommitStats;
+import br.edu.utfpr.cm.JGitMinerWeb.model.miner.EntityIssue;
+import br.edu.utfpr.cm.JGitMinerWeb.model.miner.EntityIssueEvent;
+import br.edu.utfpr.cm.JGitMinerWeb.model.miner.EntityMilestone;
+import br.edu.utfpr.cm.JGitMinerWeb.model.miner.EntityMiner;
+import br.edu.utfpr.cm.JGitMinerWeb.model.miner.EntityPullRequest;
+import br.edu.utfpr.cm.JGitMinerWeb.model.miner.EntityRepository;
+import br.edu.utfpr.cm.JGitMinerWeb.model.miner.EntityRepositoryCommit;
+import br.edu.utfpr.cm.JGitMinerWeb.model.miner.EntityTeam;
+import br.edu.utfpr.cm.JGitMinerWeb.model.miner.EntityUser;
 import br.edu.utfpr.cm.JGitMinerWeb.services.miner.CommentServices;
 import br.edu.utfpr.cm.JGitMinerWeb.services.miner.CommitCommentServices;
 import br.edu.utfpr.cm.JGitMinerWeb.services.miner.CommitFileServices;
@@ -420,7 +420,7 @@ public class GitMinerOthersBean implements Serializable {
         calculeSubProgress(i, gitIssues.size());
         while (!canceled && i < gitIssues.size()) {
             Issue gitIssue = gitIssues.get(i);
-            EntityIssue issue = minerIssue(gitIssue);
+            EntityIssue issue = minerIssue(gitIssue, repository);
             if (minerEventsOfIssues) {
                 minerEventsIssue(issue, gitRepo);
             }
@@ -440,10 +440,10 @@ public class GitMinerOthersBean implements Serializable {
         }
     }
 
-    private EntityIssue minerIssue(Issue gitIssue) {
+    private EntityIssue minerIssue(Issue gitIssue, EntityRepository repository) {
         EntityIssue issue = null;
         try {
-            issue = IssueServices.createEntity(gitIssue, dao);
+            issue = IssueServices.createEntity(gitIssue, repository, dao);
             out.printLog("Isseu gravada com sucesso: " + gitIssue.getTitle() + " - ID: " + gitIssue.getId());
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -730,7 +730,7 @@ public class GitMinerOthersBean implements Serializable {
         calculeSubProgress(i, gitMilestones.size());
         while (!canceled && i < gitMilestones.size()) {
             Milestone gitMilestone = gitMilestones.get(i);
-            EntityMilestone milestone = minerMilestone(gitMilestone);
+            EntityMilestone milestone = minerMilestone(gitMilestone, repository);
             repository.addMilestone(milestone);
             dao.edit(milestone);
             i++;
@@ -738,10 +738,10 @@ public class GitMinerOthersBean implements Serializable {
         }
     }
 
-    private EntityMilestone minerMilestone(Milestone gitMilestone) {
+    private EntityMilestone minerMilestone(Milestone gitMilestone, EntityRepository repository) {
         EntityMilestone milestone = null;
         try {
-            milestone = MilestoneServices.createEntity(gitMilestone, dao);
+            milestone = MilestoneServices.createEntity(gitMilestone,repository, dao);
             out.printLog("Milestone gravado com sucesso: " + gitMilestone.getTitle() + " - Number: " + gitMilestone.getNumber());
         } catch (Exception ex) {
             ex.printStackTrace();

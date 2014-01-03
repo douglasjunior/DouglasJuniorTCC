@@ -476,4 +476,17 @@ public class Util {
             }
         }
     }
+    
+    public static boolean stringEquals(String s1, String s2){
+        if (s1 == null || s2 == null) {
+            return false;
+        }
+        if (s1.length() != s2.length()) {
+            return false;
+        }
+        if (s1.hashCode() != s2.hashCode()) {
+            return false;
+        }
+        return s1.equals(s2);
+    }
 }

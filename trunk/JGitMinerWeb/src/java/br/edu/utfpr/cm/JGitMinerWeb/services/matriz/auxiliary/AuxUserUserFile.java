@@ -4,6 +4,7 @@
  */
 package br.edu.utfpr.cm.JGitMinerWeb.services.matriz.auxiliary;
 
+import br.edu.utfpr.cm.JGitMinerWeb.util.Util;
 import java.util.Objects;
 
 /**
@@ -56,11 +57,13 @@ public class AuxUserUserFile {
     public boolean equals(Object obj) {
         if (obj != null && obj instanceof AuxUserUserFile) {
             AuxUserUserFile other = (AuxUserUserFile) obj;
-            if (this.fileName.equals(other.fileName)) {
-                if (this.user.equals(other.user) && this.user2.equals(other.user2)) {
+            if (Util.stringEquals(this.fileName, other.fileName)) {
+                if (Util.stringEquals(this.user, other.user2)
+                        && Util.stringEquals(this.user2, other.user)) {
                     return true;
                 }
-                if (this.user.equals(other.user2) && this.user2.equals(other.user)) {
+                if (Util.stringEquals(this.user, other.user)
+                        && Util.stringEquals(this.user2, other.user2)) {
                     return true;
                 }
             }

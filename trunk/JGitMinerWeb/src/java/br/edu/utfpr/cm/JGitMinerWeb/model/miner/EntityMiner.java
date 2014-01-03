@@ -2,10 +2,10 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package br.edu.utfpr.cm.JGitMinerWeb.pojo.miner;
+package br.edu.utfpr.cm.JGitMinerWeb.model.miner;
 
-import br.edu.utfpr.cm.JGitMinerWeb.pojo.InterfaceEntity;
-import br.edu.utfpr.cm.JGitMinerWeb.pojo.Startable;
+import br.edu.utfpr.cm.JGitMinerWeb.model.InterfaceEntity;
+import br.edu.utfpr.cm.JGitMinerWeb.model.Startable;
 import java.util.Date;
 import javax.persistence.*;
 

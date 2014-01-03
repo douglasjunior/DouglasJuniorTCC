@@ -29,6 +29,12 @@
         <p:inputText value="#{gitMatrizBean.paramValue['suffixFile']}" id="suffixFile"  size="20" />
     </h:panelGrid>
     <br />
+    <p:accordionPanel activeIndex="999" style="width:80%">  
+        <p:tab title="Files name: (click to open)" >  
+            <p:inputTextarea value="#{gitMatrizBean.paramValue['filesName']}" id="filesName" 
+                             style="width:100%" rows="20" autoResize="autoResize"  />
+        </p:tab>
+    </p:accordionPanel>
 
 
 </div>

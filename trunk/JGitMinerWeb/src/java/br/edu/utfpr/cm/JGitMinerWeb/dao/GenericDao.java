@@ -1,6 +1,6 @@
 package br.edu.utfpr.cm.JGitMinerWeb.dao;
 
-import br.edu.utfpr.cm.JGitMinerWeb.pojo.InterfaceEntity;
+import br.edu.utfpr.cm.JGitMinerWeb.model.InterfaceEntity;
 import br.edu.utfpr.cm.JGitMinerWeb.util.Util;
 import java.io.Serializable;
 import java.util.List;
@@ -143,7 +143,7 @@ public class GenericDao implements Serializable {
             }
             em.clear();
             System.gc();
-            System.out.println("######### LIMPOU CACHE #########");
+            System.out.println("######### CLEARED THE CACHE #########");
         } catch (Exception ex) {
             ex.printStackTrace();
         }

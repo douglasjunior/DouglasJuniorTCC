@@ -4,7 +4,7 @@
  */
 package br.edu.utfpr.cm.JGitMinerWeb.services.matriz.auxiliary;
 
-import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.EntityPullRequest;
+import br.edu.utfpr.cm.JGitMinerWeb.model.miner.EntityPullRequest;
 
 /**
  *

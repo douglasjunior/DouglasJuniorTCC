@@ -5,7 +5,7 @@
 package br.edu.utfpr.cm.JGitMinerWeb.services;
 
 import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericDao;
-import br.edu.utfpr.cm.JGitMinerWeb.pojo.EntityNode;
+import br.edu.utfpr.cm.JGitMinerWeb.model.EntityNode;
 import br.edu.utfpr.cm.JGitMinerWeb.services.matriz.nodes.NodeGeneric;
 import java.io.Serializable;
 import java.util.Date;

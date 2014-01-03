@@ -6,9 +6,9 @@ package br.edu.utfpr.cm.JGitMinerWeb.managedBean;
 
 import br.edu.utfpr.cm.JGitMinerWeb.converter.ClassConverter;
 import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericDao;
-import br.edu.utfpr.cm.JGitMinerWeb.pojo.matriz.EntityMatriz;
-import br.edu.utfpr.cm.JGitMinerWeb.pojo.matriz.EntityMatrizNode;
-import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.EntityRepository;
+import br.edu.utfpr.cm.JGitMinerWeb.model.matriz.EntityMatriz;
+import br.edu.utfpr.cm.JGitMinerWeb.model.matriz.EntityMatrizNode;
+import br.edu.utfpr.cm.JGitMinerWeb.model.miner.EntityRepository;
 import br.edu.utfpr.cm.JGitMinerWeb.services.matriz.AbstractMatrizServices;
 import br.edu.utfpr.cm.JGitMinerWeb.util.JsfUtil;
 import br.edu.utfpr.cm.JGitMinerWeb.util.OutLog;

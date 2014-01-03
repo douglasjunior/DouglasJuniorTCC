@@ -2,11 +2,13 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package br.edu.utfpr.cm.JGitMinerWeb.pojo.miner;
+package br.edu.utfpr.cm.JGitMinerWeb.model.miner;
 
-import br.edu.utfpr.cm.JGitMinerWeb.pojo.InterfaceEntity;
+import br.edu.utfpr.cm.JGitMinerWeb.model.InterfaceEntity;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import javax.persistence.*;
 
 /**
@@ -14,11 +16,11 @@ import javax.persistence.*;
  * @author Douglas
  */
 @Entity
-@Table(name = "gitTreeEntry")
+@Table(name = "gitTree")
 @NamedQueries({
-    @NamedQuery(name = "TreeEntry.findByURL", query = "SELECT t FROM EntityTreeEntry t WHERE t.url = :url")
+    @NamedQuery(name = "Tree.findByURL", query = "SELECT t FROM EntityTree t WHERE t.url = :url")
 })
-public class EntityTreeEntry implements InterfaceEntity, Serializable {
+public class EntityTree implements InterfaceEntity, Serializable {
 
     private static final long serialVersionUID = 1L;
     @Id
@@ -26,21 +28,15 @@ public class EntityTreeEntry implements InterfaceEntity, Serializable {
     private Long id;
     @Temporal(javax.persistence.TemporalType.TIMESTAMP)
     private Date mineredAt;
-    private long sizeTreeEntry;
-    @Column(columnDefinition = "text")
-    private String mode;
-    @Column(columnDefinition = "text")
-    private String pathTreeEntry;
+    @OneToMany(mappedBy = "tree")
+    private List<EntityTreeEntry> treeEntrys;
     @Column(columnDefinition = "text")
     private String sha;
-    private String type;
     @Column(columnDefinition = "text")
     private String url;
-    @ManyToOne
-    private EntityTree tree;
 
-    public EntityTreeEntry() {
-        mineredAt = new Date();
+    public EntityTree() {
+        treeEntrys = new ArrayList<EntityTreeEntry>();
     }
 
     public Long getId() {
@@ -49,22 +45,6 @@ public class EntityTreeEntry implements InterfaceEntity, Serializable {
 
     public void setId(Long id) {
         this.id = id;
-    }
-
-    public String getMode() {
-        return mode;
-    }
-
-    public void setMode(String mode) {
-        this.mode = mode;
-    }
-
-    public String getPathTreeEntry() {
-        return pathTreeEntry;
-    }
-
-    public void setPathTreeEntry(String pathTreeEntry) {
-        this.pathTreeEntry = pathTreeEntry;
     }
 
     public String getSha() {
@@ -83,20 +63,12 @@ public class EntityTreeEntry implements InterfaceEntity, Serializable {
         this.mineredAt = mineredAt;
     }
 
-    public long getSizeTreeEntry() {
-        return sizeTreeEntry;
+    public List<EntityTreeEntry> getTreeEntrys() {
+        return treeEntrys;
     }
 
-    public void setSizeTreeEntry(long sizeTreeEntry) {
-        this.sizeTreeEntry = sizeTreeEntry;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
+    public void setTreeEntrys(List<EntityTreeEntry> treeEntrys) {
+        this.treeEntrys = treeEntrys;
     }
 
     public String getUrl() {
@@ -105,14 +77,6 @@ public class EntityTreeEntry implements InterfaceEntity, Serializable {
 
     public void setUrl(String url) {
         this.url = url;
-    }
-
-    public EntityTree getTree() {
-        return tree;
-    }
-
-    public void setTree(EntityTree tree) {
-        this.tree = tree;
     }
 
     @Override
@@ -125,10 +89,10 @@ public class EntityTreeEntry implements InterfaceEntity, Serializable {
     @Override
     public boolean equals(Object object) {
         // TODO: Warning - this method won't work in the case the id fields are not set
-        if (!(object instanceof EntityTreeEntry)) {
+        if (!(object instanceof EntityTree)) {
             return false;
         }
-        EntityTreeEntry other = (EntityTreeEntry) object;
+        EntityTree other = (EntityTree) object;
         if ((this.id == null && other.id != null) || (this.id != null && !this.id.equals(other.id))) {
             return false;
         }
@@ -137,6 +101,13 @@ public class EntityTreeEntry implements InterfaceEntity, Serializable {
 
     @Override
     public String toString() {
-        return "br.edu.utfpr.cm.JGitMiner.pojo.EntityTreeEntry[ id=" + id + " ]";
+        return "br.edu.utfpr.cm.JGitMiner.pojo.EntityTree[ id=" + id + " ]";
+    }
+
+    public void addTreeEntry(EntityTreeEntry treeEntry) {
+        if (!treeEntrys.contains(treeEntry)) {
+            treeEntrys.add(treeEntry);
+        }
+        treeEntry.setTree(this);
     }
 }

@@ -2,9 +2,9 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package br.edu.utfpr.cm.JGitMinerWeb.pojo.metric;
+package br.edu.utfpr.cm.JGitMinerWeb.model.metric;
 
-import br.edu.utfpr.cm.JGitMinerWeb.pojo.EntityNode;
+import br.edu.utfpr.cm.JGitMinerWeb.model.EntityNode;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.ManyToOne;

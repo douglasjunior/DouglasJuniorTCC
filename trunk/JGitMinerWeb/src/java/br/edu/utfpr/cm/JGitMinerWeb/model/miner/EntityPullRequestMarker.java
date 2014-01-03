@@ -2,9 +2,9 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package br.edu.utfpr.cm.JGitMinerWeb.pojo.miner;
+package br.edu.utfpr.cm.JGitMinerWeb.model.miner;
 
-import br.edu.utfpr.cm.JGitMinerWeb.pojo.InterfaceEntity;
+import br.edu.utfpr.cm.JGitMinerWeb.model.InterfaceEntity;
 import java.io.Serializable;
 import java.util.Date;
 import javax.persistence.*;
@@ -14,7 +14,16 @@ import javax.persistence.*;
  * @author Douglas
  */
 @Entity
-@Table(name = "gitPullRequestMaker")
+@Table(name = "gitPullRequestMaker", uniqueConstraints = {
+    @UniqueConstraint(columnNames = {"refpullrequestmarker", "repo_id", "user_id"})
+}) 
+@NamedQueries({
+    @NamedQuery(name = "PullRequestMarker.findByRefRepoUser",
+            query = "SELECT p FROM EntityPullRequestMarker p "
+            + " WHERE p.user = :user "
+            + " AND p.repo = :repo "
+            + " AND p.refPullRequestMarker = :ref ")
+})
 public class EntityPullRequestMarker implements InterfaceEntity, Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -25,11 +34,11 @@ public class EntityPullRequestMarker implements InterfaceEntity, Serializable {
     private Date mineredAt;
     @ManyToOne
     private EntityRepository repo;
-    @Column(columnDefinition = "text")
+    @Column(length = 255)
     private String label;
-    @Column(columnDefinition = "text")
+    @Column(length = 255)
     private String refPullRequestMarker;
-    @Column(columnDefinition = "text")
+    @Column(length = 255)
     private String sha;
     @ManyToOne
     private EntityUser user;

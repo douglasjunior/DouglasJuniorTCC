@@ -4,7 +4,7 @@
  */
 package br.edu.utfpr.cm.JGitMinerWeb.services.matriz.auxiliary;
 
-import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.EntityMilestone;
+import br.edu.utfpr.cm.JGitMinerWeb.model.miner.EntityMilestone;
 import java.util.Objects;
 
 /**

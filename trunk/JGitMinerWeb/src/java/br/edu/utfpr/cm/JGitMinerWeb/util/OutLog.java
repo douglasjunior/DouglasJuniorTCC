@@ -17,12 +17,13 @@ public class OutLog implements Serializable  {
     private StringBuffer log;
     private String currentProcess;
     private static SimpleDateFormat dateFormat;
+    
+    static {
+       dateFormat = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss"); 
+    }
 
     public OutLog() {
         log = new StringBuffer();
-        if (dateFormat == null) {
-            dateFormat = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
-        }
     }
 
     public String getCurrentProcess() {

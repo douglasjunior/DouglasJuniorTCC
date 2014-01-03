@@ -5,7 +5,7 @@
 package br.edu.utfpr.cm.JGitMinerWeb.services.matriz;
 
 import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericDao;
-import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.EntityRepository;
+import br.edu.utfpr.cm.JGitMinerWeb.model.miner.EntityRepository;
 import br.edu.utfpr.cm.JGitMinerWeb.services.matriz.auxiliary.AuxUserFile;
 import br.edu.utfpr.cm.JGitMinerWeb.services.matriz.nodes.NodeGeneric;
 import br.edu.utfpr.cm.JGitMinerWeb.util.Util;

@@ -5,9 +5,9 @@
 package br.edu.utfpr.cm.JGitMinerWeb.services.miner;
 
 import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericDao;
-import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.EntityPullRequest;
-import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.EntityRepository;
-import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.EntityRepositoryCommit;
+import br.edu.utfpr.cm.JGitMinerWeb.model.miner.EntityPullRequest;
+import br.edu.utfpr.cm.JGitMinerWeb.model.miner.EntityRepository;
+import br.edu.utfpr.cm.JGitMinerWeb.model.miner.EntityRepositoryCommit;
 import br.edu.utfpr.cm.JGitMinerWeb.util.OutLog;
 import com.google.gson.reflect.TypeToken;
 import java.io.Serializable;

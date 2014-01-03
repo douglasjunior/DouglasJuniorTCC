@@ -5,7 +5,7 @@
 package br.edu.utfpr.cm.JGitMinerWeb.services.miner;
 
 import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericDao;
-import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.EntityUser;
+import br.edu.utfpr.cm.JGitMinerWeb.model.miner.EntityUser;
 import br.edu.utfpr.cm.JGitMinerWeb.util.OutLog;
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -37,17 +37,10 @@ public class UserServices implements Serializable {
 
         EntityUser user = getUserByLogin(gitUser.getLogin(), dao);
 
-        if (user == null) {
-            user = new EntityUser();
-        }
-
-        user.setMineredAt(new Date());
-        user.setGravatarId(gitUser.getGravatarId());
-        user.setIdUser(gitUser.getId());
-        user.setLogin(gitUser.getLogin());
-        user.setUrl(gitUser.getUrl());
-
-        if (firstMiner) {
+        if (firstMiner || user == null) {
+            if (user == null) {
+                user = new EntityUser();
+            }
             user.setCreatedAt(gitUser.getCreatedAt());
             user.setCollaborators(gitUser.getCollaborators());
             user.setDiskUsage(gitUser.getDiskUsage());
@@ -67,6 +60,11 @@ public class UserServices implements Serializable {
             user.setType(gitUser.getType());
         }
 
+        user.setMineredAt(new Date());
+        user.setGravatarId(gitUser.getGravatarId());
+        user.setIdUser(gitUser.getId());
+        user.setLogin(gitUser.getLogin());
+        user.setUrl(gitUser.getUrl());
 
         if (user.getId() == null || user.getId().equals(new Long(0))) {
             dao.insert(user);

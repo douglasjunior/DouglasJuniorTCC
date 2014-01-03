@@ -1,6 +1,6 @@
 package br.edu.utfpr.cm.JGitMinerWeb.util;
 
-import br.edu.utfpr.cm.JGitMinerWeb.pojo.Startable;
+import br.edu.utfpr.cm.JGitMinerWeb.model.Startable;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;

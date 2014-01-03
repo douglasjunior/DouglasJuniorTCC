@@ -5,8 +5,8 @@
 package br.edu.utfpr.cm.JGitMinerWeb.services.miner;
 
 import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericDao;
-import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.EntityIssue;
-import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.EntityRepository;
+import br.edu.utfpr.cm.JGitMinerWeb.model.miner.EntityIssue;
+import br.edu.utfpr.cm.JGitMinerWeb.model.miner.EntityRepository;
 import br.edu.utfpr.cm.JGitMinerWeb.util.JsfUtil;
 import br.edu.utfpr.cm.JGitMinerWeb.util.OutLog;
 import java.io.Serializable;
@@ -62,12 +62,12 @@ public class IssueServices implements Serializable {
         return issues;
     }
 
-    public static EntityIssue createEntity(Issue gitIssue, GenericDao dao) {
+    public static EntityIssue createEntity(Issue gitIssue, EntityRepository repository, GenericDao dao) {
         if (gitIssue == null) {
             return null;
         }
 
-        EntityIssue issue = getIssueByIdIssue(gitIssue.getNumber(), dao);
+        EntityIssue issue = getIssueByIdIssue(gitIssue.getId(), dao);
 
         if (issue == null) {
             issue = new EntityIssue();
@@ -81,7 +81,7 @@ public class IssueServices implements Serializable {
         issue.setNumber(gitIssue.getNumber());
         issue.setCommentsCount(gitIssue.getComments());
         LabelServices.addLabels(issue, gitIssue.getLabels(), dao);
-        issue.setMilestone(MilestoneServices.createEntity(gitIssue.getMilestone(), dao));
+        issue.setMilestone(MilestoneServices.createEntity(gitIssue.getMilestone(), repository, dao));
         issue.setBody(JsfUtil.filterChar(gitIssue.getBody()));
         issue.setBodyHtml(gitIssue.getBodyHtml());
         issue.setBodyText(gitIssue.getBodyText());

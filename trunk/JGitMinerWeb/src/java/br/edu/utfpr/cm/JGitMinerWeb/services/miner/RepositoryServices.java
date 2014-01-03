@@ -5,7 +5,7 @@
 package br.edu.utfpr.cm.JGitMinerWeb.services.miner;
 
 import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericDao;
-import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.EntityRepository;
+import br.edu.utfpr.cm.JGitMinerWeb.model.miner.EntityRepository;
 import br.edu.utfpr.cm.JGitMinerWeb.util.OutLog;
 import java.io.Serializable;
 import java.util.Date;
@@ -17,7 +17,7 @@ import org.eclipse.egit.github.core.service.RepositoryService;
  *
  * @author Douglas
  */
-public class RepositoryServices implements Serializable  {
+public class RepositoryServices implements Serializable {
 
     private static EntityRepository getRepositoryByIdRepository(Long idRepo, GenericDao dao) {
         List<EntityRepository> users = dao.executeNamedQueryWithParams("Repository.findByIdRepository", new String[]{"idRepository"}, new Object[]{idRepo});
@@ -34,11 +34,10 @@ public class RepositoryServices implements Serializable  {
 
         EntityRepository repo = getRepositoryByIdRepository(gitRepository.getId(), dao);
 
-        if (repo == null) {
-            repo = new EntityRepository();
-        }
-
-        if (primary) {
+        if (primary || repo == null) {
+            if (repo == null) {
+                repo = new EntityRepository();
+            }
             repo.setParent(RepositoryServices.createEntity(gitRepository.getParent(), dao, false));
             repo.setSource(RepositoryServices.createEntity(gitRepository.getSource(), dao, false));
             repo.setMasterBranch(gitRepository.getMasterBranch());

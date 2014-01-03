@@ -5,8 +5,8 @@
 package br.edu.utfpr.cm.JGitMinerWeb.services.miner;
 
 import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericDao;
-import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.EntityIssue;
-import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.EntityLabel;
+import br.edu.utfpr.cm.JGitMinerWeb.model.miner.EntityIssue;
+import br.edu.utfpr.cm.JGitMinerWeb.model.miner.EntityLabel;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.List;

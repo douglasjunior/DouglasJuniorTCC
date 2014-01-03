@@ -2,9 +2,9 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package br.edu.utfpr.cm.JGitMinerWeb.pojo.miner;
+package br.edu.utfpr.cm.JGitMinerWeb.model.miner;
 
-import br.edu.utfpr.cm.JGitMinerWeb.pojo.InterfaceEntity;
+import br.edu.utfpr.cm.JGitMinerWeb.model.InterfaceEntity;
 import java.io.Serializable;
 import java.util.Date;
 import javax.persistence.*;
@@ -14,11 +14,11 @@ import javax.persistence.*;
  * @author Douglas
  */
 @Entity
-@Table(name = "gitCommitUser")
+@Table(name = "gitLabel")
 @NamedQueries({
-    @NamedQuery(name = "CommitUser.findByEmail", query = "SELECT u FROM EntityCommitUser u WHERE u.email = :email")
+    @NamedQuery(name = "Label.findByName", query = "SELECT l FROM EntityLabel l WHERE l.name = :name")
 })
-public class EntityCommitUser implements InterfaceEntity, Serializable {
+public class EntityLabel implements InterfaceEntity, Serializable {
 
     private static final long serialVersionUID = 1L;
     @Id
@@ -26,18 +26,19 @@ public class EntityCommitUser implements InterfaceEntity, Serializable {
     private Long id;
     @Temporal(javax.persistence.TemporalType.TIMESTAMP)
     private Date mineredAt;
-    @Temporal(javax.persistence.TemporalType.TIMESTAMP)
-    private Date dateCommitUser;
+    private String color;
     @Column(unique = true)
-    private String email;
     private String name;
+    private String url;
 
-    @Override
+    public EntityLabel() {
+        mineredAt = new Date();
+    }
+
     public Long getId() {
         return id;
     }
 
-    @Override
     public void setId(Long id) {
         this.id = id;
     }
@@ -50,20 +51,12 @@ public class EntityCommitUser implements InterfaceEntity, Serializable {
         this.mineredAt = mineredAt;
     }
 
-    public Date getDateCommitUser() {
-        return dateCommitUser;
+    public String getColor() {
+        return color;
     }
 
-    public void setDateCommitUser(Date dateCommitUser) {
-        this.dateCommitUser = dateCommitUser;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
+    public void setColor(String color) {
+        this.color = color;
     }
 
     public String getName() {
@@ -72,6 +65,14 @@ public class EntityCommitUser implements InterfaceEntity, Serializable {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getUrl() {
+        return url;
+    }
+
+    public void setUrl(String url) {
+        this.url = url;
     }
 
     @Override
@@ -84,10 +85,10 @@ public class EntityCommitUser implements InterfaceEntity, Serializable {
     @Override
     public boolean equals(Object object) {
         // TODO: Warning - this method won't work in the case the id fields are not set
-        if (!(object instanceof EntityCommitUser)) {
+        if (!(object instanceof EntityLabel)) {
             return false;
         }
-        EntityCommitUser other = (EntityCommitUser) object;
+        EntityLabel other = (EntityLabel) object;
         if ((this.id == null && other.id != null) || (this.id != null && !this.id.equals(other.id))) {
             return false;
         }
@@ -96,6 +97,6 @@ public class EntityCommitUser implements InterfaceEntity, Serializable {
 
     @Override
     public String toString() {
-        return "EntityCommitUser[ id=" + id + " email=" + email + " ]";
+        return "br.edu.utfpr.cm.JGitMiner.pojo.EntityLabel[ id=" + id + " ]";
     }
 }

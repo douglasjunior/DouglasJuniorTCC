@@ -2,10 +2,10 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package br.edu.utfpr.cm.JGitMinerWeb.pojo.matriz;
+package br.edu.utfpr.cm.JGitMinerWeb.model.metric;
 
-import br.edu.utfpr.cm.JGitMinerWeb.pojo.InterfaceEntity;
-import br.edu.utfpr.cm.JGitMinerWeb.pojo.Startable;
+import br.edu.utfpr.cm.JGitMinerWeb.model.InterfaceEntity;
+import br.edu.utfpr.cm.JGitMinerWeb.model.Startable;
 import br.edu.utfpr.cm.JGitMinerWeb.util.Util;
 import java.util.ArrayList;
 import java.util.Date;
@@ -31,12 +31,12 @@ import javax.persistence.Temporal;
  * @author douglas
  */
 @Entity
-@Table(name = "matriz")
+@Table(name = "metric")
 @NamedQueries({
-    @NamedQuery(name = "Matriz.findAllTheLatest", query = "SELECT m FROM EntityMatriz m ORDER BY m.started DESC")
+    @NamedQuery(name = "Metric.findAllTheLatest", query = "SELECT m FROM EntityMetric m ORDER BY m.started DESC")
 })
-public class EntityMatriz implements InterfaceEntity, Startable {
-    
+public class EntityMetric implements InterfaceEntity, Startable {
+
     private static final long serialVersionUID = 1L;
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -50,82 +50,82 @@ public class EntityMatriz implements InterfaceEntity, Startable {
     @Basic(fetch = FetchType.LAZY)
     private String log;
     private Properties params;
+    @OneToMany(mappedBy = "metric", orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<EntityMetricNode> nodes;
     private String classServicesName;
-    private String repository;
-    @OneToMany(mappedBy = "matriz", orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<EntityMatrizNode> nodes;
-    
-    public EntityMatriz() {
+    private String matriz;
+
+    public EntityMetric() {
         started = new Date();
         complete = false;
         nodes = new ArrayList<>();
         params = new Properties();
     }
-    
+
     @Override
     public Long getId() {
         return id;
     }
-    
+
     @Override
     public void setId(Long id) {
         this.id = id;
     }
-    
+
+    public String getMatriz() {
+        return matriz;
+    }
+
+    public void setMatriz(String matriz) {
+        this.matriz = matriz;
+    }
+
     public boolean isComplete() {
         return complete;
     }
-    
+
     public void setComplete(boolean complete) {
         this.complete = complete;
     }
-    
+
     public Date getStarted() {
         return started;
     }
-    
+
     public void setStarted(Date started) {
         this.started = started;
     }
-    
+
     public Date getStoped() {
         return stoped;
     }
-    
+
     public void setStoped(Date stoped) {
         this.stoped = stoped;
     }
-    
-    public Properties getParams() {
-        return params;
-    }
-    
-    public void setParams(Properties params) {
-        this.params = params;
-    }
-    
+
     @Override
     public String getLog() {
         return log;
     }
-    
+
     @Override
     public void setLog(String log) {
         this.log = log;
     }
-    
-    public List<EntityMatrizNode> getNodes() {
+
+    public List<EntityMetricNode> getNodes() {
         return nodes;
     }
-    
-    public void setNodes(List<EntityMatrizNode> nodes) {
+
+    public void setNodes(List<EntityMetricNode> nodes) {
         this.nodes = nodes;
     }
-    
+
     public String getClassServicesName() {
         return classServicesName;
     }
-    
+
     public String getClassServicesSingleName() {
         if (classServicesName != null) {
             String[] tokens = classServicesName.split("\\.");
@@ -135,49 +135,49 @@ public class EntityMatriz implements InterfaceEntity, Startable {
         }
         return classServicesName;
     }
-    
+
     public void setClassServicesName(String classServices) {
         this.classServicesName = classServices;
     }
-    
-    public String getRepository() {
-        return repository;
+
+    public Properties getParams() {
+        return params;
     }
-    
-    public void setRepository(String repository) {
-        this.repository = repository;
+
+    public void setParams(Properties params) {
+        this.params = params;
     }
-    
+
     @Override
     public int hashCode() {
         int hash = 0;
         hash += (id != null ? id.hashCode() : 0);
         return hash;
     }
-    
+
     @Override
     public boolean equals(Object object) {
-        if (!(object instanceof EntityMatriz)) {
+        if (!(object instanceof EntityMetric)) {
             return false;
         }
-        EntityMatriz other = (EntityMatriz) object;
+        EntityMetric other = (EntityMetric) object;
         if ((this.id == null && other.id != null) || (this.id != null && !this.id.equals(other.id))) {
             return false;
         }
         return true;
     }
-    
+
     @Override
     public String toString() {
-        return repository + " - " + getClassServicesSingleName() + " - " + Util.dateDataToString(started, "dd/MM/yyyy HH:mm");
+        return "br.edu.utfpr.cm.JGitMinerWeb.pojo.metric.EntityMetric[ id=" + id + " ]";
     }
-    
+
     @Override
     public String getDownloadFileName() {
-        return this.repository + "-" + this.started;
+        return this.matriz + "-" + this.started;
     }
-    
-    public void setParams(Map<String, String> params) {
-        Util.addMapToProperties(this.params,params);
+
+    public void setParams(Map params) {
+        Util.addMapToProperties(this.params, params);
     }
 }

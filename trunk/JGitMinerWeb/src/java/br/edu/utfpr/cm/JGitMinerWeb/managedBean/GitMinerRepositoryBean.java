@@ -5,7 +5,7 @@
 package br.edu.utfpr.cm.JGitMinerWeb.managedBean;
 
 import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericDao;
-import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.EntityRepository;
+import br.edu.utfpr.cm.JGitMinerWeb.model.miner.EntityRepository;
 import br.edu.utfpr.cm.JGitMinerWeb.services.miner.AuthServices;
 import br.edu.utfpr.cm.JGitMinerWeb.services.miner.RepositoryServices;
 import br.edu.utfpr.cm.JGitMinerWeb.util.JsfUtil;

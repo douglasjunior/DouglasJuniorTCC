@@ -5,8 +5,8 @@
 package br.edu.utfpr.cm.JGitMinerWeb.services.miner;
 
 import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericDao;
-import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.EntityCommitComment;
-import br.edu.utfpr.cm.JGitMinerWeb.pojo.miner.EntityRepositoryCommit;
+import br.edu.utfpr.cm.JGitMinerWeb.model.miner.EntityCommitComment;
+import br.edu.utfpr.cm.JGitMinerWeb.model.miner.EntityRepositoryCommit;
 import br.edu.utfpr.cm.JGitMinerWeb.util.JsfUtil;
 import java.io.Serializable;
 import java.util.Date;
