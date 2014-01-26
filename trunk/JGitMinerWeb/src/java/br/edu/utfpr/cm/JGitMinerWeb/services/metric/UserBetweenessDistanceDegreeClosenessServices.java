@@ -11,6 +11,7 @@ import br.edu.utfpr.cm.JGitMinerWeb.services.matriz.UserModifySameFileInDateServ
 import br.edu.utfpr.cm.JGitMinerWeb.services.matriz.UserModifySameFileInMilestoneServices;
 import br.edu.utfpr.cm.JGitMinerWeb.services.metric.auxiliary.AuxUserMetrics;
 import br.edu.utfpr.cm.JGitMinerWeb.util.JsfUtil;
+import br.edu.utfpr.cm.JGitMinerWeb.util.OutLog;
 import edu.uci.ics.jung.algorithms.scoring.BetweennessCentrality;
 import edu.uci.ics.jung.algorithms.scoring.ClosenessCentrality;
 import edu.uci.ics.jung.algorithms.scoring.DegreeScorer;
@@ -27,12 +28,12 @@ import java.util.Map;
  */
 public class UserBetweenessDistanceDegreeClosenessServices extends AbstractMetricServices {
 
-    public UserBetweenessDistanceDegreeClosenessServices(GenericDao dao) {
-        super(dao);
+    public UserBetweenessDistanceDegreeClosenessServices(GenericDao dao, OutLog out) {
+        super(dao, out);
     }
 
-    public UserBetweenessDistanceDegreeClosenessServices(GenericDao dao, EntityMatriz matriz, Map params) {
-        super(dao, matriz, params);
+    public UserBetweenessDistanceDegreeClosenessServices(GenericDao dao, EntityMatriz matriz, Map params, OutLog out) {
+        super(dao, matriz, params, out);
     }
 
     @Override

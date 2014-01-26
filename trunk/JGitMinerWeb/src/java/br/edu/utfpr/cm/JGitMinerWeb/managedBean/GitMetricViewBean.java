@@ -9,6 +9,7 @@ import br.edu.utfpr.cm.JGitMinerWeb.model.metric.EntityMetric;
 import br.edu.utfpr.cm.JGitMinerWeb.model.metric.EntityMetricNode;
 import br.edu.utfpr.cm.JGitMinerWeb.services.metric.AbstractMetricServices;
 import br.edu.utfpr.cm.JGitMinerWeb.util.JsfUtil;
+import br.edu.utfpr.cm.JGitMinerWeb.util.OutLog;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintWriter;
 import java.io.Serializable;
@@ -78,6 +79,8 @@ public class GitMetricViewBean implements Serializable {
     public StreamedContent downloadCSV(EntityMetric metric) {
         StreamedContent file = null;
         try {
+            OutLog out = new OutLog();
+            
             System.out.println("Metric tem nodes: " + metric.getNodes().size());
 
             String fileName = generateFileName(metric) + ".csv";
@@ -85,7 +88,7 @@ public class GitMetricViewBean implements Serializable {
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             PrintWriter pw = new PrintWriter(baos);
 
-            AbstractMetricServices services = AbstractMetricServices.createInstance(dao, metric.getClassServicesName());
+            AbstractMetricServices services = AbstractMetricServices.createInstance(dao, out, metric.getClassServicesName());
 
             pw.println(services.getHeadCSV());
 

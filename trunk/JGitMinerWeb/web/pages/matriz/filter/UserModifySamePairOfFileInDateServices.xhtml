@@ -1,0 +1,36 @@
+<div xmlns="http://www.w3.org/1999/xhtml"
+     xmlns:h="http://java.sun.com/jsf/html" 
+     xmlns:p="http://primefaces.org/ui">
+
+    <h2>Usuarios que modificaram o mesmo arquivo na data</h2>
+
+    <br />
+
+    <h:panelGrid columns="2" cellpadding="5" columnClasses="col">
+        <h:outputLabel value="Date: " for="beginDate" />  
+        <h:panelGroup>
+            <p:calendar value="#{gitMatrizBean.paramValue['beginDate']}" id="beginDate" pattern="dd/MM/yyyy" navigator="true" size="10" />
+            <h:outputLabel value=" to " for="endDate" />  
+            <p:calendar value="#{gitMatrizBean.paramValue['endDate']}" id="endDate" pattern="dd/MM/yyyy" navigator="true" size="10"/>
+        </h:panelGroup>
+        <p:spacer />
+        <br />
+        <h:outputText value="Minimum files per commit: " />  
+        <p:inputText value="#{gitMatrizBean.paramValue['minFilesPerCommit']}" id="minFilesPerCommit" type="number"  size="20" />
+        <p:spacer />
+        <br />
+        <h:outputText value="File prefix: " />  
+        <p:inputText value="#{gitMatrizBean.paramValue['prefixFile']}" id="prefixFile"  size="20" />
+        <h:outputText value="File suffix: " />  
+        <p:inputText value="#{gitMatrizBean.paramValue['suffixFile']}" id="suffixFile"  size="20" />
+    </h:panelGrid>
+    <br />
+    <p:accordionPanel activeIndex="999" style="width:80%">  
+        <p:tab title="Files name: (click to open)" >  
+            <p:inputTextarea value="#{gitMatrizBean.paramValue['filesName']}" id="filesName" 
+                             style="width:100%" rows="20" autoResize="autoResize"  />
+        </p:tab>
+    </p:accordionPanel>
+
+</div>
+

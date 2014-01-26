@@ -11,21 +11,21 @@ import java.util.Objects;
  *
  * @author douglas
  */
-public class AuxUserUserFileMilestone {
+public class AuxUserUserFileMilestoneDouglas {
 
     private String user;
     private String user2;
     private String fileName;
     private String milestoneNumber;
 
-    public AuxUserUserFileMilestone(String user, String user2, String fileName) {
+    public AuxUserUserFileMilestoneDouglas(String user, String user2, String fileName) {
         this.user = user;
         this.user2 = user2;
         this.fileName = fileName;
         this.milestoneNumber = "";
     }
 
-    public AuxUserUserFileMilestone(String user, String user2, String fileName, EntityMilestone milestone) {
+    public AuxUserUserFileMilestoneDouglas(String user, String user2, String fileName, EntityMilestone milestone) {
         this.user = user;
         this.user2 = user2;
         this.fileName = fileName;
@@ -36,7 +36,7 @@ public class AuxUserUserFileMilestone {
         }
     }
 
-    public AuxUserUserFileMilestone(String userLogin, String userMail, String userLogin2, String userMail2, String fileName, EntityMilestone milestone) {
+    public AuxUserUserFileMilestoneDouglas(String userLogin, String userMail, String userLogin2, String userMail2, String fileName, EntityMilestone milestone) {
         this(
                 userLogin == null || userLogin.isEmpty() ? userMail : userLogin,
                 userLogin2 == null || userLogin2.isEmpty() ? userMail2 : userLogin2,
@@ -44,7 +44,7 @@ public class AuxUserUserFileMilestone {
                 milestone);
     }
 
-    public AuxUserUserFileMilestone(String userLogin, String userMail, String userLogin2, String userMail2, String fileName) {
+    public AuxUserUserFileMilestoneDouglas(String userLogin, String userMail, String userLogin2, String userMail2, String fileName) {
         this(
                 userLogin == null || userLogin.isEmpty() ? userMail : userLogin,
                 userLogin2 == null || userLogin2.isEmpty() ? userMail2 : userLogin2,
@@ -78,8 +78,8 @@ public class AuxUserUserFileMilestone {
 
     @Override
     public boolean equals(Object obj) {
-        if (obj != null && obj instanceof AuxUserUserFileMilestone) {
-            AuxUserUserFileMilestone other = (AuxUserUserFileMilestone) obj;
+        if (obj != null && obj instanceof AuxUserUserFileMilestoneDouglas) {
+            AuxUserUserFileMilestoneDouglas other = (AuxUserUserFileMilestoneDouglas) obj;
             if (this.milestoneNumber.equals(other.milestoneNumber)
                     && this.fileName.equals(other.fileName)) {
                 if (this.user.equals(other.user) && this.user2.equals(other.user2)) {

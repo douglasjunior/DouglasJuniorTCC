@@ -7,6 +7,7 @@ package br.edu.utfpr.cm.JGitMinerWeb.services;
 import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericDao;
 import br.edu.utfpr.cm.JGitMinerWeb.model.EntityNode;
 import br.edu.utfpr.cm.JGitMinerWeb.services.matriz.nodes.NodeGeneric;
+import br.edu.utfpr.cm.JGitMinerWeb.util.OutLog;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
@@ -21,13 +22,15 @@ public abstract class AbstractServices implements Runnable, Serializable {
     protected final GenericDao dao;
     protected List<EntityNode> nodes;
     protected Map params;
+    protected OutLog out;
 
-    public AbstractServices(GenericDao dao) {
+    public AbstractServices(GenericDao dao, OutLog out) {
         this.dao = dao;
+        this.out = out;
     }
 
-    public AbstractServices(GenericDao dao, Map params) {
-        this(dao);
+    public AbstractServices(GenericDao dao, Map params, OutLog out) {
+        this(dao, out);
         this.params = params;
     }
 
@@ -59,9 +62,9 @@ public abstract class AbstractServices implements Runnable, Serializable {
         return sb.toString();
     }
 
-    public static <T> T createInstance(GenericDao dao, String className) {
+    public static <T> T createInstance(GenericDao dao, OutLog out, String className) {
         try {
-            return (T) Class.forName(className).getConstructor(GenericDao.class).newInstance(dao);
+            return (T) Class.forName(className).getConstructor(GenericDao.class, OutLog.class).newInstance(dao, out);
         } catch (Exception ex) {
             ex.printStackTrace();
         }

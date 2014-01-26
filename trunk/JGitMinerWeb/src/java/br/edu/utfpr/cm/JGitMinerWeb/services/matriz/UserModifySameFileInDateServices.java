@@ -7,6 +7,7 @@ package br.edu.utfpr.cm.JGitMinerWeb.services.matriz;
 import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericDao;
 import br.edu.utfpr.cm.JGitMinerWeb.model.miner.EntityRepository;
 import br.edu.utfpr.cm.JGitMinerWeb.services.matriz.auxiliary.AuxUserUserFile;
+import br.edu.utfpr.cm.JGitMinerWeb.util.OutLog;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -17,12 +18,12 @@ import java.util.Map;
  */
 public class UserModifySameFileInDateServices extends AbstractMatrizServices {
 
-    public UserModifySameFileInDateServices(GenericDao dao) {
-        super(dao);
+    public UserModifySameFileInDateServices(GenericDao dao, OutLog out) {
+        super(dao, out);
     }
 
-    public UserModifySameFileInDateServices(GenericDao dao, EntityRepository repository, Map params) {
-        super(dao, repository, params);
+    public UserModifySameFileInDateServices(GenericDao dao, EntityRepository repository, Map params, OutLog out) {
+        super(dao, repository, params, out);
     }
 
     private String getPrefixFile() {

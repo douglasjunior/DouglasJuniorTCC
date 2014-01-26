@@ -9,6 +9,7 @@ import br.edu.utfpr.cm.JGitMinerWeb.model.matriz.EntityMatriz;
 import br.edu.utfpr.cm.JGitMinerWeb.model.metric.EntityMetricNode;
 import br.edu.utfpr.cm.JGitMinerWeb.services.AbstractServices;
 import br.edu.utfpr.cm.JGitMinerWeb.services.matriz.AbstractMatrizServices;
+import br.edu.utfpr.cm.JGitMinerWeb.util.OutLog;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -21,13 +22,13 @@ public abstract class AbstractMetricServices extends AbstractServices {
 
     private final EntityMatriz matriz;
 
-    public AbstractMetricServices(GenericDao dao) {
-        super(dao);
+    public AbstractMetricServices(GenericDao dao, OutLog out) {
+        super(dao, out);
         this.matriz = null;
     }
 
-    public AbstractMetricServices(GenericDao dao, EntityMatriz matriz, Map params) {
-        super(dao, params);
+    public AbstractMetricServices(GenericDao dao, EntityMatriz matriz, Map params, OutLog out) {
+        super(dao, params, out);
         this.matriz = matriz;
     }
 

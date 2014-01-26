@@ -145,7 +145,6 @@ public class GitMatrizBean implements Serializable {
         out.printLog("Repository: " + repository);
         out.printLog("");
 
-
         if (repository == null || serviceClass == null) {
             message = "Erro: Escolha o repositorio e o service desejado.";
             out.printLog(message);
@@ -167,6 +166,8 @@ public class GitMatrizBean implements Serializable {
             final AbstractMatrizServices netServices = createMatrizServiceInstance();
 
             process = new Thread(netServices) {
+                
+                
                 @Override
                 public void run() {
                     try {
@@ -179,6 +180,7 @@ public class GitMatrizBean implements Serializable {
                         out.printLog("");
                         if (!canceled) {
                             out.setCurrentProcess("Iniciando salvamento dos dados gerados.");
+                            dao.clearCache(false);
                             saveRecordsInMatriz(entityMatriz, netServices.getMatrizNodes());
                             entityMatriz.setComplete(true);
                             dao.edit(entityMatriz);
@@ -211,17 +213,11 @@ public class GitMatrizBean implements Serializable {
     }
 
     private void saveRecordsInMatriz(EntityMatriz matriz, List<EntityMatrizNode> nodes) {
-        int j = 0;
         for (Iterator<EntityMatrizNode> it = nodes.iterator(); it.hasNext();) {
             EntityMatrizNode node = it.next();
             node.setMatriz(matriz);
             dao.insert(node);
             it.remove();
-            j++;
-            if (j >= 1000) {
-                dao.clearCache(false);
-                j = 0;
-            }
         }
     }
 
@@ -229,6 +225,11 @@ public class GitMatrizBean implements Serializable {
         if (initialized) {
             out.printLog("Pedido de cancelamento enviado.\n");
             canceled = true;
+            try {
+                process.checkAccess();
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
             try {
                 process.interrupt();
             } catch (Exception ex) {
@@ -260,7 +261,7 @@ public class GitMatrizBean implements Serializable {
 
     private AbstractMatrizServices createMatrizServiceInstance() {
         try {
-            return (AbstractMatrizServices) serviceClass.getConstructor(GenericDao.class, EntityRepository.class, Map.class).newInstance(dao, repository, params);
+            return (AbstractMatrizServices) serviceClass.getConstructor(GenericDao.class, EntityRepository.class, Map.class, OutLog.class).newInstance(dao, repository, params, out);
         } catch (Exception ex) {
             ex.printStackTrace();
         }

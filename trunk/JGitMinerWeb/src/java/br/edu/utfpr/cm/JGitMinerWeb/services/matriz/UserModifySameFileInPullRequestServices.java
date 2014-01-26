@@ -9,6 +9,7 @@ import br.edu.utfpr.cm.JGitMinerWeb.model.miner.EntityRepository;
 import br.edu.utfpr.cm.JGitMinerWeb.services.matriz.auxiliary.AuxUserFilePull;
 import br.edu.utfpr.cm.JGitMinerWeb.services.matriz.auxiliary.AuxUserUserPullFile;
 import br.edu.utfpr.cm.JGitMinerWeb.services.matriz.nodes.NodeGeneric;
+import br.edu.utfpr.cm.JGitMinerWeb.util.OutLog;
 import br.edu.utfpr.cm.JGitMinerWeb.util.Util;
 import java.util.ArrayList;
 import java.util.List;
@@ -20,12 +21,12 @@ import java.util.Map;
  */
 public class UserModifySameFileInPullRequestServices extends AbstractMatrizServices {
 
-    public UserModifySameFileInPullRequestServices(GenericDao dao) {
-        super(dao);
+    public UserModifySameFileInPullRequestServices(GenericDao dao, OutLog out) {
+        super(dao, out);
     }
 
-    public UserModifySameFileInPullRequestServices(GenericDao dao, EntityRepository repository, Map params) {
-        super(dao, repository, params);
+    public UserModifySameFileInPullRequestServices(GenericDao dao, EntityRepository repository, Map params, OutLog out) {
+        super(dao, repository, params, out);
     }
 
     public Long getBeginPullRequestNumber() {

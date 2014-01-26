@@ -8,6 +8,7 @@ import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericDao;
 import br.edu.utfpr.cm.JGitMinerWeb.model.miner.EntityRepository;
 import br.edu.utfpr.cm.JGitMinerWeb.services.matriz.auxiliary.AuxUserFile;
 import br.edu.utfpr.cm.JGitMinerWeb.services.matriz.nodes.NodeGeneric;
+import br.edu.utfpr.cm.JGitMinerWeb.util.OutLog;
 import br.edu.utfpr.cm.JGitMinerWeb.util.Util;
 import java.util.ArrayList;
 import java.util.List;
@@ -19,12 +20,12 @@ import java.util.Map;
  */
 public class UserModifyFileInMilestoneServices extends AbstractMatrizServices {
 
-    public UserModifyFileInMilestoneServices(GenericDao dao) {
-        super(dao);
+    public UserModifyFileInMilestoneServices(GenericDao dao, OutLog out) {
+        super(dao, out);
     }
 
-    public UserModifyFileInMilestoneServices(GenericDao dao, EntityRepository repository, Map params) {
-        super(dao, repository, params);
+    public UserModifyFileInMilestoneServices(GenericDao dao, EntityRepository repository, Map params, OutLog out) {
+        super(dao, repository, params, out);
     }
 
     private int getMilestoneNumber() {

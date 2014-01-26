@@ -9,6 +9,7 @@ import br.edu.utfpr.cm.JGitMinerWeb.model.matriz.EntityMatriz;
 import br.edu.utfpr.cm.JGitMinerWeb.model.matriz.EntityMatrizNode;
 import br.edu.utfpr.cm.JGitMinerWeb.services.matriz.AbstractMatrizServices;
 import br.edu.utfpr.cm.JGitMinerWeb.util.JsfUtil;
+import br.edu.utfpr.cm.JGitMinerWeb.util.OutLog;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintWriter;
 import java.io.Serializable;
@@ -78,6 +79,8 @@ public class GitMatrizViewBean implements Serializable {
     public StreamedContent downloadCSV(EntityMatriz matriz) {
         StreamedContent file = null;
         try {
+            OutLog out = new OutLog();
+            
             System.out.println("Matriz tem nodes: " + matriz.getNodes().size());
 
             String fileName = generateFileName(matriz) + ".csv";
@@ -85,7 +88,7 @@ public class GitMatrizViewBean implements Serializable {
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             PrintWriter pw = new PrintWriter(baos);
 
-            AbstractMatrizServices services = AbstractMatrizServices.createInstance(dao, matriz.getClassServicesName());
+            AbstractMatrizServices services = AbstractMatrizServices.createInstance(dao, out, matriz.getClassServicesName());
 
             pw.println(services.getHeadCSV());
 

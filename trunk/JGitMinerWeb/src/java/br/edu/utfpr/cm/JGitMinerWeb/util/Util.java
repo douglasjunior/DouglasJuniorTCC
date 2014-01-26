@@ -489,4 +489,12 @@ public class Util {
         }
         return s1.equals(s2);
     }
+
+    public static Integer stringToInteger(String num) {
+       try{
+           return Integer.parseInt(num);
+       }catch(Exception ex){
+           return 0;
+       }
+    }
 }

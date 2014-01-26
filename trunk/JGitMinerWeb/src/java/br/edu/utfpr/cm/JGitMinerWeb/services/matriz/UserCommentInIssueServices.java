@@ -7,6 +7,7 @@ package br.edu.utfpr.cm.JGitMinerWeb.services.matriz;
 import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericDao;
 import br.edu.utfpr.cm.JGitMinerWeb.model.miner.EntityRepository;
 import br.edu.utfpr.cm.JGitMinerWeb.services.matriz.nodes.NodeGeneric;
+import br.edu.utfpr.cm.JGitMinerWeb.util.OutLog;
 import br.edu.utfpr.cm.JGitMinerWeb.util.Util;
 import java.util.List;
 import java.util.Map;
@@ -17,12 +18,12 @@ import java.util.Map;
  */
 public class UserCommentInIssueServices extends AbstractMatrizServices {
 
-    public UserCommentInIssueServices(GenericDao dao) {
-        super(dao);
+    public UserCommentInIssueServices(GenericDao dao, OutLog out) {
+        super(dao, out);
     }
 
-    public UserCommentInIssueServices(GenericDao dao, EntityRepository repository, Map params) {
-        super(dao, repository, params);
+    public UserCommentInIssueServices(GenericDao dao, EntityRepository repository, Map params, OutLog out) {
+        super(dao, repository, params, out);
         System.out.println(params);
     }
 

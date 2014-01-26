@@ -8,6 +8,7 @@ import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericDao;
 import br.edu.utfpr.cm.JGitMinerWeb.model.matriz.EntityMatrizNode;
 import br.edu.utfpr.cm.JGitMinerWeb.model.miner.EntityRepository;
 import br.edu.utfpr.cm.JGitMinerWeb.services.AbstractServices;
+import br.edu.utfpr.cm.JGitMinerWeb.util.OutLog;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -20,13 +21,13 @@ public abstract class AbstractMatrizServices extends AbstractServices {
 
     private final EntityRepository repository;
 
-    public AbstractMatrizServices(GenericDao dao) {
-        super(dao);
+    public AbstractMatrizServices(GenericDao dao, OutLog out) {
+        super(dao, out);
         this.repository = null;
     }
 
-    public AbstractMatrizServices(GenericDao dao, EntityRepository repository, Map params) {
-        super(dao, params);
+    public AbstractMatrizServices(GenericDao dao, EntityRepository repository, Map params, OutLog out) {
+        super(dao, params, out);
         this.repository = repository;
     }
 

@@ -4,7 +4,10 @@
  */
 package br.edu.utfpr.cm.JGitMinerWeb.services.matriz.auxiliary;
 
+import br.edu.utfpr.cm.JGitMinerWeb.util.JsfUtil;
+import br.edu.utfpr.cm.JGitMinerWeb.util.Util;
 import java.util.Objects;
+import org.jboss.weld.logging.Category;
 
 /**
  *
@@ -60,11 +63,11 @@ public class AuxUserUserPullFile {
     public boolean equals(Object obj) {
         if (obj != null && obj instanceof AuxUserUserPullFile) {
             AuxUserUserPullFile other = (AuxUserUserPullFile) obj;
-            if (this.pullNumber.equals(other.pullNumber) && this.fileName.equals(other.fileName)) {
-                if (this.userIdentity.equals(other.userIdentity) && this.userIdentity2.equals(other.userIdentity2)) {
+            if (this.pullNumber.equals(other.pullNumber) && Util.stringEquals(this.fileName, other.fileName)) {
+                if (Util.stringEquals(this.userIdentity, other.userIdentity) && Util.stringEquals(this.userIdentity2, other.userIdentity2)) {
                     return true;
                 }
-                if (this.userIdentity.equals(other.userIdentity2) && this.userIdentity2.equals(other.userIdentity)) {
+                if (Util.stringEquals(this.userIdentity, other.userIdentity2) && Util.stringEquals(this.userIdentity2, other.userIdentity)) {
                     return true;
                 }
             }

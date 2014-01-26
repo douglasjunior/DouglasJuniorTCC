@@ -6,7 +6,8 @@ package br.edu.utfpr.cm.JGitMinerWeb.services.matriz;
 
 import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericDao;
 import br.edu.utfpr.cm.JGitMinerWeb.model.miner.EntityRepository;
-import br.edu.utfpr.cm.JGitMinerWeb.services.matriz.auxiliary.AuxUserUserFileMilestone;
+import br.edu.utfpr.cm.JGitMinerWeb.services.matriz.auxiliary.AuxUserUserFileMilestoneDouglas;
+import br.edu.utfpr.cm.JGitMinerWeb.util.OutLog;
 import br.edu.utfpr.cm.JGitMinerWeb.util.Util;
 import java.util.ArrayList;
 import java.util.List;
@@ -18,12 +19,12 @@ import java.util.Map;
  */
 public class UserCommentedSameFileServices extends AbstractMatrizServices {
 
-    public UserCommentedSameFileServices(GenericDao dao) {
-        super(dao);
+    public UserCommentedSameFileServices(GenericDao dao, OutLog out) {
+        super(dao, out);
     }
 
-    public UserCommentedSameFileServices(GenericDao dao, EntityRepository repository, Map params) {
-        super(dao, repository, params);
+    public UserCommentedSameFileServices(GenericDao dao, EntityRepository repository, Map params, OutLog out) {
+        super(dao, repository, params, out);
     }
 
     public Long getBeginPullRequestNumber() {
@@ -64,7 +65,7 @@ public class UserCommentedSameFileServices extends AbstractMatrizServices {
             throw new IllegalArgumentException("Parâmetro Repository não pode ser nulo.");
         }
 
-        List<AuxUserUserFileMilestone> result;
+        List<AuxUserUserFileMilestoneDouglas> result;
 
         if (getMilestoneNumber() > 0) {
             result = getByMilestoneNumber();
@@ -77,8 +78,8 @@ public class UserCommentedSameFileServices extends AbstractMatrizServices {
         addToEntityMatrizNodeList(result);
     }
 
-    private List<AuxUserUserFileMilestone> getByMilestoneNumber() {
-        String jpql = "SELECT DISTINCT NEW " + AuxUserUserFileMilestone.class.getName() + "(cm.user.login, cm2.user.login, cm.pathCommitComment) "
+    private List<AuxUserUserFileMilestoneDouglas> getByMilestoneNumber() {
+        String jpql = "SELECT DISTINCT NEW " + AuxUserUserFileMilestoneDouglas.class.getName() + "(cm.user.login, cm2.user.login, cm.pathCommitComment) "
                 + "FROM "
                 + "EntityPullRequest p JOIN p.repositoryCommits rc JOIN rc.comments cm, "
                 + "EntityPullRequest p2 JOIN p2.repositoryCommits rc2 JOIN rc2.comments cm2 "
@@ -105,8 +106,8 @@ public class UserCommentedSameFileServices extends AbstractMatrizServices {
 
         System.out.println(jpql);
 
-        List<AuxUserUserFileMilestone> result = new ArrayList<>();
-        List<AuxUserUserFileMilestone> temp;
+        List<AuxUserUserFileMilestoneDouglas> result = new ArrayList<>();
+        List<AuxUserUserFileMilestoneDouglas> temp;
 
         temp = dao.selectWithParams(jpql,
                 bdParams,
@@ -117,7 +118,7 @@ public class UserCommentedSameFileServices extends AbstractMatrizServices {
         addTempInResultAndRemoveDuplicate(temp, result);
 
         if (isIncludeGenericComments()) {
-            jpql = "SELECT DISTINCT NEW " + AuxUserUserFileMilestone.class.getName() + "(cm.user.login, cm2.user.login, f.filename) "
+            jpql = "SELECT DISTINCT NEW " + AuxUserUserFileMilestoneDouglas.class.getName() + "(cm.user.login, cm2.user.login, f.filename) "
                     + "FROM "
                     + "EntityPullRequest p JOIN p.repositoryCommits rc JOIN rc.comments cm JOIN rc.files f, "
                     + "EntityPullRequest p2 JOIN p2.repositoryCommits rc2 JOIN rc2.comments cm2 JOIN rc2.files f2 "
@@ -148,8 +149,8 @@ public class UserCommentedSameFileServices extends AbstractMatrizServices {
         return result;
     }
 
-    private List<AuxUserUserFileMilestone> getByDate() {
-        String jpql = "SELECT DISTINCT NEW " + AuxUserUserFileMilestone.class.getName() + "(cm.user.login, cm2.user.login, cm.pathCommitComment) "
+    private List<AuxUserUserFileMilestoneDouglas> getByDate() {
+        String jpql = "SELECT DISTINCT NEW " + AuxUserUserFileMilestoneDouglas.class.getName() + "(cm.user.login, cm2.user.login, cm.pathCommitComment) "
                 + "FROM "
                 + "EntityCommitComment cm JOIN cm.repositoryCommit rc, "
                 + "EntityCommitComment cm2 JOIN cm2.repositoryCommit rc2 "
@@ -178,8 +179,8 @@ public class UserCommentedSameFileServices extends AbstractMatrizServices {
 
         System.out.println(jpql);
 
-        List<AuxUserUserFileMilestone> result = new ArrayList<>();
-        List<AuxUserUserFileMilestone> temp;
+        List<AuxUserUserFileMilestoneDouglas> result = new ArrayList<>();
+        List<AuxUserUserFileMilestoneDouglas> temp;
 
         temp = dao.selectWithParams(jpql,
                 bdParams,
@@ -190,7 +191,7 @@ public class UserCommentedSameFileServices extends AbstractMatrizServices {
         addTempInResultAndRemoveDuplicate(temp, result);
 
         if (isIncludeGenericComments()) {
-            jpql = "SELECT DISTINCT NEW " + AuxUserUserFileMilestone.class.getName() + "(cm.user.login, cm2.user.login, f.filename) "
+            jpql = "SELECT DISTINCT NEW " + AuxUserUserFileMilestoneDouglas.class.getName() + "(cm.user.login, cm2.user.login, f.filename) "
                     + "FROM "
                     + "EntityPullRequest p JOIN p.repositoryCommits rc JOIN rc.comments cm JOIN rc.files f, "
                     + "EntityPullRequest p2 JOIN p2.repositoryCommits rc2 JOIN rc2.comments cm2 JOIN rc2.files f2 "
@@ -221,8 +222,8 @@ public class UserCommentedSameFileServices extends AbstractMatrizServices {
         return result;
     }
 
-    private void addTempInResultAndRemoveDuplicate(List<AuxUserUserFileMilestone> temp, List<AuxUserUserFileMilestone> result) {
-        for (AuxUserUserFileMilestone aux : temp) {
+    private void addTempInResultAndRemoveDuplicate(List<AuxUserUserFileMilestoneDouglas> temp, List<AuxUserUserFileMilestoneDouglas> result) {
+        for (AuxUserUserFileMilestoneDouglas aux : temp) {
             if (!result.contains(aux)) {
                 result.add(aux);
             }
