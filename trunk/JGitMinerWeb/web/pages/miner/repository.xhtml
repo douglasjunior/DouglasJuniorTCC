@@ -10,11 +10,17 @@
             <p:growl globalOnly="true" id="messages" />
             <h:panelGrid columns="3" cellpadding="2">
                 <h:outputLabel for="repositoryName" value="Name of Repository:"/>
-                <p:inputText value="#{gitMinerRepositoryBean.repositoryName}" label="repositoryName" id="repositoryName" required="true" requiredMessage="Este campo não pode ficar vazio." />
+                <p:inputText value="#{gitMinerRepositoryBean.repositoryName}" label="repositoryName" id="repositoryName"   />
                 <p:message for="repositoryName" />
                 <h:outputLabel for="repositoryOwner" value="Login of Owner:"/>
-                <p:inputText value="#{gitMinerRepositoryBean.repositoryOwner}" label="repositoryOwner" id="repositoryOwner" required="true" requiredMessage="Este campo não pode ficar vazio." />
+                <p:inputText value="#{gitMinerRepositoryBean.repositoryOwner}" label="repositoryOwner" id="repositoryOwner"  />
                 <p:message for="repositoryOwner"  />
+                <br />
+                <h:outputText>or</h:outputText>
+                <br />
+                <h:outputLabel for="repositoryUrl" value="URL for repository:"/>
+                <p:inputText value="#{gitMinerRepositoryBean.repositoryUrl}" label="repositoryUrl" id="repositoryUrl" style="width: 400px" placeholder="https://github.com/douglasjunior/DouglasJuniorTCC"  />
+                <p:message for="repositoryUrl"  />
                 <br />
                 <br />
                 <p:commandButton id="startButton" value="Go Miner" ajax="false"

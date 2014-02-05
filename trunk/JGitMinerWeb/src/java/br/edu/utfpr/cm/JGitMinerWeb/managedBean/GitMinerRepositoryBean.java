@@ -27,6 +27,7 @@ public class GitMinerRepositoryBean implements Serializable {
     private EntityRepository repositorySelected;
     private String repositoryName;
     private String repositoryOwnerLogin;
+    private String repositoryUrl;
 
     public GitMinerRepositoryBean() {
         repository = new EntityRepository();
@@ -65,24 +66,36 @@ public class GitMinerRepositoryBean implements Serializable {
         this.repositoryOwnerLogin = repositoryOwner;
     }
 
+    public String getRepositoryUrl() {
+        return repositoryUrl;
+    }
+
+    public void setRepositoryUrl(String repositoryUrl) {
+        this.repositoryUrl = repositoryUrl;
+    }
+
     public void goMiner() {
         System.out.println("gotMiner Repository");
-        if (this.repositoryName == null || this.repositoryName.isEmpty()
-                || this.repositoryOwnerLogin == null || this.repositoryOwnerLogin.isEmpty()) {
-            JsfUtil.addErrorMessage("Informe o nome do repositorio desejado.");
-        } else {
-            try {
-                Repository gitRepository = new RepositoryService(AuthServices.getGitHubCliente()).getRepository(this.repositoryOwnerLogin, this.repositoryName);
-
-                System.err.println("Repositório: " + gitRepository.getName() + " | " + gitRepository.getOwner().getLogin() + " | " + gitRepository.getCreatedAt() + " | " + gitRepository.getHtmlUrl());
-
-                repository = RepositoryServices.createEntity(gitRepository, dao, true);
-
-                JsfUtil.addSuccessMessage("Repositorio salvo com sucesso.");
-            } catch (Exception e) {
-                e.printStackTrace();
-                JsfUtil.addErrorMessage("Erro ao salvar Repositorio.<br />Descrição: " + e.getMessage());
+        try {
+            if (this.repositoryUrl != null && !this.repositoryUrl.isEmpty()) {
+                parseRepositoryUrl();
+            } 
+            
+            if (this.repositoryName == null || this.repositoryName.isEmpty()
+                    || this.repositoryOwnerLogin == null || this.repositoryOwnerLogin.isEmpty()) {
+                throw new RuntimeException("Informe o nome e login do repositorio desejado, ou a URL para a página do GitHub.");
             }
+
+            Repository gitRepository = new RepositoryService(AuthServices.getGitHubCliente()).getRepository(this.repositoryOwnerLogin, this.repositoryName);
+
+            System.err.println("Repositório: " + gitRepository.getName() + " | " + gitRepository.getOwner().getLogin() + " | " + gitRepository.getCreatedAt() + " | " + gitRepository.getHtmlUrl());
+
+            repository = RepositoryServices.createEntity(gitRepository, dao, true);
+
+            JsfUtil.addSuccessMessage("Repositorio salvo com sucesso.");
+        } catch (Exception e) {
+            e.printStackTrace();
+            JsfUtil.addErrorMessage("Erro ao salvar Repositorio.<br />Descrição: " + e.getMessage());
         }
     }
 
@@ -92,5 +105,13 @@ public class GitMinerRepositoryBean implements Serializable {
 
     public List<EntityRepository> getRepositoriesPrimaryMiner() {
         return dao.executeNamedQuery("Repository.findByPrimaryMiner");
+    }
+
+    private void parseRepositoryUrl() {
+        this.repositoryUrl = this.repositoryUrl.toLowerCase().trim();
+        String[] tokens = this.repositoryUrl.split("github.com/");
+        tokens = tokens[1].split("/");
+        this.repositoryOwnerLogin = tokens[0];
+        this.repositoryName = tokens[1];
     }
 }

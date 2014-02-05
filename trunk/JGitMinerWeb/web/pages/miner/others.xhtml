@@ -68,13 +68,17 @@
             <br />
 
             <p:commandButton widgetVar="startButtonVar" type="submit" actionListener="#{gitMinerOthersBean.start()}" value="Start" 
-                             onclick="startButtonVar.disable();progressVar.start();subProgressVar.start();textAreaUpdaterVar.start();" update="loadingImage,logTextArea" />
+                             onclick="startButtonVar.disable();
+                                     progressVar.start();
+                                     subProgressVar.start();
+                                     textAreaUpdaterVar.start();" update="loadingImage,logTextArea" />
 
             <p:commandButton value="Cancel" actionListener="#{gitMinerOthersBean.cancel()}" oncomplete="startButtonVar.enable();progressVar.cancel();subProgressVar.cancel();" />
 
             <br />
             <br />
-
+            
+            <h:outputText id="currentProcess" value="Current process: #{gitMinerOthersBean.currentProcess}" />
             <p:progressBar id="progress" widgetVar="progressVar" ajax="true" value="#{gitMinerOthersBean.progress}" labelTemplate="{value}%" styleClass="animated" interval="3000" >
                 <p:ajax event="complete" listener="#{gitMinerOthersBean.onComplete()}" update="messages,loadingImage,logTextArea" oncomplete="startButton.enable();"/>
             </p:progressBar>
@@ -90,7 +94,7 @@
             </div>
             <br />
 
-            <p:poll id="textAreaUpdater" widgetVar="textAreaUpdaterVar" async="true" interval="4" update="logTextArea,loadingImage" autoStart="#{gitMinerOthersBean.initialized}" />
+            <p:poll id="textAreaUpdater" widgetVar="textAreaUpdaterVar" async="true" interval="4" update="logTextArea,loadingImage,currentProcess" autoStart="#{gitMinerOthersBean.initialized}" />
 
             <h3>Log de mineração:</h3>
             <br />

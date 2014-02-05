@@ -642,7 +642,7 @@ public class GitMinerOthersBean implements Serializable {
                 if (repoCommit.getStats() == null) {
                     minerStatsOfCommit(repoCommit, gitRepoCommit.getStats());
                 }
-                if (repoCommit.getFiles().size() != gitRepoCommit.getFiles().size()) {
+                if (gitRepoCommit.getFiles() != null && repoCommit.getFiles().size() != gitRepoCommit.getFiles().size()) {
                     minerFilesOfCommit(repoCommit, gitRepoCommit.getFiles());
                 }
             }
@@ -681,7 +681,9 @@ public class GitMinerOthersBean implements Serializable {
         out.printLog("Gravando o Stats do commit.");
         EntityCommitStats stats = CommitStatsServices.createEntity(gitStats, repoCommit, dao);
         repoCommit.setStats(stats);
-        stats.setRepositoryCommit(repoCommit);
+        if (stats != null) {
+            stats.setRepositoryCommit(repoCommit);
+        }
         dao.edit(repoCommit);
     }
 
@@ -741,7 +743,7 @@ public class GitMinerOthersBean implements Serializable {
     private EntityMilestone minerMilestone(Milestone gitMilestone, EntityRepository repository) {
         EntityMilestone milestone = null;
         try {
-            milestone = MilestoneServices.createEntity(gitMilestone,repository, dao);
+            milestone = MilestoneServices.createEntity(gitMilestone, repository, dao);
             out.printLog("Milestone gravado com sucesso: " + gitMilestone.getTitle() + " - Number: " + gitMilestone.getNumber());
         } catch (Exception ex) {
             ex.printStackTrace();
