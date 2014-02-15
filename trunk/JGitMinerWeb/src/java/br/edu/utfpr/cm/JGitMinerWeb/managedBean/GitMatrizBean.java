@@ -213,7 +213,7 @@ public class GitMatrizBean implements Serializable {
     }
 
     private void saveRecordsInMatriz(EntityMatriz matriz, List<EntityMatrizNode> nodes) {
-        for (Iterator<EntityMatrizNode> it = nodes.iterator(); it.hasNext();) {
+        for (Iterator<EntityMatrizNode> it = nodes.iterator(); it.hasNext() && !canceled;) {
             EntityMatrizNode node = it.next();
             node.setMatriz(matriz);
             dao.insert(node);

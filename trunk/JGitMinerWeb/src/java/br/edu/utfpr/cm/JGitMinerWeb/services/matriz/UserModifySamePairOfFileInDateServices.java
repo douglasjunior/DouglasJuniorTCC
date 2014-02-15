@@ -80,8 +80,8 @@ public class UserModifySamePairOfFileInDateServices extends AbstractMatrizServic
 
         List<EntityRepositoryCommit> commits = dao.selectWithParams(jpql,
                 new String[]{"repo", "beginDate", "endDate", "minFilesPerCommit"},
-                new Object[]{getRepository(), getBeginDate(), getEndDate(), minFilesPerCommit});     
-        
+                new Object[]{getRepository(), getBeginDate(), getEndDate(), minFilesPerCommit});
+
         // primeiro monta-se a rede dos desenvolvedores e os pares de arquivos
         List<AuxUserFileFile> temp = new ArrayList<>();
         int count = 0;
@@ -89,13 +89,23 @@ public class UserModifySamePairOfFileInDateServices extends AbstractMatrizServic
             out.printLog("############################### ID: " + commit.getId() + " - URL: " + commit.getUrl());
             out.printLog(count + " of the " + commits.size());
             out.printLog(commit.getFiles().size() + " files to analyse");
-            EntityUser user = commit.getAuthor();
-            for (int i = 0; i < commit.getFiles().size(); i++) {
-                EntityCommitFile file = (EntityCommitFile) commit.getFiles().toArray()[i];
-                for (int j = i - 1; j >= 0; j--) {
-                    EntityCommitFile file2 = (EntityCommitFile) commit.getFiles().toArray()[j];
-                    if (user != null && file != null && file2 != null) {
-                        AuxUserFileFile aux = new AuxUserFileFile(user.getLogin(), user.getEmail(), file.getFilename(), file2.getFilename());
+            EntityCommitFile[] arrFiles = new EntityCommitFile[commit.getFiles().size()];
+            arrFiles =  commit.getFiles().toArray(arrFiles);
+            for (int i = 0; i < arrFiles.length; i++) {
+                EntityCommitFile file = arrFiles[i];
+                for (int j = i + 1; j < arrFiles.length; j++) {
+                    EntityCommitFile file2 = arrFiles[j];
+                    if (file != null && file2 != null) {
+                        String login;
+                        String email;
+                        if (commit.getCommitter() != null) {
+                            login = commit.getCommitter().getLogin();
+                            email = commit.getCommitter().getEmail();
+                        } else {
+                            login = commit.getCommit().getCommitter().getEmail();
+                            email = commit.getCommit().getCommitter().getEmail();
+                        }
+                        AuxUserFileFile aux = new AuxUserFileFile(login, email, file.getFilename(), file2.getFilename());
                         boolean contains = false;
                         for (AuxUserFileFile a : temp) {
                             if (a.equals(aux)) {
@@ -118,10 +128,10 @@ public class UserModifySamePairOfFileInDateServices extends AbstractMatrizServic
         // por fim liga-se os desenvolvedores que modificaram o mesmo par de arquivos
         for (int i = 0; i < temp.size(); i++) {
             AuxUserFileFile iAux = temp.get(i);
-            for (int j = i; j >= 0; j--) {
+            for (int j = i + 1; j < temp.size(); j++) {
                 AuxUserFileFile jAux = temp.get(j);
                 if (!Util.stringEquals(iAux.getUser(), jAux.getUser()) && iAux.fileEquals(jAux)) {
-                    AuxUserFileFileUser aux = new AuxUserFileFileUser(iAux.getUser(), jAux.getUser(), iAux.getFileName(), iAux.getFileName2(), iAux.getWeight() * jAux.getWeight());
+                    AuxUserFileFileUser aux = new AuxUserFileFileUser(iAux.getUser(), jAux.getUser(), iAux.getFileName(), iAux.getFileName2(), iAux.getWeight() + jAux.getWeight());
                     result.add(aux);
                 }
             }
@@ -129,7 +139,7 @@ public class UserModifySamePairOfFileInDateServices extends AbstractMatrizServic
 
         System.out.println("Result : " + result.size());
 
-        addToEntityMatrizNodeList(result);    
+        addToEntityMatrizNodeList(result);
     }
 
     @Override

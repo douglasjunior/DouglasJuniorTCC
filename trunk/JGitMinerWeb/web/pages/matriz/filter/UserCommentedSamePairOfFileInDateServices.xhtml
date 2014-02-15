@@ -15,6 +15,10 @@
         </h:panelGroup>
         <p:spacer />
         <br />
+        <h:outputText value="Minimum files per commit: " />  
+        <p:inputText value="#{gitMatrizBean.paramValue['minFilesPerCommit']}" id="minFilesPerCommit" type="number"  size="20" />
+        <p:spacer />
+        <br />
         <h:outputLabel value="Include file comments: " for="includeFileComments" />  
         <p:selectBooleanCheckbox  value="#{gitMatrizBean.paramValue['includeFileComments']}" id="includeFileComments" />
         <h:outputLabel value="Include commit comments: " for="includeCommitComments" />  

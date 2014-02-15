@@ -15,6 +15,7 @@ import br.edu.utfpr.cm.JGitMinerWeb.services.matriz.auxiliary.AuxFileFile;
 import br.edu.utfpr.cm.JGitMinerWeb.services.matriz.auxiliary.AuxUserFileFileUserDirectional;
 import br.edu.utfpr.cm.JGitMinerWeb.services.matriz.auxiliary.AuxUserUserDirectional;
 import br.edu.utfpr.cm.JGitMinerWeb.util.OutLog;
+import br.edu.utfpr.cm.JGitMinerWeb.util.Util;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -41,6 +42,10 @@ public class UserCommentedSamePairOfFileInDateServices extends AbstractMatrizSer
 
     private String getSuffixFile() {
         return "%" + params.get("suffixFile");
+    }
+    
+    private Integer getMinFilesPerCommit() {
+        return Util.stringToInteger(params.get("minFilesPerCommit") + "");
     }
 
     private Boolean isIncludeCommitComments() {
@@ -121,7 +126,7 @@ public class UserCommentedSamePairOfFileInDateServices extends AbstractMatrizSer
 
             List<EntityCommitFile> commitFiles = new ArrayList();
             for (EntityRepositoryCommit comm : pr.getRepositoryCommits()) {
-                if (comm.getFiles().size() <= 20) {
+                if (comm.getFiles().size() <= getMinFilesPerCommit()) {
                 commitFiles.addAll(comm.getFiles());
                 }
             }

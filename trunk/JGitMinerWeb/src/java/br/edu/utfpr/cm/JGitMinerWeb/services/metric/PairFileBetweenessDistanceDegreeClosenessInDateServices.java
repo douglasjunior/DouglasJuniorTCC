@@ -8,20 +8,21 @@ import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericDao;
 import br.edu.utfpr.cm.JGitMinerWeb.model.matriz.EntityMatriz;
 import br.edu.utfpr.cm.JGitMinerWeb.model.matriz.EntityMatrizNode;
 import br.edu.utfpr.cm.JGitMinerWeb.model.miner.EntityRepository;
-import br.edu.utfpr.cm.JGitMinerWeb.services.matriz.UserCommentedSameFileInDateServices;
 import br.edu.utfpr.cm.JGitMinerWeb.services.matriz.UserCommentedSamePairOfFileInDateServices;
-import br.edu.utfpr.cm.JGitMinerWeb.services.matriz.UserModifySameFileInDateServices;
 import br.edu.utfpr.cm.JGitMinerWeb.services.matriz.UserModifySamePairOfFileInDateServices;
 import br.edu.utfpr.cm.JGitMinerWeb.services.matriz.auxiliary.AuxFileCountSum;
-import br.edu.utfpr.cm.JGitMinerWeb.services.matriz.auxiliary.AuxUserFile;
-import br.edu.utfpr.cm.JGitMinerWeb.services.metric.auxiliary.AuxFileMetrics;
+import br.edu.utfpr.cm.JGitMinerWeb.services.matriz.auxiliary.AuxFileFile;
+import br.edu.utfpr.cm.JGitMinerWeb.services.matriz.auxiliary.AuxUserFileFile;
+import br.edu.utfpr.cm.JGitMinerWeb.services.metric.auxiliary.AuxFileFileMetrics;
 import br.edu.utfpr.cm.JGitMinerWeb.services.metric.auxiliary.AuxUserMetrics;
 import br.edu.utfpr.cm.JGitMinerWeb.util.JsfUtil;
 import br.edu.utfpr.cm.JGitMinerWeb.util.OutLog;
+import br.edu.utfpr.cm.JGitMinerWeb.util.Util;
 import edu.uci.ics.jung.algorithms.scoring.BetweennessCentrality;
 import edu.uci.ics.jung.algorithms.scoring.ClosenessCentrality;
 import edu.uci.ics.jung.algorithms.scoring.DegreeScorer;
-import edu.uci.ics.jung.graph.UndirectedSparseGraph;
+import edu.uci.ics.jung.graph.AbstractTypedGraph;
+import edu.uci.ics.jung.graph.DirectedSparseMultigraph;
 import edu.uci.ics.jung.graph.UndirectedSparseMultigraph;
 import edu.uci.ics.jung.graph.util.EdgeType;
 import java.util.ArrayList;
@@ -89,29 +90,46 @@ public class PairFileBetweenessDistanceDegreeClosenessInDateServices extends Abs
             throw new IllegalArgumentException("Não foi possível encontrar o repositório utilizado nesta matriz.");
         }
 
+        // user | file | file2 | user2 | weigth
         System.out.println("Selecionado matriz com " + getMatriz().getNodes().size() + " nodes.");
-        UndirectedSparseMultigraph<String, String> graphMulti = new UndirectedSparseMultigraph<>();
-        UndirectedSparseGraph<String, String> graph = new UndirectedSparseGraph<>();
-        List<String> files = new ArrayList<>();
+        AbstractTypedGraph<String, String> graphMulti;
+        //    AbstractTypedGraph<String, String> graph;
+        EdgeType type;
+        if (getMatriz().getClassServicesName().equals(UserCommentedSamePairOfFileInDateServices.class.getName())) {
+            //       graph = new DirectedSparseGraph<>();
+            graphMulti = new DirectedSparseMultigraph<>();
+            type = EdgeType.DIRECTED;
+        } else {
+            //     graph = new UndirectedSparseGraph<>();
+            graphMulti = new UndirectedSparseMultigraph<>();
+            type = EdgeType.UNDIRECTED;
+        }
+        List<AuxFileFile> files = new ArrayList<>();
         for (int i = 0; i < getMatriz().getNodes().size(); i++) {
             EntityMatrizNode node = getMatriz().getNodes().get(i);
             String[] coluns = node.getLine().split(JsfUtil.TOKEN_SEPARATOR);
-            colectFile(files, coluns[2]);
-            graph.addEdge(
-                    coluns[2] + "(" + i + ")",
-                    coluns[1],
-                    coluns[0],
-                    EdgeType.UNDIRECTED);
-            graphMulti.addEdge(
-                    coluns[2] + "(" + i + ")",
-                    coluns[1],
-                    coluns[0],
-                    EdgeType.UNDIRECTED);
+            AuxFileFile auxFile = new AuxFileFile(coluns[1], coluns[2]);
+            if (!files.contains(auxFile)) {
+                files.add(auxFile);
+            }
+            //        graph.addEdge(
+            //                coluns[2] + "(" + i + ")",
+            //               coluns[1],
+            //               coluns[0],
+            //                type);
+            // adiciona conforme o peso
+            for (int j = 0; j < Util.stringToInteger(coluns[4]); j++) {
+                graphMulti.addEdge(
+                        coluns[1] + coluns[2] + i + j,
+                        coluns[3],
+                        coluns[0],
+                        type);
+            }
         }
 
-        BetweennessCentrality<String, String> btwGen = new BetweennessCentrality<>(graph);
-        ClosenessCentrality<String, String> clsGen = new ClosenessCentrality<>(graph);
-        DegreeScorer<String> dgrGen = new DegreeScorer<>(graph);
+        BetweennessCentrality<String, String> btwGen = new BetweennessCentrality<>(graphMulti);
+        ClosenessCentrality<String, String> clsGen = new ClosenessCentrality<>(graphMulti);
+        DegreeScorer<String> dgrGen = new DegreeScorer<>(graphMulti);
 
         List<AuxUserMetrics> userMetrics = new ArrayList<>();
 
@@ -122,19 +140,20 @@ public class PairFileBetweenessDistanceDegreeClosenessInDateServices extends Abs
                     clsGen.getVertexScore(vertexUser))); // closeness
         }
 
-        List<AuxFileMetrics> fileMetrics = new ArrayList<>();
-        List<AuxUserFile> occurrences = new ArrayList<>();
-
-        for (String file : files) {
+        List<AuxFileFileMetrics> fileMetrics = new ArrayList<>();
+        List<AuxUserFileFile> occurrences = new ArrayList<>();
+        
+        for (AuxFileFile file : files) {
             Double btwMax = 0d, btwAve, btwSum = 0d;
             Double dgrMax = 0d, dgrAve, dgrSum = 0d;
             Double clsMax = 0d, clsAve, clsSum = 0d;
-            Double futCodeChurn = 0d, codeChurn = 0d, futUpdates = 0d, updates = 0d, dev = 0d;
-            for (String edgeFile : graphMulti.getEdges()) {
-                if (edgeFile.startsWith(file)) {
+            Long futCodeChurn = 0l, codeChurn = 0l, futUpdates = 0l, updates = 0l, dev = 0l;
+            for (String edge : graphMulti.getEdges()) {
+                if (edge.startsWith(file.getFileName() + file.getFileName2())
+                        || edge.startsWith(file.getFileName2() + file.getFileName())) {
                     for (AuxUserMetrics auxUser : userMetrics) {
-                        if (graphMulti.isIncident(auxUser.getUser(), edgeFile)) {
-                            AuxUserFile reg = new AuxUserFile(auxUser.getUser(), file);
+                        if (graphMulti.isIncident(auxUser.getUser(), edge)) {
+                            AuxUserFileFile reg = new AuxUserFileFile(auxUser.getUser(), file.getFileName(), file.getFileName2());
                             if (!occurrences.contains(reg)) {
                                 occurrences.add(reg);
                                 Double btw = auxUser.getMetrics()[0];
@@ -159,19 +178,16 @@ public class PairFileBetweenessDistanceDegreeClosenessInDateServices extends Abs
             dgrAve = dgrSum / dev;
             clsAve = clsSum / dev;
 
-            AuxFileCountSum aux = calculeCodeChurnAndUpdates(file, getBeginDate(), getEndDate());
-            codeChurn = (double) aux.getSum();
-            updates = (double) aux.getCount();
+            updates = calculeUpdates(file.getFileName(), file.getFileName2(), getBeginDate(), getEndDate());
 
-            aux = calculeCodeChurnAndUpdates(file, getFutureBeginDate(), getFutureEndDate());
-            futCodeChurn = (double) aux.getSum();
-            futUpdates = (double) aux.getCount();
+            futUpdates = calculeUpdates(file.getFileName(), file.getFileName2(), getFutureBeginDate(), getFutureEndDate());
 
-            fileMetrics.add(new AuxFileMetrics(file,
+            fileMetrics.add(new AuxFileFileMetrics(file.getFileName(), file.getFileName2(),
                     btwMax, btwAve, btwSum,
                     dgrMax, dgrAve, dgrSum,
                     clsMax, clsAve, clsSum,
-                    dev, codeChurn, futCodeChurn,
+                    dev,
+                    codeChurn, futCodeChurn,
                     updates, futUpdates));
         }
 
@@ -180,7 +196,7 @@ public class PairFileBetweenessDistanceDegreeClosenessInDateServices extends Abs
 
     @Override
     public String getHeadCSV() {
-        return "file;"
+        return "file;file2;"
                 + "btwMax;btwAve;btwSum;"
                 + "dgrMax;dgrAve;dgrSum;"
                 + "clsMax;clsAve;clsSum;"
@@ -194,12 +210,6 @@ public class PairFileBetweenessDistanceDegreeClosenessInDateServices extends Abs
         return Arrays.asList(UserModifySamePairOfFileInDateServices.class.getName(), UserCommentedSamePairOfFileInDateServices.class.getName());
     }
 
-    private void colectFile(List<String> files, String file) {
-        if (!files.contains(file)) {
-            files.add(file);
-        }
-    }
-
     private Double calculeMax(Double v, Double vMax) {
         if (vMax < v) {
             return v;
@@ -207,36 +217,32 @@ public class PairFileBetweenessDistanceDegreeClosenessInDateServices extends Abs
         return vMax;
     }
 
-    private AuxFileCountSum calculeCodeChurnAndUpdates(String fileName, Date beginDate, Date endDate) {
-        String jpql = "SELECT NEW " + AuxFileCountSum.class.getName() + "(f.filename, COUNT(f), SUM(f.changes)) "
+    private Long calculeUpdates(String fileName, String fileName2, Date beginDate, Date endDate) {
+        String jpql = "SELECT COUNT(rc) "
                 + "FROM "
-                + "EntityRepositoryCommit rc JOIN rc.files f  "
+                + "EntityRepositoryCommit rc "
                 + "WHERE "
                 + "rc.repository = :repo AND "
                 + "rc.commit.committer.dateCommitUser BETWEEN :beginDate AND :endDate AND "
-                + "f.filename = :fileName "
-                + "GROUP BY f.filename";
+                + "EXISTS (SELECT f FROM EntityCommitFile f WHERE f.repositoryCommit = rc AND f.filename = :fileName) AND "
+                + "EXISTS (SELECT f2 FROM EntityCommitFile f2 WHERE f2.repositoryCommit = rc AND f2.filename = :fileName2)";
 
         String[] bdParams = new String[]{
             "repo",
             "fileName",
+            "fileName2",
             "beginDate",
             "endDate"
         };
         Object[] bdObjects = new Object[]{
             repository,
             fileName,
+            fileName2,
             beginDate,
             endDate
         };
 
-        List<AuxFileCountSum> result = dao.selectWithParams(jpql, bdParams, bdObjects);
-
-        if (!result.isEmpty()) {
-            return result.get(0);
-        } else {
-            return new AuxFileCountSum(fileName, 0, 0);
-        }
+        return dao.selectOneWithParams(jpql, bdParams, bdObjects);
     }
 
     private EntityRepository getRepository() {

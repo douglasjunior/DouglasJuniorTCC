@@ -147,7 +147,6 @@ public class GitMetricBean implements Serializable {
         out.printLog("Matriz: " + matriz);
         out.printLog("");
 
-
         if (matriz == null || serviceClass == null) {
             message = "Erro: Escolha a Matriz e o Service desejado.";
             out.printLog(message);
@@ -273,7 +272,7 @@ public class GitMetricBean implements Serializable {
                 for (Iterator<Class> itMetricService = metricsServices.iterator(); itMetricService.hasNext();) {
                     Class metricService = itMetricService.next();
                     // pegas as matrizes disponíveis para esta metrica
-                    List<String> avaliableMatricesServices = ((AbstractMetricServices) metricService.getConstructor(GenericDao.class).newInstance(dao)).getAvailableMatricesPermitted();
+                    List<String> avaliableMatricesServices = ((AbstractMetricServices) metricService.getConstructor(GenericDao.class, OutLog.class).newInstance(dao, out)).getAvailableMatricesPermitted();
                     // verifica se a matriz selecionada está entre as disponíveis
                     if (!avaliableMatricesServices.contains(matriz.getClassServicesName())) {
                         itMetricService.remove();
@@ -290,7 +289,7 @@ public class GitMetricBean implements Serializable {
 
     private AbstractMetricServices createMetricServiceInstance() {
         try {
-            return (AbstractMetricServices) serviceClass.getConstructor(GenericDao.class, EntityMatriz.class, Map.class).newInstance(dao, matriz, params);
+            return (AbstractMetricServices) serviceClass.getConstructor(GenericDao.class, EntityMatriz.class, Map.class, OutLog.class).newInstance(dao, matriz, params, out);
         } catch (Exception ex) {
             ex.printStackTrace();
         }
