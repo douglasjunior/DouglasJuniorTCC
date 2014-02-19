@@ -14,9 +14,13 @@ import javax.persistence.*;
  * @author Douglas
  */
 @Entity
-@Table(name = "gitCommitUser")
+@Table(name = "gitCommitUser",
+        uniqueConstraints = {
+            @UniqueConstraint(columnNames = {"dateCommitUser", "email"})
+        })
 @NamedQueries({
-    @NamedQuery(name = "CommitUser.findByEmail", query = "SELECT u FROM EntityCommitUser u WHERE u.email = :email")
+    @NamedQuery(name = "CommitUser.findByEmail", query = "SELECT u FROM EntityCommitUser u WHERE u.email = :email"),
+    @NamedQuery(name = "CommitUser.findByEmailAndDate", query = "SELECT u FROM EntityCommitUser u WHERE u.email = :email AND u.dateCommitUser = :date")
 })
 public class EntityCommitUser implements InterfaceEntity, Serializable {
 
@@ -28,7 +32,6 @@ public class EntityCommitUser implements InterfaceEntity, Serializable {
     private Date mineredAt;
     @Temporal(javax.persistence.TemporalType.TIMESTAMP)
     private Date dateCommitUser;
-    @Column(unique = true)
     private String email;
     private String name;
 

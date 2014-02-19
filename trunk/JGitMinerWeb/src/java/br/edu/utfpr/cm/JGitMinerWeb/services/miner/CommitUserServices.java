@@ -22,7 +22,7 @@ public class CommitUserServices implements Serializable {
             return null;
         }
 
-        EntityCommitUser commitUser = getCommitUserByEmail(gitCommitUser.getEmail(), dao);
+        EntityCommitUser commitUser = getCommitUserByEmailAndDate(gitCommitUser.getEmail(), gitCommitUser.getDate(), dao);
 
         if (commitUser == null) {
             commitUser = new EntityCommitUser();
@@ -38,8 +38,8 @@ public class CommitUserServices implements Serializable {
         return commitUser;
     }
 
-    private static EntityCommitUser getCommitUserByEmail(String email, GenericDao dao) {
-        List<EntityCommitUser> users = dao.executeNamedQueryWithParams("CommitUser.findByEmail", new String[]{"email"}, new Object[]{email}, true);
+    private static EntityCommitUser getCommitUserByEmailAndDate(String email, Date date, GenericDao dao) {
+        List<EntityCommitUser> users = dao.executeNamedQueryWithParams("CommitUser.findByEmailAndDate", new String[]{"email", "date"}, new Object[]{email, date}, true);
         if (!users.isEmpty()) {
             return users.get(0);
         }
