@@ -16,9 +16,7 @@ import javax.persistence.*;
  * @author Douglas
  */
 @Entity
-@Table(name = "gitRepository", uniqueConstraints = {
-    @UniqueConstraint(columnNames = {"owner_id", "name"})
-}) 
+@Table(name = "gitRepository") 
 @NamedQueries({
     @NamedQuery(name = "Repository.findByName",
     query = "SELECT r FROM EntityRepository r WHERE r.name = :name"),
