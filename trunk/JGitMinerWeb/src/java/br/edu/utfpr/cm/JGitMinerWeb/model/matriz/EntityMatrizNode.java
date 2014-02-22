@@ -5,20 +5,22 @@
 package br.edu.utfpr.cm.JGitMinerWeb.model.matriz;
 
 import br.edu.utfpr.cm.JGitMinerWeb.model.EntityNode;
+import javax.persistence.DiscriminatorValue;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
+import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
-import javax.persistence.Table;
 
 /**
  *
  * @author douglas
  */
 @Entity
-@Table(name = "matrizNode")
+@DiscriminatorValue(value = "EntityMatrizNode")
 public class EntityMatrizNode extends EntityNode {
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "matriz_id")
     private EntityMatriz matriz;
 
     public EntityMatrizNode() {

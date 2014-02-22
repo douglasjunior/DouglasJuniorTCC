@@ -16,7 +16,11 @@ import javax.persistence.*;
 @Entity
 @Table(name = "gitPullRequestMaker", uniqueConstraints = {
     @UniqueConstraint(columnNames = {"refpullrequestmarker", "repo_id", "user_id"})
-}) 
+}, indexes = {
+    @Index(columnList = "refpullrequestmarker,repo_id,user_id", unique = true),
+    @Index(columnList = "repo_id"),
+    @Index(columnList = "user_id")
+})
 @NamedQueries({
     @NamedQuery(name = "PullRequestMarker.findByRefRepoUser",
             query = "SELECT p FROM EntityPullRequestMarker p "
@@ -33,14 +37,16 @@ public class EntityPullRequestMarker implements InterfaceEntity, Serializable {
     @Temporal(javax.persistence.TemporalType.TIMESTAMP)
     private Date mineredAt;
     @ManyToOne
+    @JoinColumn(name = "repo_id")
     private EntityRepository repo;
     @Column(length = 255)
     private String label;
-    @Column(length = 255)
+    @Column(length = 255,name = "refpullrequestmarker")
     private String refPullRequestMarker;
     @Column(length = 255)
     private String sha;
     @ManyToOne
+    @JoinColumn(name = "user_id")
     private EntityUser user;
 
     public EntityPullRequestMarker() {

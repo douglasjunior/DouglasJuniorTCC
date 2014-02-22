@@ -16,8 +16,16 @@ import javax.persistence.*;
  * @author Douglas
  */
 @Entity
-@Table(name = "gitIssue",uniqueConstraints = {
+@Table(name = "gitIssue", uniqueConstraints = {
     @UniqueConstraint(columnNames = {"repository_id", "number"})
+}, indexes = {
+    @Index(columnList = "idIssue", unique = true),
+    @Index(columnList = "repository_id"),
+    @Index(columnList = "assignee_id"),
+    @Index(columnList = "createdat"),
+    @Index(columnList = "milestone_id"),
+    @Index(columnList = "repository_id,number", unique = true),
+    @Index(columnList = "userissue_id")
 })
 @NamedQueries({
     @NamedQuery(name = "Issue.findByIdIssue", query = "SELECT i FROM EntityIssue i WHERE i.idIssue = :idIssue"),
@@ -32,19 +40,31 @@ public class EntityIssue implements InterfaceEntity, Serializable {
     private Long id;
     @Temporal(javax.persistence.TemporalType.TIMESTAMP)
     private Date mineredAt;
-    @Column(unique = true)
+    @Column(unique = true, name = "idIssue")
     private long idIssue;
     @Temporal(javax.persistence.TemporalType.TIMESTAMP)
     private Date closedAt;
+    @Column(name = "createdat")
     @Temporal(javax.persistence.TemporalType.TIMESTAMP)
     private Date createdAt;
     @Temporal(javax.persistence.TemporalType.TIMESTAMP)
     private Date updatedAt;
     private Integer commentsCount;
+    @Column(name = "number")
     private Integer number;
-    @OneToMany
+    @OneToMany(fetch = FetchType.LAZY)
+    @JoinTable(name = "gitissue_gitlabel",
+            joinColumns = {
+                @JoinColumn(name = "entityissue_id", referencedColumnName = "id")},
+            inverseJoinColumns = {  
+                @JoinColumn(name = "labels_id", referencedColumnName = "id")},
+            indexes = {
+                @Index(columnList = "entityissue_id"),
+                @Index(columnList = "labels_id")
+            })
     private Set<EntityLabel> labels;
     @ManyToOne
+    @JoinColumn(name = "milestone_id")
     private EntityMilestone milestone;
     @OneToOne(mappedBy = "issue")
     private EntityPullRequest pullRequest;
@@ -62,12 +82,15 @@ public class EntityIssue implements InterfaceEntity, Serializable {
     @Column(columnDefinition = "text")
     private String url;
     @ManyToOne
+    @JoinColumn(name = "assignee_id")
     private EntityUser assignee;
     @ManyToOne
+    @JoinColumn(name = "userissue_id")
     private EntityUser userIssue;
     @OneToMany(mappedBy = "issue")
     private Set<EntityComment> comments;
     @ManyToOne
+    @JoinColumn(name = "repository_id")
     private EntityRepository repository;
     @OneToMany(mappedBy = "issue")
     private Set<EntityIssueEvent> events;

@@ -14,7 +14,9 @@ import javax.persistence.*;
  * @author Douglas
  */
 @Entity
-@Table(name = "gitLabel")
+@Table(name = "gitLabel", indexes = {
+    @Index(columnList = "name", unique = true)
+})
 @NamedQueries({
     @NamedQuery(name = "Label.findByName", query = "SELECT l FROM EntityLabel l WHERE l.name = :name")
 })
@@ -27,7 +29,7 @@ public class EntityLabel implements InterfaceEntity, Serializable {
     @Temporal(javax.persistence.TemporalType.TIMESTAMP)
     private Date mineredAt;
     private String color;
-    @Column(unique = true)
+    @Column(unique = true, name = "name")
     private String name;
     private String url;
 

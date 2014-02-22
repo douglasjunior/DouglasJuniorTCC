@@ -14,7 +14,12 @@ import javax.persistence.*;
  * @author Douglas
  */
 @Entity
-@Table(name = "gitCommit")
+@Table(name = "gitCommit", indexes = {
+    @Index(columnList = "author_id"),
+    @Index(columnList = "committer_id"),
+    @Index(columnList = "tree_id"),
+    @Index(columnList = "url", unique = true)
+})
 @NamedQueries({
     @NamedQuery(name = "Commit.findByURL", query = "SELECT c FROM EntityCommit c WHERE c.url = :url")
 })
@@ -27,15 +32,18 @@ public class EntityCommit implements InterfaceEntity, Serializable {
     @Temporal(javax.persistence.TemporalType.TIMESTAMP)
     private Date mineredAt;
     @ManyToOne
+    @JoinColumn(name = "author_id")
     private EntityCommitUser author;
     @ManyToOne
+    @JoinColumn(name = "committer_id")
     private EntityCommitUser committer;
     @Column(columnDefinition = "text")
     private String message;
     private String sha;
-    @Column(unique = true)
+    @Column(unique = true, name = "url")
     private String url;
     @ManyToOne
+    @JoinColumn(name = "tree_id")
     private EntityTree tree;
     private Integer commentCount;
 

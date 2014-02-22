@@ -16,7 +16,15 @@ import javax.persistence.*;
  * @author Douglas
  */
 @Entity
-@Table(name = "gitRepositoryCommit")
+@Table(name = "gitRepositoryCommit", indexes = {
+    @Index(columnList = "sha", unique = true),
+    @Index(columnList = "url"),
+    @Index(columnList = "author_id"),
+    @Index(columnList = "committer_id"),
+    @Index(columnList = "stats_id"),
+    @Index(columnList = "commit_id"),
+    @Index(columnList = "repository_id")
+})
 @NamedQueries({
     @NamedQuery(name = "RepositoryCommit.findByURL", query = "SELECT c FROM EntityRepositoryCommit c WHERE c.url = :url"),
     @NamedQuery(name = "RepositoryCommit.findBySHA", query = "SELECT c FROM EntityRepositoryCommit c WHERE c.sha = :sha")
@@ -30,19 +38,25 @@ public class EntityRepositoryCommit implements InterfaceEntity, Serializable {
     @Temporal(javax.persistence.TemporalType.TIMESTAMP)
     private Date mineredAt;
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "repository_id")
     private EntityRepository repository;
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "commit_id")
     private EntityCommit commit;
     @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "stats_id")
     private EntityCommitStats stats;
     @OneToMany(mappedBy = "repositoryCommit", fetch = FetchType.LAZY)
     private Set<EntityCommitFile> files;
-    @Column(columnDefinition = "text", unique = true)
+    @Column(columnDefinition = "text", unique = true, name = "sha")
     private String sha;
+    @Column(name = "url")
     private String url;
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "author_id")
     private EntityUser author;
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "committer_id")
     private EntityUser committer;
     @OneToMany(mappedBy = "repositoryCommit", fetch = FetchType.LAZY)
     private Set<EntityCommitComment> comments;

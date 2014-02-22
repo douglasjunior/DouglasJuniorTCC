@@ -14,7 +14,13 @@ import javax.persistence.*;
  * @author Douglas
  */
 @Entity
-@Table(name = "gitCommitComment")
+@Table(name = "gitCommitComment", indexes = {
+    @Index(columnList = "createdAt"),
+    @Index(columnList = "idComment", unique = true),
+    @Index(columnList = "pathCommitComment"),
+    @Index(columnList = "user_id"),
+    @Index(columnList = "repositorycommit_id")
+})
 @NamedQueries({
     @NamedQuery(name = "CommitComment.findByIdComment", query = "SELECT c FROM EntityCommitComment c WHERE c.idComment = :idComment")
 })
@@ -26,6 +32,7 @@ public class EntityCommitComment implements InterfaceEntity, Serializable {
     private Long id;
     @Temporal(javax.persistence.TemporalType.TIMESTAMP)
     private Date mineredAt;
+    @Column(name = "createdAt")
     @Temporal(javax.persistence.TemporalType.TIMESTAMP)
     private Date createdAt;
     @Temporal(javax.persistence.TemporalType.TIMESTAMP)
@@ -36,18 +43,20 @@ public class EntityCommitComment implements InterfaceEntity, Serializable {
     private String bodyHtml;
     @Column(columnDefinition = "text")
     private String bodyText;
-    @Column(unique = true)
+    @Column(unique = true, name = "idComment")
     private Long idComment;
     private String url;
     private Integer line;
     private Integer position;
     @Column(columnDefinition = "text")
     private String commitId;
-    @Column(columnDefinition = "text")
+    @Column(columnDefinition = "text", name = "pathCommitComment")
     private String pathCommitComment;
     @ManyToOne
+    @JoinColumn(name = "user_id")
     private EntityUser user;
     @ManyToOne
+    @JoinColumn(name = "repositorycommit_id")
     private EntityRepositoryCommit repositoryCommit;
 
     public EntityCommitComment() {

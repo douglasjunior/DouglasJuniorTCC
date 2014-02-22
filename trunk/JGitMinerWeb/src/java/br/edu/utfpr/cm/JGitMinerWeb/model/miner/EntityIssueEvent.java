@@ -12,6 +12,8 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.Index;
+import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
@@ -23,7 +25,12 @@ import javax.persistence.Temporal;
  * @author Douglas
  */
 @Entity
-@Table(name = "gitIssueEvent")
+@Table(name = "gitIssueEvent", indexes = {
+    @Index(columnList = "actor_id"),
+    @Index(columnList = "idIssueEvent", unique = true),
+    @Index(columnList = "issue_id"),
+    @Index(columnList = "url")
+})
 @NamedQueries({
     @NamedQuery(name = "IssueEvent.findByURL", query = "SELECT e FROM EntityIssueEvent e WHERE e.url = :url"),
     @NamedQuery(name = "IssueEvent.findByEventIssueID", query = "SELECT e FROM EntityIssueEvent e WHERE e.idIssueEvent = :idIssueEvent")
@@ -39,16 +46,18 @@ public class EntityIssueEvent implements InterfaceEntity, Serializable {
     @Temporal(javax.persistence.TemporalType.TIMESTAMP)
     private Date createdAt;
     @ManyToOne
+    @JoinColumn(name = "issue_id")
     private EntityIssue issue;
-    @Column(unique = true)
+    @Column(unique = true, name = "idIssueEvent")
     private long idIssueEvent;
     @Column(columnDefinition = "text")
     private String commitId;
     @Column(columnDefinition = "text")
     private String event;
-    @Column(columnDefinition = "text")
+    @Column(columnDefinition = "text",name = "url")
     private String url;
     @ManyToOne
+    @JoinColumn(name = "actor_id")
     private EntityUser actor;
 
     public EntityIssueEvent() {

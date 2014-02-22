@@ -16,7 +16,10 @@ import javax.persistence.*;
  * @author Douglas
  */
 @Entity
-@Table(name = "gitUser")
+@Table(name = "gitUser", indexes = {
+    @Index(columnList = "login", unique = true),
+    @Index(columnList = "email")
+})
 @NamedQueries({
     @NamedQuery(name = "User.findByLogin", query = "SELECT u FROM EntityUser u WHERE u.login = :login")
 })
@@ -47,13 +50,14 @@ public class EntityUser implements InterfaceEntity, Serializable {
     private String blog;
     @Column(columnDefinition = "text")
     private String company;
+    @Column(name = "email")
     private String email;
     @Column(columnDefinition = "text")
     private String gravatarId;
     @Column(columnDefinition = "text")
     private String htmlUrl;
     private String location;
-    @Column(unique = true)
+    @Column(unique = true, name = "login")
     private String login;
     private String name;
     @Column(columnDefinition = "text")
@@ -64,11 +68,27 @@ public class EntityUser implements InterfaceEntity, Serializable {
     private List<EntityIssue> issues;
     @OneToMany(mappedBy = "assignee", fetch = FetchType.LAZY)
     private List<EntityIssue> issuesAssigned;
-    @JoinTable(name = "gitRepository_userWatchers")
     @ManyToMany
+    @JoinTable(name = "gitRepository_userWatchers",
+            joinColumns = {
+                @JoinColumn(name = "watchers_id", referencedColumnName = "id")},
+            inverseJoinColumns = {
+                @JoinColumn(name = "watchedrepositories_id", referencedColumnName = "id")},
+            indexes = {
+                @Index(columnList = "watchers_id"),
+                @Index(columnList = "watchedrepositories_id")
+            })
     private List<EntityRepository> watchedRepositories;
-    @JoinTable(name = "gitRepository_userCollaborators")
     @ManyToMany
+    @JoinTable(name = "gitrepository_usercollaborators",
+            joinColumns = {
+                @JoinColumn(name = "collaborators_id", referencedColumnName = "id")},
+            inverseJoinColumns = {
+                @JoinColumn(name = "collaboratedrepositories_id", referencedColumnName = "id")},
+            indexes = {
+                @Index(columnList = "collaborators_id"),
+                @Index(columnList = "collaboratedrepositories_id")
+            })
     private List<EntityRepository> collaboratedRepositories;
 
     public EntityUser() {

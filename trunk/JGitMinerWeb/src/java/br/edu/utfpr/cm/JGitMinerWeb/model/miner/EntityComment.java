@@ -14,7 +14,12 @@ import javax.persistence.*;
  * @author Douglas
  */
 @Entity
-@Table(name = "gitComment")
+@Table(name = "gitComment", indexes = {
+    @Index(columnList = "createdAt"),
+    @Index(columnList = "idComment", unique = true),
+    @Index(columnList = "user_id"),
+    @Index(columnList = "issue_id")
+})
 @NamedQueries({
     @NamedQuery(name = "Comment.findByIdComment", query = "SELECT c FROM EntityComment c WHERE c.idComment = :idComment")
 })
@@ -26,6 +31,7 @@ public class EntityComment implements InterfaceEntity, Serializable {
     private Long id;
     @Temporal(javax.persistence.TemporalType.TIMESTAMP)
     private Date mineredAt;
+    @Column(name = "createdAt")
     @Temporal(javax.persistence.TemporalType.TIMESTAMP)
     private Date createdAt;
     @Temporal(javax.persistence.TemporalType.TIMESTAMP)
@@ -36,12 +42,14 @@ public class EntityComment implements InterfaceEntity, Serializable {
     private String bodyHtml;
     @Column(columnDefinition = "text")
     private String bodyText;
-    @Column(unique = true)
+    @Column(unique = true, name = "idComment")
     private long idComment;
     private String url;
     @ManyToOne
+    @JoinColumn(name = "user_id")
     private EntityUser user;
     @ManyToOne
+    @JoinColumn(name = "issue_id")
     private EntityIssue issue;
 
     public EntityComment() {
