@@ -19,14 +19,6 @@
         <p:inputText value="#{gitMatrizBean.paramValue['minFilesPerCommit']}" id="minFilesPerCommit" type="number"  size="20" />
         <p:spacer />
         <br />
-        <h:outputLabel value="Include file comments: " for="includeFileComments" />  
-        <p:selectBooleanCheckbox  value="#{gitMatrizBean.paramValue['includeFileComments']}" id="includeFileComments" />
-        <h:outputLabel value="Include commit comments: " for="includeCommitComments" />  
-        <p:selectBooleanCheckbox  value="#{gitMatrizBean.paramValue['includeCommitComments']}" id="includeCommitComments" />
-        <h:outputLabel value="Include issue/pullrequest comments: " for="includeIssueComments" />  
-        <p:selectBooleanCheckbox  value="#{gitMatrizBean.paramValue['includeIssueComments']}" id="includeIssueComments" />
-        <p:spacer />
-        <br />
         <h:outputText value="File prefix: " />  
         <p:inputText value="#{gitMatrizBean.paramValue['prefixFile']}" id="prefixFile"  size="20" />
         <h:outputText value="File suffix: " />  

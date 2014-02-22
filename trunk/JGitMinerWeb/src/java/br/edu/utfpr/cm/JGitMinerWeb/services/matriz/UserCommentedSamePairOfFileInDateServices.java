@@ -43,21 +43,9 @@ public class UserCommentedSamePairOfFileInDateServices extends AbstractMatrizSer
     private String getSuffixFile() {
         return "%" + params.get("suffixFile");
     }
-    
+
     private Integer getMinFilesPerCommit() {
         return Util.stringToInteger(params.get("minFilesPerCommit") + "");
-    }
-
-    private Boolean isIncludeCommitComments() {
-        return Boolean.parseBoolean(params.get("includeCommitComments") + "");
-    }
-
-    private Boolean isIncludeFileComments() {
-        return Boolean.parseBoolean(params.get("includeFileComments") + "");
-    }
-
-    private Boolean isIncludeIssueComments() {
-        return Boolean.parseBoolean(params.get("includeIssueComments") + "");
     }
 
     private List<String> getFilesName() {
@@ -88,19 +76,61 @@ public class UserCommentedSamePairOfFileInDateServices extends AbstractMatrizSer
         String suffix = getSuffixFile();
 
         // select a issue/pullrequest comments
-        jpql = "SELECT DISTINCT i "
-                + "FROM "
-                + "EntityPullRequest p JOIN p.issue i "
-                + "WHERE "
-                + "p.repository = :repo AND "
-                + "p.createdAt BETWEEN :beginDate AND :endDate AND "
-                + "i.commentsCount > 1 ";
+        List<EntityIssue> issuesCommenteds;
+        if (!filesName.isEmpty()) {
+            jpql = "SELECT DISTINCT i "
+                    + "FROM "
+                    + "EntityPullRequest p JOIN p.issue i JOIN p.repositoryCommits rc JOIN rc.files f "
+                    + "WHERE "
+                    + "p.repository = :repo AND "
+                    + "p.createdAt BETWEEN :beginDate AND :endDate AND "
+                    + "i.commentsCount > 1  AND "
+                    + "f.filename IN :filesName";
 
-        System.out.println(jpql);
+            System.out.println(jpql);
 
-        List<EntityIssue> issuesCommenteds = dao.selectWithParams(jpql,
-                new String[]{"repo", "beginDate", "endDate"},
-                new Object[]{getRepository(), getBeginDate(), getEndDate()});
+            issuesCommenteds = dao.selectWithParams(jpql,
+                    new String[]{"repo", "beginDate", "endDate", "filesName"},
+                    new Object[]{getRepository(), getBeginDate(), getEndDate(), filesName});
+        } else if (prefix.length() > 1 || suffix.length() > 1) {
+            jpql = "SELECT DISTINCT i "
+                    + "FROM "
+                    + "EntityPullRequest p JOIN p.issue i JOIN p.repositoryCommits rc JOIN rc.files f "
+                    + "WHERE "
+                    + "p.repository = :repo AND "
+                    + "p.createdAt BETWEEN :beginDate AND :endDate AND "
+                    + "i.commentsCount > 1  "
+                    + (prefix.length() > 1 ? " AND f.filename LIKE :prefix " : "")
+                    + (suffix.length() > 1 ? " AND f.filename LIKE :suffix " : "");
+
+            System.out.println(jpql);
+
+            issuesCommenteds = dao.selectWithParams(jpql,
+                    new String[]{"repo",
+                        "beginDate",
+                        "endDate",
+                        (prefix.length() > 1 ? "prefix " : "#none#"),
+                        (suffix.length() > 1 ? "suffix" : "#none#")},
+                    new Object[]{getRepository(),
+                        getBeginDate(),
+                        getEndDate(),
+                        prefix,
+                        suffix});
+        } else {
+            jpql = "SELECT DISTINCT i "
+                    + "FROM "
+                    + "EntityPullRequest p JOIN p.issue i "
+                    + "WHERE "
+                    + "p.repository = :repo AND "
+                    + "p.createdAt BETWEEN :beginDate AND :endDate AND "
+                    + "i.commentsCount > 1 ";
+
+            System.out.println(jpql);
+
+            issuesCommenteds = dao.selectWithParams(jpql,
+                    new String[]{"repo", "beginDate", "endDate"},
+                    new Object[]{getRepository(), getBeginDate(), getEndDate()});
+        }
 
         out.printLog("Issues comentadas: " + issuesCommenteds.size());
 
@@ -127,7 +157,7 @@ public class UserCommentedSamePairOfFileInDateServices extends AbstractMatrizSer
             List<EntityCommitFile> commitFiles = new ArrayList();
             for (EntityRepositoryCommit comm : pr.getRepositoryCommits()) {
                 if (comm.getFiles().size() <= getMinFilesPerCommit()) {
-                commitFiles.addAll(comm.getFiles());
+                    commitFiles.addAll(comm.getFiles());
                 }
             }
 

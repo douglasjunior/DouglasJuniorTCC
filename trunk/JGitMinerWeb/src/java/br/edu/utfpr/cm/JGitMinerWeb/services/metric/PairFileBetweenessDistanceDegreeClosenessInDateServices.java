@@ -142,12 +142,13 @@ public class PairFileBetweenessDistanceDegreeClosenessInDateServices extends Abs
 
         List<AuxFileFileMetrics> fileMetrics = new ArrayList<>();
         List<AuxUserFileFile> occurrences = new ArrayList<>();
-        
+
         for (AuxFileFile file : files) {
             Double btwMax = 0d, btwAve, btwSum = 0d;
             Double dgrMax = 0d, dgrAve, dgrSum = 0d;
             Double clsMax = 0d, clsAve, clsSum = 0d;
-            Long futCodeChurn = 0l, codeChurn = 0l, futUpdates = 0l, updates = 0l, dev = 0l;
+            Long codeChurn = 0l, futUpdates = 0l, updates = 0l, dev = 0l;
+            Long codeChurn2 = 0l;
             for (String edge : graphMulti.getEdges()) {
                 if (edge.startsWith(file.getFileName() + file.getFileName2())
                         || edge.startsWith(file.getFileName2() + file.getFileName())) {
@@ -182,13 +183,19 @@ public class PairFileBetweenessDistanceDegreeClosenessInDateServices extends Abs
 
             futUpdates = calculeUpdates(file.getFileName(), file.getFileName2(), getFutureBeginDate(), getFutureEndDate());
 
+            AuxFileCountSum aux = calculeCodeChurn(file.getFileName(), file.getFileName2(), getBeginDate(), getEndDate());
+            codeChurn = aux.getSum();
+
+            aux = calculeCodeChurn(file.getFileName2(), file.getFileName(), getBeginDate(), getEndDate());
+            codeChurn2 = aux.getSum();
+
             fileMetrics.add(new AuxFileFileMetrics(file.getFileName(), file.getFileName2(),
                     btwMax, btwAve, btwSum,
                     dgrMax, dgrAve, dgrSum,
                     clsMax, clsAve, clsSum,
                     dev,
-                    codeChurn, futCodeChurn,
-                    updates, futUpdates));
+                    updates, futUpdates,
+                    codeChurn, codeChurn2, (codeChurn + codeChurn2) / 2));
         }
 
         addToEntityMetricNodeList(fileMetrics);
@@ -201,8 +208,8 @@ public class PairFileBetweenessDistanceDegreeClosenessInDateServices extends Abs
                 + "dgrMax;dgrAve;dgrSum;"
                 + "clsMax;clsAve;clsSum;"
                 + "developers;"
-                + "codeChurn;futureCodeChurn;"
-                + "updates;futureUpdates";
+                + "cooUpates;futureCooUpdates;"
+                + "codeChurn;codeChurn2;codeChurnAve";
     }
 
     @Override
@@ -243,6 +250,42 @@ public class PairFileBetweenessDistanceDegreeClosenessInDateServices extends Abs
         };
 
         return dao.selectOneWithParams(jpql, bdParams, bdObjects);
+    }
+
+    private AuxFileCountSum calculeCodeChurn(String fileName, String fileName2, Date beginDate, Date endDate) {
+        String jpql = "SELECT NEW " + AuxFileCountSum.class.getName() + "(ff.filename, 0, SUM(ff.changes)) "
+                + "FROM "
+                + "EntityRepositoryCommit rc JOIN rc.files ff "
+                + "WHERE "
+                + "rc.repository = :repo AND "
+                + "rc.commit.committer.dateCommitUser BETWEEN :beginDate AND :endDate AND "
+                + "ff.filename = :fileName AND "
+                + "EXISTS (SELECT f FROM EntityCommitFile f WHERE f.repositoryCommit = rc AND f.filename = :fileName) AND "
+                + "EXISTS (SELECT f2 FROM EntityCommitFile f2 WHERE f2.repositoryCommit = rc AND f2.filename = :fileName2) "
+                + "GROUP BY ff.filename";
+
+        String[] bdParams = new String[]{
+            "repo",
+            "fileName",
+            "fileName2",
+            "beginDate",
+            "endDate"
+        };
+        Object[] bdObjects = new Object[]{
+            repository,
+            fileName,
+            fileName2,
+            beginDate,
+            endDate
+        };
+
+        List<AuxFileCountSum> result = dao.selectWithParams(jpql, bdParams, bdObjects);
+
+        if (!result.isEmpty()) {
+            return result.get(0);
+        } else {
+            return new AuxFileCountSum(fileName, 0, 0);
+        }
     }
 
     private EntityRepository getRepository() {
