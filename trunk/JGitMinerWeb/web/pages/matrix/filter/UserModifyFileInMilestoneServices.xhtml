@@ -1,0 +1,19 @@
+<div xmlns="http://www.w3.org/1999/xhtml"
+     xmlns:h="http://java.sun.com/jsf/html" 
+     xmlns:p="http://primefaces.org/ui">
+
+    <h2>Usuario que modificou um arquivo no Milestone informado abaixo.</h2>
+
+    <br />
+
+    <h:outputText value="Milestone Number:* " />  
+    <p:inputText value="#{gitMatrixBean.paramValue['milestoneNumber']}" id="mileNumber" type="number"  size="10" />
+    <h:outputText value="(required)" />
+    <br />
+    <h:outputText value="File prefix: " />  
+    <p:inputText value="#{gitMatrixBean.paramValue['prefixFile']}" id="prefixFile"  size="20" />
+    <br />
+    <h:outputText value="File suffix: " />  
+    <p:inputText value="#{gitMatrixBean.paramValue['suffixFile']}" id="suffixFile"  size="20" />
+
+</div>

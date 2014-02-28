@@ -23,8 +23,8 @@ import javax.persistence.Table;
  */
 @Entity
 @Table(name = "node", indexes = {
-    @Index(columnList = "matriz_id"),
-    @Index(columnList = "matriz_id,dtype"),
+    @Index(columnList = "matrix_id"),
+    @Index(columnList = "matrix_id,dtype"),
     @Index(columnList = "metric_id"),
     @Index(columnList = "metric_id,dtype")
 })

@@ -5,14 +5,14 @@
 package br.edu.utfpr.cm.JGitMinerWeb.services.metric;
 
 import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericDao;
-import br.edu.utfpr.cm.JGitMinerWeb.model.matriz.EntityMatriz;
-import br.edu.utfpr.cm.JGitMinerWeb.model.matriz.EntityMatrizNode;
+import br.edu.utfpr.cm.JGitMinerWeb.model.matrix.EntityMatrix;
+import br.edu.utfpr.cm.JGitMinerWeb.model.matrix.EntityMatrixNode;
 import br.edu.utfpr.cm.JGitMinerWeb.model.miner.EntityRepository;
-import br.edu.utfpr.cm.JGitMinerWeb.services.matriz.UserCommentedSamePairOfFileInDateServices;
-import br.edu.utfpr.cm.JGitMinerWeb.services.matriz.UserModifySamePairOfFileInDateServices;
-import br.edu.utfpr.cm.JGitMinerWeb.services.matriz.auxiliary.AuxFileCountSum;
-import br.edu.utfpr.cm.JGitMinerWeb.services.matriz.auxiliary.AuxFileFile;
-import br.edu.utfpr.cm.JGitMinerWeb.services.matriz.auxiliary.AuxUserFileFile;
+import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.UserCommentedSamePairOfFileInDateServices;
+import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.UserModifySamePairOfFileInDateServices;
+import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.auxiliary.AuxFileCountSum;
+import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.auxiliary.AuxFileFile;
+import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.auxiliary.AuxUserFileFile;
 import br.edu.utfpr.cm.JGitMinerWeb.services.metric.auxiliary.AuxFileFileMetrics;
 import br.edu.utfpr.cm.JGitMinerWeb.services.metric.auxiliary.AuxUserMetrics;
 import br.edu.utfpr.cm.JGitMinerWeb.util.JsfUtil;
@@ -43,8 +43,8 @@ public class PairFileBetweenessDistanceDegreeClosenessInDateServices extends Abs
         super(dao, out);
     }
 
-    public PairFileBetweenessDistanceDegreeClosenessInDateServices(GenericDao dao, EntityMatriz matriz, Map params, OutLog out) {
-        super(dao, matriz, params, out);
+    public PairFileBetweenessDistanceDegreeClosenessInDateServices(GenericDao dao, EntityMatrix matrix, Map params, OutLog out) {
+        super(dao, matrix, params, out);
     }
 
     public Date getFutureBeginDate() {
@@ -77,10 +77,10 @@ public class PairFileBetweenessDistanceDegreeClosenessInDateServices extends Abs
     public void run() {
         System.out.println(params);
 
-        System.out.println(getMatriz().getClassServicesName());
+        System.out.println(getMatrix().getClassServicesName());
 
-        if (getMatriz() == null
-                || !getAvailableMatricesPermitted().contains(getMatriz().getClassServicesName())) {
+        if (getMatrix() == null
+                || !getAvailableMatricesPermitted().contains(getMatrix().getClassServicesName())) {
             throw new IllegalArgumentException("Selecione uma matriz gerada pelo Services: " + getAvailableMatricesPermitted());
         }
 
@@ -91,11 +91,11 @@ public class PairFileBetweenessDistanceDegreeClosenessInDateServices extends Abs
         }
 
         // user | file | file2 | user2 | weigth
-        System.out.println("Selecionado matriz com " + getMatriz().getNodes().size() + " nodes.");
+        System.out.println("Selecionado matriz com " + getMatrix().getNodes().size() + " nodes.");
         AbstractTypedGraph<String, String> graphMulti;
         //    AbstractTypedGraph<String, String> graph;
         EdgeType type;
-        if (getMatriz().getClassServicesName().equals(UserCommentedSamePairOfFileInDateServices.class.getName())) {
+        if (getMatrix().getClassServicesName().equals(UserCommentedSamePairOfFileInDateServices.class.getName())) {
             //       graph = new DirectedSparseGraph<>();
             graphMulti = new DirectedSparseMultigraph<>();
             type = EdgeType.DIRECTED;
@@ -105,8 +105,8 @@ public class PairFileBetweenessDistanceDegreeClosenessInDateServices extends Abs
             type = EdgeType.UNDIRECTED;
         }
         List<AuxFileFile> files = new ArrayList<>();
-        for (int i = 0; i < getMatriz().getNodes().size(); i++) {
-            EntityMatrizNode node = getMatriz().getNodes().get(i);
+        for (int i = 0; i < getMatrix().getNodes().size(); i++) {
+            EntityMatrixNode node = getMatrix().getNodes().get(i);
             String[] coluns = node.getLine().split(JsfUtil.TOKEN_SEPARATOR);
             AuxFileFile auxFile = new AuxFileFile(coluns[1], coluns[2]);
             if (!files.contains(auxFile)) {
@@ -289,7 +289,7 @@ public class PairFileBetweenessDistanceDegreeClosenessInDateServices extends Abs
     }
 
     private EntityRepository getRepository() {
-        String[] repoStr = getMatriz().getRepository().split("/");
+        String[] repoStr = getMatrix().getRepository().split("/");
         List<EntityRepository> repos = dao.executeNamedQueryWithParams(
                 "Repository.findByNameAndOwner",
                 new String[]{"login", "name"},

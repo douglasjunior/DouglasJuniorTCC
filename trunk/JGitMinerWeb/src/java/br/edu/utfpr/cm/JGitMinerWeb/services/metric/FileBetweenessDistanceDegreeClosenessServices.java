@@ -5,13 +5,13 @@
 package br.edu.utfpr.cm.JGitMinerWeb.services.metric;
 
 import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericDao;
-import br.edu.utfpr.cm.JGitMinerWeb.model.matriz.EntityMatriz;
-import br.edu.utfpr.cm.JGitMinerWeb.model.matriz.EntityMatrizNode;
+import br.edu.utfpr.cm.JGitMinerWeb.model.matrix.EntityMatrix;
+import br.edu.utfpr.cm.JGitMinerWeb.model.matrix.EntityMatrixNode;
 import br.edu.utfpr.cm.JGitMinerWeb.model.miner.EntityRepository;
-import br.edu.utfpr.cm.JGitMinerWeb.services.matriz.UserModifySameFileInDateServices;
-import br.edu.utfpr.cm.JGitMinerWeb.services.matriz.UserModifySameFileInMilestoneServices;
-import br.edu.utfpr.cm.JGitMinerWeb.services.matriz.auxiliary.AuxFileCountSum;
-import br.edu.utfpr.cm.JGitMinerWeb.services.matriz.auxiliary.AuxUserFile;
+import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.UserModifySameFileInDateServices;
+import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.UserModifySameFileInMilestoneServices;
+import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.auxiliary.AuxFileCountSum;
+import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.auxiliary.AuxUserFile;
 import br.edu.utfpr.cm.JGitMinerWeb.services.metric.auxiliary.AuxFileMetrics;
 import br.edu.utfpr.cm.JGitMinerWeb.services.metric.auxiliary.AuxUserMetrics;
 import br.edu.utfpr.cm.JGitMinerWeb.util.JsfUtil;
@@ -40,8 +40,8 @@ public class FileBetweenessDistanceDegreeClosenessServices extends AbstractMetri
         super(dao, out);
     }
 
-    public FileBetweenessDistanceDegreeClosenessServices(GenericDao dao, EntityMatriz matriz, Map params, OutLog out) {
-        super(dao, matriz, params, out);
+    public FileBetweenessDistanceDegreeClosenessServices(GenericDao dao, EntityMatrix matrix, Map params, OutLog out) {
+        super(dao, matrix, params, out);
     }
 
     /*
@@ -66,10 +66,10 @@ public class FileBetweenessDistanceDegreeClosenessServices extends AbstractMetri
     public void run() {
         System.out.println(params);
 
-        System.out.println(getMatriz().getClassServicesName());
+        System.out.println(getMatrix().getClassServicesName());
         
-        if (getMatriz() == null || 
-                !getAvailableMatricesPermitted().contains(getMatriz().getClassServicesName())) {
+        if (getMatrix() == null || 
+                !getAvailableMatricesPermitted().contains(getMatrix().getClassServicesName())) {
             throw new IllegalArgumentException("Selecione uma matriz gerada pelo Services: " + getAvailableMatricesPermitted());
         }
 
@@ -79,12 +79,12 @@ public class FileBetweenessDistanceDegreeClosenessServices extends AbstractMetri
             throw new IllegalArgumentException("Não foi possível encontrar o repositório utilizado nesta matriz.");
         }
 
-        System.out.println("Selecionado matriz com " + getMatriz().getNodes().size() + " nodes.");
+        System.out.println("Selecionado matriz com " + getMatrix().getNodes().size() + " nodes.");
         UndirectedSparseMultigraph<String, String> graphMulti = new UndirectedSparseMultigraph<>();
         UndirectedSparseGraph<String, String> graph = new UndirectedSparseGraph<>();
         List<String> files = new ArrayList<>();
-        for (int i = 0; i < getMatriz().getNodes().size(); i++) {
-            EntityMatrizNode node = getMatriz().getNodes().get(i);
+        for (int i = 0; i < getMatrix().getNodes().size(); i++) {
+            EntityMatrixNode node = getMatrix().getNodes().get(i);
             String[] coluns = node.getLine().split(JsfUtil.TOKEN_SEPARATOR);
             colectFile(files, coluns[2]);
             graph.addEdge(
@@ -247,7 +247,7 @@ public class FileBetweenessDistanceDegreeClosenessServices extends AbstractMetri
     }
 
     private EntityRepository getRepository() {
-        String[] repoStr = getMatriz().getRepository().split("/");
+        String[] repoStr = getMatrix().getRepository().split("/");
         List<EntityRepository> repos = dao.executeNamedQueryWithParams(
                 "Repository.findByNameAndOwner",
                 new String[]{"login", "name"},

@@ -63,8 +63,8 @@ public class GitMetricViewBean implements Serializable {
 
     public void reloadList() {
         dao.clearCache(true);
-        List<EntityMetric> matrizes = dao.executeNamedQuery("Metric.findAllTheLatest");
-        JsfUtil.addAttributeInSession(LIST, matrizes);
+        List<EntityMetric> metrics = dao.executeNamedQuery("Metric.findAllTheLatest");
+        JsfUtil.addAttributeInSession(LIST, metrics);
     }
 
     public List<EntityMetric> getMetrics() {
@@ -137,6 +137,6 @@ public class GitMetricViewBean implements Serializable {
     }
 
     private String generateFileName(EntityMetric metric) {
-        return metric.getClassServicesSingleName() + " of matriz (" + metric.getMatriz() + ") - " + metric.getStarted();
+        return metric.getClassServicesSingleName() + " of matrix (" + metric.getMatrix() + ") - " + metric.getStarted();
     }
 }
