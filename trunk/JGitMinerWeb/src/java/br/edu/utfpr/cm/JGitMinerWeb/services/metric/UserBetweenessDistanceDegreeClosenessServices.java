@@ -5,10 +5,10 @@
 package br.edu.utfpr.cm.JGitMinerWeb.services.metric;
 
 import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericDao;
-import br.edu.utfpr.cm.JGitMinerWeb.model.matriz.EntityMatriz;
-import br.edu.utfpr.cm.JGitMinerWeb.model.matriz.EntityMatrizNode;
-import br.edu.utfpr.cm.JGitMinerWeb.services.matriz.UserModifySameFileInDateServices;
-import br.edu.utfpr.cm.JGitMinerWeb.services.matriz.UserModifySameFileInMilestoneServices;
+import br.edu.utfpr.cm.JGitMinerWeb.model.matrix.EntityMatrix;
+import br.edu.utfpr.cm.JGitMinerWeb.model.matrix.EntityMatrixNode;
+import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.UserModifySameFileInDateServices;
+import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.UserModifySameFileInMilestoneServices;
 import br.edu.utfpr.cm.JGitMinerWeb.services.metric.auxiliary.AuxUserMetrics;
 import br.edu.utfpr.cm.JGitMinerWeb.util.JsfUtil;
 import br.edu.utfpr.cm.JGitMinerWeb.util.OutLog;
@@ -32,22 +32,22 @@ public class UserBetweenessDistanceDegreeClosenessServices extends AbstractMetri
         super(dao, out);
     }
 
-    public UserBetweenessDistanceDegreeClosenessServices(GenericDao dao, EntityMatriz matriz, Map params, OutLog out) {
-        super(dao, matriz, params, out);
+    public UserBetweenessDistanceDegreeClosenessServices(GenericDao dao, EntityMatrix matrix, Map params, OutLog out) {
+        super(dao, matrix, params, out);
     }
 
     @Override
     public void run() {
         System.out.println(params);
 
-        if (getMatriz() == null && !getAvailableMatricesPermitted().contains(getMatriz().getClassServicesName())) {
+        if (getMatrix() == null && !getAvailableMatricesPermitted().contains(getMatrix().getClassServicesName())) {
             throw new IllegalArgumentException("Selecione uma matriz gerada pelo Service: " + UserModifySameFileInMilestoneServices.class.getName());
         }
 
-        System.out.println("Selecionado matriz com " + getMatriz().getNodes().size() + " nodes.");
+        System.out.println("Selecionado matriz com " + getMatrix().getNodes().size() + " nodes.");
         UndirectedSparseGraph<String, String> graph = new UndirectedSparseGraph<>();
-        for (int i = 0; i < getMatriz().getNodes().size(); i++) {
-            EntityMatrizNode node = getMatriz().getNodes().get(i);
+        for (int i = 0; i < getMatrix().getNodes().size(); i++) {
+            EntityMatrixNode node = getMatrix().getNodes().get(i);
             String[] coluns = node.getLine().split(JsfUtil.TOKEN_SEPARATOR);
             if (coluns.length >= 3) {
                 graph.addEdge(coluns[2] + " (" + i + ")", coluns[1], coluns[0]);

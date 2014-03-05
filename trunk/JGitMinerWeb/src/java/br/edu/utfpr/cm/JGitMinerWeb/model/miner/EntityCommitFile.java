@@ -15,9 +15,13 @@ import javax.persistence.*;
  */
 @Entity
 @Table(name = "gitCommitFile",
-uniqueConstraints = {
-    @UniqueConstraint(columnNames = {"repositoryCommit_id", "sha"})
-})
+        uniqueConstraints = {
+            @UniqueConstraint(columnNames = {"repositoryCommit_id", "sha"})
+        }, indexes = {
+            @Index(columnList = "repositoryCommit_id,sha", unique = true),
+            @Index(columnList = "filename"),
+            @Index(columnList = "repositoryCommit_id")
+        })
 @NamedQueries({
     @NamedQuery(name = "CommitFile.findByCommitAndSHA", query = "SELECT f FROM EntityCommitFile f WHERE f.repositoryCommit = :repoCommit AND f.sha = :sha ")
 })
@@ -34,13 +38,13 @@ public class EntityCommitFile implements InterfaceEntity, Serializable {
     private Integer deletions;
     @Column(columnDefinition = "text")
     private String blobUrl;
-    @Column(columnDefinition = "text")
+    @Column(columnDefinition = "text", name = "filename")
     private String filename;
     @Column(columnDefinition = "text")
     private String patch;
     @Column(columnDefinition = "text")
     private String rawUrl;
-    @Column(columnDefinition = "text")
+    @Column(columnDefinition = "text", name = "sha")
     private String sha;
     private String status;
     @ManyToOne(fetch = FetchType.LAZY)

@@ -6,7 +6,7 @@
      xmlns:c="http://java.sun.com/jsp/jstl/core">
 
     <h:form>
-        <h:outputText value="#{gitMatrizViewBean.reloadList()}" />
+        <h:outputText value="#{gitMatrixViewBean.reloadList()}" />
     </h:form>
 
     <p:panel>
@@ -15,14 +15,14 @@
         <h:form prependId="false" id="formMetric" >
             <p:growl globalOnly="true" id="messages" />
 
-            <h:outputText value="Select a Matriz: " /> <br />  
-            <p:selectOneListbox  style="height:100px;width:500px" value="#{gitMetricBean.matrizId}"  >
-                <f:selectItems value="#{gitMatrizViewBean.matrizes}" var="matriz" itemLabel="#{matriz.toString()}" itemDescription="#{matriz.toString()}" itemValue="#{matriz.id}" />
-                <f:ajax render="listServices matrizParamsUsed" />
+            <h:outputText value="Select a Matrix: " /> <br />  
+            <p:selectOneListbox  style="height:100px;width:500px" value="#{gitMetricBean.matrixId}"  >
+                <f:selectItems value="#{gitMatrixViewBean.matrices}" var="matrix" itemLabel="#{matrix.toString()}" itemDescription="#{matrix.toString()}" itemValue="#{matrix.id}" />
+                <f:ajax render="listServices matrixParamsUsed" />
             </p:selectOneListbox>
             
-            <b><h:outputLabel for="matrizParamsUsed" value="Used params: " /></b>
-            <h:outputText id="matrizParamsUsed" value="#{gitMetricBean.matrizParamsToString}" /> 
+            <b><h:outputLabel for="matrixParamsUsed" value="Used params: " /></b>
+            <h:outputText id="matrixParamsUsed" value="#{gitMetricBean.matrixParamsToString}" /> 
             
             <br />
             <br />

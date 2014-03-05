@@ -26,7 +26,7 @@
                 </p:column>
 
                 <p:column headerText="Repository">
-                    <h:outputText value="#{metric.matriz.toString()}" />
+                    <h:outputText value="#{metric.matrix.toString()}" />
                 </p:column>
 
                 <p:column headerText="Class Service">
@@ -71,7 +71,7 @@
             </p:dataTable>
 
             <p:confirmDialog  id="confirmDelete" widgetVar="confirmation"
-                              message="Really delete this matriz?" header="Confirmation" 
+                              message="Really delete this matrix?" header="Confirmation" 
                               severity="alert"  closable="false" >
                 <p:commandButton value="Yes" id="confirmYes" update="list messages" oncomplete="confirmation.hide()" style="position: relative;left: 80px"
                                  actionListener="#{gitMetricViewBean.delete()}">

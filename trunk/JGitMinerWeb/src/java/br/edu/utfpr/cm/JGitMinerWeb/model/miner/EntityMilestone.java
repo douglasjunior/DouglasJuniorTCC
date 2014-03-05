@@ -16,6 +16,12 @@ import javax.persistence.*;
 @Entity
 @Table(name = "gitMilestone",uniqueConstraints = {
     @UniqueConstraint(columnNames = {"repository_id", "number"})
+}, indexes = {
+    @Index(columnList = "repository_id,number", unique = true),
+    @Index(columnList = "url", unique = true),
+    @Index(columnList = "creator_id"),
+    @Index(columnList = "repository_id"),
+    @Index(columnList = "createdAt")
 })
 @NamedQueries({
     @NamedQuery(name = "Milestone.findByURL", query = "SELECT m FROM EntityMilestone m WHERE m.url = :url")
@@ -28,11 +34,13 @@ public class EntityMilestone implements InterfaceEntity, Serializable {
     private Long id;
     @Temporal(javax.persistence.TemporalType.TIMESTAMP)
     private Date mineredAt;
+    @Column(name = "createdAt")
     @Temporal(javax.persistence.TemporalType.TIMESTAMP)
     private Date createdAt;
     @Temporal(javax.persistence.TemporalType.TIMESTAMP)
     private Date dueOn;
     private Integer closedIssues;
+    @Column(name = "number")
     private Integer number;
     private Integer openIssues;
     @Column(columnDefinition = "text")
@@ -40,11 +48,13 @@ public class EntityMilestone implements InterfaceEntity, Serializable {
     private String stateMilestone;
     @Column(columnDefinition = "text")
     private String title;
-    @Column(unique = true)
+    @Column(unique = true, name = "url")
     private String url;
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "creator_id")
     private EntityUser creator;
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "repository_id")
     private EntityRepository repository;
 
     public EntityMilestone() {

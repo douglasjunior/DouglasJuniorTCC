@@ -53,7 +53,7 @@ public class EntityMetric implements InterfaceEntity, Startable {
     @OneToMany(mappedBy = "metric", orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<EntityMetricNode> nodes;
     private String classServicesName;
-    private String matriz;
+    private String matrix;
 
     public EntityMetric() {
         started = new Date();
@@ -72,12 +72,12 @@ public class EntityMetric implements InterfaceEntity, Startable {
         this.id = id;
     }
 
-    public String getMatriz() {
-        return matriz;
+    public String getMatrix() {
+        return matrix;
     }
 
-    public void setMatriz(String matriz) {
-        this.matriz = matriz;
+    public void setMatrix(String matrix) {
+        this.matrix = matrix;
     }
 
     public boolean isComplete() {
@@ -174,7 +174,7 @@ public class EntityMetric implements InterfaceEntity, Startable {
 
     @Override
     public String getDownloadFileName() {
-        return this.matriz + "-" + this.started;
+        return this.matrix + "-" + this.started;
     }
 
     public void setParams(Map params) {

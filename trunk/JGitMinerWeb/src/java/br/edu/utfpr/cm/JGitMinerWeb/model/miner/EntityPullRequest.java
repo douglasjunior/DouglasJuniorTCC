@@ -18,6 +18,17 @@ import javax.persistence.*;
 @Entity
 @Table(name = "gitPullRequest",uniqueConstraints = {
     @UniqueConstraint(columnNames = {"repository_id", "number"})
+}, indexes = {
+    @Index(columnList = "repository_id,number", unique = true),
+    @Index(columnList = "idPullRequest", unique = true),
+    @Index(columnList = "base_id"),
+    @Index(columnList = "head_id"),
+    @Index(columnList = "mergedby_id"),
+    @Index(columnList = "repository_id"),
+    @Index(columnList = "issue_id"),
+    @Index(columnList = "user_id"),
+    @Index(columnList = "createdAt"),
+    @Index(columnList = "number")
 })
 @NamedQueries({
     @NamedQuery(name = "PullRequest.findByIdPullRequest", query = "SELECT p FROM EntityPullRequest p WHERE p.idPullRequest = :idPullRequest"),
@@ -41,18 +52,22 @@ public class EntityPullRequest implements InterfaceEntity, Serializable {
     @Temporal(javax.persistence.TemporalType.TIMESTAMP)
     private Date updatedAt;
     @Temporal(javax.persistence.TemporalType.TIMESTAMP)
+    @Column(name = "createdAt")
     private Date createdAt;
-    @Column(unique = true)
+    @Column(unique = true, name = "idPullRequest")
     private Long idPullRequest;
     private Integer additions;
     private Integer changedFiles;
     private Integer commentsCount;
     private Integer commitsCount;
     private Integer deletions;
+    @Column(name = "number")
     private Integer number;
     @ManyToOne
+    @JoinColumn(name = "base_id")
     private EntityPullRequestMarker base;
     @ManyToOne
+    @JoinColumn(name = "head_id")
     private EntityPullRequestMarker head;
     @Column(columnDefinition = "text")
     private String body;
@@ -73,14 +88,27 @@ public class EntityPullRequest implements InterfaceEntity, Serializable {
     private String title;
     private String url;
     @ManyToOne
+    @JoinColumn(name = "mergedby_id")
     private EntityUser mergedBy;
     @ManyToOne
+    @JoinColumn(name = "")
     private EntityUser user;
     @OneToOne
+    @JoinColumn(name = "issue_id")
     private EntityIssue issue;
     @ManyToOne
+    @JoinColumn(name = "repository_id")
     private EntityRepository repository;
-    @OneToMany
+    @OneToMany(fetch = FetchType.LAZY)
+        @JoinTable(name = "gitpullrequest_gitrepositorycommit",
+            joinColumns = {
+                @JoinColumn(name = "entitypullrequest_id", referencedColumnName = "id")},
+            inverseJoinColumns = {  
+                @JoinColumn(name = "repositorycommits_id", referencedColumnName = "id")},
+            indexes = {
+                @Index(columnList = "entitypullrequest_id"),
+                @Index(columnList = "repositorycommits_id")
+            })
     private Set<EntityRepositoryCommit> repositoryCommits;
 
     public EntityPullRequest() {

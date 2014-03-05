@@ -5,10 +5,10 @@
 package br.edu.utfpr.cm.JGitMinerWeb.services.metric;
 
 import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericDao;
-import br.edu.utfpr.cm.JGitMinerWeb.model.matriz.EntityMatriz;
+import br.edu.utfpr.cm.JGitMinerWeb.model.matrix.EntityMatrix;
 import br.edu.utfpr.cm.JGitMinerWeb.model.metric.EntityMetricNode;
 import br.edu.utfpr.cm.JGitMinerWeb.services.AbstractServices;
-import br.edu.utfpr.cm.JGitMinerWeb.services.matriz.AbstractMatrizServices;
+import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.AbstractMatrixServices;
 import br.edu.utfpr.cm.JGitMinerWeb.util.OutLog;
 import java.util.ArrayList;
 import java.util.List;
@@ -20,20 +20,20 @@ import java.util.Map;
  */
 public abstract class AbstractMetricServices extends AbstractServices {
 
-    private final EntityMatriz matriz;
+    private final EntityMatrix matrix;
 
     public AbstractMetricServices(GenericDao dao, OutLog out) {
         super(dao, out);
-        this.matriz = null;
+        this.matrix = null;
     }
 
-    public AbstractMetricServices(GenericDao dao, EntityMatriz matriz, Map params, OutLog out) {
+    public AbstractMetricServices(GenericDao dao, EntityMatrix matrix, Map params, OutLog out) {
         super(dao, params, out);
-        this.matriz = matriz;
+        this.matrix = matrix;
     }
 
-    public EntityMatriz getMatriz() {
-        return matriz;
+    public EntityMatrix getMatrix() {
+        return matrix;
     }
 
     @Override

@@ -16,16 +16,23 @@ import javax.persistence.*;
  * @author Douglas
  */
 @Entity
-@Table(name = "gitRepository") 
+@Table(name = "gitRepository", indexes = {
+    @Index(columnList = "idRepository", unique = true),
+    @Index(columnList = "owner_id,name"),
+    @Index(columnList = "owner_id"),
+    @Index(columnList = "parent_id"),
+    @Index(columnList = "source_id"),
+    @Index(columnList = "primaryMiner")
+})
 @NamedQueries({
     @NamedQuery(name = "Repository.findByName",
-    query = "SELECT r FROM EntityRepository r WHERE r.name = :name"),
+            query = "SELECT r FROM EntityRepository r WHERE r.name = :name"),
     @NamedQuery(name = "Repository.findByNameAndOwner",
-    query = "SELECT r FROM EntityRepository r WHERE r.name = :name AND r.owner.login = :login"),
+            query = "SELECT r FROM EntityRepository r WHERE r.name = :name AND r.owner.login = :login"),
     @NamedQuery(name = "Repository.findByIdRepository",
-    query = "SELECT r FROM EntityRepository r WHERE r.idRepository = :idRepository"),
+            query = "SELECT r FROM EntityRepository r WHERE r.idRepository = :idRepository"),
     @NamedQuery(name = "Repository.findByPrimaryMiner",
-    query = "SELECT r FROM EntityRepository r WHERE r.primaryMiner = TRUE")
+            query = "SELECT r FROM EntityRepository r WHERE r.primaryMiner = TRUE")
 })
 public class EntityRepository implements InterfaceEntity, Serializable {
 
@@ -35,6 +42,7 @@ public class EntityRepository implements InterfaceEntity, Serializable {
     private Long id;
     @Temporal(javax.persistence.TemporalType.TIMESTAMP)
     private Date mineredAt;
+    @Column(name = "primaryMiner")
     private boolean primaryMiner;
     private boolean fork;
     private boolean hasDownloads;
@@ -47,12 +55,14 @@ public class EntityRepository implements InterfaceEntity, Serializable {
     private Date pushedAt;
     @Temporal(javax.persistence.TemporalType.TIMESTAMP)
     private Date updatedAt;
-    @Column(unique = true)
+    @Column(unique = true, name = "idRepository")
     private Long idRepository;
     private Integer sizeRepository;
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "parent_id")
     private EntityRepository parent;
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "source_id")
     private EntityRepository source;
     private String cloneUrl;
     @Column(columnDefinition = "text")
@@ -66,6 +76,7 @@ public class EntityRepository implements InterfaceEntity, Serializable {
     @Column(columnDefinition = "text")
     private String masterBranch;
     private String mirrorUrl;
+    @Column(name = "name")
     private String name;
     @Column(columnDefinition = "text")
     private String sshUrl;
@@ -73,6 +84,7 @@ public class EntityRepository implements InterfaceEntity, Serializable {
     private String svnUrl;
     private String url;
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "owner_id")
     private EntityUser owner;
     @OneToMany(mappedBy = "repository", fetch = FetchType.LAZY)
     private Set<EntityIssue> issues;

@@ -53,13 +53,13 @@ public class PagesManager implements Serializable {
         return "refreshPage";
     }
 
-    public String matrizCreate() {
-        this.body = "./pages/matriz/create.xhtml";
+    public String matrixCreate() {
+        this.body = "./pages/matrix/create.xhtml";
         return "refreshPage";
     }
 
-    public String matrizView() {
-        this.body = "./pages/matriz/view.xhtml";
+    public String matrixView() {
+        this.body = "./pages/matrix/view.xhtml";
         return "refreshPage";
     }
 
