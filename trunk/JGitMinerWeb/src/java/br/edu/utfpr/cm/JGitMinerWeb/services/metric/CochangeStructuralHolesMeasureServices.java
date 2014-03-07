@@ -107,8 +107,8 @@ public class CochangeStructuralHolesMeasureServices extends AbstractMetricServic
     @Override
     public String getHeadCSV() {
         return "file;"
-                + "efficiency;effectiveSize;constraint;"
-                + "aggregateConstraint;hierarchy"
+                + "efficiency;effectiveSize;"
+                + "constraint;hierarchy"
                 ;
     }
 
