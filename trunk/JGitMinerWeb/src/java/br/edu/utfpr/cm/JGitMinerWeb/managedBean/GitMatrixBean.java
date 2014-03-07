@@ -168,7 +168,7 @@ public class GitMatrixBean implements Serializable {
                         if (!canceled) {
                             out.setCurrentProcess("Iniciando coleta dos dados para geração da matriz.");
                             super.run();
-                            out.printLog(netServices.getNodes().size() + " Registros coletados!");
+                            
                         }
                         progress = new Integer(50);
                         out.printLog("");
@@ -181,12 +181,13 @@ public class GitMatrixBean implements Serializable {
                                 entityMatrix.setRepository(repository + "");
                                 entityMatrix.setLog(out.getLog().toString());
                                 entityMatrix.setClassServicesName(serviceClass.getName());
-                                dao.edit(entityMatrix);
+                                dao.edit(entityMatrix); 
                                 saveRecordsInMatrix(entityMatrix);
                                 entityMatrix.setComplete(true);
                                 entityMatrix.setLog(out.getLog().toString());
                                 entityMatrix.setStoped(new Date());
                                 dao.edit(entityMatrix);
+                                out.printLog(entityMatrix.getNodes().size() + " Registros coletados!");
                             }
                             out.printLog("Salvamento dos dados concluído!");
                         }
