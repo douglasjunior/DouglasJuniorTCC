@@ -95,12 +95,10 @@ public class CochangeStructuralHolesMeasureServices extends AbstractMetricServic
             double efficiency = structuralHoles.efficiency(commiter);
             double effectiveSize = structuralHoles.effectiveSize(commiter);
             double constraint = structuralHoles.constraint(commiter);
-            double aggregateConstraint = structuralHoles.aggregateConstraint(commiter);
             double hierarchy = structuralHoles.hierarchy(commiter);
             
             fileMetrics.add(new AuxFileMetrics(commiter,
-                    efficiency, effectiveSize, constraint, 
-                    aggregateConstraint, hierarchy));
+                    efficiency, effectiveSize, constraint, hierarchy));
             
         }
         addToEntityMetricNodeList(fileMetrics);
