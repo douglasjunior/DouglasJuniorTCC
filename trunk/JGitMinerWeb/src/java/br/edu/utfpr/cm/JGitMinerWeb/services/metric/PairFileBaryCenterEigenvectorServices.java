@@ -8,8 +8,7 @@ import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericDao;
 import br.edu.utfpr.cm.JGitMinerWeb.model.matrix.EntityMatrix;
 import br.edu.utfpr.cm.JGitMinerWeb.model.matrix.EntityMatrixNode;
 import br.edu.utfpr.cm.JGitMinerWeb.model.miner.EntityRepository;
-import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.UserCommentedSameFileInDateServices;
-import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.UserModifySameFileInDateServices;
+import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.UserModifySamePairOfFileInDateServices;
 import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.auxiliary.AuxFileCountSum;
 import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.auxiliary.AuxUserFile;
 import br.edu.utfpr.cm.JGitMinerWeb.services.metric.auxiliary.AuxFileMetrics;
@@ -155,14 +154,14 @@ public class PairFileBaryCenterEigenvectorServices extends AbstractMetricService
         return "file;"
                 + "baryCenterMax;baryCenterAve;baryCenterSum;"
                 + "eigenvectorMax;eigenvectorAve;eigenvectorSum;"
-                + "developers;"
-                + "codeChurn;futureCodeChurn;"
-                + "updates;futureUpdates";
+                + "developers;codeChurn;updates;";
     }
 
     @Override
     public List<String> getAvailableMatricesPermitted() {
-        return Arrays.asList(UserModifySameFileInDateServices.class.getName(), UserCommentedSameFileInDateServices.class.getName());
+        return Arrays.asList(
+                UserModifySamePairOfFileInDateServices.class.getName()
+        );
     }
 
     private void colectFile(List<String> files, String file) {
