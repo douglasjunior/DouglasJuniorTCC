@@ -5,7 +5,6 @@ import br.edu.utfpr.cm.JGitMinerWeb.model.matrix.EntityMatrix;
 import br.edu.utfpr.cm.JGitMinerWeb.model.matrix.EntityMatrixNode;
 import br.edu.utfpr.cm.JGitMinerWeb.model.miner.EntityRepository;
 import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.UserModifySamePairOfFileInDateServices;
-import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.auxiliary.AuxFileCountSum;
 import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.auxiliary.AuxFileFile;
 import br.edu.utfpr.cm.JGitMinerWeb.services.metric.auxiliary.AuxFileFileMetrics;
 import br.edu.utfpr.cm.JGitMinerWeb.services.metric.auxiliary.AuxFileMetrics;
@@ -16,7 +15,6 @@ import edu.uci.ics.jung.graph.UndirectedSparseMultigraph;
 import edu.uci.ics.jung.graph.util.EdgeType;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -87,7 +85,9 @@ public class CochangeStructuralHolesMeasureServices extends AbstractMetricServic
             String commiter1 = columns[0];
             String commiter2 = columns[3];
             
-            // extract all distinct developer that commit a pair of file
+            /** 
+             * Extract all distinct developer that commit a pair of file 
+             */
             if (commitersPairFile.containsKey(pairFile)) {
                 Set<String> commiters = commitersPairFile.get(pairFile);
                 commiters.add(commiter1);
@@ -98,10 +98,15 @@ public class CochangeStructuralHolesMeasureServices extends AbstractMetricServic
                 commiters.add(commiter2);
                 commitersPairFile.put(pairFile, commiters);
             }
-            
+            // System.out.println(edgeName + " " + commiter1 + " " + commiter2);
             graphMulti.addEdge(edgeName, commiter1, commiter2, EdgeType.UNDIRECTED);
         }
 
+        /** 
+         * To calculate the structural holes with JUNG, it is necessary 
+         * a Transformer, that return the weigth (or another metric) of a edge.
+         * In this case, we use the weigth calculated in matrix generation.
+         */
         Transformer<String, Integer> edgeWeigthTransformer = new Transformer<String, Integer>() {
             @Override public Integer transform(String edge) {
                 return edgeWeigth.get(edge);
@@ -111,21 +116,26 @@ public class CochangeStructuralHolesMeasureServices extends AbstractMetricServic
         StructuralHoles<String, String> structuralHoles = new StructuralHoles<>(graphMulti, edgeWeigthTransformer);
         Map<String, AuxFileMetrics> commitersMetrics = new HashMap<>();
         
-        // Calcules structural holes metrics for each developer
-        // on the cochange network based.
-        // The network is contructed as follow: 
-        // If developer A and developer B commits a pair file PF,
-        // then they are connected in network.
+        /** 
+         * Calculates structural holes metrics for each developer on the co-change network based.
+         * The co-change network is constructed as follow: 
+         * If developer A and developer B commits a pair file PF, then they are connected in network.
+         */
         for (String commiter : graphMulti.getVertices()) {
             double efficiency = structuralHoles.efficiency(commiter);
             double effectiveSize = structuralHoles.effectiveSize(commiter);
             double constraint = structuralHoles.constraint(commiter);
             double hierarchy = structuralHoles.hierarchy(commiter);
 
+            // System.out.println(commiter + " " + efficiency + " " + effectiveSize + " " + constraint + " " + hierarchy);
             commitersMetrics.put(commiter, new AuxFileMetrics(commiter,
                 efficiency, effectiveSize, constraint, hierarchy));
         }
         
+        /** 
+         * For each pair of file, calculate the sum, average, and max of each 
+         * structural holes metrics of developer that commited the pair of file.
+         */
         List<AuxFileFileMetrics> structuralHolesMetrics = new ArrayList<>(pairFiles.size());
         for (AuxFileFile pairFile : pairFiles) {
             double efficiencyMax = 0, efficiencyAvg, efficiencySum = 0;
