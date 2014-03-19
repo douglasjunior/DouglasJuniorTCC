@@ -145,10 +145,10 @@ public class CochangeStructuralHolesMeasureServices extends AbstractMetricServic
                 constraintSum += constraint;
                 hierarchySum += hierarchy;
                 
-                efficiencyMax = calculeMax(efficiencyMax, efficiency);
-                effectiveSizeMax = calculeMax(effectiveSizeMax, effectiveSize);
-                constraintMax = calculeMax(constraintMax, constraint);
-                hierarchyMax = calculeMax(hierarchyMax, hierarchy);
+                efficiencyMax = Math.max(efficiencyMax, efficiency);
+                effectiveSizeMax = Math.max(effectiveSizeMax, effectiveSize);
+                constraintMax = Math.max(constraintMax, constraint);
+                hierarchyMax = Math.max(hierarchyMax, hierarchy);
                 
                 developers++;
             }
@@ -196,13 +196,6 @@ public class CochangeStructuralHolesMeasureServices extends AbstractMetricServic
         return Arrays.asList(
                 UserModifySamePairOfFileInDateServices.class.getName()
         );
-    }
-
-    private Double calculeMax(Double v, Double vMax) {
-        if (vMax < v) {
-            return v;
-        }
-        return vMax;
     }
     
     private Long calculeUpdates(String fileName, String fileName2, Date beginDate, Date endDate) {
