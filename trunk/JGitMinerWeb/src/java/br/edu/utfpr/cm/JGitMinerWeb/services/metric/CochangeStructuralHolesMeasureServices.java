@@ -7,20 +7,20 @@ import br.edu.utfpr.cm.JGitMinerWeb.model.miner.EntityRepository;
 import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.UserModifySamePairOfFileInDateServices;
 import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.auxiliary.AuxFileFile;
 import br.edu.utfpr.cm.JGitMinerWeb.services.metric.auxiliary.AuxFileFileMetrics;
-import br.edu.utfpr.cm.JGitMinerWeb.services.metric.auxiliary.AuxFileMetrics;
+import br.edu.utfpr.cm.JGitMinerWeb.services.metric.structuralholes.StructuralHoleMetric;
+import br.edu.utfpr.cm.JGitMinerWeb.services.metric.structuralholes.StructuralHolesCalculator;
 import br.edu.utfpr.cm.JGitMinerWeb.util.JsfUtil;
 import br.edu.utfpr.cm.JGitMinerWeb.util.OutLog;
-import edu.uci.ics.jung.algorithms.metrics.StructuralHoles;
 import edu.uci.ics.jung.graph.UndirectedSparseMultigraph;
 import edu.uci.ics.jung.graph.util.EdgeType;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import org.apache.commons.collections15.Transformer;
 
 /**
  *
@@ -63,6 +63,9 @@ public class CochangeStructuralHolesMeasureServices extends AbstractMetricServic
         final Map<AuxFileFile, Set<String>> commitersPairFile = new HashMap<>();
         final Map<AuxFileFile, Integer> pairFileCommitCount = new HashMap<>();
         
+        final Set<String> distinctDevelopers = new HashSet<>();
+        final Set<String> distinctFiles = new HashSet<>();
+        
         Set<AuxFileFile> pairFiles = new HashSet<>();
         Map<String, AuxFileFile> edgeFiles = new HashMap<>();
         for (int i = 0; i < getMatrix().getNodes().size(); i++) {
@@ -71,6 +74,10 @@ public class CochangeStructuralHolesMeasureServices extends AbstractMetricServic
             
             AuxFileFile pairFile = new AuxFileFile(columns[1], columns[2]);
             String edgeName = pairFile + "(" + i + ")";
+            
+            // to count unique files
+            distinctFiles.add(pairFile.getFileName());
+            distinctFiles.add(pairFile.getFileName2());
             
             pairFiles.add(pairFile);
             edgeFiles.put(edgeName, pairFile);
@@ -85,6 +92,10 @@ public class CochangeStructuralHolesMeasureServices extends AbstractMetricServic
             String commiter1 = columns[0];
             String commiter2 = columns[3];
             
+            // to count unique developers
+            distinctDevelopers.add(commiter1);
+            distinctDevelopers.add(commiter2);
+            
             /** 
              * Extract all distinct developer that commit a pair of file 
              */
@@ -98,39 +109,18 @@ public class CochangeStructuralHolesMeasureServices extends AbstractMetricServic
                 commiters.add(commiter2);
                 commitersPairFile.put(pairFile, commiters);
             }
-            // System.out.println(edgeName + " " + commiter1 + " " + commiter2);
+            /** 
+             * The co-change network is constructed as follow: 
+             * If developer A and developer B commits a pair file PF, then they are connected in network.
+             */
             graphMulti.addEdge(edgeName, commiter1, commiter2, EdgeType.UNDIRECTED);
         }
 
         /** 
-         * To calculate the structural holes with JUNG, it is necessary 
-         * a Transformer, that return the weigth (or another metric) of a edge.
-         * In this case, we use the weigth calculated in matrix generation.
-         */
-        Transformer<String, Integer> edgeWeigthTransformer = new Transformer<String, Integer>() {
-            @Override public Integer transform(String edge) {
-                return edgeWeigth.get(edge);
-            }
-        };
-        
-        StructuralHoles<String, String> structuralHoles = new StructuralHoles<>(graphMulti, edgeWeigthTransformer);
-        Map<String, AuxFileMetrics> commitersMetrics = new HashMap<>();
-        
-        /** 
          * Calculates structural holes metrics for each developer on the co-change network based.
-         * The co-change network is constructed as follow: 
-         * If developer A and developer B commits a pair file PF, then they are connected in network.
          */
-        for (String commiter : graphMulti.getVertices()) {
-            double efficiency = structuralHoles.efficiency(commiter);
-            double effectiveSize = structuralHoles.effectiveSize(commiter);
-            double constraint = structuralHoles.constraint(commiter);
-            double hierarchy = structuralHoles.hierarchy(commiter);
-
-            // System.out.println(commiter + " " + efficiency + " " + effectiveSize + " " + constraint + " " + hierarchy);
-            commitersMetrics.put(commiter, new AuxFileMetrics(commiter,
-                efficiency, effectiveSize, constraint, hierarchy));
-        }
+        Map<String, StructuralHoleMetric<String>> metricsResult = 
+                StructuralHolesCalculator.calculeStructuralHolesMetrics(graphMulti, edgeWeigth);
         
         /** 
          * For each pair of file, calculate the sum, average, and max of each 
@@ -144,11 +134,11 @@ public class CochangeStructuralHolesMeasureServices extends AbstractMetricServic
             double hierarchyMax = 0, hierarchyAvg, hierarchySum = 0;
             long developers = 0;
             for (String commiter : commitersPairFile.get(pairFile)) {
-                AuxFileMetrics commiterMetric = commitersMetrics.get(commiter);
-                double efficiency = commiterMetric.getMetrics()[0];
-                double effectiveSize = commiterMetric.getMetrics()[1];
-                double constraint = commiterMetric.getMetrics()[2];
-                double hierarchy = commiterMetric.getMetrics()[3];
+                StructuralHoleMetric<String> commiterMetric = metricsResult.get(commiter);
+                double efficiency = commiterMetric.getEfficiency();
+                double effectiveSize = commiterMetric.getEffectiveSize();
+                double constraint = commiterMetric.getConstraint();
+                double hierarchy = commiterMetric.getHierarchy();
                 
                 efficiencySum += efficiency;
                 effectiveSizeSum += effectiveSize;
@@ -167,17 +157,27 @@ public class CochangeStructuralHolesMeasureServices extends AbstractMetricServic
             constraintAvg = constraintSum / developers;
             hierarchyAvg = hierarchySum / developers;
             
+            Long updates = 
+                    calculeUpdates(pairFile.getFileName(), pairFile.getFileName2(), 
+                            getBeginDate(), getEndDate());
+            Long futureUpdates = 
+                    calculeUpdates(pairFile.getFileName(), pairFile.getFileName2(), 
+                            getFutureBeginDate(), getFutureEndDate());
+            
             structuralHolesMetrics.add(
                     new AuxFileFileMetrics(
                         pairFile.getFileName(), pairFile.getFileName2(),
                         efficiencySum, efficiencyAvg, efficiencyMax, 
-                        effectiveSizeSum, effectiveSizeAvg, efficiencyMax,
+                        effectiveSizeSum, effectiveSizeAvg, effectiveSizeMax,
                         constraintSum, constraintAvg, constraintMax,
                         hierarchySum, hierarchyAvg, hierarchyMax,
-                        developers, pairFileCommitCount.get(pairFile)));
+                        developers, pairFileCommitCount.get(pairFile), updates, futureUpdates));
         }
         
         addToEntityMetricNodeList(structuralHolesMetrics);
+        
+        out.printLog("Distinct developers: " + distinctDevelopers.size());
+        out.printLog("Distinct files: " + distinctFiles.size());
     }
 
     @Override
@@ -187,7 +187,7 @@ public class CochangeStructuralHolesMeasureServices extends AbstractMetricServic
                 + "effectiveSizeSum;effectiveSizeAvg;effectiveSizeMax;"
                 + "constraintSum;constraintAvg;constraintMax;"
                 + "hierarchySum;hierarchyAvg;hierarchyMax;"
-                + "developers;commits"
+                + "developers;commits;updates;futureUpdates"
                 ;
     }
 
@@ -203,6 +203,90 @@ public class CochangeStructuralHolesMeasureServices extends AbstractMetricServic
             return v;
         }
         return vMax;
+    }
+    
+    private Long calculeUpdates(String fileName, String fileName2, Date beginDate, Date endDate) {
+        if (beginDate == null || endDate == null) {
+            return 0l;
+        }
+        String jpql = "SELECT COUNT(rc) "
+                + "FROM "
+                + "EntityRepositoryCommit rc "
+                + "WHERE "
+                + "rc.repository = :repo AND "
+                + "rc.commit.committer.dateCommitUser BETWEEN :beginDate AND :endDate AND "
+                + "EXISTS (SELECT f FROM EntityCommitFile f WHERE f.repositoryCommit = rc AND f.filename = :fileName) AND "
+                + "EXISTS (SELECT f2 FROM EntityCommitFile f2 WHERE f2.repositoryCommit = rc AND f2.filename = :fileName2)";
+
+        String[] bdParams = new String[]{
+            "repo",
+            "fileName",
+            "fileName2",
+            "beginDate",
+            "endDate"
+        };
+        Object[] bdObjects = new Object[]{
+            repository,
+            fileName,
+            fileName2,
+            beginDate,
+            endDate
+        };
+
+        return dao.selectOneWithParams(jpql, bdParams, bdObjects);
+    }
+    
+    private Long calculeUpdates(String fileName, String fileName2, String commiter, String commiter2,
+            Date beginDate, Date endDate) {
+        if (beginDate == null || endDate == null) {
+            return 0l;
+        }
+        String jpql = "SELECT COUNT(rc) "
+                + "FROM "
+                + "EntityRepositoryCommit rc "
+                + "WHERE "
+                + "rc.repository = :repo AND "
+                + "rc.commit.committer.dateCommitUser BETWEEN :beginDate AND :endDate AND "
+                + "EXISTS (SELECT f FROM EntityCommitFile f WHERE f.repositoryCommit = rc AND f.filename = :fileName) AND "
+                + "EXISTS (SELECT f2 FROM EntityCommitFile f2 WHERE f2.repositoryCommit = rc AND f2.filename = :fileName2) AND "
+                + "("
+                  + "("
+                    + "(rc.commit.commiter.email IS NOT NULL AND rc.commit.commiter.email = :commiter) OR "
+                    + "(rc.commit.commiter.name IS NOT NULL AND rc.commit.commiter.name = :commiter) "
+                  + ") OR (" 
+                    + "(rc.commit.commiter.email IS NOT NULL AND rc.commit.commiter.email = :commiter2) OR "
+                    + "(rc.commit.commiter.name IS NOT NULL AND rc.commit.commiter.name = :commiter2) "
+                  + ")"
+                + ")";
+
+        String[] bdParams = new String[]{
+            "repo",
+            "fileName",
+            "fileName2",
+            "beginDate",
+            "endDate",
+            "commiter",
+            "commiter2"
+        };
+        Object[] bdObjects = new Object[]{
+            repository,
+            fileName,
+            fileName2,
+            beginDate,
+            endDate,
+            commiter,
+            commiter2
+        };
+
+        return dao.selectOneWithParams(jpql, bdParams, bdObjects);
+    }
+    
+    public Date getFutureBeginDate() {
+        return getDateParam("futureBeginDate");
+    }
+
+    public Date getFutureEndDate() {
+        return getDateParam("futureEndDate");
     }
 
     private EntityRepository getRepository() {
