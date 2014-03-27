@@ -20,7 +20,7 @@ import javax.persistence.ManyToOne;
 public class EntityMatrixNode extends EntityNode {
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "matrix_id")
+    @JoinColumn(name = "matrix_id", referencedColumnName = "id", nullable = false)
     private EntityMatrix matrix;
 
     public EntityMatrixNode() {

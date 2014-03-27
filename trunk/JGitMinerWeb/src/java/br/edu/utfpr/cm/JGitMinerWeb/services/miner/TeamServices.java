@@ -24,7 +24,7 @@ public class TeamServices implements Serializable {
         List<Team> teams = new ArrayList<Team>();
         try {
             out.printLog("Baixando Teams...\n");
-            teams.addAll(new TeamService(AuthServices.getGitHubCliente()).getTeams(gitRepo));
+            teams.addAll(new TeamService(AuthServices.getGitHubClient()).getTeams(gitRepo));
             out.printLog(teams.size() + " Teams baixados no total!");
         } catch (Exception ex) {
             ex.printStackTrace();

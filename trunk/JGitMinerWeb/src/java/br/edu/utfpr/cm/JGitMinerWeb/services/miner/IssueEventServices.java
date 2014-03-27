@@ -36,7 +36,7 @@ public class IssueEventServices implements Serializable {
             request.setUri(uri);
             request.setType(new TypeToken<List<IssueEvent>>() {
             }.getType());
-            PageIterator<IssueEvent> pageIterator = new PageIterator<IssueEvent>(request, AuthServices.getGitHubCliente());
+            PageIterator<IssueEvent> pageIterator = new PageIterator<IssueEvent>(request, AuthServices.getGitHubClient());
             List<IssueEvent> elements = new ArrayList<IssueEvent>();
             try {
                 while (pageIterator.hasNext()) {

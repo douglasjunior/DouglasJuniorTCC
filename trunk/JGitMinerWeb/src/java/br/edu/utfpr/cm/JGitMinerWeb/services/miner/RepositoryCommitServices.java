@@ -30,7 +30,7 @@ public class RepositoryCommitServices implements Serializable {
         List<RepositoryCommit> repoCommits = null;
         try {
             out.printLog("Baixando RepositoryCommits...\n");
-            repoCommits = new CommitService(AuthServices.getGitHubCliente()).getCommits(gitRepo);
+            repoCommits = new CommitService(AuthServices.getGitHubClient()).getCommits(gitRepo);
             out.printLog(repoCommits.size() + " RepositoryCommits baixados no total!");
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -95,7 +95,7 @@ public class RepositoryCommitServices implements Serializable {
         request.setUri(uri);
         request.setType(new TypeToken<List<RepositoryCommit>>() {
         }.getType());
-        PageIterator<RepositoryCommit> iterator = new PageIterator<>(request, AuthServices.getGitHubCliente());
+        PageIterator<RepositoryCommit> iterator = new PageIterator<>(request, AuthServices.getGitHubClient());
         List<RepositoryCommit> elements = new ArrayList<>();
         try {
             while (iterator.hasNext()) {
@@ -117,10 +117,10 @@ public class RepositoryCommitServices implements Serializable {
             return null;
         }
         try {
-            return new CommitService(AuthServices.getGitHubCliente()).getCommit(gitRepo, gitRepoCommit.getSha());
+            return new CommitService(AuthServices.getGitHubClient()).getCommit(gitRepo, gitRepoCommit.getSha());
         } catch (Exception ex) {
             ex.printStackTrace();
-            out.printLog("Erro de conexão: " + ex.toString());
+            out.printLog("Erro de conexão: " + ex);
             out.printLog("Tentando novamente (" + nRetries + ") ...");
             return getGitRepositoryCommit(gitRepo, gitRepoCommit, out, nRetries);
         }

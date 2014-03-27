@@ -26,7 +26,7 @@ public class TreeServices implements Serializable  {
         }
 
         try {
-            gitTree = new TreeService(AuthServices.getGitHubCliente()).getTree(gitRepo, gitTree.getSha());
+            gitTree = new TreeService(AuthServices.getGitHubClient()).getTree(gitRepo, gitTree.getSha());
         } catch (Exception ex) {
             ex.printStackTrace();
         }

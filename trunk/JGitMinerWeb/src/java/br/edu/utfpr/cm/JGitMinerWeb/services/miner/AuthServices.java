@@ -43,7 +43,7 @@ public class AuthServices implements Serializable {
         }
     }
 
-    public static GitHubClient getGitHubCliente() {
+    public static GitHubClient getGitHubClient() {
         rate++;
         if (rate >= 100) {
             rate = 0;

@@ -66,7 +66,7 @@ public class MilestoneServices implements Serializable {
     public static List<Milestone> getGitMilestoneFromRepository(Repository gitRepo, boolean open, boolean closed, OutLog out) {
         List<Milestone> milestones = new ArrayList<Milestone>();
         try {
-            MilestoneService service = new MilestoneService(AuthServices.getGitHubCliente());
+            MilestoneService service = new MilestoneService(AuthServices.getGitHubClient());
             if (open) {
                 List<Milestone> opens;
                 out.printLog("Baixando Milestones Abertos...\n");

@@ -86,7 +86,7 @@ public class GitMinerRepositoryBean implements Serializable {
                 throw new RuntimeException("Informe o nome e login do repositorio desejado, ou a URL para a página do GitHub.");
             }
 
-            Repository gitRepository = new RepositoryService(AuthServices.getGitHubCliente()).getRepository(this.repositoryOwnerLogin, this.repositoryName);
+            Repository gitRepository = new RepositoryService(AuthServices.getGitHubClient()).getRepository(this.repositoryOwnerLogin, this.repositoryName);
 
             System.err.println("Repositório: " + gitRepository.getName() + " | " + gitRepository.getOwner().getLogin() + " | " + gitRepository.getCreatedAt() + " | " + gitRepository.getHtmlUrl());
 
