@@ -169,7 +169,7 @@ public class EntityMatrix implements InterfaceEntity, Startable {
     
     @Override
     public String toString() {
-        return repository + " - " + getClassServicesSingleName() + " - " + Util.dateDataToString(started, "dd/MM/yyyy HH:mm");
+        return repository + " - " + getClassServicesSingleName() + " - " + Util.dateDataToString(started, "dd/MM/yyyy HH:mm:ss");
     }
     
     @Override
