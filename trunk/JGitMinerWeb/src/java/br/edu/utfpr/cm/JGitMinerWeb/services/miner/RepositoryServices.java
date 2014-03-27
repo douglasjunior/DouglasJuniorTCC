@@ -78,12 +78,12 @@ public class RepositoryServices implements Serializable {
     }
 
     public static Repository getGitRepository(String ownerLogin, String repoName) throws Exception {
-        return new RepositoryService(AuthServices.getGitHubCliente()).getRepository(ownerLogin, repoName);
+        return new RepositoryService(AuthServices.getGitHubClient()).getRepository(ownerLogin, repoName);
     }
 
     public static List<Repository> getGitForksFromRepository(Repository gitRepo, OutLog out) throws Exception {
         out.printLog("Baixando Forks...\n");
-        List<Repository> forks = new RepositoryService(AuthServices.getGitHubCliente()).getForks(gitRepo);
+        List<Repository> forks = new RepositoryService(AuthServices.getGitHubClient()).getForks(gitRepo);
         out.printLog(forks.size() + " Forks baixados!");
         return forks;
     }

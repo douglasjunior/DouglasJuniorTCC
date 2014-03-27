@@ -56,7 +56,7 @@ public class CommentServices implements Serializable {
 
     public static List<Comment> getGitCommentsByIssue(Repository gitRepo, Integer issueNumber) throws Exception {
         try {
-            return new IssueService(AuthServices.getGitHubCliente()).getComments(gitRepo, issueNumber);
+            return new IssueService(AuthServices.getGitHubClient()).getComments(gitRepo, issueNumber);
         } catch (Exception ex) {
             ex.printStackTrace();
             return getGitCommentsByIssue(gitRepo, issueNumber);

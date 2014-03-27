@@ -86,7 +86,7 @@ public class PullRequestServices implements Serializable {
     public static List<PullRequest> getGitPullRequestsFromRepository(Repository gitRepo, boolean open, boolean closed, OutLog out) {
         List<PullRequest> pulls = new ArrayList<PullRequest>();
         try {
-            PullRequestService pullServ = new PullRequestService(AuthServices.getGitHubCliente());
+            PullRequestService pullServ = new PullRequestService(AuthServices.getGitHubClient());
             if (open) {
                 List<PullRequest> opensPulls;
                 out.printLog("Baixando PullRequests Abertos...\n");

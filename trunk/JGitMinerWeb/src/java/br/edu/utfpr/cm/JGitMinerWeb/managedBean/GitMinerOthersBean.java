@@ -63,7 +63,7 @@ public class GitMinerOthersBean implements Serializable {
     private Integer progress;
     private Integer subProgress;
     private String message;
-    private boolean canceled;
+    private Boolean canceled;
     private Thread process;
     private boolean fail;
 

@@ -65,7 +65,7 @@
                 </p:column>
 
                 <p:column headerText="Options">
-                    <p:commandButton  icon="ui-icon-trash" title="Delete this Matrix"  actionListener="#{gitMatrixViewBean.addMatrixForDeleteInSession()}"
+                    <p:commandButton  icon="ui-icon-trash" title="Delete this Matrix" actionListener="#{gitMatrixViewBean.addMatrixForDeleteInSession(matrix)}"
                                       id="matrixDelete" oncomplete="confirmation.show()" />
                 </p:column>
             </p:dataTable>

@@ -13,6 +13,7 @@ import br.edu.utfpr.cm.JGitMinerWeb.util.OutLog;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintWriter;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 import javax.ejb.EJB;
 import javax.faces.bean.ManagedBean;
@@ -49,8 +50,9 @@ public class GitMatrixViewBean implements Serializable {
         } catch (Exception ex) {
             ex.printStackTrace();
             JsfUtil.addErrorMessage(ex.toString());
+        } finally {
+            removeMatrixFromSession();
         }
-        removeMatrixFromSession();
     }
 
     public void removeMatrixFromSession() {
@@ -63,8 +65,15 @@ public class GitMatrixViewBean implements Serializable {
 
     public void reloadList() {
         dao.clearCache(true);
-        List<EntityMatrix> matrices = dao.executeNamedQuery("Matrix.findAllTheLatest");
-        JsfUtil.addAttributeInSession(LIST, matrices);
+        List<EntityMatrix> matrices = null;
+        try {
+            matrices = dao.executeNamedQuery("Matrix.findAllTheLatest");
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            matrices = new ArrayList<>();
+        } finally {
+            JsfUtil.addAttributeInSession(LIST, matrices);
+        }
     }
 
     public List<EntityMatrix> getMatrices() {
@@ -80,7 +89,7 @@ public class GitMatrixViewBean implements Serializable {
         StreamedContent file = null;
         try {
             OutLog out = new OutLog();
-            
+
             System.out.println("Matriz tem nodes: " + matrix.getNodes().size());
 
             String fileName = generateFileName(matrix) + ".csv";

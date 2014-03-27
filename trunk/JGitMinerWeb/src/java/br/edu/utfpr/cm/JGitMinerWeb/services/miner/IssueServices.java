@@ -35,7 +35,7 @@ public class IssueServices implements Serializable {
     public static List<Issue> getGitIssuesFromRepository(Repository gitRepo, boolean open, boolean closed, OutLog out) {
         List<Issue> issues = new ArrayList<Issue>();
         try {
-            IssueService issueServ = new IssueService(AuthServices.getGitHubCliente());
+            IssueService issueServ = new IssueService(AuthServices.getGitHubClient());
             HashMap<String, String> params = new HashMap<String, String>();
             if (open) {
                 List<Issue> opensIssues;

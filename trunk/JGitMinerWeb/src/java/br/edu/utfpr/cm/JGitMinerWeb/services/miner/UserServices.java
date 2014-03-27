@@ -79,7 +79,7 @@ public class UserServices implements Serializable {
         List<User> users = new ArrayList<User>();
         try {
             out.printLog("Baixando Collaborators...\n");
-            users.addAll(new CollaboratorService(AuthServices.getGitHubCliente()).getCollaborators(gitRepo));
+            users.addAll(new CollaboratorService(AuthServices.getGitHubClient()).getCollaborators(gitRepo));
             out.printLog(users.size() + " Collaborators baixados!");
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -90,7 +90,7 @@ public class UserServices implements Serializable {
 
     public static List<User> getGitWatchersFromRepository(Repository gitRepo, OutLog out) throws Exception {
         out.printLog("Baixando Watchers...\n");
-        List<User> users = new WatcherService(AuthServices.getGitHubCliente()).getWatchers(gitRepo);
+        List<User> users = new WatcherService(AuthServices.getGitHubClient()).getWatchers(gitRepo);
         out.printLog(users.size() + " Watchers baixados!");
         return users;
     }
