@@ -64,48 +64,48 @@ public class CochangeStructuralHolesMeasureServices extends AbstractMetricServic
         }
 
         System.out.println("Selecionado matrix com " + getMatrix().getNodes().size() + " nodes.");
-
+        
         final UndirectedSparseMultigraph<String, String> graphMulti = new UndirectedSparseMultigraph<>();
-
+        
         final Map<String, Integer> edgeWeigth = new HashMap<>(getMatrix().getNodes().size());
         final Map<AuxFileFile, Set<String>> commitersPairFile = new HashMap<>();
         final Map<AuxFileFile, Integer> pairFileCommitCount = new HashMap<>();
-
+        
         final Set<String> distinctDevelopers = new HashSet<>();
         final Set<String> distinctFiles = new HashSet<>();
-
+        
         Set<AuxFileFile> pairFiles = new HashSet<>();
         Map<String, AuxFileFile> edgeFiles = new HashMap<>();
         for (int i = 0; i < getMatrix().getNodes().size(); i++) {
             EntityMatrixNode node = getMatrix().getNodes().get(i);
             String[] columns = node.getLine().split(JsfUtil.TOKEN_SEPARATOR);
-
+            
             AuxFileFile pairFile = new AuxFileFile(columns[1], columns[2]);
             String edgeName = pairFile + "(" + i + ")";
-
+            
             // to count unique files
             distinctFiles.add(pairFile.getFileName());
             distinctFiles.add(pairFile.getFileName2());
-
+            
             pairFiles.add(pairFile);
             edgeFiles.put(edgeName, pairFile);
             edgeWeigth.put(edgeName, Integer.valueOf(columns[4]));
-
+            
             if (pairFileCommitCount.containsKey(pairFile)) {
                 pairFileCommitCount.put(pairFile, Integer.valueOf(columns[4]) + edgeWeigth.get(edgeName));
             } else {
                 pairFileCommitCount.put(pairFile, Integer.valueOf(columns[4]));
             }
-
+            
             String commiter1 = columns[0];
             String commiter2 = columns[3];
-
+            
             // to count unique developers
             distinctDevelopers.add(commiter1);
             distinctDevelopers.add(commiter2);
-
-            /**
-             * Extract all distinct developer that commit a pair of file
+            
+            /** 
+             * Extract all distinct developer that commit a pair of file 
              */
             if (commitersPairFile.containsKey(pairFile)) {
                 Set<String> commiters = commitersPairFile.get(pairFile);
@@ -117,23 +117,21 @@ public class CochangeStructuralHolesMeasureServices extends AbstractMetricServic
                 commiters.add(commiter2);
                 commitersPairFile.put(pairFile, commiters);
             }
-            /**
-             * The co-change network is constructed as follow: If developer A
-             * and developer B commits a pair file PF, then they are connected
-             * in network.
+            /** 
+             * The co-change network is constructed as follow: 
+             * If developer A and developer B commits a pair file PF, then they are connected in network.
              */
             graphMulti.addEdge(edgeName, commiter1, commiter2, EdgeType.UNDIRECTED);
         }
 
-        /**
-         * Calculates structural holes metrics for each developer on the
-         * co-change network based.
+        /** 
+         * Calculates structural holes metrics for each developer on the co-change network based.
          */
-        Map<String, StructuralHoleMetric<String>> metricsResult
-                = StructuralHolesCalculator.calculeStructuralHolesMetrics(graphMulti, edgeWeigth);
-
-        /**
-         * For each pair of file, calculate the sum, average, and max of each
+        Map<String, StructuralHoleMetric<String>> metricsResult = 
+                StructuralHolesCalculator.calculeStructuralHolesMetrics(graphMulti, edgeWeigth);
+        
+        /** 
+         * For each pair of file, calculate the sum, average, and max of each 
          * structural holes metrics of developer that commited the pair of file.
          */
         List<AuxFileFileMetrics> structuralHolesMetrics = new ArrayList<>(pairFiles.size());
@@ -149,43 +147,43 @@ public class CochangeStructuralHolesMeasureServices extends AbstractMetricServic
                 double effectiveSize = commiterMetric.getEffectiveSize();
                 double constraint = commiterMetric.getConstraint();
                 double hierarchy = commiterMetric.getHierarchy();
-
+                
                 efficiencySum += efficiency;
                 effectiveSizeSum += effectiveSize;
                 constraintSum += constraint;
                 hierarchySum += hierarchy;
-
+                
                 efficiencyMax = Math.max(efficiencyMax, efficiency);
                 effectiveSizeMax = Math.max(effectiveSizeMax, effectiveSize);
                 constraintMax = Math.max(constraintMax, constraint);
                 hierarchyMax = Math.max(hierarchyMax, hierarchy);
-
+                
                 developers++;
             }
             efficiencyAvg = efficiencySum / developers;
             effectiveSizeAvg = effectiveSizeSum / developers;
             constraintAvg = constraintSum / developers;
             hierarchyAvg = hierarchySum / developers;
-
-            Long updates
-                    = calculeUpdates(pairFile.getFileName(), pairFile.getFileName2(),
+            
+            Long updates = 
+                    calculeUpdates(pairFile.getFileName(), pairFile.getFileName2(), 
                             getBeginDate(), getEndDate());
-            Long futureUpdates
-                    = calculeUpdates(pairFile.getFileName(), pairFile.getFileName2(),
+            Long futureUpdates = 
+                    calculeUpdates(pairFile.getFileName(), pairFile.getFileName2(), 
                             getFutureBeginDate(), getFutureEndDate());
-
+            
             structuralHolesMetrics.add(
                     new AuxFileFileMetrics(
-                            pairFile.getFileName(), pairFile.getFileName2(),
-                            efficiencySum, efficiencyAvg, efficiencyMax,
-                            effectiveSizeSum, effectiveSizeAvg, effectiveSizeMax,
-                            constraintSum, constraintAvg, constraintMax,
-                            hierarchySum, hierarchyAvg, hierarchyMax,
-                            developers, pairFileCommitCount.get(pairFile), updates, futureUpdates));
+                        pairFile.getFileName(), pairFile.getFileName2(),
+                        efficiencySum, efficiencyAvg, efficiencyMax, 
+                        effectiveSizeSum, effectiveSizeAvg, effectiveSizeMax,
+                        constraintSum, constraintAvg, constraintMax,
+                        hierarchySum, hierarchyAvg, hierarchyMax,
+                        developers, pairFileCommitCount.get(pairFile), updates, futureUpdates));
         }
-
+        
         addToEntityMetricNodeList(structuralHolesMetrics);
-
+        
         out.printLog("Distinct developers: " + distinctDevelopers.size());
         out.printLog("Distinct files: " + distinctFiles.size());
     }
@@ -197,7 +195,8 @@ public class CochangeStructuralHolesMeasureServices extends AbstractMetricServic
                 + "effectiveSizeSum;effectiveSizeAvg;effectiveSizeMax;"
                 + "constraintSum;constraintAvg;constraintMax;"
                 + "hierarchySum;hierarchyAvg;hierarchyMax;"
-                + "developers;commits;updates;futureUpdates";
+                + "developers;commits;updates;futureUpdates"
+                ;
     }
 
     @Override
@@ -206,7 +205,7 @@ public class CochangeStructuralHolesMeasureServices extends AbstractMetricServic
                 UserModifySamePairOfFileInDateServices.class.getName()
         );
     }
-
+    
     private Long calculeUpdates(String fileName, String fileName2, Date beginDate, Date endDate) {
         if (beginDate == null || endDate == null) {
             return 0l;
@@ -237,7 +236,7 @@ public class CochangeStructuralHolesMeasureServices extends AbstractMetricServic
 
         return dao.selectOneWithParams(jpql, bdParams, bdObjects);
     }
-
+    
     private Long calculeUpdates(String fileName, String fileName2, String commiter, String commiter2,
             Date beginDate, Date endDate) {
         if (beginDate == null || endDate == null) {
@@ -252,13 +251,13 @@ public class CochangeStructuralHolesMeasureServices extends AbstractMetricServic
                 + "EXISTS (SELECT f FROM EntityCommitFile f WHERE f.repositoryCommit = rc AND f.filename = :fileName) AND "
                 + "EXISTS (SELECT f2 FROM EntityCommitFile f2 WHERE f2.repositoryCommit = rc AND f2.filename = :fileName2) AND "
                 + "("
-                + "("
-                + "(rc.commit.commiter.email IS NOT NULL AND rc.commit.commiter.email = :commiter) OR "
-                + "(rc.commit.commiter.name IS NOT NULL AND rc.commit.commiter.name = :commiter) "
-                + ") OR ("
-                + "(rc.commit.commiter.email IS NOT NULL AND rc.commit.commiter.email = :commiter2) OR "
-                + "(rc.commit.commiter.name IS NOT NULL AND rc.commit.commiter.name = :commiter2) "
-                + ")"
+                  + "("
+                    + "(rc.commit.commiter.email IS NOT NULL AND rc.commit.commiter.email = :commiter) OR "
+                    + "(rc.commit.commiter.name IS NOT NULL AND rc.commit.commiter.name = :commiter) "
+                  + ") OR (" 
+                    + "(rc.commit.commiter.email IS NOT NULL AND rc.commit.commiter.email = :commiter2) OR "
+                    + "(rc.commit.commiter.name IS NOT NULL AND rc.commit.commiter.name = :commiter2) "
+                  + ")"
                 + ")";
 
         String[] bdParams = new String[]{
@@ -282,7 +281,7 @@ public class CochangeStructuralHolesMeasureServices extends AbstractMetricServic
 
         return dao.selectOneWithParams(jpql, bdParams, bdObjects);
     }
-
+    
     public Date getFutureBeginDate() {
         return getDateParam("futureBeginDate");
     }

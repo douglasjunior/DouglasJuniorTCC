@@ -59,8 +59,13 @@ public class AuxFileFile {
     @Override
     public int hashCode() {
         int hash = 7;
-        hash = 97 * hash + Objects.hashCode(this.fileName)+ Objects.hashCode(this.fileName2);
+        hash = 31 * hash +
+                (Objects.hashCode(this.fileName) + Objects.hashCode(this.fileName2));
         return hash;
     }
 
+    @Override
+    public String toString() {
+        return fileName + "+" + fileName2;
+    }
 }
