@@ -46,8 +46,8 @@ public class UserCommentedSamePairOfFileInDateServices extends AbstractMatrixSer
         return "%" + params.get("suffixFile");
     }
 
-    private Integer getMinFilesPerCommit() {
-        return Util.stringToInteger(params.get("minFilesPerCommit") + "");
+    private Integer getMaxFilesPerCommit() {
+        return Util.stringToInteger(params.get("maxFilesPerCommit") + "");
     }
 
     private List<String> getFilesName() {
@@ -166,7 +166,7 @@ public class UserCommentedSamePairOfFileInDateServices extends AbstractMatrixSer
 
             List<EntityCommitFile> commitFiles = new ArrayList();
             for (EntityRepositoryCommit comm : pr.getRepositoryCommits()) {
-                if (comm.getFiles().size() <= getMinFilesPerCommit()) {
+                if (comm.getFiles().size() <= getMaxFilesPerCommit()) {
                     commitFiles.addAll(comm.getFiles());
                 }
             }

@@ -15,8 +15,12 @@
         </h:panelGroup>
         <p:spacer />
         <br />
-        <h:outputText value="Minimum files per commit: " />  
-        <p:inputText value="#{gitMatrixBean.paramValue['minFilesPerCommit']}" id="minFilesPerCommit" type="number"  size="20" />
+        <h:outputText value="Maximum files per commit: " />  
+        <p:inputText value="#{gitMatrixBean.paramValue['maxFilesPerCommit']}" id="maxFilesPerCommit" type="number"  size="20" />
+        <p:spacer />
+        <br />
+        <h:outputText value="Interval of months: " />  
+        <p:inputText value="#{gitMatrixBean.paramValue['intervalOfMonths']}" id="intervalOfMonths" type="number"  size="20" />
         <p:spacer />
         <br />
         <h:outputText value="File prefix: " />  
