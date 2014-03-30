@@ -4,6 +4,8 @@
  */
 package br.edu.utfpr.cm.JGitMinerWeb.services.matrix.auxiliary;
 
+import java.util.Objects;
+
 /**
  *
  * @author douglas
@@ -67,10 +69,11 @@ public class AuxFileFilePull {
 
     @Override
     public int hashCode() {
-        int hash = 0;
-        hash += hash + (this.fileName != null ? this.fileName.hashCode() : 0);
-        hash += hash + (this.fileName2 != null ? this.fileName2.hashCode() : 0);
-        hash += (this.pullNumber != null ? this.pullNumber.hashCode() : 0);
+        int hash = 3;
+        hash = 53 * hash + Objects.hashCode(this.fileName) + Objects.hashCode(this.fileName2);
+        hash = 53 * hash + Objects.hashCode(this.pullNumber);
         return hash;
     }
+
+
 }

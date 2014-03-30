@@ -168,7 +168,7 @@ public class GitMatrixBean implements Serializable {
                     try {
                         if (!canceled) {
                             out.setCurrentProcess("Iniciando coleta dos dados para geração da matriz.");
-                            
+
                             super.run();
                         }
                         progress = new Integer(50);
@@ -177,20 +177,21 @@ public class GitMatrixBean implements Serializable {
                             out.setCurrentProcess("Iniciando salvamento dos dados gerados.");
                             dao.clearCache(false);
                             for (EntityMatrix entityMatrix : matricesToSave) {
+                                out.printLog("Salvando matriz com " + entityMatrix.getNodes().size() + " registros. Parametros: " + entityMatrix.getParams());
                                 entityMatrix.setStarted(started);
-                                entityMatrix.setParams(params);
+                                entityMatrix.getParams().putAll(params);
                                 entityMatrix.setRepository(repository + "");
-                                entityMatrix.setLog(out.getLog().toString());
-                                entityMatrix.setClassServicesName(serviceClass.getName()); 
+                                entityMatrix.setClassServicesName(serviceClass.getName());
                                 entityMatrix.setLog(out.getLog().toString());
                                 for (EntityMatrixNode node : entityMatrix.getNodes()) {
                                     node.setMatrix(entityMatrix);
                                 }
                                 entityMatrix.setStoped(new Date());
-                                dao.insert(entityMatrix);
                                 entityMatrix.setComplete(true);
-                                dao.edit(entityMatrix);
-                                out.printLog(entityMatrix.getNodes().size() + " Registros coletados!");
+                                dao.insert(entityMatrix);
+                                out.printLog("");
+                                dao.clearCache(true);
+                                System.gc();
                             }
                             out.printLog("Salvamento dos dados concluído!");
                         }

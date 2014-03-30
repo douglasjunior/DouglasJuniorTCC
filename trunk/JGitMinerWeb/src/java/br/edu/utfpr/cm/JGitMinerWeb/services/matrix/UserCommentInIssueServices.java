@@ -10,6 +10,7 @@ import br.edu.utfpr.cm.JGitMinerWeb.model.miner.EntityRepository;
 import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.nodes.NodeGeneric;
 import br.edu.utfpr.cm.JGitMinerWeb.util.OutLog;
 import br.edu.utfpr.cm.JGitMinerWeb.util.Util;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -32,6 +33,14 @@ public class UserCommentInIssueServices extends AbstractMatrixServices {
         return Util.tratarStringParaInt(mileNumber);
     }
 
+    public Date getBeginDate() {
+        return getDateParam("beginDate");
+    }
+
+    public Date getEndDate() {
+        return getDateParam("endDate");
+    }
+
     @Override
     public void run() {
         if (getRepository() == null) {
@@ -39,7 +48,7 @@ public class UserCommentInIssueServices extends AbstractMatrixServices {
         }
 
         List<NodeGeneric> nodes;
-        
+
         if (getMilestoneNumber() != 0) {
             nodes = getFilesByMilestone();
         } else if (getBeginDate() != null

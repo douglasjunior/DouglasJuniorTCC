@@ -10,6 +10,7 @@ import br.edu.utfpr.cm.JGitMinerWeb.model.miner.EntityRepository;
 import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.auxiliary.AuxUserUserFile;
 import br.edu.utfpr.cm.JGitMinerWeb.util.OutLog;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -45,6 +46,14 @@ public class UserCommentedSameFileInDateServices extends AbstractMatrixServices 
 
     private Boolean isIncludeIssueComments() {
         return Boolean.parseBoolean(params.get("includeIssueComments") + "");
+    }
+
+    public Date getBeginDate() {
+        return getDateParam("beginDate");
+    }
+
+    public Date getEndDate() {
+        return getDateParam("endDate");
     }
 
     private List<String> getFilesName() {

@@ -55,22 +55,26 @@ public class AuthServices implements Serializable {
         return clients.get(i);
     }
 
-    private static void prepareAccounts() throws FileNotFoundException, IOException {
+    private static void prepareAccounts() throws FileNotFoundException, IOException, Exception {
         String path = AuthServices.class.getResource("../../accounts").getPath();
         File fileAccounts = new File(URLDecoder.decode(path, "ASCII"));
         BufferedReader bf = new BufferedReader(new FileReader(fileAccounts));
         while (bf.ready()) {
             String linha = bf.readLine();
-            String[] login = linha.split("[,]");
-            GitHubClient cl = createClient(login[0], login[1]);
-            if (cl != null) {
-                clients.add(cl);
-                clientCount++;
+            try {
+                String[] login = linha.split("[,]");
+                GitHubClient cl = createClient(login[0], login[1]);
+                if (cl != null) {
+                    clients.add(cl);
+                    clientCount++;
+                }
+            } catch (Exception ex) {
+                ex.printStackTrace();
             }
         }
     }
 
-    private static GitHubClient createClient(String user, String pass) {
+    private static GitHubClient createClient(String user, String pass) throws Exception {
         GitHubClient cliente = new GitHubClient();
         cliente.setCredentials(user, pass);
         OAuthService oauth = new OAuthService(cliente);

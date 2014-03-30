@@ -54,6 +54,14 @@ public class PairFileBetweenessDistanceDegreeClosenessInDateServices extends Abs
     public Date getFutureEndDate() {
         return getDateParam("futureEndDate");
     }
+    
+        public Date getBeginDate() {
+        return getDateParam("beginDate");
+    }
+
+    public Date getEndDate() {
+        return getDateParam("endDate");
+    }
 
     /*
      *

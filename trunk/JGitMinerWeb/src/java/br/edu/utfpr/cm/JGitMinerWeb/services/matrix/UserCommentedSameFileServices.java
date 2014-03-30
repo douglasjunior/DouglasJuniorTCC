@@ -11,6 +11,7 @@ import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.auxiliary.AuxUserUserFileMil
 import br.edu.utfpr.cm.JGitMinerWeb.util.OutLog;
 import br.edu.utfpr.cm.JGitMinerWeb.util.Util;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -56,6 +57,14 @@ public class UserCommentedSameFileServices extends AbstractMatrixServices {
 
     private Boolean isIncludeGenericComments() {
         return Boolean.parseBoolean(params.get("includeGenericsComments") + "");
+    }
+
+    public Date getBeginDate() {
+        return getDateParam("beginDate");
+    }
+
+    public Date getEndDate() {
+        return getDateParam("endDate");
     }
 
     @Override

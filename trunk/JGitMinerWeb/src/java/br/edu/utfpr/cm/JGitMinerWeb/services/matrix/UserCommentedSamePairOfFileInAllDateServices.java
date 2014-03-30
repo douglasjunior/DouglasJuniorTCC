@@ -29,16 +29,16 @@ import java.util.Set;
  *
  * @author douglas
  */
-public class UserCommentedSamePairOfFileInDateServices extends AbstractMatrixServices {
+public class UserCommentedSamePairOfFileInAllDateServices extends AbstractMatrixServices {
 
     private Date beginDate;
     private Date endDate;
 
-    public UserCommentedSamePairOfFileInDateServices(GenericDao dao, OutLog out) {
+    public UserCommentedSamePairOfFileInAllDateServices(GenericDao dao, OutLog out) {
         super(dao, out);
     }
 
-    public UserCommentedSamePairOfFileInDateServices(GenericDao dao, EntityRepository repository, List<EntityMatrix> matricesToSave, Map params, OutLog out) {
+    public UserCommentedSamePairOfFileInAllDateServices(GenericDao dao, EntityRepository repository, List<EntityMatrix> matricesToSave, Map params, OutLog out) {
         super(dao, repository, matricesToSave, params, out);
     }
 
@@ -51,7 +51,11 @@ public class UserCommentedSamePairOfFileInDateServices extends AbstractMatrixSer
     }
 
     private Integer getMinFilesPerCommit() {
-        return Util.stringToInteger(params.get("minFilesPerCommit") + "");
+        return getIntegerParam("minFilesPerCommit");
+    }
+
+    private Integer getIntervalOfMonths() {
+        return getIntegerParam("intervalOfMonths");
     }
 
     private List<String> getFilesName() {
@@ -77,13 +81,13 @@ public class UserCommentedSamePairOfFileInDateServices extends AbstractMatrixSer
         Date lastDate = dao.selectOneWithParams("SELECT MAX(p.createdAt) FROM EntityPullRequest p", new String[]{}, new Object[]{});
 
         out.printLog("Iniciando geração das redes de " + firstDate + " a " + lastDate + " a cada " + 3 + " meses.");
-        
+
         Calendar cal = Calendar.getInstance();
         endDate = (Date) firstDate.clone();
         while (endDate.before(lastDate)) {
             beginDate = (Date) endDate.clone();
             cal.setTime((Date) beginDate.clone());
-            cal.add(Calendar.MONTH, 3);
+            cal.add(Calendar.MONTH, getIntervalOfMonths());
             endDate = cal.getTime();
             out.printLog("Iniciando geração da rede:  " + beginDate + "  =>  " + endDate);
             matricesToSave.add(generateMatrix());
@@ -201,7 +205,8 @@ public class UserCommentedSamePairOfFileInDateServices extends AbstractMatrixSer
                 EntityCommitFile file1 = commitFiles.get(i);
                 for (int j = i + 1; j < commitFiles.size(); j++) {
                     EntityCommitFile file2 = commitFiles.get(j);
-                    if (!file1.equals(file2)) {
+                    if (!file1.equals(file2)
+                            && Util.stringEquals(file1.getFilename(), file2.getFilename())) {
                         tempResultFiles.add(new AuxFileFile(file1.getFilename(), file2.getFilename()));
                     }
                 }

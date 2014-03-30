@@ -90,8 +90,7 @@ public class AuxUserFileFileUserDirectional {
     public int hashCode() {
         int hash = 3;
         hash = 23 * hash + Objects.hashCode(this.user);
-        hash = 23 * hash + Objects.hashCode(this.fileName);
-        hash = 23 * hash + Objects.hashCode(this.fileName2);
+        hash = 23 * hash + Objects.hashCode(this.fileName) + Objects.hashCode(this.fileName2);
         return hash;
     }
 

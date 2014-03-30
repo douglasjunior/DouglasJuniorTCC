@@ -16,6 +16,7 @@ import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.auxiliary.AuxUserUserFile;
 import br.edu.utfpr.cm.JGitMinerWeb.util.OutLog;
 import br.edu.utfpr.cm.JGitMinerWeb.util.Util;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -56,6 +57,14 @@ public class UserModifySamePairOfFileInDateServices extends AbstractMatrixServic
         return filesName;
     }
 
+    public Date getBeginDate() {
+        return getDateParam("beginDate");
+    }
+
+    public Date getEndDate() {
+        return getDateParam("endDate");
+    }
+
     @Override
     public void run() {
         System.out.println(params);
@@ -91,7 +100,7 @@ public class UserModifySamePairOfFileInDateServices extends AbstractMatrixServic
             out.printLog(count + " of the " + commits.size());
             out.printLog(commit.getFiles().size() + " files to analyse");
             EntityCommitFile[] arrFiles = new EntityCommitFile[commit.getFiles().size()];
-            arrFiles =  commit.getFiles().toArray(arrFiles);
+            arrFiles = commit.getFiles().toArray(arrFiles);
             for (int i = 0; i < arrFiles.length; i++) {
                 EntityCommitFile file = arrFiles[i];
                 for (int j = i + 1; j < arrFiles.length; j++) {

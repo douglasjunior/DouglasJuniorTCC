@@ -52,6 +52,14 @@ public class FileBetweenessDistanceDegreeClosenessInDateServices extends Abstrac
         return getDateParam("futureEndDate");
     }
 
+    public Date getBeginDate() {
+        return getDateParam("beginDate");
+    }
+
+    public Date getEndDate() {
+        return getDateParam("endDate");
+    }
+
     /*
      *
      Code churn => The number of lines of code that were either added or changed over the history of this file.
