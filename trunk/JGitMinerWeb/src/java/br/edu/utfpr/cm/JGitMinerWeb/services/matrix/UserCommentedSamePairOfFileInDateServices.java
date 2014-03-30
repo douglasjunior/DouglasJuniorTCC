@@ -18,7 +18,6 @@ import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.auxiliary.AuxUserUserDirecti
 import br.edu.utfpr.cm.JGitMinerWeb.util.OutLog;
 import br.edu.utfpr.cm.JGitMinerWeb.util.Util;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -30,9 +29,6 @@ import java.util.Set;
  * @author douglas
  */
 public class UserCommentedSamePairOfFileInDateServices extends AbstractMatrixServices {
-
-    private Date beginDate;
-    private Date endDate;
 
     public UserCommentedSamePairOfFileInDateServices(GenericDao dao, OutLog out) {
         super(dao, out);
@@ -65,6 +61,14 @@ public class UserCommentedSamePairOfFileInDateServices extends AbstractMatrixSer
         return filesName;
     }
 
+    public Date getBeginDate() {
+        return getDateParam("beginDate");
+    }
+
+    public Date getEndDate() {
+        return getDateParam("endDate");
+    }
+
     @Override
     public void run() {
         System.out.println(params);
@@ -73,32 +77,7 @@ public class UserCommentedSamePairOfFileInDateServices extends AbstractMatrixSer
             throw new IllegalArgumentException("Parâmetro Repository não pode ser nulo.");
         }
 
-        Date firstDate = dao.selectOneWithParams("SELECT MIN(p.createdAt) FROM EntityPullRequest p", new String[]{}, new Object[]{});
-        Date lastDate = dao.selectOneWithParams("SELECT MAX(p.createdAt) FROM EntityPullRequest p", new String[]{}, new Object[]{});
-
-        out.printLog("Iniciando geração das redes de " + firstDate + " a " + lastDate + " a cada " + 3 + " meses.");
-        
-        Calendar cal = Calendar.getInstance();
-        endDate = (Date) firstDate.clone();
-        while (endDate.before(lastDate)) {
-            beginDate = (Date) endDate.clone();
-            cal.setTime((Date) beginDate.clone());
-            cal.add(Calendar.MONTH, 3);
-            endDate = cal.getTime();
-            out.printLog("Iniciando geração da rede:  " + beginDate + "  =>  " + endDate);
-            matricesToSave.add(generateMatrix());
-            out.printLog("Concluida geração da rede:  " + beginDate + "  =>  " + endDate);
-            dao.clearCache(true);
-            System.gc();
-        }
-    }
-
-    @Override
-    public String getHeadCSV() {
-        return "user;file;file2;user2;weigth";
-    }
-
-    private EntityMatrix generateMatrix() {
+        String jpql = "";
 
         List<AuxUserFileFileUserDirectional> result = new ArrayList<>();
 
@@ -108,9 +87,8 @@ public class UserCommentedSamePairOfFileInDateServices extends AbstractMatrixSer
 
         // select a issue/pullrequest comments
         List<EntityIssue> issuesCommenteds;
-
         if (!filesName.isEmpty()) {
-            String jpql = "SELECT DISTINCT i "
+            jpql = "SELECT DISTINCT i "
                     + "FROM "
                     + "EntityPullRequest p JOIN p.issue i JOIN p.repositoryCommits rc JOIN rc.files f "
                     + "WHERE "
@@ -123,9 +101,9 @@ public class UserCommentedSamePairOfFileInDateServices extends AbstractMatrixSer
 
             issuesCommenteds = dao.selectWithParams(jpql,
                     new String[]{"repo", "beginDate", "endDate", "filesName"},
-                    new Object[]{getRepository(), beginDate, endDate, filesName});
+                    new Object[]{getRepository(), getBeginDate(), getEndDate(), filesName});
         } else if (prefix.length() > 1 || suffix.length() > 1) {
-            String jpql = "SELECT DISTINCT i "
+            jpql = "SELECT DISTINCT i "
                     + "FROM "
                     + "EntityPullRequest p JOIN p.issue i JOIN p.repositoryCommits rc JOIN rc.files f "
                     + "WHERE "
@@ -144,12 +122,12 @@ public class UserCommentedSamePairOfFileInDateServices extends AbstractMatrixSer
                         (prefix.length() > 1 ? "prefix " : "#none#"),
                         (suffix.length() > 1 ? "suffix" : "#none#")},
                     new Object[]{getRepository(),
-                        beginDate,
-                        endDate,
+                        getBeginDate(),
+                        getEndDate(),
                         prefix,
                         suffix});
         } else {
-            String jpql = "SELECT DISTINCT i "
+            jpql = "SELECT DISTINCT i "
                     + "FROM "
                     + "EntityPullRequest p JOIN p.issue i "
                     + "WHERE "
@@ -161,7 +139,7 @@ public class UserCommentedSamePairOfFileInDateServices extends AbstractMatrixSer
 
             issuesCommenteds = dao.selectWithParams(jpql,
                     new String[]{"repo", "beginDate", "endDate"},
-                    new Object[]{getRepository(), beginDate, endDate});
+                    new Object[]{getRepository(), getBeginDate(), getEndDate()});
         }
 
         out.printLog("Issues comentadas: " + issuesCommenteds.size());
@@ -171,7 +149,7 @@ public class UserCommentedSamePairOfFileInDateServices extends AbstractMatrixSer
             out.printLog("##################### NR: " + issue.getNumber() + " URL: " + issue.getUrl());
             out.printLog(count + " of the " + issuesCommenteds.size());
 
-            String jpql = "SELECT p "
+            jpql = "SELECT p "
                     + " FROM EntityPullRequest p "
                     + " WHERE p.repository = :repo "
                     + " AND p.issue = :issue ";
@@ -201,7 +179,8 @@ public class UserCommentedSamePairOfFileInDateServices extends AbstractMatrixSer
                 EntityCommitFile file1 = commitFiles.get(i);
                 for (int j = i + 1; j < commitFiles.size(); j++) {
                     EntityCommitFile file2 = commitFiles.get(j);
-                    if (!file1.equals(file2)) {
+                    if (!file1.equals(file2)
+                            && !file1.getFilename().equals(file2.getFilename())) {
                         tempResultFiles.add(new AuxFileFile(file1.getFilename(), file2.getFilename()));
                     }
                 }
@@ -275,10 +254,15 @@ public class UserCommentedSamePairOfFileInDateServices extends AbstractMatrixSer
             out.printLog("Temp user result: " + result.size());
         }
 
+        System.out.println("Result: " + result.size());
+
         EntityMatrix matrix = new EntityMatrix();
         matrix.setNodes(objectsToNodes(result));
-        matrix.getParams().put("matrixBeginDate", beginDate);
-        matrix.getParams().put("matrixEndDate", endDate);
-        return matrix;
+        matricesToSave.add(matrix);
+    }
+
+    @Override
+    public String getHeadCSV() {
+        return "user;file;file2;user2;weigth";
     }
 }
