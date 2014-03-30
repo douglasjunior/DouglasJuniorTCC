@@ -70,7 +70,7 @@ public class AuxFileFilePull {
     @Override
     public int hashCode() {
         int hash = 3;
-        hash = 53 * hash + Objects.hashCode(this.fileName) + Objects.hashCode(this.fileName2);
+        hash = 53 * hash + (Objects.hashCode(this.fileName) + Objects.hashCode(this.fileName2));
         hash = 53 * hash + Objects.hashCode(this.pullNumber);
         return hash;
     }

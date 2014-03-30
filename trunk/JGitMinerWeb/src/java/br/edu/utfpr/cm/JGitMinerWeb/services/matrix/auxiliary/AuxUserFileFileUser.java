@@ -81,8 +81,8 @@ public class AuxUserFileFileUser {
     @Override
     public int hashCode() {
         int hash = 3;
-        hash = 79 * hash + Objects.hashCode(this.user) + Objects.hashCode(this.user2);
-        hash = 79 * hash + Objects.hashCode(this.fileName) + Objects.hashCode(this.fileName2);
+        hash = 79 * hash + (Objects.hashCode(this.user) + Objects.hashCode(this.user2));
+        hash = 79 * hash + (Objects.hashCode(this.fileName) + Objects.hashCode(this.fileName2));
         return hash;
     }
 

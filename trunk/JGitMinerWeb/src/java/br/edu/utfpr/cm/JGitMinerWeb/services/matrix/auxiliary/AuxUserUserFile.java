@@ -74,7 +74,7 @@ public class AuxUserUserFile {
     @Override
     public int hashCode() {
         int hash = 3;
-        hash = 23 * hash + Objects.hashCode(this.user) + Objects.hashCode(this.user2);
+        hash = 23 * hash + (Objects.hashCode(this.user) + Objects.hashCode(this.user2));
         hash = 23 * hash + Objects.hashCode(this.fileName);
         return hash;
     }
