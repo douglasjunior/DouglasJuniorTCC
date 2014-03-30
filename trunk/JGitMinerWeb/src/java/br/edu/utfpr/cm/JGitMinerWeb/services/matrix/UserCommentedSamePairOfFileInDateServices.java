@@ -180,7 +180,7 @@ public class UserCommentedSamePairOfFileInDateServices extends AbstractMatrixSer
                 for (int j = i + 1; j < commitFiles.size(); j++) {
                     EntityCommitFile file2 = commitFiles.get(j);
                     if (!file1.equals(file2)
-                            && !file1.getFilename().equals(file2.getFilename())) {
+                            && !Util.stringEquals(file1.getFilename(), file2.getFilename())) {
                         tempResultFiles.add(new AuxFileFile(file1.getFilename(), file2.getFilename()));
                     }
                 }
