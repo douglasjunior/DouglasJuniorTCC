@@ -3,18 +3,27 @@ package br.edu.utfpr.cm.JGitMinerWeb.services.metric;
 import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericDao;
 import br.edu.utfpr.cm.JGitMinerWeb.model.matrix.EntityMatrix;
 import br.edu.utfpr.cm.JGitMinerWeb.model.matrix.EntityMatrixNode;
+import br.edu.utfpr.cm.JGitMinerWeb.model.miner.EntityCommit;
+import br.edu.utfpr.cm.JGitMinerWeb.model.miner.EntityCommitFile;
+import br.edu.utfpr.cm.JGitMinerWeb.model.miner.EntityCommitUser;
 import br.edu.utfpr.cm.JGitMinerWeb.model.miner.EntityRepository;
+import br.edu.utfpr.cm.JGitMinerWeb.model.miner.EntityRepositoryCommit;
+import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.UserCommentedSamePairOfFileInDateServices;
 import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.UserModifySamePairOfFileInDateServices;
 import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.auxiliary.AuxFileFile;
+import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.auxiliary.AuxUserUser;
 import br.edu.utfpr.cm.JGitMinerWeb.services.metric.auxiliary.AuxFileFileMetrics;
 import br.edu.utfpr.cm.JGitMinerWeb.services.metric.structuralholes.StructuralHoleMetric;
 import br.edu.utfpr.cm.JGitMinerWeb.services.metric.structuralholes.StructuralHolesCalculator;
 import br.edu.utfpr.cm.JGitMinerWeb.util.JsfUtil;
 import br.edu.utfpr.cm.JGitMinerWeb.util.OutLog;
+import edu.uci.ics.jung.graph.UndirectedGraph;
+import edu.uci.ics.jung.graph.UndirectedSparseGraph;
 import edu.uci.ics.jung.graph.UndirectedSparseMultigraph;
 import edu.uci.ics.jung.graph.util.EdgeType;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -30,6 +39,33 @@ public class CochangeStructuralHolesMeasureServices extends AbstractMetricServic
 
     private EntityRepository repository;
 
+    private static final String CALCULE_SUM_UPDATES_OF_TWO_FILE = 
+            "SELECT count(1) FROM " + EntityRepositoryCommit.class.getSimpleName() + " rc "
+            + "JOIN " + EntityCommit.class.getSimpleName() + " c ON rc.commit = c "
+            + "JOIN " + EntityCommitUser.class.getSimpleName() + " u ON c.committer = u "
+            + "JOIN " + EntityCommitFile.class.getSimpleName() + " f ON f.repositoryCommit = rc "
+            + "WHERE "
+            + "rc.repository = :repo AND "
+            + "u.dateCommitUser BETWEEN :beginDate AND :endDate AND "
+            + "(f.filename = :fileName OR f.filename = :fileName2)";
+
+    private static final String[] CALCULE_SUM_UPDATES_OF_TWO_FILE_PARAMS = new String[]{
+        "repo", "fileName", "fileName2", "beginDate", "endDate"
+    };
+
+    private static final String CALCULE_UPDATES = 
+            "SELECT COUNT(rc) FROM EntityRepositoryCommit rc "
+            + "WHERE "
+            + "rc.repository = :repo AND "
+            + "rc.commit.committer.dateCommitUser BETWEEN :beginDate AND :endDate AND "
+            + "EXISTS (SELECT f FROM EntityCommitFile f WHERE f.repositoryCommit = rc AND f.filename = :fileName) AND "
+            + "EXISTS (SELECT f2 FROM EntityCommitFile f2 WHERE f2.repositoryCommit = rc AND f2.filename = :fileName2)";
+
+    private static final String[] CALCULE_UPDATES_PARAMS = new String[]{
+        "repo", "fileName", "fileName2", "beginDate", "endDate"
+    };
+
+    
     public CochangeStructuralHolesMeasureServices(GenericDao dao, OutLog out) {
         super(dao, out);
     }
@@ -39,11 +75,23 @@ public class CochangeStructuralHolesMeasureServices extends AbstractMetricServic
     }
 
     public Date getBeginDate() {
-        return getDateParam("beginDate");
+        Calendar beginDateCalendar = Calendar.getInstance();
+        beginDateCalendar.setTime(getDateParam("beginDate"));
+        beginDateCalendar.set(Calendar.HOUR_OF_DAY, 0);
+        beginDateCalendar.set(Calendar.MINUTE, 0);
+        beginDateCalendar.set(Calendar.SECOND, 0);
+        beginDateCalendar.set(Calendar.MILLISECOND, 0);
+        return beginDateCalendar.getTime();
     }
 
     public Date getEndDate() {
-        return getDateParam("endDate");
+        Calendar endDateCalendar = Calendar.getInstance();
+        endDateCalendar.setTime(getDateParam("endDate"));
+        endDateCalendar.set(Calendar.HOUR_OF_DAY, 23);
+        endDateCalendar.set(Calendar.MINUTE, 59);
+        endDateCalendar.set(Calendar.SECOND, 59);
+        endDateCalendar.set(Calendar.MILLISECOND, 999);
+        return endDateCalendar.getTime();
     }
 
     @Override
@@ -51,6 +99,11 @@ public class CochangeStructuralHolesMeasureServices extends AbstractMetricServic
         System.out.println(params);
 
         System.out.println(getMatrix().getClassServicesName());
+        
+        Date beginDate = getBeginDate();
+        Date endDate = getEndDate();
+        Date futureBeginDate = getFutureBeginDate();
+        Date futureEndDate = getFutureEndDate();
 
         if (getMatrix() == null
                 || !getAvailableMatricesPermitted().contains(getMatrix().getClassServicesName())) {
@@ -64,12 +117,17 @@ public class CochangeStructuralHolesMeasureServices extends AbstractMetricServic
         }
 
         System.out.println("Selecionado matrix com " + getMatrix().getNodes().size() + " nodes.");
-        
-        final UndirectedSparseMultigraph<String, String> graphMulti = new UndirectedSparseMultigraph<>();
+        String graphType = (String) params.get("graphType");
+        final UndirectedGraph<String, String> graph;
+        if ("multi".equals(graphType)) {
+            graph = new UndirectedSparseMultigraph<>();
+        } else {
+            graph = new UndirectedSparseGraph<>();
+        }
         
         final Map<String, Integer> edgeWeigth = new HashMap<>(getMatrix().getNodes().size());
         final Map<AuxFileFile, Set<String>> commitersPairFile = new HashMap<>();
-        final Map<AuxFileFile, Integer> pairFileCommitCount = new HashMap<>();
+        final Map<AuxFileFile, Long> pairFileCommitCount = new HashMap<>();
         
         final Set<String> distinctDevelopers = new HashSet<>();
         final Set<String> distinctFiles = new HashSet<>();
@@ -81,7 +139,32 @@ public class CochangeStructuralHolesMeasureServices extends AbstractMetricServic
             String[] columns = node.getLine().split(JsfUtil.TOKEN_SEPARATOR);
             
             AuxFileFile pairFile = new AuxFileFile(columns[1], columns[2]);
-            String edgeName = pairFile + "(" + i + ")";
+            AuxUserUser pairUser = new AuxUserUser(columns[0], columns[3]);
+            
+            // to count unique developers
+            distinctDevelopers.add(pairUser.getUser());
+            distinctDevelopers.add(pairUser.getUser2());
+            
+            /** 
+             * Extract all distinct developer that commit a pair of file 
+             */
+            if (commitersPairFile.containsKey(pairFile)) {
+                Set<String> commiters = commitersPairFile.get(pairFile);
+                commiters.add(pairUser.getUser());
+                commiters.add(pairUser.getUser2());
+            } else {
+                Set<String> commiters = new HashSet<>();
+                commiters.add(pairUser.getUser());
+                commiters.add(pairUser.getUser2());
+                commitersPairFile.put(pairFile, commiters);
+            }
+            
+            String edgeName;
+            if (graph instanceof UndirectedSparseGraph) {
+               edgeName = pairUser.toString();
+            } else {
+               edgeName = pairFile + "(" + i + ")";
+            }
             
             // to count unique files
             distinctFiles.add(pairFile.getFileName());
@@ -89,46 +172,60 @@ public class CochangeStructuralHolesMeasureServices extends AbstractMetricServic
             
             pairFiles.add(pairFile);
             edgeFiles.put(edgeName, pairFile);
-            edgeWeigth.put(edgeName, Integer.valueOf(columns[4]));
             
-            if (pairFileCommitCount.containsKey(pairFile)) {
-                pairFileCommitCount.put(pairFile, Integer.valueOf(columns[4]) + edgeWeigth.get(edgeName));
+            String weightedEdge = (String) params.get("weightedEdge");
+            if (graph instanceof UndirectedSparseMultigraph) {
+                /* On multi edge (parallel edges), always insert an edge */
+                if ("false".equalsIgnoreCase(weightedEdge)) { 
+                    // binary edge weight
+                    edgeWeigth.put(edgeName, 1);
+                } else {
+                    edgeWeigth.put(edgeName, Integer.valueOf(columns[4]));
+                }
             } else {
-                pairFileCommitCount.put(pairFile, Integer.valueOf(columns[4]));
+                if ("false".equalsIgnoreCase(weightedEdge)) { 
+                    // binary edge weight
+                    edgeWeigth.put(edgeName, 1);
+                } else {
+                    /* Sum commit for each pair file that the pair dev has commited. */
+                    if (edgeWeigth.containsKey(pairUser.toStringUserAndUser2())) {
+                        // edgeName = user + user2
+                        edgeWeigth.put(pairUser.toStringUserAndUser2(), edgeWeigth.get(pairUser.toStringUserAndUser2()) + Integer.valueOf(columns[4]));
+                    } else if (edgeWeigth.containsKey(pairUser.toStringUser2AndUser())) {
+                        // edgeName = user2 + user
+                        edgeWeigth.put(pairUser.toStringUser2AndUser(), edgeWeigth.get(pairUser.toStringUser2AndUser()) + Integer.valueOf(columns[4]));
+                    } else {
+                        edgeWeigth.put(edgeName, Integer.valueOf(columns[4]));
+                    }
+                }
             }
             
-            String commiter1 = columns[0];
-            String commiter2 = columns[3];
-            
-            // to count unique developers
-            distinctDevelopers.add(commiter1);
-            distinctDevelopers.add(commiter2);
-            
-            /** 
-             * Extract all distinct developer that commit a pair of file 
-             */
-            if (commitersPairFile.containsKey(pairFile)) {
-                Set<String> commiters = commitersPairFile.get(pairFile);
-                commiters.add(commiter1);
-                commiters.add(commiter2);
-            } else {
-                Set<String> commiters = new HashSet<>();
-                commiters.add(commiter1);
-                commiters.add(commiter2);
-                commitersPairFile.put(pairFile, commiters);
+            if (!pairFileCommitCount.containsKey(pairFile)) {
+                pairFileCommitCount.put(pairFile, 
+                        calculeSumUpdatesOfTwoFile(pairFile.getFileName(), pairFile.getFileName2(), beginDate, endDate));
             }
+            
             /** 
              * The co-change network is constructed as follow: 
              * If developer A and developer B commits a pair file PF, then they are connected in network.
              */
-            graphMulti.addEdge(edgeName, commiter1, commiter2, EdgeType.UNDIRECTED);
+            if (!graph.containsVertex(pairUser.getUser()) 
+                    || !graph.containsVertex(pairUser.getUser2()) 
+                    || !graph.isNeighbor(pairUser.getUser(), pairUser.getUser2())) {
+                graph.addEdge(edgeName, pairUser.getUser(), pairUser.getUser2(), EdgeType.UNDIRECTED);
+            }
         }
+        out.printLog("Weigth of edges:");
+        for (Map.Entry<String, Integer> entry : edgeWeigth.entrySet()) {
+            out.printLog(entry.getKey() + " " + entry.getValue());
+        }
+        out.printLog("End of weigth of edges.");
 
         /** 
          * Calculates structural holes metrics for each developer on the co-change network based.
          */
         Map<String, StructuralHoleMetric<String>> metricsResult = 
-                StructuralHolesCalculator.calculeStructuralHolesMetrics(graphMulti, edgeWeigth);
+                StructuralHolesCalculator.calculeStructuralHolesMetrics(graph, edgeWeigth);
         
         /** 
          * For each pair of file, calculate the sum, average, and max of each 
@@ -167,10 +264,10 @@ public class CochangeStructuralHolesMeasureServices extends AbstractMetricServic
             
             Long updates = 
                     calculeUpdates(pairFile.getFileName(), pairFile.getFileName2(), 
-                            getBeginDate(), getEndDate());
+                            beginDate, endDate);
             Long futureUpdates = 
                     calculeUpdates(pairFile.getFileName(), pairFile.getFileName2(), 
-                            getFutureBeginDate(), getFutureEndDate());
+                            futureBeginDate, futureEndDate);
             
             structuralHolesMetrics.add(
                     new AuxFileFileMetrics(
@@ -202,31 +299,17 @@ public class CochangeStructuralHolesMeasureServices extends AbstractMetricServic
     @Override
     public List<String> getAvailableMatricesPermitted() {
         return Arrays.asList(
-                UserModifySamePairOfFileInDateServices.class.getName()
+                UserModifySamePairOfFileInDateServices.class.getName(),
+                UserCommentedSamePairOfFileInDateServices.class.getName()
         );
     }
     
-    private Long calculeUpdates(String fileName, String fileName2, Date beginDate, Date endDate) {
+    private Long calculeSumUpdatesOfTwoFile(String fileName, String fileName2, Date beginDate, Date endDate) {
         if (beginDate == null || endDate == null) {
             return 0l;
         }
-        String jpql = "SELECT COUNT(rc) "
-                + "FROM "
-                + "EntityRepositoryCommit rc "
-                + "WHERE "
-                + "rc.repository = :repo AND "
-                + "rc.commit.committer.dateCommitUser BETWEEN :beginDate AND :endDate AND "
-                + "EXISTS (SELECT f FROM EntityCommitFile f WHERE f.repositoryCommit = rc AND f.filename = :fileName) AND "
-                + "EXISTS (SELECT f2 FROM EntityCommitFile f2 WHERE f2.repositoryCommit = rc AND f2.filename = :fileName2)";
-
-        String[] bdParams = new String[]{
-            "repo",
-            "fileName",
-            "fileName2",
-            "beginDate",
-            "endDate"
-        };
-        Object[] bdObjects = new Object[]{
+        
+        Object[] queryParams = new Object[]{
             repository,
             fileName,
             fileName2,
@@ -234,10 +317,26 @@ public class CochangeStructuralHolesMeasureServices extends AbstractMetricServic
             endDate
         };
 
-        return dao.selectOneWithParams(jpql, bdParams, bdObjects);
+        return dao.selectOneWithParams(CALCULE_SUM_UPDATES_OF_TWO_FILE, CALCULE_SUM_UPDATES_OF_TWO_FILE_PARAMS, queryParams);
     }
     
-    private Long calculeUpdates(String fileName, String fileName2, String commiter, String commiter2,
+    private Long calculeUpdates(String fileName, String fileName2, Date beginDate, Date endDate) {
+        if (beginDate == null || endDate == null) {
+            return 0l;
+        }
+        
+        Object[] queryParams = new Object[]{
+            repository,
+            fileName,
+            fileName2,
+            beginDate,
+            endDate
+        };
+
+        return dao.selectOneWithParams(CALCULE_UPDATES, CALCULE_UPDATES_PARAMS, queryParams);
+    }
+    
+    private Long calculeUpdatesForCommiterPair(String fileName, String fileName2, String commiter, String commiter2,
             Date beginDate, Date endDate) {
         if (beginDate == null || endDate == null) {
             return 0l;
@@ -283,11 +382,23 @@ public class CochangeStructuralHolesMeasureServices extends AbstractMetricServic
     }
     
     public Date getFutureBeginDate() {
-        return getDateParam("futureBeginDate");
+        Calendar futureBeginDateCalendar = Calendar.getInstance();
+        futureBeginDateCalendar.setTime(getDateParam("futureBeginDate"));
+        futureBeginDateCalendar.set(Calendar.HOUR_OF_DAY, 0);
+        futureBeginDateCalendar.set(Calendar.MINUTE, 0);
+        futureBeginDateCalendar.set(Calendar.SECOND, 0);
+        futureBeginDateCalendar.set(Calendar.MILLISECOND, 0);
+        return futureBeginDateCalendar.getTime();
     }
 
     public Date getFutureEndDate() {
-        return getDateParam("futureEndDate");
+        Calendar futureEndDateCalendar = Calendar.getInstance();
+        futureEndDateCalendar.setTime(getDateParam("futureEndDate"));
+        futureEndDateCalendar.set(Calendar.HOUR_OF_DAY, 23);
+        futureEndDateCalendar.set(Calendar.MINUTE, 59);
+        futureEndDateCalendar.set(Calendar.SECOND, 59);
+        futureEndDateCalendar.set(Calendar.MILLISECOND, 999);
+        return futureEndDateCalendar.getTime();
     }
 
     private EntityRepository getRepository() {
