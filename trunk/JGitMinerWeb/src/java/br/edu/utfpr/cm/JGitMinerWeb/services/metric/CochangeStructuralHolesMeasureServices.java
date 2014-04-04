@@ -74,6 +74,14 @@ public class CochangeStructuralHolesMeasureServices extends AbstractMetricServic
         super(dao, matrix, params, out);
     }
 
+    public Date getBeginDate() {
+        return getDateParam("beginDate");
+    }
+
+    public Date getEndDate() {
+        return getDateParam("endDate");
+    }
+
     @Override
     public Date getBeginDate() {
         Calendar beginDateCalendar = Calendar.getInstance();

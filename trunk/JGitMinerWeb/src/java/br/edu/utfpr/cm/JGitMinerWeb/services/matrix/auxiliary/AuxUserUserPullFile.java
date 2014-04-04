@@ -4,8 +4,10 @@
  */
 package br.edu.utfpr.cm.JGitMinerWeb.services.matrix.auxiliary;
 
+import br.edu.utfpr.cm.JGitMinerWeb.util.JsfUtil;
 import br.edu.utfpr.cm.JGitMinerWeb.util.Util;
 import java.util.Objects;
+import org.jboss.weld.logging.Category;
 
 /**
  *
@@ -76,8 +78,7 @@ public class AuxUserUserPullFile {
     @Override
     public int hashCode() {
         int hash = 7;
-        hash = 31 * hash + Objects.hashCode(this.userIdentity);
-        hash = 31 * hash + Objects.hashCode(this.userIdentity2);
+        hash = 31 * hash + (Objects.hashCode(this.userIdentity) + Objects.hashCode(this.userIdentity2));
         hash = 31 * hash + Objects.hashCode(this.pullNumber);
         hash = 31 * hash + Objects.hashCode(this.fileName);
         return hash;

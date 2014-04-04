@@ -1,7 +1,6 @@
 package br.edu.utfpr.cm.JGitMinerWeb.dao;
 
 import br.edu.utfpr.cm.JGitMinerWeb.model.InterfaceEntity;
-import br.edu.utfpr.cm.JGitMinerWeb.model.miner.EntityPullRequest;
 import br.edu.utfpr.cm.JGitMinerWeb.util.Util;
 import java.io.Serializable;
 import java.util.List;

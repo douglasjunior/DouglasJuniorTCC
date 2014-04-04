@@ -18,6 +18,7 @@ import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.auxiliary.AuxUserUserDirecti
 import br.edu.utfpr.cm.JGitMinerWeb.util.OutLog;
 import br.edu.utfpr.cm.JGitMinerWeb.util.Util;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -28,13 +29,16 @@ import java.util.Set;
  *
  * @author douglas
  */
-public class UserCommentedSamePairOfFileInDateServices extends AbstractMatrixServices {
+public class UserCommentedSamePairOfFileInAllDateServices extends AbstractMatrixServices {
 
-    public UserCommentedSamePairOfFileInDateServices(GenericDao dao, OutLog out) {
+    private Date beginDate;
+    private Date endDate;
+
+    public UserCommentedSamePairOfFileInAllDateServices(GenericDao dao, OutLog out) {
         super(dao, out);
     }
 
-    public UserCommentedSamePairOfFileInDateServices(GenericDao dao, EntityRepository repository, List<EntityMatrix> matricesToSave, Map params, OutLog out) {
+    public UserCommentedSamePairOfFileInAllDateServices(GenericDao dao, EntityRepository repository, List<EntityMatrix> matricesToSave, Map params, OutLog out) {
         super(dao, repository, matricesToSave, params, out);
     }
 
@@ -47,7 +51,11 @@ public class UserCommentedSamePairOfFileInDateServices extends AbstractMatrixSer
     }
 
     private Integer getMaxFilesPerCommit() {
-        return Util.stringToInteger(params.get("maxFilesPerCommit") + "");
+        return getIntegerParam("maxFilesPerCommit");
+    }
+
+    private Integer getIntervalOfMonths() {
+        return getIntegerParam("intervalOfMonths");
     }
 
     private List<String> getFilesName() {
@@ -61,14 +69,6 @@ public class UserCommentedSamePairOfFileInDateServices extends AbstractMatrixSer
         return filesName;
     }
 
-    public Date getBeginDate() {
-        return getDateParam("beginDate");
-    }
-
-    public Date getEndDate() {
-        return getDateParam("endDate");
-    }
-
     @Override
     public void run() {
         System.out.println(params);
@@ -77,7 +77,32 @@ public class UserCommentedSamePairOfFileInDateServices extends AbstractMatrixSer
             throw new IllegalArgumentException("Parâmetro Repository não pode ser nulo.");
         }
 
-        String jpql = "";
+        Date firstDate = dao.selectOneWithParams("SELECT MIN(p.createdAt) FROM EntityPullRequest p", new String[]{}, new Object[]{});
+        Date lastDate = dao.selectOneWithParams("SELECT MAX(p.createdAt) FROM EntityPullRequest p", new String[]{}, new Object[]{});
+
+        out.printLog("Iniciando geração das redes de " + firstDate + " a " + lastDate + " a cada " + 3 + " meses.");
+
+        Calendar cal = Calendar.getInstance();
+        endDate = (Date) firstDate.clone();
+        while (endDate.before(lastDate)) {
+            beginDate = (Date) endDate.clone();
+            cal.setTime((Date) beginDate.clone());
+            cal.add(Calendar.MONTH, getIntervalOfMonths());
+            endDate = cal.getTime();
+            out.printLog("Iniciando geração da rede:  " + beginDate + "  =>  " + endDate);
+            matricesToSave.add(generateMatrix());
+            out.printLog("Concluida geração da rede:  " + beginDate + "  =>  " + endDate);
+            dao.clearCache(true);
+            System.gc();
+        }
+    }
+
+    @Override
+    public String getHeadCSV() {
+        return "user;file;file2;user2;weigth";
+    }
+
+    private EntityMatrix generateMatrix() {
 
         List<AuxUserFileFileUserDirectional> result = new ArrayList<>();
 
@@ -87,8 +112,9 @@ public class UserCommentedSamePairOfFileInDateServices extends AbstractMatrixSer
 
         // select a issue/pullrequest comments
         List<EntityIssue> issuesCommenteds;
+
         if (!filesName.isEmpty()) {
-            jpql = "SELECT DISTINCT i "
+            String jpql = "SELECT DISTINCT i "
                     + "FROM "
                     + "EntityPullRequest p JOIN p.issue i JOIN p.repositoryCommits rc JOIN rc.files f "
                     + "WHERE "
@@ -101,9 +127,9 @@ public class UserCommentedSamePairOfFileInDateServices extends AbstractMatrixSer
 
             issuesCommenteds = dao.selectWithParams(jpql,
                     new String[]{"repo", "beginDate", "endDate", "filesName"},
-                    new Object[]{getRepository(), getBeginDate(), getEndDate(), filesName});
+                    new Object[]{getRepository(), beginDate, endDate, filesName});
         } else if (prefix.length() > 1 || suffix.length() > 1) {
-            jpql = "SELECT DISTINCT i "
+            String jpql = "SELECT DISTINCT i "
                     + "FROM "
                     + "EntityPullRequest p JOIN p.issue i JOIN p.repositoryCommits rc JOIN rc.files f "
                     + "WHERE "
@@ -122,12 +148,12 @@ public class UserCommentedSamePairOfFileInDateServices extends AbstractMatrixSer
                         (prefix.length() > 1 ? "prefix " : "#none#"),
                         (suffix.length() > 1 ? "suffix" : "#none#")},
                     new Object[]{getRepository(),
-                        getBeginDate(),
-                        getEndDate(),
+                        beginDate,
+                        endDate,
                         prefix,
                         suffix});
         } else {
-            jpql = "SELECT DISTINCT i "
+            String jpql = "SELECT DISTINCT i "
                     + "FROM "
                     + "EntityPullRequest p JOIN p.issue i "
                     + "WHERE "
@@ -139,7 +165,7 @@ public class UserCommentedSamePairOfFileInDateServices extends AbstractMatrixSer
 
             issuesCommenteds = dao.selectWithParams(jpql,
                     new String[]{"repo", "beginDate", "endDate"},
-                    new Object[]{getRepository(), getBeginDate(), getEndDate()});
+                    new Object[]{getRepository(), beginDate, endDate});
         }
 
         out.printLog("Issues comentadas: " + issuesCommenteds.size());
@@ -149,7 +175,7 @@ public class UserCommentedSamePairOfFileInDateServices extends AbstractMatrixSer
             out.printLog("##################### NR: " + issue.getNumber() + " URL: " + issue.getUrl());
             out.printLog(count + " of the " + issuesCommenteds.size());
 
-            jpql = "SELECT p "
+            String jpql = "SELECT p "
                     + " FROM EntityPullRequest p "
                     + " WHERE p.repository = :repo "
                     + " AND p.issue = :issue ";
@@ -254,15 +280,10 @@ public class UserCommentedSamePairOfFileInDateServices extends AbstractMatrixSer
             out.printLog("Temp user result: " + result.size());
         }
 
-        System.out.println("Result: " + result.size());
-
         EntityMatrix matrix = new EntityMatrix();
         matrix.setNodes(objectsToNodes(result));
-        matricesToSave.add(matrix);
-    }
-
-    @Override
-    public String getHeadCSV() {
-        return "user;file;file2;user2;weigth";
+        matrix.getParams().put("matrixBeginDate", beginDate);
+        matrix.getParams().put("matrixEndDate", endDate);
+        return matrix;
     }
 }

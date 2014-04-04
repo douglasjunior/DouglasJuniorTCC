@@ -9,13 +9,13 @@ import br.edu.utfpr.cm.JGitMinerWeb.model.matrix.EntityMatrix;
 import br.edu.utfpr.cm.JGitMinerWeb.model.miner.EntityCommitFile;
 import br.edu.utfpr.cm.JGitMinerWeb.model.miner.EntityRepository;
 import br.edu.utfpr.cm.JGitMinerWeb.model.miner.EntityRepositoryCommit;
+import br.edu.utfpr.cm.JGitMinerWeb.model.miner.EntityUser;
 import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.auxiliary.AuxUserFileFile;
 import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.auxiliary.AuxUserFileFileUser;
 import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.auxiliary.AuxUserUserFile;
 import br.edu.utfpr.cm.JGitMinerWeb.util.OutLog;
 import br.edu.utfpr.cm.JGitMinerWeb.util.Util;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -56,27 +56,13 @@ public class UserModifySamePairOfFileInDateServices extends AbstractMatrixServic
         }
         return filesName;
     }
-    
-    @Override
+
     public Date getBeginDate() {
-        Calendar beginDateCalendar = Calendar.getInstance();
-        beginDateCalendar.setTime(super.getBeginDate());
-        beginDateCalendar.set(Calendar.HOUR_OF_DAY, 0);
-        beginDateCalendar.set(Calendar.MINUTE, 0);
-        beginDateCalendar.set(Calendar.SECOND, 0);
-        beginDateCalendar.set(Calendar.MILLISECOND, 0);
-        return beginDateCalendar.getTime();
+        return getDateParam("beginDate");
     }
-    
-    @Override
+
     public Date getEndDate() {
-        Calendar endDateCalendar = Calendar.getInstance();
-        endDateCalendar.setTime(super.getEndDate());
-        endDateCalendar.set(Calendar.HOUR_OF_DAY, 23);
-        endDateCalendar.set(Calendar.MINUTE, 59);
-        endDateCalendar.set(Calendar.SECOND, 59);
-        endDateCalendar.set(Calendar.MILLISECOND, 999);
-        return endDateCalendar.getTime();
+        return getDateParam("endDate");
     }
 
     @Override
@@ -86,9 +72,7 @@ public class UserModifySamePairOfFileInDateServices extends AbstractMatrixServic
         if (getRepository() == null) {
             throw new IllegalArgumentException("Parâmetro Repository não pode ser nulo.");
         }
-        Date beginDate = getBeginDate();
-        Date endDate = getEndDate();
-        
+
         List<String> filesName = getFilesName();
         String prefix = getPrefixFile();
         String suffix = getSuffixFile();
@@ -102,11 +86,11 @@ public class UserModifySamePairOfFileInDateServices extends AbstractMatrixServic
                 + "rc.commit.committer.dateCommitUser BETWEEN :beginDate AND :endDate AND "
                 + "(SELECT COUNT(f) FROM EntityCommitFile f WHERE f.repositoryCommit = rc) BETWEEN 2 AND :minFilesPerCommit";
 
-        //System.out.println(jpql);
+        System.out.println(jpql);
 
         List<EntityRepositoryCommit> commits = dao.selectWithParams(jpql,
                 new String[]{"repo", "beginDate", "endDate", "minFilesPerCommit"},
-                new Object[]{getRepository(), beginDate, endDate, minFilesPerCommit});
+                new Object[]{getRepository(), getBeginDate(), getEndDate(), minFilesPerCommit});
 
         // primeiro monta-se a rede dos desenvolvedores e os pares de arquivos
         List<AuxUserFileFile> temp = new ArrayList<>();
@@ -116,7 +100,7 @@ public class UserModifySamePairOfFileInDateServices extends AbstractMatrixServic
             out.printLog(count + " of the " + commits.size());
             out.printLog(commit.getFiles().size() + " files to analyse");
             EntityCommitFile[] arrFiles = new EntityCommitFile[commit.getFiles().size()];
-            arrFiles =  commit.getFiles().toArray(arrFiles);
+            arrFiles = commit.getFiles().toArray(arrFiles);
             for (int i = 0; i < arrFiles.length; i++) {
                 EntityCommitFile file = arrFiles[i];
                 for (int j = i + 1; j < arrFiles.length; j++) {

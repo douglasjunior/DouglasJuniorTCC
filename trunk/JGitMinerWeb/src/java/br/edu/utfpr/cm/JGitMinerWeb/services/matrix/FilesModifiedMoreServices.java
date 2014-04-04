@@ -13,6 +13,7 @@ import br.edu.utfpr.cm.JGitMinerWeb.util.Util;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -46,6 +47,14 @@ public class FilesModifiedMoreServices extends AbstractMatrixServices {
 
     private String getSuffixFile() {
         return "%" + params.get("suffixFile");
+    }
+
+    public Date getBeginDate() {
+        return getDateParam("beginDate");
+    }
+
+    public Date getEndDate() {
+        return getDateParam("endDate");
     }
 
     @Override

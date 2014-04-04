@@ -2,7 +2,7 @@
      xmlns:h="http://java.sun.com/jsf/html" 
      xmlns:p="http://primefaces.org/ui">
 
-    <h2>Usuarios que comentaram no mesmo arquivo em todo o projeto a cada X meses</h2>
+    <h2>Usuarios que comentaram no mesmo arquivo no intervalo de data</h2>
 
     <br />
 
@@ -17,6 +17,10 @@
         <br />
         <h:outputText value="Maximum files per commit: " />  
         <p:inputText value="#{gitMatrixBean.paramValue['maxFilesPerCommit']}" id="maxFilesPerCommit" type="number"  size="20" />
+        <p:spacer />
+        <br />
+        <h:outputText value="Interval of months: " />  
+        <p:inputText value="#{gitMatrixBean.paramValue['intervalOfMonths']}" id="intervalOfMonths" type="number"  size="20" />
         <p:spacer />
         <br />
         <h:outputText value="File prefix: " />  

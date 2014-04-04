@@ -28,7 +28,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * 
+ *
  * @author Rodrigo T. Kuroda
  */
 public class PairFileBaryCenterEigenvectorServices extends AbstractMetricServices {
@@ -49,6 +49,14 @@ public class PairFileBaryCenterEigenvectorServices extends AbstractMetricService
 
     public Date getFutureEndDate() {
         return getDateParam("futureEndDate");
+    }
+
+    public Date getBeginDate() {
+        return getDateParam("beginDate");
+    }
+
+    public Date getEndDate() {
+        return getDateParam("endDate");
     }
 
     @Override
@@ -91,14 +99,14 @@ public class PairFileBaryCenterEigenvectorServices extends AbstractMetricService
         BarycenterScorer<String, String> barycenterGen = new BarycenterScorer<>(graph);
         EigenvectorCentrality<String, String> eigenvectorGen = new EigenvectorCentrality<>(graph);
         EdgeBetweennessClusterer<String, String> edgeBetweennessGen = new EdgeBetweennessClusterer<>(1);
-        
+
         List<AuxUserMetrics> userMetrics = new ArrayList<>();
 
         for (String vertexUser : graphMulti.getVertices()) {
             userMetrics.add(new AuxUserMetrics(vertexUser,
                     barycenterGen.getVertexScore(vertexUser),
                     eigenvectorGen.getVertexScore(vertexUser)
-            )); 
+            ));
         }
 
         List<AuxFileMetrics> fileMetrics = new ArrayList<>();
@@ -118,7 +126,7 @@ public class PairFileBaryCenterEigenvectorServices extends AbstractMetricService
                                 Double baryCenter = auxUser.getMetrics()[0];
                                 baryCenterMax = calculeMax(baryCenter, baryCenterMax);
                                 baryCenterSum += baryCenter;
-                                
+
                                 Double eigenvector = auxUser.getMetrics()[1];
                                 eigenvectorMax = calculeMax(eigenvector, eigenvectorMax);
                                 eigenvectorSum += eigenvector;
@@ -139,7 +147,6 @@ public class PairFileBaryCenterEigenvectorServices extends AbstractMetricService
 //            aux = calculeCodeChurnAndUpdates(file, getFutureBeginDate(), getFutureEndDate());
 //            futCodeChurn = (double) aux.getSum();
 //            futUpdates = (double) aux.getCount();
-
             fileMetrics.add(new AuxFileMetrics(file,
                     baryCenterMax, baryCenterAve, baryCenterSum,
                     eigenvectorMax, eigenvectorAve, eigenvectorSum,

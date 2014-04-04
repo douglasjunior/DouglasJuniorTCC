@@ -8,7 +8,9 @@ import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericDao;
 import br.edu.utfpr.cm.JGitMinerWeb.model.EntityNode;
 import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.nodes.NodeGeneric;
 import br.edu.utfpr.cm.JGitMinerWeb.util.OutLog;
+import br.edu.utfpr.cm.JGitMinerWeb.util.Util;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -32,14 +34,6 @@ public abstract class AbstractServices implements Runnable, Serializable {
     public AbstractServices(GenericDao dao, Map params, OutLog out) {
         this(dao, out);
         this.params = params;
-    }
-
-    public Date getBeginDate() {
-        return getDateParam("beginDate");
-    }
-
-    public Date getEndDate() {
-        return getDateParam("endDate");
     }
 
     public List<EntityNode> getNodes() {
@@ -82,7 +76,7 @@ public abstract class AbstractServices implements Runnable, Serializable {
 
     protected Date getDateParam(Object key) {
         if (!params.containsKey(key)) {
-            throw new IndexOutOfBoundsException(key + "");
+            throw new IndexOutOfBoundsException("Chave não encontrada: " + key);
         }
         Object obj = params.get(key);
         if (obj != null) {
@@ -93,6 +87,44 @@ public abstract class AbstractServices implements Runnable, Serializable {
             }
         }
         return null;
+    }
+
+    protected Integer getIntegerParam(Object key) {
+        if (!params.containsKey(key)) {
+            throw new IndexOutOfBoundsException("Chave não encontrada: " + key);
+        }
+        return Util.tratarStringParaInt(getStringParam(key).trim());
+    }
+    
+    protected Long getLongParam(Object key) {
+        if (!params.containsKey(key)) {
+            throw new IndexOutOfBoundsException("Chave não encontrada: " + key);
+        }
+        return Util.tratarStringParaLong(getStringParam(key).trim());
+    }
+
+    protected String getStringParam(Object key) {
+        if (!params.containsKey(key)) {
+            throw new IndexOutOfBoundsException("Chave não encontrada: " + key);
+        }
+        Object obj = params.get(key);
+        return obj == null ? "" : obj + "";
+    }
+
+    protected List<String> getStringParam(Object key, boolean trimLines, boolean emptyLines) {
+        if (!params.containsKey(key)) {
+            throw new IndexOutOfBoundsException("Chave não encontrada: " + key);
+        }
+        List<String> lines = new ArrayList<>();
+        for (String line : getStringParam(key).split("\n")) {
+            if (trimLines) {
+                line = line.trim();
+            }
+            if (emptyLines || !line.isEmpty()) {
+                lines.add(line);
+            }
+        }
+        return lines;
     }
 
     /**

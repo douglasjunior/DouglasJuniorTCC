@@ -11,6 +11,7 @@ import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.auxiliary.AuxUserUserFileMil
 import br.edu.utfpr.cm.JGitMinerWeb.util.OutLog;
 import br.edu.utfpr.cm.JGitMinerWeb.util.Util;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -52,6 +53,14 @@ public class UserModifySameFileInMilestoneServices extends AbstractMatrixService
     private Integer getMilestoneNumber() {
         String mileNumber = params.get("milestoneNumber") + "";
         return Util.tratarStringParaInt(mileNumber);
+    }
+
+    public Date getBeginDate() {
+        return getDateParam("beginDate");
+    }
+
+    public Date getEndDate() {
+        return getDateParam("endDate");
     }
 
     @Override
@@ -117,7 +126,6 @@ public class UserModifySameFileInMilestoneServices extends AbstractMatrixService
 
         final String select2 = "SELECT DISTINCT NEW " + AuxUserUserFileMilestoneDouglas.class.getName() + "(rc.committer.login, rc.commit.committer.email, rc2.committer.login, rc2.commit.committer.email, f.filename) ";
 
-
         final String from = "FROM "
                 + "EntityPullRequest p JOIN p.repositoryCommits rc JOIN rc.files f, "
                 + "EntityPullRequest p2 JOIN p2.repositoryCommits rc2 JOIN rc2.files f2 "
@@ -159,14 +167,14 @@ public class UserModifySameFileInMilestoneServices extends AbstractMatrixService
 
         List<AuxUserUserFileMilestoneDouglas> result = dao.selectWithParams(select1 + from + where1, bdParams, bdObjects);
 
-        System.out.println("result1: "+result.size());
-        
+        System.out.println("result1: " + result.size());
+
         System.out.println(select2 + from + where2);
 
         result.addAll(dao.selectWithParams(select2 + from + where2, bdParams, bdObjects));
 
-        System.out.println("result2: "+result.size());
-        
+        System.out.println("result2: " + result.size());
+
         return removeDuplicade(result);
     }
 
