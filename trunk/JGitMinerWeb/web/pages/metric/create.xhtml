@@ -16,7 +16,7 @@
             <p:growl globalOnly="true" id="messages" />
 
             <h:outputText value="Select a Matrix: " /> <br />  
-            <p:selectOneListbox  style="height:100px;width:500px" value="#{gitMetricBean.matrixId}"  >
+            <p:selectOneListbox  style="height:200px;width:800px" value="#{gitMetricBean.matrixId}"  >
                 <f:selectItems value="#{gitMatrixViewBean.matrices}" var="matrix" itemLabel="#{matrix.toString()}" itemDescription="#{matrix.toString()}" itemValue="#{matrix.id}" />
                 <f:ajax render="listServices matrixParamsUsed" />
             </p:selectOneListbox>
@@ -28,7 +28,7 @@
             <br />
 
             <h:outputText value="Select a Metric Service Class: " /> <br />  
-            <p:selectOneListbox id="listServices"  converter="#{gitMetricBean.converterClass}" style="height:100px;width:500px" value="#{gitMetricBean.serviceClass}"  >
+            <p:selectOneListbox id="listServices"  converter="#{gitMetricBean.converterClass}" style="height:200px;width:800px" value="#{gitMetricBean.serviceClass}"  >
                 <f:selectItems value="#{gitMetricBean.servicesClasses}" var="serviceClass" itemLabel="#{serviceClass.simpleName}" itemDescription="#{serviceClass.name}" itemValue="#{serviceClass}" />
                 <f:ajax render="filter" />
             </p:selectOneListbox>

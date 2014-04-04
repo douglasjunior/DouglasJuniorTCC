@@ -111,7 +111,7 @@ public abstract class AbstractServices implements Runnable, Serializable {
         return obj == null ? "" : obj + "";
     }
 
-    protected List<String> getStringParam(Object key, boolean trimLines, boolean emptyLines) {
+    protected List<String> getStringLinesParam(Object key, boolean trimLines, boolean emptyLines) {
         if (!params.containsKey(key)) {
             throw new IndexOutOfBoundsException("Chave não encontrada: " + key);
         }

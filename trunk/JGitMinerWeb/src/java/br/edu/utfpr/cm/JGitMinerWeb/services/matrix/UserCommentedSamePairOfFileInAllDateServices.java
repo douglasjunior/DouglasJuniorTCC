@@ -6,6 +6,7 @@ package br.edu.utfpr.cm.JGitMinerWeb.services.matrix;
 
 import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericDao;
 import br.edu.utfpr.cm.JGitMinerWeb.model.matrix.EntityMatrix;
+import br.edu.utfpr.cm.JGitMinerWeb.model.matrix.EntityMatrixNode;
 import br.edu.utfpr.cm.JGitMinerWeb.model.miner.EntityComment;
 import br.edu.utfpr.cm.JGitMinerWeb.model.miner.EntityCommitFile;
 import br.edu.utfpr.cm.JGitMinerWeb.model.miner.EntityIssue;
@@ -21,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -59,14 +61,15 @@ public class UserCommentedSamePairOfFileInAllDateServices extends AbstractMatrix
     }
 
     private List<String> getFilesName() {
-        List<String> filesName = new ArrayList<>();
-        for (String fileName : (params.get("filesName") + "").split("\n")) {
-            fileName = fileName.trim();
-            if (!fileName.isEmpty()) {
-                filesName.add(fileName);
-            }
-        }
-        return filesName;
+        return getStringLinesParam("filesName", true, false);
+    }
+
+    public Date getBeginDate() {
+        return getDateParam("beginDate");
+    }
+
+    public Date getEndDate() {
+        return getDateParam("endDate");
     }
 
     @Override
@@ -77,8 +80,16 @@ public class UserCommentedSamePairOfFileInAllDateServices extends AbstractMatrix
             throw new IllegalArgumentException("Parâmetro Repository não pode ser nulo.");
         }
 
-        Date firstDate = dao.selectOneWithParams("SELECT MIN(p.createdAt) FROM EntityPullRequest p", new String[]{}, new Object[]{});
-        Date lastDate = dao.selectOneWithParams("SELECT MAX(p.createdAt) FROM EntityPullRequest p", new String[]{}, new Object[]{});
+        Date firstDate = getBeginDate();
+        Date lastDate = getEndDate();
+        if (firstDate == null) {
+            firstDate = dao.selectOneWithParams("SELECT MIN(p.createdAt) FROM EntityPullRequest p", new String[]{}, new Object[]{});
+        }
+        if (lastDate == null) {
+            lastDate = dao.selectOneWithParams("SELECT MAX(p.createdAt) FROM EntityPullRequest p", new String[]{}, new Object[]{});
+        }
+        params.put("beginDate", firstDate);
+        params.put("endDate", lastDate);
 
         out.printLog("Iniciando geração das redes de " + firstDate + " a " + lastDate + " a cada " + 3 + " meses.");
 
@@ -90,8 +101,11 @@ public class UserCommentedSamePairOfFileInAllDateServices extends AbstractMatrix
             cal.add(Calendar.MONTH, getIntervalOfMonths());
             endDate = cal.getTime();
             out.printLog("Iniciando geração da rede:  " + beginDate + "  =>  " + endDate);
-            matricesToSave.add(generateMatrix());
-            out.printLog("Concluida geração da rede:  " + beginDate + "  =>  " + endDate);
+            EntityMatrix matrix = generateMatrix();
+            dao.clearCache(true);
+            System.gc();
+            saveMatrix(matrix);
+            out.resetLog();
             dao.clearCache(true);
             System.gc();
         }
@@ -103,6 +117,10 @@ public class UserCommentedSamePairOfFileInAllDateServices extends AbstractMatrix
     }
 
     private EntityMatrix generateMatrix() {
+        EntityMatrix matrix = new EntityMatrix();
+        matrix.setStarted(new Date());
+        matrix.getParams().put("matrixBeginDate", beginDate);
+        matrix.getParams().put("matrixEndDate", endDate);
 
         List<AuxUserFileFileUserDirectional> result = new ArrayList<>();
 
@@ -280,10 +298,32 @@ public class UserCommentedSamePairOfFileInAllDateServices extends AbstractMatrix
             out.printLog("Temp user result: " + result.size());
         }
 
-        EntityMatrix matrix = new EntityMatrix();
         matrix.setNodes(objectsToNodes(result));
-        matrix.getParams().put("matrixBeginDate", beginDate);
-        matrix.getParams().put("matrixEndDate", endDate);
+        result.clear();
         return matrix;
+    }
+
+    private void saveMatrix(EntityMatrix entityMatrix) {
+        out.printLog("Iniciando salvamento da rede:  " + beginDate + "  =>  " + endDate);
+        List<EntityMatrixNode> matrixNodes = entityMatrix.getNodes();
+        entityMatrix.setNodes(new ArrayList<EntityMatrixNode>());
+        entityMatrix.getParams().putAll(params);
+        entityMatrix.setRepository(getRepository() + "");
+        entityMatrix.setClassServicesName(this.getClass().getName());
+        entityMatrix.setLog(out.getLog().toString());
+        dao.insert(entityMatrix);
+        for (Iterator<EntityMatrixNode> it = matrixNodes.iterator(); it.hasNext();) {
+            EntityMatrixNode node = it.next();
+            node.setMatrix(entityMatrix);
+            dao.insert(node);
+            it.remove();
+            dao.getEntityManager().getEntityManagerFactory().getCache().evict(node.getClass());
+        }
+        entityMatrix.setStoped(new Date());
+        entityMatrix.setComplete(true);
+        out.printLog("Concluida geração da rede:  " + beginDate + "  =>  " + endDate);
+        entityMatrix.setLog(out.getLog().toString());
+        dao.edit(entityMatrix);
+        out.printLog("");
     }
 }

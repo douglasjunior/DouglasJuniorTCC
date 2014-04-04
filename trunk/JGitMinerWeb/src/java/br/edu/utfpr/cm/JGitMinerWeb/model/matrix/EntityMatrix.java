@@ -36,7 +36,7 @@ import javax.persistence.Temporal;
     @NamedQuery(name = "Matrix.findAllTheLatest", query = "SELECT m FROM EntityMatrix m ORDER BY m.started DESC")
 })
 public class EntityMatrix implements InterfaceEntity, Startable {
-    
+
     private static final long serialVersionUID = 1L;
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -54,78 +54,78 @@ public class EntityMatrix implements InterfaceEntity, Startable {
     private String repository;
     @OneToMany(mappedBy = "matrix", orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<EntityMatrixNode> nodes;
-    
+
     public EntityMatrix() {
         started = new Date();
         complete = false;
         nodes = new ArrayList<>();
         params = new Properties();
     }
-    
+
     @Override
     public Long getId() {
         return id;
     }
-    
+
     @Override
     public void setId(Long id) {
         this.id = id;
     }
-    
+
     public boolean isComplete() {
         return complete;
     }
-    
+
     public void setComplete(boolean complete) {
         this.complete = complete;
     }
-    
+
     public Date getStarted() {
         return started;
     }
-    
+
     public void setStarted(Date started) {
         this.started = started;
     }
-    
+
     public Date getStoped() {
         return stoped;
     }
-    
+
     public void setStoped(Date stoped) {
         this.stoped = stoped;
     }
-    
+
     public Properties getParams() {
         return params;
     }
-    
+
     public void setParams(Properties params) {
         this.params = params;
     }
-    
+
     @Override
     public String getLog() {
         return log;
     }
-    
+
     @Override
     public void setLog(String log) {
         this.log = log;
     }
-    
+
     public List<EntityMatrixNode> getNodes() {
         return nodes;
     }
-    
+
     public void setNodes(List<EntityMatrixNode> nodes) {
         this.nodes = nodes;
     }
-    
+
     public String getClassServicesName() {
         return classServicesName;
     }
-    
+
     public String getClassServicesSingleName() {
         if (classServicesName != null) {
             String[] tokens = classServicesName.split("\\.");
@@ -135,26 +135,26 @@ public class EntityMatrix implements InterfaceEntity, Startable {
         }
         return classServicesName;
     }
-    
+
     public void setClassServicesName(String classServices) {
         this.classServicesName = classServices;
     }
-    
+
     public String getRepository() {
         return repository;
     }
-    
+
     public void setRepository(String repository) {
         this.repository = repository;
     }
-    
+
     @Override
     public int hashCode() {
         int hash = 0;
         hash += (id != null ? id.hashCode() : 0);
         return hash;
     }
-    
+
     @Override
     public boolean equals(Object object) {
         if (!(object instanceof EntityMatrix)) {
@@ -166,17 +166,17 @@ public class EntityMatrix implements InterfaceEntity, Startable {
         }
         return true;
     }
-    
+
     @Override
     public String toString() {
-        return repository + " - " + getClassServicesSingleName() + " - " + Util.dateDataToString(started, "dd/MM/yyyy HH:mm:ss");
+        return "(" + id + ") " + repository + " - " + getClassServicesSingleName() + " - " + Util.dateDataToString(started, "dd/MM/yyyy HH:mm:ss");
     }
-    
+
     @Override
     public String getDownloadFileName() {
         return this.repository + "-" + this.started;
     }
-    
+
     public void setParams(Map<String, String> params) {
         Util.addMapToProperties(this.params,params);
     }

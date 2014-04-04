@@ -9,9 +9,9 @@
     <h:panelGrid columns="2" cellpadding="5" columnClasses="col">
         <h:outputLabel value="Date: " for="beginDate" />  
         <h:panelGroup>
-            <p:calendar value="#{gitMatrixBean.paramValue['beginDate']}" id="beginDate" pattern="dd/MM/yyyy" navigator="true" size="10" />
+            <p:calendar value="#{gitMatrixBean.paramValue['beginDate']}" id="beginDate" pattern="dd/MM/yyyy HH:mm:ss" navigator="true" size="20" autocomplete="true" />
             <h:outputLabel value=" to " for="endDate" />  
-            <p:calendar value="#{gitMatrixBean.paramValue['endDate']}" id="endDate" pattern="dd/MM/yyyy" navigator="true" size="10"/>
+            <p:calendar value="#{gitMatrixBean.paramValue['endDate']}" id="endDate" pattern="dd/MM/yyyy HH:mm:ss" navigator="true" size="20" autocomplete="true"/>
         </h:panelGroup>
         <p:spacer />
         <br />
