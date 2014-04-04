@@ -5,21 +5,18 @@
      xmlns:ui="http://java.sun.com/jsf/facelets" 
      xmlns:c="http://java.sun.com/jsp/jstl/core">
 
-    <p:panel>
-        <h2>Pagina de geração de redes.</h2>
-        <br /> 
+    <p:fieldset legend="Matrix generation">
         <h:form prependId="false" id="formMatrix" >
             <p:growl globalOnly="true" id="messages" />
 
-            <h:outputText value="Select a Repository: " /> <br />  
+            <b><h:outputText value="Select a Repository: " /></b>  
             <p:selectOneListbox  id="repositories" style="height:100px;width:500px" value="#{gitMatrixBean.repositoryId}"  >
                 <f:selectItems value="#{gitMinerRepositoryBean.repositoriesPrimaryMiner}" var="repo" itemLabel="#{repo.name} / #{repo.owner.login}" itemDescription="#{repo.name}" itemValue="#{repo.id}" />
             </p:selectOneListbox>
 
-
             <br />
 
-            <h:outputText value="Select a Matrix Service Class: " /> <br />  
+            <b><h:outputText value="Select a Matrix Service Class: " /></b>  
             <p:selectOneListbox id="serviceClass"  converter="#{gitMatrixBean.converterClass}" style="height:100px;width:500px" value="#{gitMatrixBean.serviceClass}" >
                 <f:selectItems value="#{gitMatrixBean.servicesClasses}" var="serviceClass" itemLabel="#{serviceClass.simpleName}" itemDescription="#{serviceClass.name}" itemValue="#{serviceClass}" />
                 <f:ajax render="matrixFilter" />
@@ -64,5 +61,5 @@
             <p:inputTextarea value="#{gitMatrixBean.log}" id="logTextArea" style="width: 100%" rows="30" autoResize="autoResize" readonly="true" />
 
         </h:form>
-    </p:panel>
+    </p:fieldset>
 </div>

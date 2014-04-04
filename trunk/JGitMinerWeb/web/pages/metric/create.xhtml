@@ -9,32 +9,25 @@
         <h:outputText value="#{gitMatrixViewBean.reloadList()}" />
     </h:form>
 
-    <p:panel>
-        <h2>Pagina de geração de métricas.</h2>
-        <br /> 
+    <p:fieldset legend="Metrics calculation">
         <h:form prependId="false" id="formMetric" >
             <p:growl globalOnly="true" id="messages" />
 
-            <h:outputText value="Select a Matrix: " /> <br />  
-            <p:selectOneListbox  style="height:200px;width:800px" value="#{gitMetricBean.matrixId}"  >
+            <b><h:outputText value="Select a Matrix: " /></b>
+            <p:selectOneListbox  style="height:100px;width:100%" value="#{gitMetricBean.matrixId}"  >
                 <f:selectItems value="#{gitMatrixViewBean.matrices}" var="matrix" itemLabel="#{matrix.toString()}" itemDescription="#{matrix.toString()}" itemValue="#{matrix.id}" />
-                <f:ajax render="listServices matrixParamsUsed" />
+                <p:ajax process="@this" update="listServices matrixParamsUsed" />
             </p:selectOneListbox>
-            
             <b><h:outputLabel for="matrixParamsUsed" value="Used params: " /></b>
-            <h:outputText id="matrixParamsUsed" value="#{gitMetricBean.matrixParamsToString}" /> 
-            
-            <br />
-            <br />
-
-            <h:outputText value="Select a Metric Service Class: " /> <br />  
-            <p:selectOneListbox id="listServices"  converter="#{gitMetricBean.converterClass}" style="height:200px;width:800px" value="#{gitMetricBean.serviceClass}"  >
+            <h:outputText id="matrixParamsUsed" value="#{gitMetricBean.matrixParamsToString} empty?#{empty gitMetricBean.servicesClasses}" /> 
+            <br/>
+            <br/>
+            <b><h:outputText value="Select a Metric Service Class: " /></b>
+            <p:selectOneListbox id="listServices"  converter="#{gitMetricBean.converterClass}" style="height:100px;width:100%" value="#{gitMetricBean.serviceClass}"  >
                 <f:selectItems value="#{gitMetricBean.servicesClasses}" var="serviceClass" itemLabel="#{serviceClass.simpleName}" itemDescription="#{serviceClass.name}" itemValue="#{serviceClass}" />
-                <f:ajax render="filter" />
+                <p:ajax update="filter" />
             </p:selectOneListbox>
-
-            <br />
-            <br />
+            <br/>
             <h:panelGroup id="filter">
                 <c:if test="#{gitMetricBean.serviceClass != null}" >
                     <p:panel header="Filters for #{gitMetricBean.serviceClass.simpleName}:" >
@@ -44,7 +37,6 @@
             </h:panelGroup>
             <br />
             <br />
-
             <p:commandButton widgetVar="startButtonVar" type="submit" actionListener="#{gitMetricBean.start()}" value="Start" 
                              onclick="startButtonVar.disable();progressVar.start();textAreaUpdaterVar.start();" update="loadingImage,logTextArea" />
 
@@ -73,5 +65,5 @@
 
         </h:form>
 
-    </p:panel>
+    </p:fieldset>
 </div>

@@ -7,20 +7,13 @@
         <h:outputText value="#{gitMatrixViewBean.reloadList()}" />
     </h:form>
 
-    <p:panel>
-        <h2>Página de listagem das redes.</h2>
-        <br /> 
-
+    <p:fieldset legend="Matrices generated">
         <h:form prependId="false" >
             <p:growl globalOnly="true" id="messages" />
             <p:dataTable var="matrix" value="#{gitMatrixViewBean.matrices}" id="list" rows="10" lazy="false"
-                         emptyMessage="No records found." paginator="true" paginatorPosition="bottom"
+                         emptyMessage="No matrices generated found." paginator="true" paginatorPosition="bottom"
                          paginatorTemplate="{CurrentPageReport}  {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
                          rowsPerPageTemplate="5,10,15">
-                <f:facet name="header">
-                    <h:outputText value="Nets"/>
-                </f:facet>
-
                 <p:column headerText="ID">
                     <h:outputText value="#{matrix.id}" />
                 </p:column>
@@ -94,6 +87,5 @@
             }                                                                                                                    
         </script>                                                                                                                
 
-    </p:panel>
-
+    </p:fieldset>
 </div>

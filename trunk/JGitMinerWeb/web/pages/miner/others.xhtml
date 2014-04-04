@@ -2,9 +2,7 @@
      xmlns:h="http://java.sun.com/jsf/html"
      xmlns:f="http://java.sun.com/jsf/core"
      xmlns:p="http://primefaces.org/ui" >
-    <p:panel >
-        <h2>Pagina de mineração de Outros Dados.</h2>
-        <br />
+    <p:fieldset legend="Repository minering">
         <h:form id="formMinerOther" prependId="false">
             <p:growl globalOnly="true" id="messages" />
 
@@ -77,7 +75,7 @@
 
             <br />
             <br />
-            
+
             <h:outputText id="currentProcess" value="Current process: #{gitMinerOthersBean.currentProcess}" />
             <p:progressBar id="progress" widgetVar="progressVar" ajax="true" value="#{gitMinerOthersBean.progress}" labelTemplate="{value}%" styleClass="animated" interval="3000" >
                 <p:ajax event="complete" listener="#{gitMinerOthersBean.onComplete()}" update="messages,loadingImage,logTextArea" oncomplete="startButton.enable();"/>
@@ -103,5 +101,5 @@
             <p:inputTextarea value="#{gitMinerOthersBean.log}" id="logTextArea" style="width: 100%" rows="30" autoResize="autoResize" readonly="true" />
 
         </h:form>
-    </p:panel>
+    </p:fieldset>
 </div>
