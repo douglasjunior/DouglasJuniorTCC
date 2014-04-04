@@ -8,7 +8,7 @@ html, body {height:98%;}
 #geral {
     min-height:100%;
     position:relative;
-    width:1024px;
+    width: 100%;
     margin: 0px auto;
 }
 
@@ -63,9 +63,7 @@ html, body {height:98%;}
     position: absolute;
     bottom: 0;
     height: 35px;
-    width: 1014px;
+    width: 100%;
     text-align: center;
     background-color: #c2dfef;
 }
-
-
