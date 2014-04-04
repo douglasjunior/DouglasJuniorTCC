@@ -7,10 +7,8 @@ package br.edu.utfpr.cm.JGitMinerWeb.model.matrix;
 import br.edu.utfpr.cm.JGitMinerWeb.model.InterfaceEntity;
 import br.edu.utfpr.cm.JGitMinerWeb.model.Startable;
 import br.edu.utfpr.cm.JGitMinerWeb.util.Util;
-import com.google.common.collect.HashBiMap;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -51,7 +49,7 @@ public class EntityMatrix implements InterfaceEntity, Startable {
     @Lob
     @Basic(fetch = FetchType.LAZY)
     private String log;
-    private Map params;
+    private Properties params;
     private String classServicesName;
     private String repository;
     @OneToMany(mappedBy = "matrix", orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.LAZY)
@@ -61,7 +59,7 @@ public class EntityMatrix implements InterfaceEntity, Startable {
         started = new Date();
         complete = false;
         nodes = new ArrayList<>();
-        params = new HashMap();
+        params = new Properties();
     }
 
     @Override
@@ -100,10 +98,6 @@ public class EntityMatrix implements InterfaceEntity, Startable {
 
     public Map getParams() {
         return params;
-    }
-
-    public void setParams(Map params) {
-        this.params = params;
     }
 
     @Override
@@ -177,5 +171,9 @@ public class EntityMatrix implements InterfaceEntity, Startable {
     @Override
     public String getDownloadFileName() {
         return this.repository + "-" + this.started;
+    }
+
+    public void setParams(Map<String, String> params) {
+        this.params.putAll(params);
     }
 }
