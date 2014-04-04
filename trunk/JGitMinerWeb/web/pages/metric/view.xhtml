@@ -3,10 +3,7 @@
      xmlns:f="http://java.sun.com/jsf/core"
      xmlns:p="http://primefaces.org/ui">
 
-    <p:panel>
-        <h2>Página de listagem das métricas.</h2>
-        <br /> 
-
+    <p:fieldset legend="Calculated metrics based on matrix">
         <h:form prependId="false" >
             <h:outputText value="#{gitMetricViewBean.reloadList()}" />
         </h:form>
@@ -14,12 +11,9 @@
         <h:form prependId="false" >
             <p:growl globalOnly="true" id="messages" />
             <p:dataTable var="metric" value="#{gitMetricViewBean.metrics}" id="list" rows="10" lazy="false"
-                         emptyMessage="No records found." paginator="true" paginatorPosition="bottom"
+                         emptyMessage="No calculated metrics found." paginator="true" paginatorPosition="bottom"
                          paginatorTemplate="{CurrentPageReport}  {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
                          rowsPerPageTemplate="5,10,15" style="width: 100%">
-                <f:facet name="header">
-                    <h:outputText value="Nets"/>
-                </f:facet>
 
                 <p:column headerText="ID">
                     <h:outputText value="#{metric.id}" />
@@ -93,6 +87,5 @@
                 statusDialog.hide();                                                                                             
             }                                                                                                                    
         </script>                                                                                                                
-    </p:panel>
-
+    </p:fieldset>
 </div>
