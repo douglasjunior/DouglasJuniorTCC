@@ -135,6 +135,7 @@ public class PairFileBetweenessDistanceDegreeClosenessInDateServices extends Abs
 
             String commiter1 = columns[0];
             String commiter2 = columns[3];
+                      
             /**
              * Extract all distinct developer that commit a pair of file
              */
@@ -148,7 +149,7 @@ public class PairFileBetweenessDistanceDegreeClosenessInDateServices extends Abs
                 commiters.add(commiter2);
                 commitersPairFile.put(pairFile, commiters);
             }
-
+            
             // adiciona conforme o peso
             for (int j = 0; j < Util.stringToInteger(columns[4]); j++) {
                 graphMulti.addEdge(
@@ -172,6 +173,7 @@ public class PairFileBetweenessDistanceDegreeClosenessInDateServices extends Abs
                     dgrGen.getVertexScore(vertexUser), // degree
                     clsGen.getVertexScore(vertexUser))); // closeness
         }
+        graphMulti = null;
 
         List<AuxFileFileMetrics> fileMetrics = new ArrayList<>();
 
@@ -207,7 +209,7 @@ public class PairFileBetweenessDistanceDegreeClosenessInDateServices extends Abs
             updates = calculeUpdates(pairFile.getFileName(), pairFile.getFileName2(), getBeginDate(), getEndDate());
 
             futUpdates = calculeUpdates(pairFile.getFileName(), pairFile.getFileName2(), futureBeginDate, futureEndDate);
-
+ 
             codeChurn = calculeCodeChurn(pairFile.getFileName(), pairFile.getFileName2(), getBeginDate(), getEndDate());
             codeChurn2 = calculeCodeChurn(pairFile.getFileName2(), pairFile.getFileName(), getBeginDate(), getEndDate());
 
@@ -219,6 +221,8 @@ public class PairFileBetweenessDistanceDegreeClosenessInDateServices extends Abs
                     updates, futUpdates,
                     codeChurn, codeChurn2, (codeChurn + codeChurn2) / 2));
         }
+        pairFiles.clear();
+        commitersPairFile.clear();
 
         addToEntityMetricNodeList(fileMetrics);
     }
