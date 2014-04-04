@@ -75,17 +75,8 @@ public class CochangeStructuralHolesMeasureServices extends AbstractMetricServic
     }
 
     public Date getBeginDate() {
-        return getDateParam("beginDate");
-    }
-
-    public Date getEndDate() {
-        return getDateParam("endDate");
-    }
-
-    @Override
-    public Date getBeginDate() {
         Calendar beginDateCalendar = Calendar.getInstance();
-        beginDateCalendar.setTime(super.getBeginDate());
+        beginDateCalendar.setTime(getDateParam("beginDate"));
         beginDateCalendar.set(Calendar.HOUR_OF_DAY, 0);
         beginDateCalendar.set(Calendar.MINUTE, 0);
         beginDateCalendar.set(Calendar.SECOND, 0);
@@ -93,10 +84,9 @@ public class CochangeStructuralHolesMeasureServices extends AbstractMetricServic
         return beginDateCalendar.getTime();
     }
 
-    @Override
     public Date getEndDate() {
         Calendar endDateCalendar = Calendar.getInstance();
-        endDateCalendar.setTime(super.getEndDate());
+        endDateCalendar.setTime(getDateParam("endDate"));
         endDateCalendar.set(Calendar.HOUR_OF_DAY, 23);
         endDateCalendar.set(Calendar.MINUTE, 59);
         endDateCalendar.set(Calendar.SECOND, 59);
