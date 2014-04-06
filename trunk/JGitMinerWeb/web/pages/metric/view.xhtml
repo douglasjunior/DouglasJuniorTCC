@@ -50,12 +50,9 @@
                     <p:commandButton onclick="PrimeFaces.monitorDownload(start, stop)" ajax="false" value="CSV">
                         <p:fileDownload value="#{gitMetricViewBean.downloadCSV(metric)}" />  
                     </p:commandButton> 
-                    <p:commandButton onclick="PrimeFaces.monitorDownload(start, stop)"  ajax="false" value="Pajek">
-                        <p:fileDownload value="#{gitMetricViewBean.downloadCSV(metric)}" />  
+                    <p:commandButton onclick="PrimeFaces.monitorDownload(start, stop)"  ajax="false" value="Params">
+                        <p:fileDownload value="#{gitMetricViewBean.downloadParams(metric)}" />  
                     </p:commandButton> 
-                    <p:commandButton onclick="PrimeFaces.monitorDownload(start, stop)" ajax="false" value="ARFF">
-                        <p:fileDownload value="#{gitMetricViewBean.downloadCSV(metric)}" />  
-                    </p:commandButton>  
                 </p:column>
 
                 <p:column headerText="Options">

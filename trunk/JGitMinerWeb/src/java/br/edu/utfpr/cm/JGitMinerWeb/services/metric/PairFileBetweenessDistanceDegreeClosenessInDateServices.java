@@ -22,6 +22,7 @@ import edu.uci.ics.jung.algorithms.scoring.ClosenessCentrality;
 import edu.uci.ics.jung.algorithms.scoring.DegreeScorer;
 import edu.uci.ics.jung.graph.AbstractTypedGraph;
 import edu.uci.ics.jung.graph.DirectedSparseMultigraph;
+import edu.uci.ics.jung.graph.Graph;
 import edu.uci.ics.jung.graph.UndirectedSparseMultigraph;
 import edu.uci.ics.jung.graph.util.EdgeType;
 import java.util.ArrayList;
@@ -33,6 +34,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.apache.commons.collections15.Transformer;
 
 /**
  *
@@ -125,6 +127,7 @@ public class PairFileBetweenessDistanceDegreeClosenessInDateServices extends Abs
 
         final Map<AuxFileFile, Set<String>> commitersPairFile = new HashMap<>();
         Set<AuxFileFile> pairFiles = new HashSet<>();
+        Map<String, Integer> edgesWeigth = new HashMap<>();
 
         for (int i = 0; i < getMatrix().getNodes().size(); i++) {
             EntityMatrixNode node = getMatrix().getNodes().get(i);
@@ -135,7 +138,7 @@ public class PairFileBetweenessDistanceDegreeClosenessInDateServices extends Abs
 
             String commiter1 = columns[0];
             String commiter2 = columns[3];
-                      
+
             /**
              * Extract all distinct developer that commit a pair of file
              */
@@ -149,19 +152,18 @@ public class PairFileBetweenessDistanceDegreeClosenessInDateServices extends Abs
                 commiters.add(commiter2);
                 commitersPairFile.put(pairFile, commiters);
             }
-            
+
             // adiciona conforme o peso
-            for (int j = 0; j < Util.stringToInteger(columns[4]); j++) {
-                graphMulti.addEdge(
-                        pairFile.getFileName() + "-" + pairFile.getFileName2() + "-" + i + "-" + j,
-                        commiter1,
-                        commiter2,
-                        type);
-            }
+            String edgeName = pairFile.getFileName() + "-" + pairFile.getFileName2() + "-" + i;
+            edgesWeigth.put(edgeName, Util.stringToInteger(columns[4]));
+
+            graphMulti.addEdge(edgeName, commiter1, commiter2, type);
         }
 
-        BetweennessCentrality<String, String> btwGen = new BetweennessCentrality<>(graphMulti);
-        ClosenessCentrality<String, String> clsGen = new ClosenessCentrality<>(graphMulti);
+        Transformer trans = createWeigthTransformer(graphMulti, edgesWeigth);
+
+        BetweennessCentrality<String, String> btwGen = new BetweennessCentrality<>(graphMulti, trans);
+        ClosenessCentrality<String, String> clsGen = new ClosenessCentrality<>(graphMulti, trans);
         DegreeScorer<String> dgrGen = new DegreeScorer<>(graphMulti);
 
         Map<String, AuxUserMetrics> usersMetrics = new HashMap<>();
@@ -174,6 +176,7 @@ public class PairFileBetweenessDistanceDegreeClosenessInDateServices extends Abs
                     clsGen.getVertexScore(vertexUser))); // closeness
         }
         graphMulti = null;
+        edgesWeigth.clear();
 
         List<AuxFileFileMetrics> fileMetrics = new ArrayList<>();
 
@@ -209,7 +212,7 @@ public class PairFileBetweenessDistanceDegreeClosenessInDateServices extends Abs
             updates = calculeUpdates(pairFile.getFileName(), pairFile.getFileName2(), getBeginDate(), getEndDate());
 
             futUpdates = calculeUpdates(pairFile.getFileName(), pairFile.getFileName2(), futureBeginDate, futureEndDate);
- 
+
             codeChurn = calculeCodeChurn(pairFile.getFileName(), pairFile.getFileName2(), getBeginDate(), getEndDate());
             codeChurn2 = calculeCodeChurn(pairFile.getFileName2(), pairFile.getFileName(), getBeginDate(), getEndDate());
 
@@ -322,5 +325,16 @@ public class PairFileBetweenessDistanceDegreeClosenessInDateServices extends Abs
             return repos.get(0);
         }
         return null;
+    }
+
+    private static <V, E> Transformer<E, ? extends Number> createWeigthTransformer(final Graph<V, E> graph, final Map<E, ? extends Number> edgeWeigth) {
+        Transformer<E, ? extends Number> edgeWeigthTransformer = new Transformer<E, Number>() {
+            @Override
+            public Number transform(E edge) {
+                Number num = edgeWeigth.get(edge);
+                return num != null ? num : 0;
+            }
+        };
+        return edgeWeigthTransformer;
     }
 }

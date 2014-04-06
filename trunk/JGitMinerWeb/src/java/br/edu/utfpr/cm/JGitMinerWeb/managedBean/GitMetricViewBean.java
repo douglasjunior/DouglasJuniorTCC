@@ -80,7 +80,7 @@ public class GitMetricViewBean implements Serializable {
         StreamedContent file = null;
         try {
             OutLog out = new OutLog();
-            
+
             System.out.println("Metric tem nodes: " + metric.getNodes().size());
 
             String fileName = generateFileName(metric) + ".csv";
@@ -121,6 +121,31 @@ public class GitMetricViewBean implements Serializable {
 
             for (String linha : linhas) {
                 pw.println(linha);
+            }
+
+            pw.flush();
+            pw.close();
+
+            file = JsfUtil.downloadFile(fileName, baos.toByteArray());
+
+            baos.close();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            JsfUtil.addErrorMessage(ex.toString());
+        }
+        return file;
+    }
+
+    public StreamedContent downloadParams(EntityMetric metric) {
+        StreamedContent file = null;
+        try {
+            String fileName = generateFileName(metric) + ".txt";
+
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            PrintWriter pw = new PrintWriter(baos);
+
+            for (Object key : metric.getParams().keySet()) {
+                pw.println(key + "=" + metric.getParams().get(key));
             }
 
             pw.flush();

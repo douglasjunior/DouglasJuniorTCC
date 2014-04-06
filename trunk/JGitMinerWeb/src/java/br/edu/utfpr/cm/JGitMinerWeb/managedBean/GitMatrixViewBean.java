@@ -129,6 +129,31 @@ public class GitMatrixViewBean implements Serializable {
         return file;
     }
 
+    public StreamedContent downloadParams(EntityMatrix matrix) {
+        StreamedContent file = null;
+        try {
+            String fileName = generateFileName(matrix) + ".txt";
+
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            PrintWriter pw = new PrintWriter(baos);
+
+            for (Object key : matrix.getParams().keySet()) {
+                pw.println(key + "=" + matrix.getParams().get(key));
+            }
+
+            pw.flush();
+            pw.close();
+
+            file = JsfUtil.downloadFile(fileName, baos.toByteArray());
+
+            baos.close();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            JsfUtil.addErrorMessage(ex.toString());
+        }
+        return file;
+    }
+
     private String generateFileName(EntityMatrix matrix) {
         return matrix.getClassServicesSingleName() + " (" + matrix.getRepository() + ") - " + matrix.getStarted();
     }
