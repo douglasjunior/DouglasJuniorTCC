@@ -40,15 +40,15 @@ import org.apache.commons.collections15.Transformer;
  *
  * @author Douglas
  */
-public class PairFileBetweenessDistanceDegreeClosenessInDateServices extends AbstractMetricServices {
+public class PairFileSupportConfidenceLiftConvictionInDateServices extends AbstractMetricServices {
 
     private EntityRepository repository;
 
-    public PairFileBetweenessDistanceDegreeClosenessInDateServices(GenericDao dao, OutLog out) {
+    public PairFileSupportConfidenceLiftConvictionInDateServices(GenericDao dao, OutLog out) {
         super(dao, out);
     }
 
-    public PairFileBetweenessDistanceDegreeClosenessInDateServices(GenericDao dao, EntityMatrix matrix, Map params, OutLog out) {
+    public PairFileSupportConfidenceLiftConvictionInDateServices(GenericDao dao, EntityMatrix matrix, Map params, OutLog out) {
         super(dao, matrix, params, out);
     }
 
@@ -78,24 +78,6 @@ public class PairFileBetweenessDistanceDegreeClosenessInDateServices extends Abs
         return getDateParam("futureEndDate");
     }
 
-    /*
-     *
-     Code churn => The number of lines of code that were either added or changed over the history of this file.
-     Updates => The number of updates to the repository that included this file.
-     Developers => The number of distinct developers who have updated this file over its history.
-     (Sum/Average/Max) of Degree => The (sum/average/maximum) of each developer’s degree over a file’s history.
-     (Sum/Average/Max) of Closeness => The (sum/average/maximum) of each developer’s Closeness over a file’s history.
-     (Sum/Average/Max) of Betweenness => The (sum/average/maximum) of each developer’s Betweenness over a file’s history.
-     Number of Hub Developers => The number of distinct hub developers who update this file.
-     *
-     Código alterado => O número de linhas de código que foram ou adicionados ou alterados ao longo da história deste arquivo.
-     Atualizações => O número de atualizações para o repositório que incluiu este arquivo.
-     Desenvolvedores => O número de desenvolvedores distintos que atualizaram este arquivo longo de sua história.
-     (Soma / Média / Max) de grau => O (soma / média / máxima) de grau de cada desenvolvedor sobre a história de um arquivo.
-     (Soma / Média / Max) de proximidade => O (soma / média / máxima) de proximidade de cada desenvolvedor sobre a história de um arquivo.
-     (Soma / Média / Max) de intermediação => O (soma média / / máximo) de intermediação de cada desenvolvedor sobre a história de um arquivo.
-     Número de Desenvolvedores de Hub => O número de desenvolvedores hub distintas que atualizam esse arquivo.
-     */
     @Override
     public void run() {
 
@@ -141,120 +123,128 @@ public class PairFileBetweenessDistanceDegreeClosenessInDateServices extends Abs
             type = EdgeType.UNDIRECTED;
         }
 
-        final Map<AuxFileFile, Set<String>> commitersPairFile = new HashMap<>();
-        Set<AuxFileFile> pairFiles = new HashSet<>();
+        final Map<AuxFileFileMetrics, Set<String>> commitersPairFile = new HashMap<>();
+        Set<AuxFileFileMetrics> pairFileMetrics = new HashSet<>();
         Map<String, Integer> edgesWeigth = new HashMap<>();
 
         for (int i = 0; i < getMatrix().getNodes().size(); i++) {
             EntityMatrixNode node = getMatrix().getNodes().get(i);
             String[] columns = node.getLine().split(JsfUtil.TOKEN_SEPARATOR);
 
-            AuxFileFile pairFile = new AuxFileFile(columns[1], columns[2]);
-            pairFiles.add(pairFile);
+            AuxFileFileMetrics pairFile = new AuxFileFileMetrics(columns[1], columns[2]);
+            pairFileMetrics.add(pairFile);
 
             String commiter1 = columns[0];
             String commiter2 = columns[3];
-
             /**
              * Extract all distinct developer that commit a pair of file
              */
-            if (commitersPairFile.containsKey(pairFile)) {
-                Set<String> commiters = commitersPairFile.get(pairFile);
-                commiters.add(commiter1);
-                commiters.add(commiter2);
-            } else {
-                Set<String> commiters = new HashSet<>();
-                commiters.add(commiter1);
-                commiters.add(commiter2);
+            Set<String> commiters = commitersPairFile.get(pairFile);
+            if (commiters == null) {
+                commiters = new HashSet<>();
                 commitersPairFile.put(pairFile, commiters);
             }
+            commiters.add(commiter1);
+            commiters.add(commiter2);
 
             // adiciona conforme o peso
-            String edgeName = pairFile.getFileName() + "-" + pairFile.getFileName2() + "-" + i;
+            String edgeName = pairFile.getFile() + "-" + pairFile.getFile2() + "-" + i;
             edgesWeigth.put(edgeName, Util.stringToInteger(columns[4]));
 
             graphMulti.addEdge(edgeName, commiter1, commiter2, type);
         }
 
-        Transformer trans = createWeigthTransformer(graphMulti, edgesWeigth);
+        out.printLog("Iniciando cálculo do support, confidence, lift e conviction.");
+        for (AuxFileFileMetrics pairFile : pairFileMetrics) {
+            Long pairFileNumberOfPullrequestOfPair = calculeUpdates(pairFile.getFile(), pairFile.getFile2(), getBeginDate(), getEndDate());
+            Long pairFileNumberOfPullrequestOfPairFuture = calculeUpdates(pairFile.getFile(), pairFile.getFile2(), futureBeginDate, futureEndDate);
+            Long fileNumberOfPullrequestOfPairFuture = calculeUpdates(pairFile.getFile(), null, futureBeginDate, futureEndDate);
+            Long file2NumberOfPullrequestOfPairFuture = calculeUpdates(pairFile.getFile2(), null, futureBeginDate, futureEndDate);
+            Long numberOfAllPullrequestFuture = calculeUpdates(null, null, futureBeginDate, futureEndDate);
 
-        BetweennessCentrality<String, String> btwGen = new BetweennessCentrality<>(graphMulti, trans);
-        ClosenessCentrality<String, String> clsGen = new ClosenessCentrality<>(graphMulti, trans);
-        DegreeScorer<String> dgrGen = new DegreeScorer<>(graphMulti);
+            pairFile.addMetrics(pairFileNumberOfPullrequestOfPair, pairFileNumberOfPullrequestOfPairFuture, fileNumberOfPullrequestOfPairFuture, file2NumberOfPullrequestOfPairFuture, numberOfAllPullrequestFuture);
 
-        Map<String, AuxUserMetrics> usersMetrics = new HashMap<>();
+            Double supportFile = numberOfAllPullrequestFuture == 0 ? 0d : fileNumberOfPullrequestOfPairFuture.doubleValue() / numberOfAllPullrequestFuture.doubleValue();
+            Double supportFile2 = numberOfAllPullrequestFuture == 0 ? 0d : file2NumberOfPullrequestOfPairFuture.doubleValue() / numberOfAllPullrequestFuture.doubleValue();
+            Double supportPairFile = numberOfAllPullrequestFuture == 0 ? 0d : pairFileNumberOfPullrequestOfPairFuture.doubleValue() / numberOfAllPullrequestFuture.doubleValue();
+            Double confidence = supportFile == 0 ? 0d : supportPairFile / supportFile;
+            Double lift = supportFile * supportFile2 == 0 ? 0d : supportPairFile / (supportFile * supportFile2);
+            Double conviction = 1 - confidence == 0 ? 0d : (1 - supportFile2) / (1 - confidence);
 
-        out.printLog("Iniciando calculo das metricas.");
-        for (String vertexUser : graphMulti.getVertices()) {
-            usersMetrics.put(vertexUser, new AuxUserMetrics(vertexUser,
-                    btwGen.getVertexScore(vertexUser), // betweeness
-                    dgrGen.getVertexScore(vertexUser), // degree
-                    clsGen.getVertexScore(vertexUser))); // closeness
+            pairFile.addMetrics(supportFile, supportFile2, supportPairFile, confidence, lift, conviction);
         }
-        graphMulti = null;
-        edgesWeigth.clear();
 
-        List<AuxFileFileMetrics> fileMetrics = new ArrayList<>();
+        /*   Transformer trans = createWeigthTransformer(graphMulti, edgesWeigth);
 
-        out.printLog("Iniciando média, soma, updates, etc.");
-        for (AuxFileFile pairFile : pairFiles) {
-            Double btwMax = 0d, btwAve, btwSum = 0d;
-            Double dgrMax = 0d, dgrAve, dgrSum = 0d;
-            Double clsMax = 0d, clsAve, clsSum = 0d;
-            Long codeChurn = 0l, futUpdates = 0l, updates = 0l, dev = 0l;
-            Long codeChurn2 = 0l;
+         BetweennessCentrality<String, String> btwGen = new BetweennessCentrality<>(graphMulti, trans);
+         ClosenessCentrality<String, String> clsGen = new ClosenessCentrality<>(graphMulti, trans);
+         DegreeScorer<String> dgrGen = new DegreeScorer<>(graphMulti);
 
-            for (String vertexUser : commitersPairFile.get(pairFile)) {
-                AuxUserMetrics userMetric = usersMetrics.get(vertexUser);
-                Double btw = userMetric.getMetrics()[0];
-                btwMax = calculeMax(btw, btwMax);
-                btwSum += btw;
+         Map<String, AuxUserMetrics> usersMetrics = new HashMap<>();
 
-                Double dgr = userMetric.getMetrics()[1];
-                dgrMax = calculeMax(dgr, dgrMax);
-                dgrSum += dgr;
+         out.printLog("Iniciando calculo das metricas.");
+         for (String vertexUser : graphMulti.getVertices()) {
+         usersMetrics.put(vertexUser, new AuxUserMetrics(vertexUser,
+         btwGen.getVertexScore(vertexUser), // betweeness
+         dgrGen.getVertexScore(vertexUser), // degree
+         clsGen.getVertexScore(vertexUser))); // closeness
+         }
+         graphMulti = null;
+         edgesWeigth.clear();
 
-                Double cls = userMetric.getMetrics()[2];
-                clsMax = calculeMax(cls, clsMax);
-                clsSum += cls;
+         out.printLog("Iniciando média, soma, updates, etc.");
+         for (AuxFileFileMetrics pairFile : pairFileMetrics) {
+         Double btwMax = 0d, btwAve, btwSum = 0d;
+         Double dgrMax = 0d, dgrAve, dgrSum = 0d;
+         Double clsMax = 0d, clsAve, clsSum = 0d;
+         Long codeChurn = 0l, futUpdates = 0l, updates = 0l, dev = 0l;
+         Long codeChurn2 = 0l;
 
-                dev++;
-            }
+         for (String vertexUser : commitersPairFile.get(pairFile)) {
+         AuxUserMetrics userMetric = usersMetrics.get(vertexUser);
+         Double btw = userMetric.getMetrics()[0];
+         btwMax = calculeMax(btw, btwMax);
+         btwSum += btw;
 
-            btwAve = btwSum / dev;
-            dgrAve = dgrSum / dev;
-            clsAve = clsSum / dev;
+         Double dgr = userMetric.getMetrics()[1];
+         dgrMax = calculeMax(dgr, dgrMax);
+         dgrSum += dgr;
 
-            updates = calculeUpdates(pairFile.getFileName(), pairFile.getFileName2(), getBeginDate(), getEndDate());
+         Double cls = userMetric.getMetrics()[2];
+         clsMax = calculeMax(cls, clsMax);
+         clsSum += cls;
 
-            futUpdates = calculeUpdates(pairFile.getFileName(), pairFile.getFileName2(), futureBeginDate, futureEndDate);
+         dev++;
+         }
 
-            codeChurn = calculeCodeChurn(pairFile.getFileName(), pairFile.getFileName2(), getBeginDate(), getEndDate());
-            codeChurn2 = calculeCodeChurn(pairFile.getFileName2(), pairFile.getFileName(), getBeginDate(), getEndDate());
+         btwAve = btwSum / dev;
+         dgrAve = dgrSum / dev;
+         clsAve = clsSum / dev;
 
-            fileMetrics.add(new AuxFileFileMetrics(pairFile.getFileName(), pairFile.getFileName2(),
-                    fixNanValue(btwMax), fixNanValue(btwAve), fixNanValue(btwSum),
-                    fixNanValue(dgrMax), fixNanValue(dgrAve), fixNanValue(dgrSum),
-                    fixNanValue(clsMax), fixNanValue(clsAve), fixNanValue(clsSum),
-                    dev,
-                    updates, futUpdates,
-                    codeChurn, codeChurn2, (codeChurn + codeChurn2) / 2));
-        }
-        pairFiles.clear();
-        commitersPairFile.clear();
+         updates = calculeUpdates(pairFile.getFile(), pairFile.getFile2(), getBeginDate(), getEndDate());
 
-        addToEntityMetricNodeList(fileMetrics);
+         futUpdates = calculeUpdates(pairFile.getFile(), pairFile.getFile2(), futureBeginDate, futureEndDate);
+
+         codeChurn = calculeCodeChurn(pairFile, getBeginDate(), getEndDate());
+         codeChurn2 = calculeCodeChurn(pairFile, getBeginDate(), getEndDate());
+
+         pairFile.addMetrics(fixNanValue(btwMax), fixNanValue(btwAve), fixNanValue(btwSum),
+         fixNanValue(dgrMax), fixNanValue(dgrAve), fixNanValue(dgrSum),
+         fixNanValue(clsMax), fixNanValue(clsAve), fixNanValue(clsSum),
+         dev,
+         updates, futUpdates,
+         codeChurn, codeChurn2, (codeChurn + codeChurn2) / 2);
+         }
+         commitersPairFile.clear();
+         */
+        addToEntityMetricNodeList(pairFileMetrics);
     }
 
     @Override
     public String getHeadCSV() {
         return "file;file2;"
-                + "btwMax;btwAve;btwSum;"
-                + "dgrMax;dgrAve;dgrSum;"
-                + "clsMax;clsAve;clsSum;"
-                + "developers;"
-                + "cooUpates;futureCooUpdates;"
-                + "codeChurn;codeChurn2;codeChurnAve";
+                + "pairFileCochange;pairFileCochangeFuture;fileChangeFuture;file2ChangeFuture;allPullrequestFuture;"
+                + "supportFile;supportFile2;supportPairFile;confidence;lift;conviction";
     }
 
     @Override
@@ -271,27 +261,33 @@ public class PairFileBetweenessDistanceDegreeClosenessInDateServices extends Abs
         return vMax;
     }
 
-    private long calculeUpdates(String fileName, String fileName2, Date beginDate, Date endDate) {
-        String jpql = "SELECT COUNT(rc) "
+    private long calculeUpdates(String file, String file2, Date beginDate, Date endDate) {
+        String jpql = "SELECT COUNT(pp) "
                 + "FROM "
-                + "EntityPullRequest pp JOIN pp.repositoryCommits rc "
+                + "EntityPullRequest pp "
                 + "WHERE "
                 + "pp.repository = :repo AND "
-                + "pp.createdAt BETWEEN :beginDate AND :endDate AND "
-                + "EXISTS (SELECT p FROM EntityPullRequest p JOIN p.repositoryCommits r JOIN r.files f WHERE p = pp AND f.filename = :fileName) AND "
-                + "EXISTS (SELECT p2 FROM EntityPullRequest p2 JOIN p2.repositoryCommits r2 JOIN r2.files f2 WHERE p2 = pp AND f2.filename = :fileName2) ";
+                + "pp.createdAt BETWEEN :beginDate AND :endDate ";
+
+        if (file != null) {
+            jpql += " AND EXISTS (SELECT p FROM EntityPullRequest p JOIN p.repositoryCommits r JOIN r.files f WHERE p = pp AND f.filename = :fileName) ";
+        }
+
+        if (file2 != null) {
+            jpql += " AND EXISTS (SELECT p2 FROM EntityPullRequest p2 JOIN p2.repositoryCommits r2 JOIN r2.files f2 WHERE p2 = pp AND f2.filename = :fileName2) ";
+        }
 
         String[] bdParams = new String[]{
             "repo",
-            "fileName",
-            "fileName2",
+            file != null ? "fileName" : "#none#",
+            file2 != null ? "fileName2" : "#none#",
             "beginDate",
             "endDate"
         };
         Object[] bdObjects = new Object[]{
             repository,
-            fileName,
-            fileName2,
+            file,
+            file2,
             beginDate,
             endDate
         };
@@ -301,7 +297,7 @@ public class PairFileBetweenessDistanceDegreeClosenessInDateServices extends Abs
         return count != null ? count : 0l;
     }
 
-    private Long calculeCodeChurn(String fileName, String fileName2, Date beginDate, Date endDate) {
+    private Long calculeCodeChurn(AuxFileFileMetrics pairFile, Date beginDate, Date endDate) {
         String jpql = "SELECT SUM(ff.changes) "
                 + "FROM "
                 + "EntityPullRequest pp JOIN pp.repositoryCommits rc JOIN rc.files ff "
@@ -320,8 +316,8 @@ public class PairFileBetweenessDistanceDegreeClosenessInDateServices extends Abs
         };
         Object[] bdObjects = new Object[]{
             repository,
-            fileName,
-            fileName2,
+            pairFile.getFile(),
+            pairFile.getFile2(),
             beginDate,
             endDate
         };
@@ -330,8 +326,8 @@ public class PairFileBetweenessDistanceDegreeClosenessInDateServices extends Abs
 
         return sum != null ? sum : 0l;
     }
-    
-    private Double fixNanValue(Double value){
+
+    private Double fixNanValue(Double value) {
         if (value.isNaN()) {
             return 0d;
         }

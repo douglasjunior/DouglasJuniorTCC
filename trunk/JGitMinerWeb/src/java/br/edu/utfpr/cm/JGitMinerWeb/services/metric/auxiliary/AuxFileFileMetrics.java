@@ -5,6 +5,10 @@
 package br.edu.utfpr.cm.JGitMinerWeb.services.metric.auxiliary;
 
 import br.edu.utfpr.cm.JGitMinerWeb.util.Util;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
 
 /**
  *
@@ -14,9 +18,16 @@ public class AuxFileFileMetrics {
 
     private String file;
     private String file2;
-    private double[] metrics;
+    private List<Double> metrics = new ArrayList<>();
 
-    public AuxFileFileMetrics(String file,String file2, double... metrics) {
+    public AuxFileFileMetrics(String file, String file2, double... metrics) {
+        this.file = file;
+        this.file2 = file2;
+        this.metrics = new ArrayList<>();
+        addMetrics(metrics);
+    }
+    
+    public AuxFileFileMetrics(String file, String file2, List<Double> metrics) {
         this.file = file;
         this.file2 = file2;
         this.metrics = metrics;
@@ -30,11 +41,19 @@ public class AuxFileFileMetrics {
         this.file = file;
     }
 
-    public double[] getMetrics() {
+    public String getFile2() {
+        return file2;
+    }
+
+    public void setFile2(String file2) {
+        this.file2 = file2;
+    }
+
+    public List<Double> getMetrics() {
         return metrics;
     }
 
-    public void setMetrics(double[] metrics) {
+    public void setMetrics(List<Double> metrics) {
         this.metrics = metrics;
     }
 
@@ -47,4 +66,36 @@ public class AuxFileFileMetrics {
         }
         return sb.toString();
     }
+
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 89 * hash + (Objects.hashCode(this.file) + Objects.hashCode(this.file2));
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final AuxFileFileMetrics other = (AuxFileFileMetrics) obj;
+        if (Util.stringEquals(this.file, other.file) && Util.stringEquals(this.file2, other.file2)) {
+            return true;
+        }
+        if (Util.stringEquals(this.file, other.file2) && Util.stringEquals(this.file2, other.file)) {
+            return true;
+        }
+        return false;
+    }
+
+    public void addMetrics(double... metrics) {
+        for (double value : metrics) {
+            this.metrics.add(value);
+        }
+    }
+
 }

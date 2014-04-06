@@ -291,9 +291,8 @@ public class GitMetricBean implements Serializable {
         try {
             return (AbstractMetricServices) serviceClass.getConstructor(GenericDao.class, EntityMatrix.class, Map.class, OutLog.class).newInstance(dao, matrix, params, out);
         } catch (Exception ex) {
-            ex.printStackTrace();
+            throw new RuntimeException(ex);
         }
-        return null;
     }
 
     public ClassConverter getConverterClass() {

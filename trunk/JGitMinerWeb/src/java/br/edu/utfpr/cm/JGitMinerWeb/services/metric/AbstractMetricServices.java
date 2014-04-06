@@ -8,9 +8,9 @@ import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericDao;
 import br.edu.utfpr.cm.JGitMinerWeb.model.matrix.EntityMatrix;
 import br.edu.utfpr.cm.JGitMinerWeb.model.metric.EntityMetricNode;
 import br.edu.utfpr.cm.JGitMinerWeb.services.AbstractServices;
-import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.AbstractMatrixServices;
 import br.edu.utfpr.cm.JGitMinerWeb.util.OutLog;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -47,7 +47,7 @@ public abstract class AbstractMetricServices extends AbstractServices {
     @Override
     public abstract String getHeadCSV();
 
-    protected void addToEntityMetricNodeList(List list) {
+    protected void addToEntityMetricNodeList(Collection list) {
         if (nodes == null) {
             nodes = new ArrayList<>();
         }
