@@ -2,6 +2,7 @@
 .classpath
 .project
 nb-configuration.xml
+/src/main/resources/accounts
 
 # Folders #
 /build/
