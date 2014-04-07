@@ -168,10 +168,12 @@ public class PairFileSupportConfidenceLiftConvictionInDateServices extends Abstr
             Double supportFile2 = numberOfAllPullrequestFuture == 0 ? 0d : file2NumberOfPullrequestOfPairFuture.doubleValue() / numberOfAllPullrequestFuture.doubleValue();
             Double supportPairFile = numberOfAllPullrequestFuture == 0 ? 0d : pairFileNumberOfPullrequestOfPairFuture.doubleValue() / numberOfAllPullrequestFuture.doubleValue();
             Double confidence = supportFile == 0 ? 0d : supportPairFile / supportFile;
+            Double confidence2 = supportFile2 == 0 ? 0d : supportPairFile / supportFile2;
             Double lift = supportFile * supportFile2 == 0 ? 0d : supportPairFile / (supportFile * supportFile2);
             Double conviction = 1 - confidence == 0 ? 0d : (1 - supportFile2) / (1 - confidence);
+            Double conviction2 = 1 - confidence2 == 0 ? 0d : (1 - supportFile2) / (1 - confidence2);
 
-            pairFile.addMetrics(supportFile, supportFile2, supportPairFile, confidence, lift, conviction);
+            pairFile.addMetrics(supportFile, supportFile2, supportPairFile, confidence, confidence2, lift, conviction, conviction2);
         }
 
         /*   Transformer trans = createWeigthTransformer(graphMulti, edgesWeigth);
@@ -244,7 +246,7 @@ public class PairFileSupportConfidenceLiftConvictionInDateServices extends Abstr
     public String getHeadCSV() {
         return "file;file2;"
                 + "pairFileCochange;pairFileCochangeFuture;fileChangeFuture;file2ChangeFuture;allPullrequestFuture;"
-                + "supportFile;supportFile2;supportPairFile;confidence;lift;conviction";
+                + "supportFile;supportFile2;supportPairFile;confidence;confidence2;lift;conviction;conviction2";
     }
 
     @Override
