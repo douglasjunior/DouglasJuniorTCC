@@ -1,4 +1,11 @@
+# Files #
+.classpath
+.project
+nb-configuration.xml
+
+# Folders #
 /build/
 /dist/
 /target/
 /nbproject/
+/.settings/
