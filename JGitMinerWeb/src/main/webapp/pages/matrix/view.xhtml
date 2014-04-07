@@ -1,0 +1,89 @@
+<div xmlns="http://www.w3.org/1999/xhtml"
+     xmlns:h="http://java.sun.com/jsf/html"
+     xmlns:f="http://java.sun.com/jsf/core"
+     xmlns:p="http://primefaces.org/ui">
+
+    <h:form>
+        <h:outputText value="#{gitMatrixViewBean.reloadList()}" />
+    </h:form>
+
+    <p:fieldset legend="Matrices generated">
+        <h:form prependId="false" >
+            <p:growl globalOnly="true" id="messages" />
+            <p:dataTable var="matrix" value="#{gitMatrixViewBean.matrices}" id="list" rows="10" lazy="false"
+                         emptyMessage="No matrices generated found." paginator="true" paginatorPosition="bottom"
+                         paginatorTemplate="{CurrentPageReport}  {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                         rowsPerPageTemplate="5,10,15">
+                <p:column headerText="ID">
+                    <h:outputText value="#{matrix.id}" />
+                </p:column>
+
+                <p:column headerText="Repository">
+                    <h:outputText value="#{matrix.repository}" />
+                </p:column>
+
+                <p:column headerText="Class Service">
+                    <h:outputText value="#{matrix.classServicesSingleName}" />
+                </p:column>
+
+                <p:column headerText="Started" >
+                    <h:outputText value="#{matrix.started}" >
+                        <f:convertDateTime pattern="MM/dd/yyyy HH:mm:ss" />
+                    </h:outputText>
+                </p:column>
+
+                <p:column headerText="Stoped" >
+                    <h:outputText value="#{matrix.stoped}" >
+                        <f:convertDateTime pattern="MM/dd/yyyy HH:mm:ss" />
+                    </h:outputText>
+                </p:column>
+
+                <p:column headerText="Completed">
+                    <h:outputText value="#{matrix.complete}" />
+                </p:column>
+
+                <p:column headerText="Download Files">
+                    <p:commandButton onclick="PrimeFaces.monitorDownload(start, stop)" ajax="false" value="Log">
+                        <p:fileDownload value="#{gitMatrixViewBean.downloadLOG(matrix)}" />  
+                    </p:commandButton> 
+                    <p:commandButton onclick="PrimeFaces.monitorDownload(start, stop)" ajax="false" value="CSV">
+                        <p:fileDownload value="#{gitMatrixViewBean.downloadCSV(matrix)}" />  
+                    </p:commandButton> 
+                    <p:commandButton onclick="PrimeFaces.monitorDownload(start, stop)"  ajax="false" value="Params">
+                        <p:fileDownload value="#{gitMatrixViewBean.downloadParams(matrix)}" />  
+                    </p:commandButton> 
+
+                </p:column>
+
+                <p:column headerText="Options">
+                    <p:commandButton  icon="ui-icon-trash" title="Delete this Matrix" actionListener="#{gitMatrixViewBean.addMatrixForDeleteInSession(matrix)}"
+                                      id="matrixDelete" oncomplete="confirmation.show()" />
+                </p:column>
+            </p:dataTable>
+
+            <p:confirmDialog  id="confirmDelete" widgetVar="confirmation"
+                              message="Really delete this matrix?" header="Confirmation" 
+                              severity="alert"  closable="false" >
+                <p:commandButton value="Yes" id="confirmYes" update="list messages" oncomplete="confirmation.hide()" style="position: relative;left: 80px"
+                                 actionListener="#{gitMatrixViewBean.deleteMatrixInSession()}">
+                </p:commandButton>
+                <p:commandButton value="No" id="confirmNo" oncomplete="confirmation.hide()" style="position: relative;left: 80px"
+                                 actionListener="#{gitMatrixViewBean.removeMatrixFromSession()}"/>
+            </p:confirmDialog>
+        </h:form>
+        <!-- O código abaixo é responsavel por abrir a janela de Aguarde ao realizar o Download -->                              
+        <p:dialog modal="true" widgetVar="statusDialog" header="Loading..." draggable="false" closable="false" resizable="false">
+            <p:graphicImage value="resources/images/ajaxloadingbar.gif" />                                                       
+        </p:dialog>                                                                                                              
+        <script type="text/javascript">                                                                                          
+            function start() {                                                                                                   
+                statusDialog.show();                                                                                             
+            }                                                                                                                    
+                                                                                                                                
+            function stop() {                                                                                                    
+                statusDialog.hide();                                                                                             
+            }                                                                                                                    
+        </script>                                                                                                                
+
+    </p:fieldset>
+</div>

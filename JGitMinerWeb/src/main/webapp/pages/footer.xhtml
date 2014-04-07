@@ -1,0 +1,27 @@
+<div xmlns="http://www.w3.org/1999/xhtml"
+     xmlns:h="http://java.sun.com/jsf/html"
+     xmlns:f="http://java.sun.com/jsf/core"
+     xmlns:p="http://primefaces.org/ui"> 
+
+    <p:ajaxStatus style="width:64px;height:64px;position:fixed;right:5px;bottom:5px" >  
+        <f:facet name="start">  
+            <p:graphicImage value="resources/images/loadingAjax.gif" />  
+        </f:facet>  
+        <f:facet name="complete">  
+            <h:outputText value="" />  
+        </f:facet>  
+    </p:ajaxStatus>
+
+    <p:panel>
+        <p>
+            <a href="http://douglasjunior.github.com/DouglasJuniorTCC/" >About the Project</a>
+            |
+            <a href="https://github.com/douglasjunior" >About the Developer</a>
+            |
+            <a href="mailto:nassifrroma@gmail.com" >Contact us</a>
+            |
+            <h:outputLabel value="#{pagesManager.clientCount} accounts connected" />
+        </p>
+    </p:panel>
+
+</div>

@@ -1,0 +1,105 @@
+<div xmlns="http://www.w3.org/1999/xhtml"
+     xmlns:h="http://java.sun.com/jsf/html"
+     xmlns:f="http://java.sun.com/jsf/core"
+     xmlns:p="http://primefaces.org/ui" >
+    <p:fieldset legend="Repository minering">
+        <h:form id="formMinerOther" prependId="false">
+            <p:growl globalOnly="true" id="messages" />
+
+            <p:panel id="panelMinerOther">
+                <h:outputLabel for="repositoryToMiner" value="Escolha o Repositório para mineração dos dados: "/>
+
+                <p:selectOneListbox id="repositoryToMiner"  style="height:100px;width:300px" value="#{gitMinerOthersBean.repositoryToMinerId}" >
+                    <f:selectItems value="#{gitMinerRepositoryBean.repositoriesPrimaryMiner}" var="repo" itemLabel="#{repo.name}, #{repo.owner.login}" itemDescription="#{repo.name}" itemValue="#{repo.id}" />
+                </p:selectOneListbox>
+                <br />
+                <h:selectBooleanCheckbox value="#{gitMinerOthersBean.minerOpenIssues}" id="minerOpenIssues" title="Minerar Open Issues" />
+                <h:outputLabel for="minerOpenIssues" value="Minerar Open Issues."/>
+                <br />       
+                <h:selectBooleanCheckbox value="#{gitMinerOthersBean.minerClosedIssues}" id="minerClosedIssues" title="Minerar Closed Issues" />
+                <h:outputLabel for="minerClosedIssues" value="Minerar Closed Issues."/>
+                <br />  
+                <p:spacer width="15" height="0" />
+                <h:selectBooleanCheckbox value="#{gitMinerOthersBean.minerCommentsOfIssues}" id="minerCommentsOfIssues" title="Minerar Comments of Issues" />
+                <h:outputLabel for="minerCommentsOfIssues" value="Minerar Comments of Issues."/>
+                <br />    
+                <p:spacer width="15" height="0" />
+                <h:selectBooleanCheckbox value="#{gitMinerOthersBean.minerEventsOfIssues}" id="minerEventsOfIssues" title="Minerar Events of Issues" />
+                <h:outputLabel for="minerEventsOfIssues" value="Minerar Events of Issues."/>
+                <br />       
+                <h:selectBooleanCheckbox value="#{gitMinerOthersBean.minerRepositoryCommits}" id="minerRepositoryCommits" title="Minerar Repository Commits" />
+                <h:outputLabel for="minerRepositoryCommits" value="Minerar Repository Commits."/>
+                <br />
+                <p:spacer width="15" height="0" />
+                <h:selectBooleanCheckbox value="#{gitMinerOthersBean.minerCommentsOfRepositoryCommits}" id="minerCommentsOfRepositoryCommits" title="Minerar Comments of Repository Commits" />
+                <h:outputLabel for="minerCommentsOfRepositoryCommits" value="Minerar Comments of Repository Commits."/>
+                <br />
+                <p:spacer width="15" height="0" />
+                <h:selectBooleanCheckbox value="#{gitMinerOthersBean.minerStatsAndFilesOfCommits}" id="minerStatsAndFilesOfCommits" title="Minerar Files and Stats of Repository Commits" />
+                <h:outputLabel for="minerStatsAndFilesOfCommits" value="Minerar Files and Stats of Repository Commits."/>
+                <br />       
+                <h:selectBooleanCheckbox value="#{gitMinerOthersBean.minerOpenPullRequests}" id="minerOpenPullRequests" title="Minerar Open Pull Requests" />
+                <h:outputLabel for="minerOpenPullRequests" value="Minerar Open Pull Requests."/>
+                <br />       
+                <h:selectBooleanCheckbox value="#{gitMinerOthersBean.minerClosedPullRequests}" id="minerClosedPullRequests" title="Minerar Closed Pull Requests" />
+                <h:outputLabel for="minerClosedPullRequests" value="Minerar Closed Pull Requests."/>
+                <br />    
+                <h:selectBooleanCheckbox value="#{gitMinerOthersBean.minerOpenMilestones}" id="minerOpenMilestones" title="Minerar Open Milestones" />
+                <h:outputLabel for="minerOpenMilestones" value="Minerar Open Milestones."/>
+                <br />       
+                <h:selectBooleanCheckbox value="#{gitMinerOthersBean.minerClosedMilestones}" id="minerClosedMilestones" title="Minerar Closed Milestones" />
+                <h:outputLabel for="minerClosedMilestones" value="Minerar Closed Milestones."/>
+                <br />  
+                <h:selectBooleanCheckbox value="#{gitMinerOthersBean.minerCollaborators}" id="minerCollaborators" title="Minerar Collaborators" />
+                <h:outputLabel for="minerCollaborators" value="Minerar Collaborators."/>
+                <br />       
+                <h:selectBooleanCheckbox value="#{gitMinerOthersBean.minerWatchers}" id="minerWatchers" title="Minerar Watchers" />
+                <h:outputLabel for="minerWatchers" value="Minerar Watchers."/>
+                <br />       
+                <h:selectBooleanCheckbox value="#{gitMinerOthersBean.minerForks}" id="minerForks" title="Minerar Forks" />
+                <h:outputLabel for="minerForks" value="Minerar Forks."/>
+                <br />
+                <h:selectBooleanCheckbox value="#{gitMinerOthersBean.minerTeams}" id="minerTeams" title="Minerar Teams" />
+                <h:outputLabel for="minerTeams" value="Minerar Teams."/>
+            </p:panel>
+            <br />
+            <br />
+
+            <p:commandButton widgetVar="startButtonVar" type="submit" actionListener="#{gitMinerOthersBean.start()}" value="Start" 
+                             onclick="startButtonVar.disable();
+                                     progressVar.start();
+                                     subProgressVar.start();
+                                     textAreaUpdaterVar.start();" update="loadingImage,logTextArea" />
+
+            <p:commandButton value="Cancel" actionListener="#{gitMinerOthersBean.cancel()}" oncomplete="startButtonVar.enable();progressVar.cancel();subProgressVar.cancel();" />
+
+            <br />
+            <br />
+
+            <h:outputText id="currentProcess" value="Current process: #{gitMinerOthersBean.currentProcess}" />
+            <p:progressBar id="progress" widgetVar="progressVar" ajax="true" value="#{gitMinerOthersBean.progress}" labelTemplate="{value}%" styleClass="animated" interval="3000" >
+                <p:ajax event="complete" listener="#{gitMinerOthersBean.onComplete()}" update="messages,loadingImage,logTextArea" oncomplete="startButton.enable();"/>
+            </p:progressBar>
+            <br />
+            <p:progressBar id="subProgress" widgetVar="subProgressVar" ajax="true" value="#{gitMinerOthersBean.subProgress}" labelTemplate="{value}%" styleClass="animated" interval="3000" >  
+            </p:progressBar>
+
+            <br />
+            <div style="margin: auto;text-align: center">
+                <p:outputPanel  id="loadingImage"  >
+                    <p:graphicImage alt="Loading..." width="50" url="resources/images/loading.gif" rendered="#{gitMinerOthersBean.initialized}" />  
+                </p:outputPanel>
+            </div>
+            <br />
+
+            <p:poll id="textAreaUpdater" widgetVar="textAreaUpdaterVar" async="true" interval="4" update="logTextArea,loadingImage,currentProcess" autoStart="#{gitMinerOthersBean.initialized}" />
+
+            <h3>Log de mineração:</h3>
+            <br />
+            <p:commandButton value="Refresh Log" ajax="true" async="true" update="logTextArea" />
+            <br />
+            <p:inputTextarea value="#{gitMinerOthersBean.log}" id="logTextArea" style="width: 100%" rows="30" autoResize="autoResize" readonly="true" />
+
+        </h:form>
+    </p:fieldset>
+</div>

@@ -1,0 +1,59 @@
+<div xmlns="http://www.w3.org/1999/xhtml"
+     xmlns:h="http://java.sun.com/jsf/html"
+     xmlns:f="http://java.sun.com/jsf/core"
+     xmlns:p="http://primefaces.org/ui">
+
+    <p:fieldset legend="Minering results">
+        <h:form prependId="false" >
+            <p:growl globalOnly="true" id="messages" />
+
+            <p:dataTable var="miner" value="#{gitMinerViewBean.miners}" id="minerList" rows="10"
+                         emptyMessage="No records found." paginator="true" paginatorPosition="bottom"
+                         paginatorTemplate="{CurrentPageReport}  {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                         rowsPerPageTemplate="5,10,15">
+                <f:facet name="header">
+                    <h:outputText value="Miners"/>
+                </f:facet>
+
+                <p:column headerText="ID">
+                    <h:outputText value="#{miner.id}" />
+                </p:column>
+
+                <p:column headerText="Repository">
+                    <h:outputText value="#{miner.repository.name}" />
+                </p:column>
+
+                <p:column headerText="Started" >
+                    <h:outputText value="#{miner.started}" >
+                        <f:convertDateTime pattern="MM/dd/yyyy HH:mm:ss" />
+                    </h:outputText>
+                </p:column>
+
+                <p:column headerText="Stoped" >
+                    <h:outputText value="#{miner.stoped}" >
+                        <f:convertDateTime pattern="MM/dd/yyyy HH:mm:ss" />
+                    </h:outputText>
+                </p:column>
+
+                <p:column headerText="Completed">
+                    <h:outputText value="#{miner.complete}" />
+                </p:column>
+
+                <p:column headerText="Download Files">
+                    <p:commandButton onclick="PrimeFaces.monitorDownload(start, stop)" ajax="false" value="Log">
+                        <p:fileDownload value="#{gitMinerViewBean.downloadLOG(miner)}" />  
+                    </p:commandButton>
+                </p:column>
+            </p:dataTable>
+        </h:form>
+
+        <p:dialog modal="true" widgetVar="statusDialog" header="Loading..." draggable="false" closable="false" resizable="false">
+            <p:graphicImage value="resources/images/ajaxloadingbar.gif" />
+        </p:dialog>
+        
+        <script type="text/javascript">
+            function start() { statusDialog.show(); }
+            function stop() { statusDialog.hide(); }
+        </script>                                                                                                                
+    </p:panel>
+</div>

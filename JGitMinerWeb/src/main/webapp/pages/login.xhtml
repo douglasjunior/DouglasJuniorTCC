@@ -1,0 +1,18 @@
+<div xmlns="http://www.w3.org/1999/xhtml"
+     xmlns:h="http://java.sun.com/jsf/html"
+     xmlns:f="http://java.sun.com/jsf/core"
+     xmlns:p="http://primefaces.org/ui">
+    <p:panel>
+        <h:form id="formLogin">
+            <p:growl globalOnly="true" id="messages" />
+            <h:panelGrid columns="2" cellpadding="2">
+                <h:outputLabel for="#{usuarioBean.usuario.login}" value="Login:"/>
+                <h:inputText value="#{usuarioBean.usuario.login}" label="UserName"></h:inputText>
+                <h:outputLabel for="#{usuarioBean.usuario.senha}" value="Senha:"/>
+                <h:inputSecret value="#{usuarioBean.usuario.senha}"></h:inputSecret>
+                <h:commandButton type="submit" value="Login" action="#{usuarioBean.login}"></h:commandButton>
+            </h:panelGrid>
+        </h:form>
+    </p:panel>
+</div>
+
