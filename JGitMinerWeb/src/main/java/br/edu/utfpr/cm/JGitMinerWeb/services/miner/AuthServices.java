@@ -56,7 +56,7 @@ public class AuthServices implements Serializable {
     }
 
     private static void prepareAccounts() throws FileNotFoundException, IOException, Exception {
-        String path = AuthServices.class.getResource("../../accounts").getPath();
+        String path = AuthServices.class.getResource("/accounts").getPath();
         File fileAccounts = new File(URLDecoder.decode(path, "ASCII"));
         BufferedReader bf = new BufferedReader(new FileReader(fileAccounts));
         while (bf.ready()) {
