@@ -4,10 +4,8 @@
  */
 package br.edu.utfpr.cm.JGitMinerWeb.services.matrix.auxiliary;
 
-import br.edu.utfpr.cm.JGitMinerWeb.util.JsfUtil;
 import br.edu.utfpr.cm.JGitMinerWeb.util.Util;
 import java.util.Objects;
-import org.jboss.weld.logging.Category;
 
 /**
  *
