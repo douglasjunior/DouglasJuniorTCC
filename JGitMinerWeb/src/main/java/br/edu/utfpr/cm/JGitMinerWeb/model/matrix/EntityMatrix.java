@@ -49,7 +49,7 @@ public class EntityMatrix implements InterfaceEntity, Startable {
     @Lob
     @Basic(fetch = FetchType.LAZY)
     private String log;
-    private Properties params;
+    private Map params;
     private String classServicesName;
     private String repository;
     @OneToMany(mappedBy = "matrix", orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.LAZY)

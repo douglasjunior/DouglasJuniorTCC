@@ -274,7 +274,7 @@ public class PairFileBetweenessDistanceDegreeClosenessInDateServices extends Abs
     private long calculeUpdates(String fileName, String fileName2, Date beginDate, Date endDate) {
         String jpql = "SELECT COUNT(pp) "
                 + "FROM "
-                + "EntityPullRequest pp"
+                + "EntityPullRequest pp "
                 + "WHERE "
                 + "pp.repository = :repo AND "
                 + "pp.createdAt BETWEEN :beginDate AND :endDate AND "

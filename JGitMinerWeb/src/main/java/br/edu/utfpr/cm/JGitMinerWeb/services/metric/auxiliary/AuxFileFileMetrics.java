@@ -79,7 +79,7 @@ public class AuxFileFileMetrics {
         if (obj == null) {
             return false;
         }
-        if (getClass() != obj.getClass()) {
+        if (!(obj instanceof AuxFileFileMetrics)) {
             return false;
         }
         final AuxFileFileMetrics other = (AuxFileFileMetrics) obj;

@@ -11,6 +11,7 @@ import br.edu.utfpr.cm.JGitMinerWeb.model.miner.EntityRepository;
 import br.edu.utfpr.cm.JGitMinerWeb.services.AbstractServices;
 import br.edu.utfpr.cm.JGitMinerWeb.util.OutLog;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -50,7 +51,7 @@ public abstract class AbstractMatrixServices extends AbstractServices {
     @Override
     public abstract String getHeadCSV();
 
-    protected List<EntityMatrixNode> objectsToNodes(List list) {
+    protected List<EntityMatrixNode> objectsToNodes(Collection list) {
         List<EntityMatrixNode> nodes = new ArrayList<>();
         for (Object obj : list) {
             nodes.add(new EntityMatrixNode(obj));

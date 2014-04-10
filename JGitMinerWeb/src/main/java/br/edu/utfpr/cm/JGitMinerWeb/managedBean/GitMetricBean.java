@@ -180,7 +180,10 @@ public class GitMetricBean implements Serializable {
                         out.printLog("");
                         if (!canceled) {
                             out.setCurrentProcess("Iniciando salvamento dos dados gerados.");
-                            saveNodes(entityMetric, services.getMetricNodes());
+                            entityMetric.setNodes(services.getMetricNodes());
+                            for (EntityMetricNode node : services.getMetricNodes()){
+                                node.setMetric(entityMetric);
+                            }
                             entityMetric.setComplete(true);
                             dao.edit(entityMetric);
                             out.printLog("Salvamento dos dados concluído!");
