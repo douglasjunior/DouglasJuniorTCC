@@ -214,21 +214,6 @@ public class GitMetricBean implements Serializable {
         }
     }
 
-    private void saveNodes(EntityMetric metric, List<EntityMetricNode> nodes) {
-        int j = 0;
-        for (Iterator<EntityMetricNode> it = nodes.iterator(); it.hasNext();) {
-            EntityMetricNode node = it.next();
-            node.setMetric(metric);
-            dao.insert(node);
-            it.remove();
-            j++;
-            if (j >= 1000) {
-                dao.clearCache(false);
-                j = 0;
-            }
-        }
-    }
-
     public void cancel() {
         if (initialized) {
             out.printLog("Pedido de cancelamento enviado.\n");
