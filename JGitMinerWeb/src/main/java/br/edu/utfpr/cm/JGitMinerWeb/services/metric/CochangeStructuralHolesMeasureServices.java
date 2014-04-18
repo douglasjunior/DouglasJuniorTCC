@@ -32,6 +32,11 @@ import java.util.Map;
 import java.util.Set;
 
 /**
+ * Measure structural holes metrics based on graph of co-change with weighted edges.
+ * The result of measure is about the edges. An edge represents a pair of files 
+ * (i.e. two files has changed in same pull request), in a timeframe.
+ * To calculate the metric, we sum the measure of the every vertex that 
+ * connected with these pair of file.
  * 
  * @author Rodrigo T. Kuroda <rodrigokuroda at gmail dot com>
  */
