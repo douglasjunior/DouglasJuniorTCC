@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package br.edu.utfpr.cm.JGitMinerWeb.services.metric.structuralholes;
 
 import edu.uci.ics.jung.algorithms.metrics.StructuralHoles;
@@ -18,7 +13,7 @@ import org.apache.commons.collections15.Transformer;
  * To compute the Structural Holes using JUNG API, it is necessary 
  * the edges to have a weight (or another metric).
  * 
- * @author Rodrigo Takashi Kuroda
+ * @author Rodrigo T. Kuroda
  */
 public class StructuralHolesCalculator {
 
@@ -33,13 +28,13 @@ public class StructuralHolesCalculator {
      * @return A Map where the the key is the vertex (V) and the value is 
      *      a POJO with result of metrics, named <code>StructuralHoleMetric</code>.
      */
-    public static <V, E> Map<V, StructuralHoleMetric<V>> calculeStructuralHolesMetrics(
+    public static <V, E> Map<V, StructuralHoleMeasure<V>> calculeStructuralHolesMetrics(
             final Graph<V, E> graph, final Transformer<E, ? extends Number> edgeWeigthTransformer) {
         
         StructuralHoles<V, E> structuralHoles = 
                 new StructuralHoles<>(graph, edgeWeigthTransformer);
 
-        Map<V, StructuralHoleMetric<V>> results = 
+        Map<V, StructuralHoleMeasure<V>> results = 
                 new HashMap<>(graph.getVertexCount());
         
         for (V vertex : graph.getVertices()) {
@@ -48,8 +43,8 @@ public class StructuralHolesCalculator {
             double constraint = structuralHoles.constraint(vertex);
             double hierarchy = structuralHoles.hierarchy(vertex);
 
-            StructuralHoleMetric<V> metric = 
-                    new StructuralHoleMetric<>(vertex, 
+            StructuralHoleMeasure<V> metric = 
+                    new StructuralHoleMeasure<>(vertex, 
                             efficiency, effectiveSize, constraint, hierarchy);
             results.put(vertex, metric);
         }
@@ -67,7 +62,7 @@ public class StructuralHolesCalculator {
      * @return A Map where the the key is the vertex (V) and the value is 
      *      a POJO with result of metrics, named <code>StructuralHoleMetric</code>.
      */
-    public static <V, E> Map<V, StructuralHoleMetric<V>> calculeStructuralHolesMetrics(
+    public static <V, E> Map<V, StructuralHoleMeasure<V>> calculeStructuralHolesMetrics(
             final Graph<V, E> graph, final Map<E, ? extends Number> edgeWeigth) {
         
         Transformer<E, ? extends Number> edgeWeigthTransformer = new Transformer<E, Number>() {

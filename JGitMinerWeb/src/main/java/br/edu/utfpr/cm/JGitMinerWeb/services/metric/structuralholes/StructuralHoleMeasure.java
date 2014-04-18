@@ -1,31 +1,29 @@
 package br.edu.utfpr.cm.JGitMinerWeb.services.metric.structuralholes;
 
+import br.edu.utfpr.cm.JGitMinerWeb.services.metric.VertexMeasure;
 import java.util.Objects;
 
 /**
- *
- * @author a562273
+ * Stores the structural holes measure.
+ * 
+ * @author Rodrigo T. Kuroda <rodrigokuroda at gmail dot com>
+ * @param <V> Class of vertex
  */
-public class StructuralHoleMetric<V> {
+public class StructuralHoleMeasure<V> extends VertexMeasure<V> {
 
-    private final V vertex;
     private final double efficiency;
     private final double effectiveSize;
     private final double constraint;
     private final double hierarchy;
 
-    public StructuralHoleMetric(V vertex,
+    public StructuralHoleMeasure(V vertex,
             double efficiency, double effectiveSize,
             double constraint, double hierarchy) {
-        this.vertex = vertex;
+        super(vertex);
         this.efficiency = efficiency;
         this.effectiveSize = effectiveSize;
         this.constraint = constraint;
         this.hierarchy = hierarchy;
-    }
-
-    public V getVertex() {
-        return vertex;
     }
 
     public double getEfficiency() {
@@ -47,7 +45,7 @@ public class StructuralHoleMetric<V> {
     @Override
     public int hashCode() {
         int hash = 7;
-        hash = 89 * hash + Objects.hashCode(this.vertex);
+        hash = 89 * hash + Objects.hashCode(getVertex());
         return hash;
     }
 
@@ -56,12 +54,12 @@ public class StructuralHoleMetric<V> {
         if (obj == null) {
             return false;
         }
-        if (! (obj instanceof StructuralHoleMetric)) {
+        if (! (obj instanceof StructuralHoleMeasure)) {
             return false;
         }
         
-        final StructuralHoleMetric<?> other = (StructuralHoleMetric<?>) obj;
-        return Objects.equals(this.vertex, other.vertex);
+        final StructuralHoleMeasure<?> other = (StructuralHoleMeasure<?>) obj;
+        return Objects.equals(getVertex(), other.getVertex());
     }
     
 }
