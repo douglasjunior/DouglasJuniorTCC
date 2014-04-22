@@ -1,26 +1,29 @@
 package br.edu.utfpr.cm.JGitMinerWeb.services.metric.local;
 
 import br.edu.utfpr.cm.JGitMinerWeb.services.metric.VertexMeasure;
+import java.util.Objects;
 
 /**
- * Stores the local measure of vertex, that are:
- *  - in degree: incoming edges
- *  - out degree: outcoming edges
- *  - in and out degree: in degree + out degree
- * 
- * @author Rodrigo Takashi Kuroda
+ * Stores the following local measure of the vertex <code>V</code>: - in degree:
+ * incoming edges - out degree: outcoming edges - in and out degree: in degree +
+ * out degree
+ *
+ * @author Rodrigo T. Kuroda
+ * @param <V> Class of vertex
  */
 public class LocalMeasure<V> extends VertexMeasure<V> {
-    
+
     private final long inDegree;
     private final long outDegree;
     private final long inOutDegree;
+    private final double diameter;
 
-    public LocalMeasure(V vertex, long inDegree, long outDegree) {
+    public LocalMeasure(V vertex, long inDegree, long outDegree, double diameter) {
         super(vertex);
         this.inDegree = inDegree;
         this.outDegree = outDegree;
         this.inOutDegree = inDegree + outDegree;
+        this.diameter = diameter;
     }
 
     public long getInDegree() {
@@ -34,4 +37,38 @@ public class LocalMeasure<V> extends VertexMeasure<V> {
     public long getInOutDegree() {
         return inOutDegree;
     }
+
+    public double getDiameter() {
+        return diameter;
+    }
+    
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 89 * hash + Objects.hashCode(getVertex());
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null) {
+            return false;
+        }
+        if (!(o instanceof LocalMeasure)) {
+            return false;
+        }
+
+        final LocalMeasure<?> other = (LocalMeasure<?>) o;
+        return Objects.equals(getVertex(), other.getVertex());
+    }
+
+    @Override
+    public String toString() {
+        return super.toString()
+                + ", in degree: " + inDegree
+                + ", out degree: " + outDegree
+                + ", in and out degree: " + inOutDegree
+                + ", diameter: " + diameter;
+    }
+
 }

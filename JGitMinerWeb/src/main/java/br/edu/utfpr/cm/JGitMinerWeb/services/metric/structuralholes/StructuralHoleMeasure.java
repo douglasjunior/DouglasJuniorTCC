@@ -4,9 +4,9 @@ import br.edu.utfpr.cm.JGitMinerWeb.services.metric.VertexMeasure;
 import java.util.Objects;
 
 /**
- * Stores the structural holes measure.
- * 
- * @author Rodrigo T. Kuroda <rodrigokuroda at gmail dot com>
+ * Stores the structural holes measure of the vertex <code>V</code>.
+ *
+ * @author Rodrigo T. Kuroda
  * @param <V> Class of vertex
  */
 public class StructuralHoleMeasure<V> extends VertexMeasure<V> {
@@ -50,16 +50,24 @@ public class StructuralHoleMeasure<V> extends VertexMeasure<V> {
     }
 
     @Override
-    public boolean equals(Object obj) {
-        if (obj == null) {
+    public boolean equals(Object o) {
+        if (o == null) {
             return false;
         }
-        if (! (obj instanceof StructuralHoleMeasure)) {
+        if (!(o instanceof StructuralHoleMeasure)) {
             return false;
         }
-        
-        final StructuralHoleMeasure<?> other = (StructuralHoleMeasure<?>) obj;
+
+        final StructuralHoleMeasure<?> other = (StructuralHoleMeasure<?>) o;
         return Objects.equals(getVertex(), other.getVertex());
     }
-    
+
+    @Override
+    public String toString() {
+        return super.toString()
+                + ", effective size: " + effectiveSize
+                + ", efficiency: " + efficiency
+                + ", constraint: " + constraint
+                + ", hierarchy: " + hierarchy;
+    }
 }

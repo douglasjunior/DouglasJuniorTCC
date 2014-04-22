@@ -1,15 +1,13 @@
 package br.edu.utfpr.cm.JGitMinerWeb.services.metric.local;
 
-import br.edu.utfpr.cm.JGitMinerWeb.services.metric.structuralholes.StructuralHoleMeasure;
-import edu.uci.ics.jung.algorithms.metrics.StructuralHoles;
+import edu.uci.ics.jung.algorithms.shortestpath.DistanceStatistics;
 import edu.uci.ics.jung.graph.Graph;
 import java.util.HashMap;
 import java.util.Map;
-import org.apache.commons.collections15.Transformer;
 
 /**
  *
- * @author Rodrigo T. Kuroda <rodrigokuroda at gmail dot com>
+ * @author Rodrigo T. Kuroda
  */
 public class LocalMeasureCalculator {
 
@@ -21,9 +19,10 @@ public class LocalMeasureCalculator {
         for (V vertex : graph.getVertices()) {
             int inDegree = graph.inDegree(vertex);
             int outDegree = graph.outDegree(vertex);
+            double diameter = DistanceStatistics.diameter(graph);
 
             LocalMeasure<V> metric
-                    = new LocalMeasure<>(vertex, inDegree, outDegree);
+                    = new LocalMeasure<>(vertex, inDegree, outDegree, diameter);
             results.put(vertex, metric);
         }
 

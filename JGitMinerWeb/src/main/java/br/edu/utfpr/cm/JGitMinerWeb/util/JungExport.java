@@ -16,17 +16,18 @@ import java.io.IOException;
 import javax.imageio.ImageIO;
 
 /**
- * Export utils for JUNG graph.
+ * Export tool for JUNG graph.
  *
- * @author Rodrigo T. Kuroda <rodrigokuroda at gmail dot com>
- * @param <V> Class of vertex
+ * @author Rodrigo T. Kuroda
  */
 public class JungExport {
 
-    public static void exportToImage(Graph<String, String> graph, String path, String filename) {
+    public static void exportToImage(
+            Graph<String, String> graph, String path, String filename) {
         try {
             Dimension d = new Dimension(1920, 1080);
-            VisualizationViewer<String, String> vv = new VisualizationViewer<>(new FRLayout(graph, d));
+            VisualizationViewer<String, String> vv = 
+                    new VisualizationViewer<>(new FRLayout(graph, d));
             // Create the VisualizationImageServer
             // vv is the VisualizationViewer containing my graph
             VisualizationImageServer<String, String> vis
