@@ -41,26 +41,6 @@ public class LocalMeasure<V> extends VertexMeasure<V> {
     public double getDiameter() {
         return diameter;
     }
-    
-    @Override
-    public int hashCode() {
-        int hash = 7;
-        hash = 89 * hash + Objects.hashCode(getVertex());
-        return hash;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (o == null) {
-            return false;
-        }
-        if (!(o instanceof LocalMeasure)) {
-            return false;
-        }
-
-        final LocalMeasure<?> other = (LocalMeasure<?>) o;
-        return Objects.equals(getVertex(), other.getVertex());
-    }
 
     @Override
     public String toString() {
