@@ -1,12 +1,12 @@
 
 package br.edu.utfpr.cm.JGitMinerWeb.services.metric.local;
 
-import br.edu.utfpr.cm.JGitMinerWeb.services.metric.local.LocalMeasure;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
 /**
- *
+ * Basic tests for LocalMeasure class.
+ * 
  * @author Rodrigo T. Kuroda
  */
 public class LocalMeasureTest {
