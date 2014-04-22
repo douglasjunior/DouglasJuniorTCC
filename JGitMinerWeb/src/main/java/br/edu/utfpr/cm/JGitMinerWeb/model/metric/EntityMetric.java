@@ -6,12 +6,11 @@ package br.edu.utfpr.cm.JGitMinerWeb.model.metric;
 
 import br.edu.utfpr.cm.JGitMinerWeb.model.InterfaceEntity;
 import br.edu.utfpr.cm.JGitMinerWeb.model.Startable;
-import br.edu.utfpr.cm.JGitMinerWeb.util.Util;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import javax.persistence.Basic;
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
@@ -49,7 +48,7 @@ public class EntityMetric implements InterfaceEntity, Startable {
     @Lob
     @Basic(fetch = FetchType.LAZY)
     private String log;
-    private Properties params;
+    private Map params;
     @OneToMany(mappedBy = "metric", orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<EntityMetricNode> nodes;
     private String classServicesName;
@@ -59,7 +58,7 @@ public class EntityMetric implements InterfaceEntity, Startable {
         started = new Date();
         complete = false;
         nodes = new ArrayList<>();
-        params = new Properties();
+        params = new HashMap();
     }
 
     @Override
@@ -140,11 +139,11 @@ public class EntityMetric implements InterfaceEntity, Startable {
         this.classServicesName = classServices;
     }
 
-    public Properties getParams() {
+    public Map getParams() {
         return params;
     }
 
-    public void setParams(Properties params) {
+    public void setParams(Map params) {
         this.params = params;
     }
 
@@ -177,7 +176,4 @@ public class EntityMetric implements InterfaceEntity, Startable {
         return this.matrix + "-" + this.started;
     }
 
-    public void setParams(Map params) {
-        Util.addMapToProperties(this.params, params);
-    }
 }

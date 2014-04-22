@@ -9,9 +9,9 @@ import br.edu.utfpr.cm.JGitMinerWeb.model.Startable;
 import br.edu.utfpr.cm.JGitMinerWeb.util.Util;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import javax.persistence.Basic;
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
@@ -59,7 +59,7 @@ public class EntityMatrix implements InterfaceEntity, Startable {
         started = new Date();
         complete = false;
         nodes = new ArrayList<>();
-        params = new Properties();
+        params = new HashMap();
     }
 
     @Override
@@ -173,7 +173,8 @@ public class EntityMatrix implements InterfaceEntity, Startable {
         return this.repository + "-" + this.started;
     }
 
-    public void setParams(Map<String, String> params) {
+    public void setParams(Map params) {
         this.params.putAll(params);
     }
+
 }

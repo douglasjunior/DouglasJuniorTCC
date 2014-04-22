@@ -136,25 +136,15 @@ public class GenericDao implements Serializable {
         return query.getResultList();
     }
 
-    public List selectNativeWithParams(String select, String[] params, Object[] objects) {
+    public List selectNativeWithParams(String select, Object[] objects) {
         Query query = em.createNativeQuery(select);
-        if (params.length == 0 && objects.length > 0) {
+
+        if (objects != null) {
             for (int i = 0; i < objects.length; i++) {
                 query.setParameter(i + 1, objects[i]);
             }
-        } else {
-            if (params.length != objects.length) {
-                throw new IndexOutOfBoundsException("The lenght of params array is not equals lenght of objects array.");
-            }
-            for (int i = 0; i < params.length; i++) {
-                if (params[i].equals("#none#")) {
-                    continue;
-                }
-                String atributo = params[i];
-                Object parametro = objects[i];
-                query.setParameter(atributo, parametro);
-            }
         }
+
         return query.getResultList();
     }
 
@@ -179,8 +169,8 @@ public class GenericDao implements Serializable {
         return result.get(0);
     }
 
-    public <T> T selectNativeOneWithParams(String select, String[] params, Object[] objects) {
-        List<T> result = selectNativeWithParams(select, params, objects);
+    public <T> T selectNativeOneWithParams(String select, Object[] objects) {
+        List<T> result = selectNativeWithParams(select, objects);
         if (result == null || result.isEmpty()) {
             return null;
         }

@@ -172,16 +172,16 @@ public class PairFileSupportConfidenceLiftConvictionInDateServices extends Abstr
     }
 
     private long calculeUpdates(String file, String file2, Date beginDate, Date endDate) {
-        List params = new ArrayList(); 
+        List selectParams = new ArrayList(); 
         
         String jpql = " SELECT count(pul.*) "
                 + " FROM gitpullrequest pul "
                 + " where pul.repository_id = ? "
                 + "   and pul.createdat between ? and ? ";
         
-        params.add(repository.getId());
-        params.add(beginDate);
-        params.add(endDate);
+        selectParams.add(repository.getId());
+        selectParams.add(beginDate);
+        selectParams.add(endDate);
         
         if (file != null) {
             jpql += "  and exists  "
@@ -191,7 +191,7 @@ public class PairFileSupportConfidenceLiftConvictionInDateServices extends Abstr
                     + "  where r.entitypullrequest_id = pul.id "
                     + "    and f.repositorycommit_id = r.repositorycommits_id "
                     + "    and f.filename = ? ) ";
-            params.add(file);
+            selectParams.add(file);
         }
 
         if (file2 != null) {
@@ -202,10 +202,10 @@ public class PairFileSupportConfidenceLiftConvictionInDateServices extends Abstr
                     + "  where r2.entitypullrequest_id = pul.id "
                     + "    and f2.repositorycommit_id = r2.repositorycommits_id "
                     + "    and f2.filename = ? ) ";
-            params.add(file2);
+            selectParams.add(file2);
         }
 
-         Long count = dao.selectNativeOneWithParams(jpql, new String[]{}, params.toArray());
+         Long count = dao.selectNativeOneWithParams(jpql, selectParams.toArray());
 
         return count != null ? count : 0l;
     }

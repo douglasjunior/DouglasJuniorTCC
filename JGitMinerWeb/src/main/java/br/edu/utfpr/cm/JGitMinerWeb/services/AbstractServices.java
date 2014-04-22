@@ -95,7 +95,7 @@ public abstract class AbstractServices implements Runnable, Serializable {
         }
         return Util.tratarStringParaInt(getStringParam(key).trim());
     }
-    
+
     protected Long getLongParam(Object key) {
         if (!params.containsKey(key)) {
             throw new IndexOutOfBoundsException("Chave não encontrada: " + key);
@@ -109,6 +109,13 @@ public abstract class AbstractServices implements Runnable, Serializable {
         }
         Object obj = params.get(key);
         return obj == null ? "" : obj + "";
+    }
+
+    protected Boolean getBooleanParam(Object key) {
+        if (!params.containsKey(key)) {
+            throw new IndexOutOfBoundsException("Chave não encontrada: " + key);
+        }
+        return Boolean.parseBoolean(getStringParam(key).trim().toLowerCase());
     }
 
     protected List<String> getStringLinesParam(Object key, boolean trimLines, boolean emptyLines) {
