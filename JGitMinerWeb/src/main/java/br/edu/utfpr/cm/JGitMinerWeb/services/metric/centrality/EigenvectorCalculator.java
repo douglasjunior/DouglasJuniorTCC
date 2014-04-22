@@ -29,9 +29,11 @@ public class EigenvectorCalculator {
         
         Map<V, EigenvectorMeasure<V>> result = new HashMap<>(graph.getVertexCount());
         for (V v : graph.getVertices()) {
-            EigenvectorMeasure<V> eigenvectorMeasure = new EigenvectorMeasure<>(v, ec.getVertexScore(v));
+            EigenvectorMeasure<V> eigenvectorMeasure = 
+                    new EigenvectorMeasure<>(v, ec.getVertexScore(v));
+            result.put(v, eigenvectorMeasure);
         }
         
-        return null;
+        return result;
     }
 }
