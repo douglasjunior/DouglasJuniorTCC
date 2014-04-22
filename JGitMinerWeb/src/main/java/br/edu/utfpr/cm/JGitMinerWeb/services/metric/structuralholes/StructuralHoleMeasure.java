@@ -1,31 +1,29 @@
 package br.edu.utfpr.cm.JGitMinerWeb.services.metric.structuralholes;
 
+import br.edu.utfpr.cm.JGitMinerWeb.services.metric.VertexMeasure;
 import java.util.Objects;
 
 /**
+ * Stores the structural holes measure of the vertex <code>V</code>.
  *
- * @author a562273
+ * @author Rodrigo T. Kuroda
+ * @param <V> Class of vertex
  */
-public class StructuralHoleMetric<V> {
+public class StructuralHoleMeasure<V> extends VertexMeasure<V> {
 
-    private final V vertex;
     private final double efficiency;
     private final double effectiveSize;
     private final double constraint;
     private final double hierarchy;
 
-    public StructuralHoleMetric(V vertex,
+    public StructuralHoleMeasure(V vertex,
             double efficiency, double effectiveSize,
             double constraint, double hierarchy) {
-        this.vertex = vertex;
+        super(vertex);
         this.efficiency = efficiency;
         this.effectiveSize = effectiveSize;
         this.constraint = constraint;
         this.hierarchy = hierarchy;
-    }
-
-    public V getVertex() {
-        return vertex;
     }
 
     public double getEfficiency() {
@@ -47,21 +45,29 @@ public class StructuralHoleMetric<V> {
     @Override
     public int hashCode() {
         int hash = 7;
-        hash = 89 * hash + Objects.hashCode(this.vertex);
+        hash = 89 * hash + Objects.hashCode(getVertex());
         return hash;
     }
 
     @Override
-    public boolean equals(Object obj) {
-        if (obj == null) {
+    public boolean equals(Object o) {
+        if (o == null) {
             return false;
         }
-        if (! (obj instanceof StructuralHoleMetric)) {
+        if (!(o instanceof StructuralHoleMeasure)) {
             return false;
         }
-        
-        final StructuralHoleMetric<?> other = (StructuralHoleMetric<?>) obj;
-        return Objects.equals(this.vertex, other.vertex);
+
+        final StructuralHoleMeasure<?> other = (StructuralHoleMeasure<?>) o;
+        return Objects.equals(getVertex(), other.getVertex());
     }
-    
+
+    @Override
+    public String toString() {
+        return super.toString()
+                + ", effective size: " + effectiveSize
+                + ", efficiency: " + efficiency
+                + ", constraint: " + constraint
+                + ", hierarchy: " + hierarchy;
+    }
 }

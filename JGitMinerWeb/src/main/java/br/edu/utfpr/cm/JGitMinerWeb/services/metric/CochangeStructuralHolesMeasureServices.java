@@ -13,7 +13,7 @@ import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.UserModifySamePairOfFileInDa
 import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.auxiliary.AuxFileFile;
 import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.auxiliary.AuxUserUser;
 import br.edu.utfpr.cm.JGitMinerWeb.services.metric.auxiliary.AuxFileFileMetrics;
-import br.edu.utfpr.cm.JGitMinerWeb.services.metric.structuralholes.StructuralHoleMetric;
+import br.edu.utfpr.cm.JGitMinerWeb.services.metric.structuralholes.StructuralHoleMeasure;
 import br.edu.utfpr.cm.JGitMinerWeb.services.metric.structuralholes.StructuralHolesCalculator;
 import br.edu.utfpr.cm.JGitMinerWeb.util.JsfUtil;
 import br.edu.utfpr.cm.JGitMinerWeb.util.OutLog;
@@ -32,8 +32,13 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- *
- * @author Rodrigo T. Kuroda
+ * Measure structural holes metrics based on graph of co-change with weighted edges.
+ * The result of measure is about the edges. An edge represents a pair of files 
+ * (i.e. two files has changed in same pull request), in a timeframe.
+ * To calculate the metric, we sum the measure of the every vertex that 
+ * connected with these pair of file.
+ * 
+ * @author Rodrigo T. Kuroda <rodrigokuroda at gmail dot com>
  */
 public class CochangeStructuralHolesMeasureServices extends AbstractMetricServices {
 
@@ -224,7 +229,7 @@ public class CochangeStructuralHolesMeasureServices extends AbstractMetricServic
         /** 
          * Calculates structural holes metrics for each developer on the co-change network based.
          */
-        Map<String, StructuralHoleMetric<String>> metricsResult = 
+        Map<String, StructuralHoleMeasure<String>> metricsResult = 
                 StructuralHolesCalculator.calculeStructuralHolesMetrics(graph, edgeWeigth);
         
         /** 
@@ -239,7 +244,7 @@ public class CochangeStructuralHolesMeasureServices extends AbstractMetricServic
             double hierarchyMax = 0, hierarchyAvg, hierarchySum = 0;
             long developers = 0;
             for (String commiter : commitersPairFile.get(pairFile)) {
-                StructuralHoleMetric<String> commiterMetric = metricsResult.get(commiter);
+                StructuralHoleMeasure<String> commiterMetric = metricsResult.get(commiter);
                 double efficiency = commiterMetric.getEfficiency();
                 double effectiveSize = commiterMetric.getEffectiveSize();
                 double constraint = commiterMetric.getConstraint();

@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package br.edu.utfpr.cm.JGitMinerWeb.services.metric.structuralholes;
 
 import edu.uci.ics.jung.algorithms.metrics.StructuralHoles;
@@ -14,62 +9,64 @@ import org.apache.commons.collections15.Transformer;
 /**
  * Compute metrics of network structural holes. The metrics computed are
  * efficiency, effective size, constraint and hierarchy.
- * 
- * To compute the Structural Holes using JUNG API, it is necessary 
- * the edges to have a weight (or another metric).
- * 
- * @author Rodrigo Takashi Kuroda
+ *
+ * To compute the Structural Holes using JUNG API, it is necessary the edges to
+ * have a weight (or another metric).
+ *
+ * @author Rodrigo T. Kuroda
  */
 public class StructuralHolesCalculator {
 
     /**
      * Calculates the structural holes metrics based in a Transformer that
      * returns the weight of given node.
-     * 
+     *
      * @param <V> Vertex of the JUNG Graph
      * @param <E> Edge of the JUNG Graph
      * @param graph The built JUNG Graph
-     * @param edgeWeigthTransformer A Transformer that returns the weight for each edge (E).
-     * @return A Map where the the key is the vertex (V) and the value is 
-     *      a POJO with result of metrics, named <code>StructuralHoleMetric</code>.
+     * @param edgeWeigthTransformer A Transformer that returns the weight for
+     * each edge (E).
+     * @return A Map where the the key is the vertex (V) and the value is a POJO
+     * with result of metrics, named <code>StructuralHoleMeasure</code>.
      */
-    public static <V, E> Map<V, StructuralHoleMetric<V>> calculeStructuralHolesMetrics(
+    public static <V, E> Map<V, StructuralHoleMeasure<V>> calculeStructuralHolesMetrics(
             final Graph<V, E> graph, final Transformer<E, ? extends Number> edgeWeigthTransformer) {
-        
-        StructuralHoles<V, E> structuralHoles = 
-                new StructuralHoles<>(graph, edgeWeigthTransformer);
 
-        Map<V, StructuralHoleMetric<V>> results = 
-                new HashMap<>(graph.getVertexCount());
-        
+        StructuralHoles<V, E> structuralHoles
+                = new StructuralHoles<>(graph, edgeWeigthTransformer);
+
+        Map<V, StructuralHoleMeasure<V>> results
+                = new HashMap<>(graph.getVertexCount());
+
         for (V vertex : graph.getVertices()) {
             double efficiency = structuralHoles.efficiency(vertex);
             double effectiveSize = structuralHoles.effectiveSize(vertex);
             double constraint = structuralHoles.constraint(vertex);
             double hierarchy = structuralHoles.hierarchy(vertex);
 
-            StructuralHoleMetric<V> metric = 
-                    new StructuralHoleMetric<>(vertex, 
+            StructuralHoleMeasure<V> metric
+                    = new StructuralHoleMeasure<>(vertex,
                             efficiency, effectiveSize, constraint, hierarchy);
             results.put(vertex, metric);
         }
-        
+
         return results;
     }
 
     /**
-     * Calculates the structural holes metrics based in a Map with each edge weight.
-     * 
+     * Calculates the structural holes metrics based in a Map with each edge
+     * weight.
+     *
      * @param <V> Vertex of the JUNG Graph
      * @param <E> Edge of the JUNG Graph
      * @param graph The built JUNG Graph
      * @param edgeWeigth A Map of weight for each edge (E).
-     * @return A Map where the the key is the vertex (V) and the value is 
-     *      a POJO with result of metrics, named <code>StructuralHoleMetric</code>.
+     * @return A Map where the the key is the vertex (V) and the value is a POJO
+     * with result of metrics, named <code>StructuralHoleMetric</code>.
      */
-    public static <V, E> Map<V, StructuralHoleMetric<V>> calculeStructuralHolesMetrics(
+    public static <V, E> Map<V, StructuralHoleMeasure<V>> calculeStructuralHolesMetrics(
             final Graph<V, E> graph, final Map<E, ? extends Number> edgeWeigth) {
-        
+
         Transformer<E, ? extends Number> edgeWeigthTransformer = new Transformer<E, Number>() {
             @Override
             public Number transform(E edge) {
