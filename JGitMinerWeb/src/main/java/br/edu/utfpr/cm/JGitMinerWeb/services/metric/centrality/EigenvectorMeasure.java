@@ -23,6 +23,6 @@ public class EigenvectorMeasure<V> extends VertexMeasure<V> {
 
     @Override
     public String toString() {
-        return super.toString() + " eigenvector: " + eigenvector;
+        return super.toString() + ", eigenvector: " + eigenvector;
     }
 }
