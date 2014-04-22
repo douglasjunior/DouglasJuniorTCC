@@ -25,32 +25,32 @@ import org.apache.commons.collections15.Transformer;
  *
  * @author Douglas
  */
-public class CochangeSupportConfidenceLiftConvictionInDateServices extends AbstractMatrixServices {
+public class CochangeSupportConfidenceLiftConvictionInPullRequestsServices extends AbstractMatrixServices {
 
     private EntityRepository repository;
 
-    public CochangeSupportConfidenceLiftConvictionInDateServices(GenericDao dao, OutLog out) {
+    public CochangeSupportConfidenceLiftConvictionInPullRequestsServices(GenericDao dao, OutLog out) {
         super(dao, out);
     }
 
-    public CochangeSupportConfidenceLiftConvictionInDateServices(GenericDao dao, EntityRepository repo, List<EntityMatrix> matrices, Map params, OutLog out) {
+    public CochangeSupportConfidenceLiftConvictionInPullRequestsServices(GenericDao dao, EntityRepository repo, List<EntityMatrix> matrices, Map params, OutLog out) {
         super(dao, repo, matrices, params, out);
     }
 
-    private Date getBeginDate() {
-        return getDateParam("beginDate");
+    private Long getBeginDate() {
+        return getLongParam("beginPullRequest");
     }
 
-    private Date getEndDate() {
-        return getDateParam("endDate");
+    private Long getEndDate() {
+        return getLongParam("endPullRequest");
     }
 
-    public Date getFutureBeginDate() {
-        return getDateParam("futureBeginDate");
+    public Long getFutureBeginDate() {
+        return getLongParam("futureBeginPullRequest");
     }
 
-    public Date getFutureEndDate() {
-        return getDateParam("futureEndDate");
+    public Long getFutureEndDate() {
+        return getLongParam("futureEndPullRequest");
     }
 
     public List<String> getFilesToIgnore() {
@@ -74,10 +74,10 @@ public class CochangeSupportConfidenceLiftConvictionInDateServices extends Abstr
                 throw new IllegalArgumentException("Parâmetro Repository não pode ser nulo.");
             }
 
-            Date futureBeginDate = getFutureBeginDate();
-            Date futureEndDate = getFutureEndDate();
-            Date beginDate = getBeginDate();
-            Date endDate = getEndDate();
+            Long futureBeginPull = getFutureBeginDate();
+            Long futureEndPull = getFutureEndDate();
+            Long beginPull = getBeginDate();
+            Long endPull = getEndDate();
             List<String> filesToIgnore = getFilesToIgnore();
 
             out.printLog("Iniciando preenchimento da lista de pares.");
@@ -91,7 +91,7 @@ public class CochangeSupportConfidenceLiftConvictionInDateServices extends Abstr
                     + "     gitpullrequest_gitrepositorycommit prc2, "
                     + "     gitpullrequest pul "
                     + "where pul.repository_id = ? "
-                    + "  and pul.createdat between ? and ? ";
+                    + "  and pul.number between ? and ? ";
             if (isOnlyMergeds()) {
                 select += "  and pul.mergedat is not null ";
             }
@@ -110,8 +110,8 @@ public class CochangeSupportConfidenceLiftConvictionInDateServices extends Abstr
             System.out.println(select);
 
             selectParams.add(getRepository().getId());
-            selectParams.add(beginDate);
-            selectParams.add(endDate);
+            selectParams.add(beginPull);
+            selectParams.add(endPull);
 
             List<Object[]> cochangeResult = dao.selectNativeWithParams(select, selectParams.toArray());
 
@@ -134,11 +134,11 @@ public class CochangeSupportConfidenceLiftConvictionInDateServices extends Abstr
                     System.out.println(i + "/" + pairFileMetrics.size());
                 }
 
-                Long pairFileNumberOfPullrequestOfPair = calculeUpdates(pairFile.getFile(), pairFile.getFile2(), getBeginDate(), getEndDate());
-                Long pairFileNumberOfPullrequestOfPairFuture = calculeUpdates(pairFile.getFile(), pairFile.getFile2(), futureBeginDate, futureEndDate);
-                Long fileNumberOfPullrequestOfPairFuture = calculeUpdates(pairFile.getFile(), null, futureBeginDate, futureEndDate);
-                Long file2NumberOfPullrequestOfPairFuture = calculeUpdates(pairFile.getFile2(), null, futureBeginDate, futureEndDate);
-                Long numberOfAllPullrequestFuture = calculeUpdates(null, null, futureBeginDate, futureEndDate);
+                Long pairFileNumberOfPullrequestOfPair = calculeUpdates(pairFile.getFile(), pairFile.getFile2(), beginPull, endPull);
+                Long pairFileNumberOfPullrequestOfPairFuture = calculeUpdates(pairFile.getFile(), pairFile.getFile2(), futureBeginPull, futureEndPull);
+                Long fileNumberOfPullrequestOfPairFuture = calculeUpdates(pairFile.getFile(), null, futureBeginPull, futureEndPull);
+                Long file2NumberOfPullrequestOfPairFuture = calculeUpdates(pairFile.getFile2(), null, futureBeginPull, futureEndPull);
+                Long numberOfAllPullrequestFuture = calculeUpdates(null, null, futureBeginPull, futureEndPull);
 
                 pairFile.addMetrics(pairFileNumberOfPullrequestOfPair, pairFileNumberOfPullrequestOfPairFuture, fileNumberOfPullrequestOfPairFuture, file2NumberOfPullrequestOfPairFuture, numberOfAllPullrequestFuture);
 
@@ -203,17 +203,17 @@ public class CochangeSupportConfidenceLiftConvictionInDateServices extends Abstr
                 + "supportFile;supportFile2;supportPairFile;confidence;confidence2;lift;conviction;conviction2";
     }
 
-    private long calculeUpdates(String file, String file2, Date beginDate, Date endDate) {
+    private long calculeUpdates(String file, String file2, Long beginPull, Long endPull) {
         List selectParams = new ArrayList();
 
         String jpql = " SELECT count(pul.*) "
                 + " FROM gitpullrequest pul "
                 + " where pul.repository_id = ? "
-                + "   and pul.createdat between ? and ? ";
+                + "   and pul.number between ? and ? ";
 
         selectParams.add(getRepository().getId());
-        selectParams.add(beginDate);
-        selectParams.add(endDate);
+        selectParams.add(beginPull);
+        selectParams.add(endPull);
 
         if (file != null) {
             jpql += "  and exists  "

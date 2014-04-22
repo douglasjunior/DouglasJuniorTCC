@@ -316,6 +316,7 @@ public class UserCommentedSamePairOfFileInAllDateServices extends AbstractMatrix
             EntityMatrixNode node = it.next();
             node.setMatrix(entityMatrix);
             dao.insert(node);
+            entityMatrix.getNodes().add(node);
             it.remove();
             dao.getEntityManager().getEntityManagerFactory().getCache().evict(node.getClass());
         }
