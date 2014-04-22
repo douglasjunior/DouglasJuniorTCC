@@ -1,5 +1,4 @@
-
-package br.edu.utfpr.cm.JGitMinerWeb.services.metric.local;
+package br.edu.utfpr.cm.JGitMinerWeb.services.metric.centrality;
 
 import org.junit.After;
 import static org.junit.Assert.assertEquals;
@@ -8,54 +7,53 @@ import org.junit.Before;
 import org.junit.Test;
 
 /**
- * Tests for LocalMeasure class.
+ * Tests for EigenvectorMeasure class
  * 
  * @author Rodrigo T. Kuroda
  */
-public class LocalMeasureTest {
-    
-    private LocalMeasure<String> instance;
-    
+public class EigenvectorMeasureTest {
+
+    private EigenvectorMeasure instance;
+
     @Before
     public void setup() {
-        instance = new LocalMeasure<>("V", 0, 1, 2);
+        instance = new EigenvectorMeasure("V", 0.1d);
     }
     
     @After
     public void tearDown() {
         instance = null;
     }
-    
+
     /**
      * Test of toString method
      */
     @Test
     public void testToString() {
-        String expResult = "V, in degree: 0, out degree: 1, in and out degree: 1, diameter: 2.0";
+        String expResult = "V, eigenvector: 0.1";
         String result = instance.toString();
         assertEquals(expResult, result);
     }
-    
+
     /**
      * Test of equals method. It is equals if the vertex of two compared 
-     * LocalMeasure are equal.
+     * EigenvectorMeasure are equal.
      */
     @Test
     public void testEqualsTrue() {
-        LocalMeasure<String> equal = new LocalMeasure<>("V", 2, 1, 0);
-        
+        EigenvectorMeasure equal = new EigenvectorMeasure<>("V", 0.0d);
         assertEquals(instance, equal);
+        assertEquals(instance.hashCode(), equal.hashCode());
     }
     
     /**
      * Test of equals method. It is not equals if the vertex of two compared 
-     * LocalMeasure are not equal.
+     * EigenvectorMeasure are not equal.
      */
     @Test
     public void testEqualsFalse() {
-        LocalMeasure<String> notEqual = new LocalMeasure<>("V1", 0, 1, 2);
-        
+        EigenvectorMeasure notEqual = new EigenvectorMeasure<>("V2", 0.1d);
         assertNotEquals(instance, notEqual);
+        assertNotEquals(instance.hashCode(), notEqual.hashCode());
     }
-    
 }
