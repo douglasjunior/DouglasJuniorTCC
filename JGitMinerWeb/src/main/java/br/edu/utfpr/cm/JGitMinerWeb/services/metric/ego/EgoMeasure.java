@@ -12,11 +12,14 @@ public class EgoMeasure<V> extends VertexMeasure<V> {
 
     private final long size;
     private final long ties;
+    private final double betweennessCentrality;
     
-    public EgoMeasure(V vertex, long size, long ties) {
+    public EgoMeasure(final V vertex, final long size, final long ties, 
+            final double betweennessCentrality) {
         super(vertex);
         this.size = size;
         this.ties = ties;
+        this.betweennessCentrality = betweennessCentrality;
     }
 
     public long getSize() {
@@ -25,6 +28,10 @@ public class EgoMeasure<V> extends VertexMeasure<V> {
 
     public long getTies() {
         return ties;
+    }
+
+    public double getBetweennessCentrality() {
+        return betweennessCentrality;
     }
 
     @Override
