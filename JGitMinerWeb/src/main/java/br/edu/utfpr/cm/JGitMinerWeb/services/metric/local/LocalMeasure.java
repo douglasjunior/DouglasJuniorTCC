@@ -1,7 +1,6 @@
 package br.edu.utfpr.cm.JGitMinerWeb.services.metric.local;
 
 import br.edu.utfpr.cm.JGitMinerWeb.services.metric.VertexMeasure;
-import java.util.Objects;
 
 /**
  * Stores the following local measure of the vertex <code>V</code>: - in degree:
