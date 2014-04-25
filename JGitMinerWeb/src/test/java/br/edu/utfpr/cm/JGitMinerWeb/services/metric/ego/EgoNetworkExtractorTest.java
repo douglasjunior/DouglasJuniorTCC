@@ -6,7 +6,8 @@ import edu.uci.ics.jung.graph.UndirectedSparseGraph;
 import java.util.Map;
 import org.hamcrest.CoreMatchers;
 import org.junit.After;
-import org.junit.Assert;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -17,7 +18,7 @@ import org.junit.Test;
 public class EgoNetworkExtractorTest {
     
     private Graph<String, String> instance;
-    private Graph<String, String> instance2;
+    private Map<String, Graph<String, String>> egoNetworks;
     
     @Before
     public void setup() {
@@ -60,6 +61,7 @@ public class EgoNetworkExtractorTest {
         instance.addEdge("D14-D15", "D14", "D15");
         instance.addEdge("D13-D15", "D13", "D15");
         
+        egoNetworks = EgoNetworkExtractor.extractEgoNetwork(instance);
     }
     
     @After
@@ -69,26 +71,22 @@ public class EgoNetworkExtractorTest {
     
     @Test
     public void testEgoNetworkExtractedVertices() {
-        Map<String, Graph<String, String>> egoNetworks = EgoNetworkExtractor.extractEgoNetwork(instance);
-        
         String[] d1EgoNetworkVertices = new String[] 
             {"D1", "D2", "D3", "D4", "D5", "D6", "D7"};
         
-        Assert.assertEquals(7, egoNetworks.get("D1").getVertexCount());
-        Assert.assertThat(egoNetworks.get("D1").getVertices(), 
+        assertEquals(7, egoNetworks.get("D1").getVertexCount());
+        assertThat(egoNetworks.get("D1").getVertices(), 
                 CoreMatchers.hasItems(d1EgoNetworkVertices));
     }
     
     @Test
     public void testEgoNetworkExtractedEdges() {
-        Map<String, Graph<String, String>> egoNetworks = EgoNetworkExtractor.extractEgoNetwork(instance);
-        
         String[] d1EgoNetworkEdges = new String[] 
             {"D1-D2", "D1-D3", "D1-D4", "D1-D5", 
              "D1-D6", "D1-D7", "D4-D5", "D4-D6"};
         
-        Assert.assertEquals(8, egoNetworks.get("D1").getEdgeCount());
-        Assert.assertThat(egoNetworks.get("D1").getEdges(), 
+        assertEquals(8, egoNetworks.get("D1").getEdgeCount());
+        assertThat(egoNetworks.get("D1").getEdges(), 
                 CoreMatchers.hasItems(d1EgoNetworkEdges));
     }
 }

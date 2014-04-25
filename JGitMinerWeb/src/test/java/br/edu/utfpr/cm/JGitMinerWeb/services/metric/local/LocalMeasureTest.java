@@ -3,7 +3,8 @@ package br.edu.utfpr.cm.JGitMinerWeb.services.metric.local;
 
 import org.junit.After;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -44,7 +45,8 @@ public class LocalMeasureTest {
     public void testEqualsTrue() {
         LocalMeasure<String> equal = new LocalMeasure<>("V", 2, 1, 0);
         
-        assertEquals(instance, equal);
+        assertTrue(instance.hashCode() == equal.hashCode());
+        assertTrue(instance.equals(equal));
     }
     
     /**
@@ -55,7 +57,8 @@ public class LocalMeasureTest {
     public void testEqualsFalse() {
         LocalMeasure<String> notEqual = new LocalMeasure<>("V1", 0, 1, 2);
         
-        assertNotEquals(instance, notEqual);
+        assertFalse(instance.hashCode() == notEqual.hashCode());
+        assertFalse(instance.equals(notEqual));
     }
     
 }

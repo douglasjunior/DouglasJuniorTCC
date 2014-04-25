@@ -2,6 +2,7 @@ package br.edu.utfpr.cm.JGitMinerWeb.services.metric.ego;
 
 import org.junit.After;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import org.junit.Before;
 import org.junit.Test;
@@ -53,7 +54,7 @@ public class EgoMeasureTest {
     @Test
     public void testEqualsFalse() {
         EgoMeasure notEqual = new EgoMeasure<>("V2", 0, 0, 0d);
-        assertTrue( ! instance.equals(notEqual));
-        assertTrue(instance.hashCode() != notEqual.hashCode());
+        assertFalse(instance.equals(notEqual));
+        assertFalse(instance.hashCode() == notEqual.hashCode());
     }
 }
