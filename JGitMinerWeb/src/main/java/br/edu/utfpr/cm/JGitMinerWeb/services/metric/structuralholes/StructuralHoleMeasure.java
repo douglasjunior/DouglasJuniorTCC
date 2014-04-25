@@ -1,6 +1,6 @@
 package br.edu.utfpr.cm.JGitMinerWeb.services.metric.structuralholes;
 
-import br.edu.utfpr.cm.JGitMinerWeb.services.metric.VertexMeasure;
+import br.edu.utfpr.cm.JGitMinerWeb.services.metric.Measure;
 import java.util.Objects;
 
 /**
@@ -9,7 +9,7 @@ import java.util.Objects;
  * @author Rodrigo T. Kuroda
  * @param <V> Class of vertex
  */
-public class StructuralHoleMeasure<V> extends VertexMeasure<V> {
+public class StructuralHoleMeasure<V> extends Measure<V> {
 
     private final double efficiency;
     private final double effectiveSize;

@@ -1,6 +1,6 @@
 package br.edu.utfpr.cm.JGitMinerWeb.services.metric.local;
 
-import br.edu.utfpr.cm.JGitMinerWeb.services.metric.VertexMeasure;
+import br.edu.utfpr.cm.JGitMinerWeb.services.metric.Measure;
 
 /**
  * Stores the following local measure of the vertex <code>V</code>: - in degree:
@@ -10,7 +10,7 @@ import br.edu.utfpr.cm.JGitMinerWeb.services.metric.VertexMeasure;
  * @author Rodrigo T. Kuroda
  * @param <V> Class of vertex
  */
-public class LocalMeasure<V> extends VertexMeasure<V> {
+public class LocalMeasure<V> extends Measure<V> {
 
     private final long inDegree;
     private final long outDegree;

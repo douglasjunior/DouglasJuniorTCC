@@ -1,6 +1,6 @@
 package br.edu.utfpr.cm.JGitMinerWeb.services.metric.centrality;
 
-import br.edu.utfpr.cm.JGitMinerWeb.services.metric.VertexMeasure;
+import br.edu.utfpr.cm.JGitMinerWeb.services.metric.Measure;
 
 /**
  * Stores the eigenvector measure of the vertex <code>V</code>.
@@ -8,7 +8,7 @@ import br.edu.utfpr.cm.JGitMinerWeb.services.metric.VertexMeasure;
  * @author Rodrigo T. Kuroda
  * @param <V> Class of vertex
  */
-public class EigenvectorMeasure<V> extends VertexMeasure<V> {
+public class EigenvectorMeasure<V> extends Measure<V> {
 
     private final double eigenvector;
     
