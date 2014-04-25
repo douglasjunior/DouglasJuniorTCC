@@ -6,8 +6,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Calculates metrics for ego network (i.e. graph <code>G</code> of a node
- * and its neighborhood).
+ * Measures the properties of each node's ego network 
+ * (i.e. graph <code>G</code> of a node and its neighborhood).
  *
  * @author Rodrigo T. Kuroda
  */
