@@ -13,7 +13,7 @@ import org.junit.Test;
  */
 public class EigenvectorMeasureTest {
 
-    private EigenvectorMeasure instance;
+    private EigenvectorMeasure<String> instance;
 
     @Before
     public void setup() {
