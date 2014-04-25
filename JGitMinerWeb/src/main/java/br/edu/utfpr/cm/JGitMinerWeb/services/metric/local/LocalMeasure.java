@@ -15,14 +15,15 @@ public class LocalMeasure<V> extends VertexMeasure<V> {
     private final long inDegree;
     private final long outDegree;
     private final long inOutDegree;
-    private final double diameter;
+    private final double clusteringCoefficient;
 
-    public LocalMeasure(V vertex, long inDegree, long outDegree, double diameter) {
+    public LocalMeasure(V vertex, long inDegree, long outDegree, 
+            double clusteringCoefficient) {
         super(vertex);
         this.inDegree = inDegree;
         this.outDegree = outDegree;
         this.inOutDegree = inDegree + outDegree;
-        this.diameter = diameter;
+        this.clusteringCoefficient = clusteringCoefficient;
     }
 
     public long getInDegree() {
@@ -37,8 +38,8 @@ public class LocalMeasure<V> extends VertexMeasure<V> {
         return inOutDegree;
     }
 
-    public double getDiameter() {
-        return diameter;
+    public double getClusteringCoefficient() {
+        return clusteringCoefficient;
     }
 
     @Override
@@ -47,7 +48,7 @@ public class LocalMeasure<V> extends VertexMeasure<V> {
                 + ", in degree: " + inDegree
                 + ", out degree: " + outDegree
                 + ", in and out degree: " + inOutDegree
-                + ", diameter: " + diameter;
+                + ", clusteringCoefficient: " + clusteringCoefficient;
     }
 
 }

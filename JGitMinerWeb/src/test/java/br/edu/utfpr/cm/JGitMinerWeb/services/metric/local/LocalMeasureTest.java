@@ -31,7 +31,7 @@ public class LocalMeasureTest {
      */
     @Test
     public void testToString() {
-        String expResult = "V, in degree: 0, out degree: 1, in and out degree: 1, diameter: 2.0";
+        String expResult = "V, in degree: 0, out degree: 1, in and out degree: 1, clusteringCoefficient: 2.0";
         String result = instance.toString();
         assertEquals(expResult, result);
     }
