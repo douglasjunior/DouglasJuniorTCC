@@ -36,6 +36,7 @@ public class EgoMeasure<V> extends VertexMeasure<V> {
 
     @Override
     public String toString() {
-        return super.toString() + ", size: " + size + ", ties: " + ties;
+        return super.toString() + ", size: " + size + ", ties: " + ties 
+                + ", ego betweeness centrality: " + betweennessCentrality;
     }
 }
