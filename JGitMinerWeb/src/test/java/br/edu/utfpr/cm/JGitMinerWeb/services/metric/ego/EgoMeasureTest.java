@@ -18,7 +18,7 @@ public class EgoMeasureTest {
 
     @Before
     public void setup() {
-        instance = new EgoMeasure("V", 0, 1, 2.0d);
+        instance = new EgoMeasure("V", 1, 1, 2.0d);
     }
     
     @After
@@ -31,7 +31,7 @@ public class EgoMeasureTest {
      */
     @Test
     public void testToString() {
-        String expResult = "V, size: 0, ties: 1, ego betweeness centrality: 2.0";
+        String expResult = "V, size: 1, ties: 1, pairs: 0, density: 1.0, ego betweeness centrality: 2.0";
         String result = instance.toString();
         assertEquals(expResult, result);
     }
@@ -42,7 +42,7 @@ public class EgoMeasureTest {
      */
     @Test
     public void testEqualsTrue() {
-        EgoMeasure equal = new EgoMeasure<>("V", 0, 1, 2.0d);
+        EgoMeasure equal = new EgoMeasure<>("V", 1, 1, 2.0d);
         assertTrue(instance.equals(equal));
         assertTrue(instance.hashCode() == equal.hashCode());
     }

@@ -12,6 +12,8 @@ public class EgoMeasure<V> extends Measure<V> {
 
     private final long size;
     private final long ties;
+    private final long pairs;
+    private final double density;
     private final double betweennessCentrality;
     
     public EgoMeasure(final V vertex, final long size, final long ties, 
@@ -19,6 +21,8 @@ public class EgoMeasure<V> extends Measure<V> {
         super(vertex);
         this.size = size;
         this.ties = ties;
+        this.pairs = size * (size - 1);
+        this.density = pairs == 0 ? 1 : ties / pairs;
         this.betweennessCentrality = betweennessCentrality;
     }
 
@@ -30,6 +34,14 @@ public class EgoMeasure<V> extends Measure<V> {
         return ties;
     }
 
+    public double getPairs() {
+        return pairs;
+    }
+
+    public double getDensity() {
+        return density;
+    }
+
     public double getBetweennessCentrality() {
         return betweennessCentrality;
     }
@@ -37,6 +49,7 @@ public class EgoMeasure<V> extends Measure<V> {
     @Override
     public String toString() {
         return super.toString() + ", size: " + size + ", ties: " + ties 
+                + ", pairs: " + pairs + ", density: " + density 
                 + ", ego betweeness centrality: " + betweennessCentrality;
     }
 }

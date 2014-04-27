@@ -47,4 +47,29 @@ public class GlobalMeasureTest {
         assertNotEquals(instance, notEqual);
     }
     
+    /**
+     * Test of pairs calculation: size * (size - 1)
+     */
+    @Test
+    public void testPairs() {
+        GlobalMeasure test1 = new GlobalMeasure(2, 2, 0.0d);
+        GlobalMeasure test2 = new GlobalMeasure(10, 5, 0.0d);
+        GlobalMeasure test3 = new GlobalMeasure(1, 1, 0.0d);
+        assertEquals(2, test1.getPairs());
+        assertEquals(90, test2.getPairs());
+        assertEquals(0, test3.getPairs());
+    }
+    
+    /**
+     * Test of density calculation: ties / pairs
+     */
+    @Test
+    public void testDensity() {
+        GlobalMeasure test1 = new GlobalMeasure(2, 2, 0.0d);
+        GlobalMeasure test2 = new GlobalMeasure(10, 5, 0.0d);
+        GlobalMeasure test3 = new GlobalMeasure(1, 1, 0.0d);
+        assertEquals(1.0d, test1.getDensity(), 0.001);
+        assertEquals(0.055d, test2.getDensity(), 0.001);
+        assertEquals(1, test3.getDensity(), 0.001);
+    }
 }
