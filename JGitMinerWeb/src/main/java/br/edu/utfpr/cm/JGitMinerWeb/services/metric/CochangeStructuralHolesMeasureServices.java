@@ -19,7 +19,6 @@ import br.edu.utfpr.cm.JGitMinerWeb.util.JsfUtil;
 import br.edu.utfpr.cm.JGitMinerWeb.util.OutLog;
 import edu.uci.ics.jung.graph.UndirectedGraph;
 import edu.uci.ics.jung.graph.UndirectedSparseGraph;
-import edu.uci.ics.jung.graph.UndirectedSparseMultigraph;
 import edu.uci.ics.jung.graph.util.EdgeType;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -122,13 +121,7 @@ public class CochangeStructuralHolesMeasureServices extends AbstractMetricServic
         }
 
         System.out.println("Selecionado matrix com " + getMatrix().getNodes().size() + " nodes.");
-        String graphType = (String) params.get("graphType");
-        final UndirectedGraph<String, String> graph;
-        if ("multi".equals(graphType)) {
-            graph = new UndirectedSparseMultigraph<>();
-        } else {
-            graph = new UndirectedSparseGraph<>();
-        }
+        final UndirectedGraph<String, String> graph = new UndirectedSparseGraph<>();
         
         final Map<String, Integer> edgeWeigth = new HashMap<>(getMatrix().getNodes().size());
         final Map<AuxFileFile, Set<String>> commitersPairFile = new HashMap<>();
@@ -164,12 +157,7 @@ public class CochangeStructuralHolesMeasureServices extends AbstractMetricServic
                 commitersPairFile.put(pairFile, commiters);
             }
             
-            String edgeName;
-            if (graph instanceof UndirectedSparseGraph) {
-               edgeName = pairUser.toString();
-            } else {
-               edgeName = pairFile + "(" + i + ")";
-            }
+            String edgeName = pairUser.toString();
             
             // to count unique files
             distinctFiles.add(pairFile.getFileName());
@@ -179,29 +167,19 @@ public class CochangeStructuralHolesMeasureServices extends AbstractMetricServic
             edgeFiles.put(edgeName, pairFile);
             
             String weightedEdge = (String) params.get("weightedEdge");
-            if (graph instanceof UndirectedSparseMultigraph) {
-                /* On multi edge (parallel edges), always insert an edge */
-                if ("false".equalsIgnoreCase(weightedEdge)) { 
-                    // binary edge weight
-                    edgeWeigth.put(edgeName, 1);
+            if ("false".equalsIgnoreCase(weightedEdge)) { 
+                // binary edge weight
+                edgeWeigth.put(edgeName, 1);
+            } else {
+                /* Sum commit for each pair file that the pair dev has commited. */
+                if (edgeWeigth.containsKey(pairUser.toStringUserAndUser2())) {
+                    // edgeName = user + user2
+                    edgeWeigth.put(pairUser.toStringUserAndUser2(), edgeWeigth.get(pairUser.toStringUserAndUser2()) + Integer.valueOf(columns[4]));
+                } else if (edgeWeigth.containsKey(pairUser.toStringUser2AndUser())) {
+                    // edgeName = user2 + user
+                    edgeWeigth.put(pairUser.toStringUser2AndUser(), edgeWeigth.get(pairUser.toStringUser2AndUser()) + Integer.valueOf(columns[4]));
                 } else {
                     edgeWeigth.put(edgeName, Integer.valueOf(columns[4]));
-                }
-            } else {
-                if ("false".equalsIgnoreCase(weightedEdge)) { 
-                    // binary edge weight
-                    edgeWeigth.put(edgeName, 1);
-                } else {
-                    /* Sum commit for each pair file that the pair dev has commited. */
-                    if (edgeWeigth.containsKey(pairUser.toStringUserAndUser2())) {
-                        // edgeName = user + user2
-                        edgeWeigth.put(pairUser.toStringUserAndUser2(), edgeWeigth.get(pairUser.toStringUserAndUser2()) + Integer.valueOf(columns[4]));
-                    } else if (edgeWeigth.containsKey(pairUser.toStringUser2AndUser())) {
-                        // edgeName = user2 + user
-                        edgeWeigth.put(pairUser.toStringUser2AndUser(), edgeWeigth.get(pairUser.toStringUser2AndUser()) + Integer.valueOf(columns[4]));
-                    } else {
-                        edgeWeigth.put(edgeName, Integer.valueOf(columns[4]));
-                    }
                 }
             }
             
