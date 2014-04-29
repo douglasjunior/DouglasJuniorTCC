@@ -7,19 +7,19 @@
     <br />
 
     <h:panelGrid columns="2" cellpadding="5" columnClasses="col">
-        <h:outputLabel value="Date: " for="beginDate" />  
+        <h:outputLabel value="Pull Request number: " for="beginPullRequest" />  
         <h:panelGroup>
-            <p:calendar value="#{gitMatrixBean.paramValue['beginDate']}" id="beginDate" pattern="dd/MM/yyyy HH:mm:ss" navigator="true" size="20" autocomplete="true" />
-            <h:outputLabel value=" to " for="endDate" />  
-            <p:calendar value="#{gitMatrixBean.paramValue['endDate']}" id="endDate" pattern="dd/MM/yyyy HH:mm:ss" navigator="true" size="20" autocomplete="true"/>
+            <p:inputText value="#{gitMatrixBean.paramValue['beginPullRequest']}" id="beginPullRequest" type="number"  size="20" />
+            <h:outputLabel value=" to " for="endPullRequest" />  
+            <p:inputText value="#{gitMatrixBean.paramValue['endPullRequest']}" id="endPullRequest" type="number"  size="20" />
         </h:panelGroup>
         <p:spacer />
         <br />
-        <h:outputLabel value="Future date: " for="futureBeginDate" />  
+        <h:outputLabel value="Future Pull Request number: " for="futureBeginPullRequest" />  
         <h:panelGroup>
-            <p:calendar value="#{gitMatrixBean.paramValue['futureBeginDate']}" id="futureBeginDate" pattern="dd/MM/yyyy HH:mm:ss" navigator="true" size="20" autocomplete="true" />
-            <h:outputLabel value=" to " for="futureEndDate" />  
-            <p:calendar value="#{gitMatrixBean.paramValue['futureEndDate']}" id="futureEndDate" pattern="dd/MM/yyyy HH:mm:ss" navigator="true" size="20" autocomplete="true"/>
+            <p:inputText value="#{gitMatrixBean.paramValue['futureBeginPullRequest']}" id="futureBeginPullRequest" type="number"  size="20" />
+            <h:outputLabel value=" to " for="futureEndPullRequest" />  
+            <p:inputText value="#{gitMatrixBean.paramValue['futureEndPullRequest']}" id="futureEndPullRequest" type="number"  size="20" />
         </h:panelGroup>
         <p:spacer />
         <br />

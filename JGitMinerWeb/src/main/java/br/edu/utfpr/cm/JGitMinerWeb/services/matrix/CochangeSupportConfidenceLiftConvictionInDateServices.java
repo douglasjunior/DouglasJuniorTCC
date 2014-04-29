@@ -27,8 +27,6 @@ import org.apache.commons.collections15.Transformer;
  */
 public class CochangeSupportConfidenceLiftConvictionInDateServices extends AbstractMatrixServices {
 
-    private EntityRepository repository;
-
     public CochangeSupportConfidenceLiftConvictionInDateServices(GenericDao dao, OutLog out) {
         super(dao, out);
     }
@@ -68,7 +66,6 @@ public class CochangeSupportConfidenceLiftConvictionInDateServices extends Abstr
     @Override
     public void run() {
         try {
-            System.out.println(params);
 
             if (getRepository() == null) {
                 throw new IllegalArgumentException("Parâmetro Repository não pode ser nulo.");
@@ -106,7 +103,7 @@ public class CochangeSupportConfidenceLiftConvictionInDateServices extends Abstr
                 select += "  and fil.filename not like '" + fileName + "' "
                         + "  and fil2.filename not like '" + fileName + "' ";
             }
-            
+
             System.out.println(select);
 
             selectParams.add(getRepository().getId());
@@ -211,6 +208,10 @@ public class CochangeSupportConfidenceLiftConvictionInDateServices extends Abstr
                 + " where pul.repository_id = ? "
                 + "   and pul.createdat between ? and ? ";
 
+        if (isOnlyMergeds()) {
+            jpql += "  and pul.mergedat is not null ";
+        }
+
         selectParams.add(getRepository().getId());
         selectParams.add(beginDate);
         selectParams.add(endDate);
@@ -242,21 +243,4 @@ public class CochangeSupportConfidenceLiftConvictionInDateServices extends Abstr
         return count != null ? count : 0l;
     }
 
-    private Double fixNanValue(Double value) {
-        if (value.isNaN()) {
-            return 0d;
-        }
-        return value;
-    }
-
-    private static <V, E> Transformer<E, ? extends Number> createWeigthTransformer(final Graph<V, E> graph, final Map<E, ? extends Number> edgeWeigth) {
-        Transformer<E, ? extends Number> edgeWeigthTransformer = new Transformer<E, Number>() {
-            @Override
-            public Number transform(E edge) {
-                Number num = edgeWeigth.get(edge);
-                return num != null ? num : 0;
-            }
-        };
-        return edgeWeigthTransformer;
-    }
 }
