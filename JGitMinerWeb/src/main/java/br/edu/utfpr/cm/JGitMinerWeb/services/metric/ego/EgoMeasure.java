@@ -22,7 +22,7 @@ public class EgoMeasure<V> extends Measure<V> {
         this.size = size;
         this.ties = ties;
         this.pairs = size * (size - 1);
-        this.density = pairs == 0 ? 1 : ties / pairs;
+        this.density = pairs == 0 ? 1 : (double) ties / (double) pairs;
         this.betweennessCentrality = betweennessCentrality;
     }
 
@@ -34,7 +34,7 @@ public class EgoMeasure<V> extends Measure<V> {
         return ties;
     }
 
-    public double getPairs() {
+    public long getPairs() {
         return pairs;
     }
 
