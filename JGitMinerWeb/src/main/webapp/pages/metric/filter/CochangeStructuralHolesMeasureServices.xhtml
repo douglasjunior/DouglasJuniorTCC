@@ -3,7 +3,12 @@
      xmlns:p="http://primefaces.org/ui">
     
     <h:panelGrid columns="2" cellpadding="5" columnClasses="col">
-        
+        <h:panelGroup>
+            <p:calendar value="#{gitMetricBean.paramValue['futureBeginDate']}" id="futureBeginDate" pattern="dd/MM/yyyy" navigator="true" size="10" />
+            <h:outputLabel value=" to " for="futureEndDate" />  
+            <p:calendar value="#{gitMetricBean.paramValue['futureEndDate']}" id="futureEndDate" pattern="dd/MM/yyyy" navigator="true" size="10"/>
+            <i>(Used for count modifications)</i>
+        </h:panelGroup>
     </h:panelGrid>
     
 </div>
