@@ -4,6 +4,7 @@ import edu.uci.ics.jung.algorithms.scoring.EigenvectorCentrality;
 import edu.uci.ics.jung.graph.Graph;
 import java.util.HashMap;
 import java.util.Map;
+import org.apache.commons.collections15.Transformer;
 
 /**
  * Calculates the eigenvector measure for a graph <code>G</code>.
@@ -20,18 +21,25 @@ public class EigenvectorCalculator {
      * @param <V> Vertex of the JUNG Graph
      * @param <E> Edge of the JUNG Graph
      * @param graph The built JUNG Graph
+     * @param edgeWeigth A Map of weight for each edge (E).
      * @return A Map where the the key is the vertex (V) and the value is 
      *      a POJO with result of metrics, named <code>EigenvectorMeasure</code>.
      */
-    public static <V, E> Map<V, EigenvectorMeasure<V>> calcule(final Graph<V, E> graph) {
+    public static <V, E> Map<V, Double> calcule(final Graph<V, E> graph, 
+            final Map<E, ? extends Number> edgeWeigth) {
+
+        Transformer<E, ? extends Number> edgeWeigthTransformer = new Transformer<E, Number>() {
+            @Override
+            public Number transform(E edge) {
+                return edgeWeigth.containsKey(edge) ? edgeWeigth.get(edge) : 0;
+            }
+        };
         
-        EigenvectorCentrality<V, E> ec = new EigenvectorCentrality<>(graph);
+        EigenvectorCentrality<V, E> ec = new EigenvectorCentrality<>(graph, edgeWeigthTransformer);
         
-        Map<V, EigenvectorMeasure<V>> result = new HashMap<>(graph.getVertexCount());
+        Map<V, Double> result = new HashMap<>(graph.getVertexCount());
         for (V v : graph.getVertices()) {
-            EigenvectorMeasure<V> eigenvectorMeasure = 
-                    new EigenvectorMeasure<>(v, ec.getVertexScore(v));
-            result.put(v, eigenvectorMeasure);
+            result.put(v, ec.getVertexScore(v));
         }
         
         return result;

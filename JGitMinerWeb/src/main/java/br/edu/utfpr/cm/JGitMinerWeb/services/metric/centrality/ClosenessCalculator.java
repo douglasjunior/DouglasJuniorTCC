@@ -1,6 +1,6 @@
 package br.edu.utfpr.cm.JGitMinerWeb.services.metric.centrality;
 
-import edu.uci.ics.jung.algorithms.scoring.BetweennessCentrality;
+import edu.uci.ics.jung.algorithms.scoring.ClosenessCentrality;
 import edu.uci.ics.jung.graph.Graph;
 import java.util.HashMap;
 import java.util.Map;
@@ -12,7 +12,7 @@ import org.apache.commons.collections15.Transformer;
  * @see edu.uci.ics.jung.algorithms.scoring.BetweennessCentrality
  * @author Rodrigo T. Kuroda
  */
-public class BetweennessCalculator {
+public class ClosenessCalculator {
 
     /**
      * Calculates betweenness centrality measure for each vertex <code>V</code> of a 
@@ -26,17 +26,17 @@ public class BetweennessCalculator {
      */
     public static <V, E> Map<V, Double> calcule(final Graph<V, E> graph) {
         
-        BetweennessCentrality<V, E> bc = new BetweennessCentrality<>(graph);
+        ClosenessCentrality<V, E> cc = new ClosenessCentrality<>(graph);
         
         Map<V, Double> result = new HashMap<>(graph.getVertexCount());
         for (V v : graph.getVertices()) {
-            result.put(v, bc.getVertexScore(v));
+            result.put(v, cc.getVertexScore(v));
         }
         
         return result;
     }
     
-    /**
+        /**
      * Calculates betweenness centrality measure for each vertex <code>V</code> of a 
      * graph <code>G</code>.
      * 
@@ -57,11 +57,11 @@ public class BetweennessCalculator {
             }
         };
         
-        BetweennessCentrality<V, E> bc = new BetweennessCentrality<>(graph, edgeWeigthTransformer);
+        ClosenessCentrality<V, E> cc = new ClosenessCentrality<>(graph, edgeWeigthTransformer);
         
         Map<V, Double> result = new HashMap<>(graph.getVertexCount());
         for (V v : graph.getVertices()) {
-            result.put(v, bc.getVertexScore(v));
+            result.put(v, cc.getVertexScore(v));
         }
         
         return result;
