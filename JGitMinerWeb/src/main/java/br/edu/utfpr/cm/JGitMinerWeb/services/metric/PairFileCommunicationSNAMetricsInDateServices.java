@@ -14,6 +14,12 @@ import br.edu.utfpr.cm.JGitMinerWeb.services.metric.centrality.BetweennessCalcul
 import br.edu.utfpr.cm.JGitMinerWeb.services.metric.centrality.ClosenessCalculator;
 import br.edu.utfpr.cm.JGitMinerWeb.services.metric.centrality.DegreeCalculator;
 import br.edu.utfpr.cm.JGitMinerWeb.services.metric.centrality.EigenvectorCalculator;
+import br.edu.utfpr.cm.JGitMinerWeb.services.metric.ego.EgoMeasure;
+import br.edu.utfpr.cm.JGitMinerWeb.services.metric.ego.EgoMeasureCalculator;
+import br.edu.utfpr.cm.JGitMinerWeb.services.metric.global.GlobalMeasure;
+import br.edu.utfpr.cm.JGitMinerWeb.services.metric.global.GlobalMeasureCalculator;
+import br.edu.utfpr.cm.JGitMinerWeb.services.metric.structuralholes.StructuralHolesCalculator;
+import br.edu.utfpr.cm.JGitMinerWeb.services.metric.structuralholes.StructuralHolesMeasure;
 import br.edu.utfpr.cm.JGitMinerWeb.util.JsfUtil;
 import br.edu.utfpr.cm.JGitMinerWeb.util.OutLog;
 import br.edu.utfpr.cm.JGitMinerWeb.util.Util;
@@ -192,11 +198,14 @@ public class PairFileCommunicationSNAMetricsInDateServices extends AbstractMetri
             AuxFileFile fileFile = entry.getKey();
             DirectedSparseMultigraph<String, String> graph = entry.getValue();
             
+            GlobalMeasure global = GlobalMeasureCalculator.calcule(graph);
             Map<String, Double> barycenter = BarycenterCalculator.calcule(graph, edgesWeigth);
             Map<String, Double> betweenness = BetweennessCalculator.calcule(graph, edgesWeigth);
             Map<String, Double> closeness = ClosenessCalculator.calcule(graph, edgesWeigth);
             Map<String, Integer> degree = DegreeCalculator.calcule(graph);
             Map<String, Double> eigenvector = EigenvectorCalculator.calcule(graph, edgesWeigth);
+            Map<String, EgoMeasure<String>> ego = EgoMeasureCalculator.calcule(graph, edgesWeigth);
+            Map<String, StructuralHolesMeasure<String>> structuralHoles = StructuralHolesCalculator.calcule(graph, edgesWeigth);
             
             Double barycenterSum = 0d, barycenterAvg, barycenterMax = Double.NEGATIVE_INFINITY;
             Double betweennessSum = 0d, betweennessAvg, betweennessMax = Double.NEGATIVE_INFINITY;
@@ -205,27 +214,74 @@ public class PairFileCommunicationSNAMetricsInDateServices extends AbstractMetri
             Double degreeAvg;
             Double eigenvectorSum = 0d, eigenvectorAvg, eigenvectorMax = Double.NEGATIVE_INFINITY;
             
+            Double egoBetweennessSum = 0d, egoBetweennessAvg, egoBetweennessMax = Double.NEGATIVE_INFINITY;
+            Long egoSizeSum = 0l, egoSizeMax = Long.MIN_VALUE;
+            Long egoPairsSum = 0l, egoPairsMax = Long.MIN_VALUE;
+            Long egoTiesSum = 0l, egoTiesMax = Long.MIN_VALUE;
+            Double egoSizeAvg, egoPairsAvg, egoTiesAvg;
+            Double egoDensitySum = 0d, egoDensityAvg, egoDensityMax = Double.NEGATIVE_INFINITY;
+            
+            Double efficiencySum = 0.0d, efficiencyAvg, efficiencyMax = Double.NEGATIVE_INFINITY;
+            Double effectiveSizeSum = 0.0d, effectiveSizeAvg, effectiveSizeMax = Double.NEGATIVE_INFINITY;
+            Double constraintSum = 0.0d, constraintAvg, constraintMax = Double.NEGATIVE_INFINITY;
+            Double hierarchySum = 0.0d, hierarchyAvg, hierarchyMax = Double.NEGATIVE_INFINITY;
+            
             for (String dev : graph.getVertices()) {
+                // sums calculation
                 barycenterSum += barycenter.get(dev);
                 betweennessSum += betweenness.get(dev);
                 closenessSum += closeness.get(dev);
                 degreeSum += degree.get(dev);
                 eigenvectorSum += eigenvector.get(dev);
                 
+                egoBetweennessSum += ego.get(dev).getBetweennessCentrality();
+                egoSizeSum += ego.get(dev).getSize();
+                egoPairsSum += ego.get(dev).getPairs();
+                egoTiesSum += ego.get(dev).getTies();
+                egoDensitySum += ego.get(dev).getDensity();
+                
+                efficiencySum += structuralHoles.get(dev).getEfficiency();
+                effectiveSizeSum += structuralHoles.get(dev).getEffectiveSize();
+                constraintSum += structuralHoles.get(dev).getConstraint();
+                hierarchySum += structuralHoles.get(dev).getHierarchy();
+                
+                // maximum calculation
                 barycenterMax = Math.max(barycenterMax, barycenter.get(dev));
                 betweennessMax = Math.max(betweennessMax, betweenness.get(dev));
                 closenessMax = Math.max(closenessMax, closeness.get(dev));
                 degreeMax = Math.max(degreeMax, degree.get(dev));
                 eigenvectorMax = Math.max(eigenvectorMax, eigenvector.get(dev));
+                
+                egoBetweennessMax = Math.max(egoBetweennessMax, ego.get(dev).getBetweennessCentrality());
+                egoSizeMax = Math.max(egoSizeMax, ego.get(dev).getSize());
+                egoPairsMax = Math.max(egoPairsMax, ego.get(dev).getPairs());
+                egoTiesMax = Math.max(egoTiesMax, ego.get(dev).getTies());
+                egoDensityMax = Math.max(egoDensityMax, ego.get(dev).getDensity());
+                
+                efficiencyMax += Math.max(efficiencyMax, structuralHoles.get(dev).getEfficiency());
+                effectiveSizeMax += Math.max(effectiveSizeMax, structuralHoles.get(dev).getEffectiveSize());
+                constraintMax += Math.max(constraintMax, structuralHoles.get(dev).getConstraint());
+                hierarchyMax += Math.max(hierarchyMax, structuralHoles.get(dev).getHierarchy());
             }
             
-            // calculando medias
+            // average calculation
             double devCount = graph.getVertexCount();
-            barycenterAvg = barycenterSum / devCount;
-            betweennessAvg = betweennessSum / devCount;
-            closenessAvg = closenessSum / devCount;
-            degreeAvg = degreeSum / devCount;
-            eigenvectorAvg = eigenvectorSum / devCount;
+            barycenterAvg = barycenterSum / (double) devCount;
+            betweennessAvg = betweennessSum / (double) devCount;
+            closenessAvg = closenessSum / (double) devCount;
+            degreeAvg = degreeSum / (double) devCount;
+            eigenvectorAvg = eigenvectorSum / (double) devCount;
+            
+            egoBetweennessAvg = egoBetweennessSum / (double) devCount;
+            egoSizeAvg = egoSizeSum / (double) devCount;
+            egoPairsAvg = egoPairsSum / (double) devCount;
+            egoTiesAvg = egoTiesSum / (double) devCount;
+            egoDensityAvg = egoDensitySum / (double) devCount;
+            
+            efficiencyAvg = efficiencySum / (double) devCount;
+            effectiveSizeAvg = effectiveSizeSum / (double) devCount;
+            constraintAvg = constraintSum / (double) devCount;
+            hierarchyAvg = hierarchySum / (double) devCount;
             
             Long updates = calculeUpdates(
                     fileFile.getFileName(), fileFile.getFileName2(), 
@@ -251,6 +307,21 @@ public class PairFileCommunicationSNAMetricsInDateServices extends AbstractMetri
                     closenessSum, closenessAvg, closenessMax,
                     degreeSum, degreeAvg, degreeMax,
                     eigenvectorSum, eigenvectorAvg, eigenvectorMax,
+                    
+                    egoBetweennessSum, egoBetweennessAvg, egoBetweennessMax,
+                    egoSizeSum, egoSizeAvg, egoSizeMax,
+                    egoTiesSum, egoTiesAvg, egoTiesMax,
+                    egoPairsSum, egoPairsAvg, egoPairsMax,
+                    egoDensitySum, egoDensityAvg, egoDensityMax,
+                    
+                    efficiencySum, efficiencyAvg, efficiencyMax, 
+                    effectiveSizeSum, effectiveSizeAvg, effectiveSizeMax,
+                    constraintSum, constraintAvg, constraintMax,
+                    hierarchySum, hierarchyAvg, hierarchyMax,
+                    
+                    global.getSize(), global.getPairs(), global.getTies(),
+                    global.getDensity(), global.getDiameter(), 
+                    
                     devCount,
                     updates, futureUpdates,
                     codeChurn, codeChurn2, codeChurnAvg
@@ -265,14 +336,29 @@ public class PairFileCommunicationSNAMetricsInDateServices extends AbstractMetri
     @Override
     public String getHeadCSV() {
         return "file;file2;"
+                
                 + "brcMax;brcAvg;brcSum;"
                 + "btwMax;btwAvg;btwSum;"
                 + "clsMax;clsAvg;clsSum;"
                 + "dgrMax;dgrAvg;dgrSum;"
                 + "egvMax;egvAvg;egvSum;"
-                + "developers;"
-                + "upates;futureUpdates;"
-                + "codeChurn;codeChurn2;codeChurnAvg";
+                
+                + "egoBtwSum;egoBtwAvg;egoBtwMax;"
+                + "egoSizeSum;egoSizeAvg;egoSizeMax;"
+                + "egoTiesSum;egoTiesAvg;egoTiesMax;"
+                + "egoPairsSum;egoPairsAvg;egoPairsMax;"
+                + "egoDensitySum;egoDensityAvg;egoDensityMax;"
+                
+                + "efficiencySum;efficiencyAvg;efficiencyMax;"
+                + "efvSizeSum;efvSizeAvg;efvSizeMax;"
+                + "constraintSum;constraintAvg;constraintMax;"
+                + "hierarchySum;hierarchyAvg;hierarchyMax;"
+                
+                + "size;pairs;ties;density;diameter;"
+                
+                + "dev;"
+                + "codeChurn;codeChurn2;codeChurnAvg;"
+                + "upates;futureUpdates";
     }
 
     @Override
