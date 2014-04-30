@@ -9,6 +9,13 @@ import org.apache.commons.collections15.Transformer;
 /**
  * Measures the properties of each node's ego network 
  * (i.e. graph <code>G</code> of a node and its neighborhood).
+ * 
+ * The following metrics are calculate:
+ * - size
+ * - pairs
+ * - ties
+ * - density
+ * - ego betweenness centrality
  *
  * @author Rodrigo T. Kuroda
  */
@@ -17,10 +24,6 @@ public class EgoMeasureCalculator {
     /**
      * Calculates metrics for ego network (i.e. graph <code>G</code> of a 
      * node and its neighborhood).
-     * The following metrics are calculate:
-     * - size
-     * - ties
-     * - ego betweenness centrality
      * 
      * @param <V> Vertex of the JUNG Graph
      * @param <E> Edge of the JUNG Graph
@@ -52,10 +55,6 @@ public class EgoMeasureCalculator {
     /**
      * Calculates metrics for ego network (i.e. graph <code>G</code> of a 
      * node and its neighborhood).
-     * The following metrics are calculate:
-     * - size
-     * - ties
-     * - ego betweenness centrality
      * 
      * @param <V> Vertex of the JUNG Graph
      * @param <E> Edge of the JUNG Graph
