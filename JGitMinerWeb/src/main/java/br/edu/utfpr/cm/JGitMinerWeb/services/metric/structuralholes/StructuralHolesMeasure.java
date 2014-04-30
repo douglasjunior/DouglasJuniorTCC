@@ -9,14 +9,14 @@ import java.util.Objects;
  * @author Rodrigo T. Kuroda
  * @param <V> Class of vertex
  */
-public class StructuralHoleMeasure<V> extends Measure<V> {
+public class StructuralHolesMeasure<V> extends Measure<V> {
 
     private final double efficiency;
     private final double effectiveSize;
     private final double constraint;
     private final double hierarchy;
 
-    public StructuralHoleMeasure(V vertex,
+    public StructuralHolesMeasure(V vertex,
             double efficiency, double effectiveSize,
             double constraint, double hierarchy) {
         super(vertex);
@@ -54,11 +54,11 @@ public class StructuralHoleMeasure<V> extends Measure<V> {
         if (o == null) {
             return false;
         }
-        if (!(o instanceof StructuralHoleMeasure)) {
+        if (!(o instanceof StructuralHolesMeasure)) {
             return false;
         }
 
-        final StructuralHoleMeasure<?> other = (StructuralHoleMeasure<?>) o;
+        final StructuralHolesMeasure<?> other = (StructuralHolesMeasure<?>) o;
         return Objects.equals(getVertex(), other.getVertex());
     }
 

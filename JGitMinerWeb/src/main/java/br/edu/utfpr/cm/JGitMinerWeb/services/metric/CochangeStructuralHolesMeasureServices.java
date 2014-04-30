@@ -13,7 +13,7 @@ import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.UserModifySamePairOfFileInDa
 import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.auxiliary.AuxFileFile;
 import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.auxiliary.AuxUserUser;
 import br.edu.utfpr.cm.JGitMinerWeb.services.metric.auxiliary.AuxFileFileMetrics;
-import br.edu.utfpr.cm.JGitMinerWeb.services.metric.structuralholes.StructuralHoleMeasure;
+import br.edu.utfpr.cm.JGitMinerWeb.services.metric.structuralholes.StructuralHolesMeasure;
 import br.edu.utfpr.cm.JGitMinerWeb.services.metric.structuralholes.StructuralHolesCalculator;
 import br.edu.utfpr.cm.JGitMinerWeb.util.JsfUtil;
 import br.edu.utfpr.cm.JGitMinerWeb.util.OutLog;
@@ -207,8 +207,8 @@ public class CochangeStructuralHolesMeasureServices extends AbstractMetricServic
         /** 
          * Calculates structural holes metrics for each developer on the co-change network based.
          */
-        Map<String, StructuralHoleMeasure<String>> metricsResult = 
-                StructuralHolesCalculator.calculeStructuralHolesMetrics(graph, edgeWeigth);
+        Map<String, StructuralHolesMeasure<String>> metricsResult = 
+                StructuralHolesCalculator.calcule(graph, edgeWeigth);
         
         /** 
          * For each pair of file, calculate the sum, average, and max of each 
@@ -222,7 +222,7 @@ public class CochangeStructuralHolesMeasureServices extends AbstractMetricServic
             double hierarchyMax = 0, hierarchyAvg, hierarchySum = 0;
             long developers = 0;
             for (String commiter : commitersPairFile.get(pairFile)) {
-                StructuralHoleMeasure<String> commiterMetric = metricsResult.get(commiter);
+                StructuralHolesMeasure<String> commiterMetric = metricsResult.get(commiter);
                 double efficiency = commiterMetric.getEfficiency();
                 double effectiveSize = commiterMetric.getEffectiveSize();
                 double constraint = commiterMetric.getConstraint();

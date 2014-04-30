@@ -27,15 +27,15 @@ public class StructuralHolesCalculator {
      * @param edgeWeigthTransformer A Transformer that returns the weight for
      * each edge (E).
      * @return A Map where the the key is the vertex (V) and the value is a POJO
-     * with result of metrics, named <code>StructuralHoleMeasure</code>.
+     * with result of metrics, named <code>StructuralHolesMeasure</code>.
      */
-    public static <V, E> Map<V, StructuralHoleMeasure<V>> calculeStructuralHolesMetrics(
+    public static <V, E> Map<V, StructuralHolesMeasure<V>> calcule(
             final Graph<V, E> graph, final Transformer<E, ? extends Number> edgeWeigthTransformer) {
 
         StructuralHoles<V, E> structuralHoles
                 = new StructuralHoles<>(graph, edgeWeigthTransformer);
 
-        Map<V, StructuralHoleMeasure<V>> results
+        Map<V, StructuralHolesMeasure<V>> results
                 = new HashMap<>(graph.getVertexCount());
 
         for (V vertex : graph.getVertices()) {
@@ -44,8 +44,8 @@ public class StructuralHolesCalculator {
             double constraint = structuralHoles.constraint(vertex);
             double hierarchy = structuralHoles.hierarchy(vertex);
 
-            StructuralHoleMeasure<V> metric
-                    = new StructuralHoleMeasure<>(vertex,
+            StructuralHolesMeasure<V> metric
+                    = new StructuralHolesMeasure<>(vertex,
                             efficiency, effectiveSize, constraint, hierarchy);
             results.put(vertex, metric);
         }
@@ -64,7 +64,7 @@ public class StructuralHolesCalculator {
      * @return A Map where the the key is the vertex (V) and the value is a POJO
      * with result of metrics, named <code>StructuralHoleMetric</code>.
      */
-    public static <V, E> Map<V, StructuralHoleMeasure<V>> calculeStructuralHolesMetrics(
+    public static <V, E> Map<V, StructuralHolesMeasure<V>> calcule(
             final Graph<V, E> graph, final Map<E, ? extends Number> edgeWeigth) {
 
         Transformer<E, ? extends Number> edgeWeigthTransformer = new Transformer<E, Number>() {
@@ -73,6 +73,6 @@ public class StructuralHolesCalculator {
                 return edgeWeigth.containsKey(edge) ? edgeWeigth.get(edge) : 0;
             }
         };
-        return calculeStructuralHolesMetrics(graph, edgeWeigthTransformer);
+        return calcule(graph, edgeWeigthTransformer);
     }
 }
