@@ -15,6 +15,14 @@ public class GlobalMeasure {
     private final double density;
     private final double diameter;
 
+    public GlobalMeasure(long size, long ties) {
+        this.size = size;
+        this.ties = ties;
+        this.pairs = size * (size - 1);
+        this.density = pairs == 0 ? 1 : (double) ties / (double) pairs;
+        this.diameter = Double.NaN;
+    }
+    
     public GlobalMeasure(long size, long ties, double diameter) {
         this.size = size;
         this.ties = ties;

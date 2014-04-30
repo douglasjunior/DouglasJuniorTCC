@@ -17,6 +17,14 @@ public class LocalMeasure<V> extends Measure<V> {
     private final long inOutDegree;
     private final double clusteringCoefficient;
 
+    public LocalMeasure(V vertex, long inDegree, long outDegree) {
+        super(vertex);
+        this.inDegree = inDegree;
+        this.outDegree = outDegree;
+        this.inOutDegree = inDegree + outDegree;
+        this.clusteringCoefficient = Double.NaN;
+    }
+
     public LocalMeasure(V vertex, long inDegree, long outDegree, 
             double clusteringCoefficient) {
         super(vertex);
