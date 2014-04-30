@@ -1,6 +1,7 @@
 package br.edu.utfpr.cm.JGitMinerWeb.services.metric.ego;
 
 import br.edu.utfpr.cm.JGitMinerWeb.services.metric.Measure;
+import br.edu.utfpr.cm.JGitMinerWeb.services.metric.global.GlobalMeasure;
 
 /**
  * Stores the eigenvector measure of the vertex <code>V</code>.
@@ -10,36 +11,30 @@ import br.edu.utfpr.cm.JGitMinerWeb.services.metric.Measure;
  */
 public class EgoMeasure<V> extends Measure<V> {
 
-    private final long size;
-    private final long ties;
-    private final long pairs;
-    private final double density;
+    private final GlobalMeasure globalMeasure;
     private final double betweennessCentrality;
     
     public EgoMeasure(final V vertex, final long size, final long ties, 
             final double betweennessCentrality) {
         super(vertex);
-        this.size = size;
-        this.ties = ties;
-        this.pairs = size * (size - 1);
-        this.density = pairs == 0 ? 1 : (double) ties / (double) pairs;
+        this.globalMeasure = new GlobalMeasure(size, ties);
         this.betweennessCentrality = betweennessCentrality;
     }
 
     public long getSize() {
-        return size;
+        return globalMeasure.getSize();
     }
 
     public long getTies() {
-        return ties;
+        return globalMeasure.getTies();
     }
 
     public long getPairs() {
-        return pairs;
+        return globalMeasure.getPairs();
     }
 
     public double getDensity() {
-        return density;
+        return globalMeasure.getDensity();
     }
 
     public double getBetweennessCentrality() {
@@ -48,8 +43,8 @@ public class EgoMeasure<V> extends Measure<V> {
 
     @Override
     public String toString() {
-        return super.toString() + ", size: " + size + ", ties: " + ties 
-                + ", pairs: " + pairs + ", density: " + density 
+        return super.toString() + ", size: " + getSize() + ", ties: " + getTies()
+                + ", pairs: " + getPairs() + ", density: " + getDensity()
                 + ", ego betweeness centrality: " + betweennessCentrality;
     }
 }
