@@ -1,8 +1,8 @@
 package br.edu.utfpr.cm.JGitMinerWeb.services.matrix.auxiliary;
 
 import org.junit.After;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -33,8 +33,10 @@ public class AuxFileFileTest {
         AuxFileFile equal1 = new AuxFileFile("FileA.java", "FileB.java");
         AuxFileFile equal2 = new AuxFileFile("FileB.java", "FileA.java");
         
-        assertEquals(instance, equal1);
-        assertEquals(instance, equal2);
+        assertTrue(instance.equals(equal1));
+        assertTrue(instance.hashCode() == equal1.hashCode());
+        assertTrue(instance.equals(equal2));
+        assertTrue(instance.hashCode() == equal2.hashCode());
     }
     
     /**
@@ -44,7 +46,7 @@ public class AuxFileFileTest {
     @Test
     public void testEqualsFalse() {
         AuxFileFile notEqual = new AuxFileFile("FileB.java", "FileC.java");
-        
-        assertNotEquals(instance, notEqual);
+        assertFalse(instance.equals(notEqual));
+        assertFalse(instance.hashCode() == notEqual.hashCode());
     }
 }
