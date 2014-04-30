@@ -18,7 +18,7 @@ public class GlobalMeasureCalculator {
      * @param graph Graph to measure
      * @return GlobalMeasure class, contains the result of each metric.
      */
-    public static <V, E> GlobalMeasure calculeLocalMetrics(
+    public static <V, E> GlobalMeasure calcule(
             final Graph<V, E> graph) {
         int size = graph.getVertexCount();
         int ties = graph.getEdgeCount();
