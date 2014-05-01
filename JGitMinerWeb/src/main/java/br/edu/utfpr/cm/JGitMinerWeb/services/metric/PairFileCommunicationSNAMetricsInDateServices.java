@@ -221,9 +221,9 @@ public class PairFileCommunicationSNAMetricsInDateServices extends AbstractMetri
             
             Double egoBetweennessSum = 0d, egoBetweennessAvg, egoBetweennessMax = Double.NEGATIVE_INFINITY;
             Long egoSizeSum = 0l, egoSizeMax = Long.MIN_VALUE;
-            Long egoPairsSum = 0l, egoPairsMax = Long.MIN_VALUE;
+//            Long egoPairsSum = 0l, egoPairsMax = Long.MIN_VALUE;
             Long egoTiesSum = 0l, egoTiesMax = Long.MIN_VALUE;
-            Double egoSizeAvg, egoPairsAvg, egoTiesAvg;
+            Double egoSizeAvg, /*egoPairsAvg,*/ egoTiesAvg;
             Double egoDensitySum = 0d, egoDensityAvg, egoDensityMax = Double.NEGATIVE_INFINITY;
             
             Double efficiencySum = 0.0d, efficiencyAvg, efficiencyMax = Double.NEGATIVE_INFINITY;
@@ -242,7 +242,7 @@ public class PairFileCommunicationSNAMetricsInDateServices extends AbstractMetri
                 
                 egoBetweennessSum += ego.get(dev).getBetweennessCentrality();
                 egoSizeSum += ego.get(dev).getSize();
-                egoPairsSum += ego.get(dev).getPairs();
+//                egoPairsSum += ego.get(dev).getPairs();
                 egoTiesSum += ego.get(dev).getTies();
                 egoDensitySum += ego.get(dev).getDensity();
                 
@@ -260,7 +260,7 @@ public class PairFileCommunicationSNAMetricsInDateServices extends AbstractMetri
                 
                 egoBetweennessMax = Math.max(egoBetweennessMax, ego.get(dev).getBetweennessCentrality());
                 egoSizeMax = Math.max(egoSizeMax, ego.get(dev).getSize());
-                egoPairsMax = Math.max(egoPairsMax, ego.get(dev).getPairs());
+//                egoPairsMax = Math.max(egoPairsMax, ego.get(dev).getPairs());
                 egoTiesMax = Math.max(egoTiesMax, ego.get(dev).getTies());
                 egoDensityMax = Math.max(egoDensityMax, ego.get(dev).getDensity());
                 
@@ -280,7 +280,7 @@ public class PairFileCommunicationSNAMetricsInDateServices extends AbstractMetri
             
             egoBetweennessAvg = egoBetweennessSum / (double) devCount;
             egoSizeAvg = egoSizeSum / (double) devCount;
-            egoPairsAvg = egoPairsSum / (double) devCount;
+//            egoPairsAvg = egoPairsSum / (double) devCount;
             egoTiesAvg = egoTiesSum / (double) devCount;
             egoDensityAvg = egoDensitySum / (double) devCount;
             
