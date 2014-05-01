@@ -188,7 +188,10 @@ public class PairFileCommunicationSNAMetricsInDateServices extends AbstractMetri
                 pairFileNetwork.put(pairFile, graphMulti);
             }
         }
-
+        
+        int size = pairFileNetwork.size();
+        int i = 0;
+        out.printLog("Número de pares: " + size);
         out.printLog("Iniciando cálculo das metricas.");
 
         Set<AuxFileFileMetrics> fileFileMetrics = new HashSet<>();
@@ -196,9 +199,10 @@ public class PairFileCommunicationSNAMetricsInDateServices extends AbstractMetri
         // calcula as métricas para cada par de arquivos
         // é a soma das métricas de todos os desenvolvedores
         for (Map.Entry<AuxFileFile, DirectedSparseMultigraph<String, String>> entry : pairFileNetwork.entrySet()) {
+            out.printLog(++i + "/" + size);
+            out.printLog("Calculando metricas SNA...");
             AuxFileFile fileFile = entry.getKey();
             DirectedSparseMultigraph<String, String> graph = entry.getValue();
-            
             GlobalMeasure global = GlobalMeasureCalculator.calcule(graph);
             Map<String, Double> barycenter = BarycenterCalculator.calcule(graph, edgesWeigth);
             Map<String, Double> betweenness = BetweennessCalculator.calcule(graph, edgesWeigth);
@@ -227,6 +231,7 @@ public class PairFileCommunicationSNAMetricsInDateServices extends AbstractMetri
             Double constraintSum = 0.0d, constraintAvg, constraintMax = Double.NEGATIVE_INFINITY;
             Double hierarchySum = 0.0d, hierarchyAvg, hierarchyMax = Double.NEGATIVE_INFINITY;
             
+            out.printLog("Calculando as somas, máximas e médias...");
             for (String dev : graph.getVertices()) {
                 // sums calculation
                 barycenterSum += barycenter.get(dev);
@@ -259,10 +264,10 @@ public class PairFileCommunicationSNAMetricsInDateServices extends AbstractMetri
                 egoTiesMax = Math.max(egoTiesMax, ego.get(dev).getTies());
                 egoDensityMax = Math.max(egoDensityMax, ego.get(dev).getDensity());
                 
-                efficiencyMax += Math.max(efficiencyMax, structuralHoles.get(dev).getEfficiency());
-                effectiveSizeMax += Math.max(effectiveSizeMax, structuralHoles.get(dev).getEffectiveSize());
-                constraintMax += Math.max(constraintMax, structuralHoles.get(dev).getConstraint());
-                hierarchyMax += Math.max(hierarchyMax, structuralHoles.get(dev).getHierarchy());
+                efficiencyMax = Math.max(efficiencyMax, structuralHoles.get(dev).getEfficiency());
+                effectiveSizeMax = Math.max(effectiveSizeMax, structuralHoles.get(dev).getEffectiveSize());
+                constraintMax = Math.max(constraintMax, structuralHoles.get(dev).getConstraint());
+                hierarchyMax = Math.max(hierarchyMax, structuralHoles.get(dev).getHierarchy());
             }
             
             // average calculation
@@ -284,6 +289,7 @@ public class PairFileCommunicationSNAMetricsInDateServices extends AbstractMetri
             constraintAvg = constraintSum / (double) devCount;
             hierarchyAvg = hierarchySum / (double) devCount;
             
+            out.printLog("Calculando updates e code churn...");
             Long updates = calculeUpdates(
                     fileFile.getFileName(), fileFile.getFileName2(), 
                     getBeginDate(), getEndDate());
