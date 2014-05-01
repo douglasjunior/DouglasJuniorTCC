@@ -330,8 +330,8 @@ public class PairFileCommunicationSNAMetricsInDateServices extends AbstractMetri
                     global.getDensity(), global.getDiameter(), 
                     
                     devCount,
-                    updates, futureUpdates,
-                    codeChurn, codeChurn2, codeChurnAvg
+                    codeChurn, codeChurn2, codeChurnAvg,
+                    updates, futureUpdates
             );
             
             fileFileMetrics.add(auxFileFileMetrics);
