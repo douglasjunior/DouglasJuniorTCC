@@ -113,12 +113,12 @@ public class PairFileCommunicationSNAMetricsInDateServices extends AbstractMetri
 
         out.printLog("Iniciando construção da rede.");
 
-        final Map<AuxFileFile, Set<String>> commitersPairFile = new HashMap<>();
         Map<String, Integer> edgesWeigth = new HashMap<>();
         
         // rede de comunicação de cada par de arquivo
         Map<AuxFileFile, DirectedSparseMultigraph<String, String>> pairFileNetwork = new HashMap<>();
-
+        
+        int countIgnored = 0;
         // construindo a rede de comunicação para cada par de arquivo (desenvolvedores que comentaram)
         for (int i = 0; i < getMatrix().getNodes().size(); i++) {
             EntityMatrixNode node = getMatrix().getNodes().get(i);
@@ -127,12 +127,10 @@ public class PairFileCommunicationSNAMetricsInDateServices extends AbstractMetri
             AuxFileFile pairFile = new AuxFileFile(columns[1], columns[2]);
             
             // ignora %README%, %Rakefile, %CHANGELOG%, %Gemfile%, %.gitignore
-            if (pairFile.getFileName().contains("README")
-                    || pairFile.getFileName().endsWith("Rakefile")
-                    || pairFile.getFileName().contains("CHANGELOG")
-                    || pairFile.getFileName().contains("Gemfile")
-                    || pairFile.getFileName().endsWith(".gitignore")) {
+            if (isIgnored(pairFile.getFileName())
+                    || isIgnored(pairFile.getFileName2())) {
                 out.printLog("Ignoring " + pairFile);
+                countIgnored++;
                 continue;
             }
             
@@ -150,29 +148,17 @@ public class PairFileCommunicationSNAMetricsInDateServices extends AbstractMetri
                     pairFileNumberOfPullrequestOfPairFuture.doubleValue() /
                     numberOfAllPullrequestFuture.doubleValue();
             
+            
             // minimum support is 0.01, ignore file if lower than this (0.01)
             if (supportPairFile < Double.valueOf(0.01d)) {
                 out.printLog("Ignoring " + pairFile + ": support " + supportPairFile);
+                countIgnored++;
                 continue;
             }
             
             String commiter1 = columns[0];
             String commiter2 = columns[3];
             
-            /**
-             * Extract all distinct developer that commit a pair of file
-             */
-            if (commitersPairFile.containsKey(pairFile)) {
-                Set<String> commiters = commitersPairFile.get(pairFile);
-                commiters.add(commiter1);
-                commiters.add(commiter2);
-            } else {
-                Set<String> commiters = new HashSet<>();
-                commiters.add(commiter1);
-                commiters.add(commiter2);
-                commitersPairFile.put(pairFile, commiters);
-            }
-
             // adiciona conforme o peso
             String edgeName = pairFile.getFileName() + "-" + pairFile.getFileName2() + "-" + i;
             edgesWeigth.put(edgeName, Util.stringToInteger(columns[4]));
@@ -188,6 +174,8 @@ public class PairFileCommunicationSNAMetricsInDateServices extends AbstractMetri
                 pairFileNetwork.put(pairFile, graphMulti);
             }
         }
+        
+        out.printLog("Número de ignorado: " + countIgnored);
         
         int size = pairFileNetwork.size();
         int i = 0;
@@ -444,5 +432,13 @@ public class PairFileCommunicationSNAMetricsInDateServices extends AbstractMetri
             return repos.get(0);
         }
         return null;
+    }
+    
+    private boolean isIgnored(String fileName) {
+        return fileName.contains("README")
+                || fileName.endsWith("Rakefile")
+                || fileName.contains("CHANGELOG")
+                || fileName.contains("Gemfile")
+                || fileName.endsWith(".gitignore");
     }
 }
