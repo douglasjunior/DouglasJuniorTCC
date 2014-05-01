@@ -318,7 +318,7 @@ public class PairFileCommunicationSNAMetricsInDateServices extends AbstractMetri
                     egoBetweennessSum, egoBetweennessAvg, egoBetweennessMax,
                     egoSizeSum, egoSizeAvg, egoSizeMax,
                     egoTiesSum, egoTiesAvg, egoTiesMax,
-                    egoPairsSum, egoPairsAvg, egoPairsMax,
+//                    egoPairsSum, egoPairsAvg, egoPairsMax,
                     egoDensitySum, egoDensityAvg, egoDensityMax,
                     
                     efficiencySum, efficiencyAvg, efficiencyMax, 
@@ -326,7 +326,7 @@ public class PairFileCommunicationSNAMetricsInDateServices extends AbstractMetri
                     constraintSum, constraintAvg, constraintMax,
                     hierarchySum, hierarchyAvg, hierarchyMax,
                     
-                    global.getSize(), global.getPairs(), global.getTies(),
+                    global.getSize(), global.getTies(),
                     global.getDensity(), global.getDiameter(), 
                     
                     devCount,
@@ -353,7 +353,7 @@ public class PairFileCommunicationSNAMetricsInDateServices extends AbstractMetri
                 + "egoBtwSum;egoBtwAvg;egoBtwMax;"
                 + "egoSizeSum;egoSizeAvg;egoSizeMax;"
                 + "egoTiesSum;egoTiesAvg;egoTiesMax;"
-                + "egoPairsSum;egoPairsAvg;egoPairsMax;"
+//                + "egoPairsSum;egoPairsAvg;egoPairsMax;"
                 + "egoDensitySum;egoDensityAvg;egoDensityMax;"
                 
                 + "efficiencySum;efficiencyAvg;efficiencyMax;"
@@ -361,7 +361,7 @@ public class PairFileCommunicationSNAMetricsInDateServices extends AbstractMetri
                 + "constraintSum;constraintAvg;constraintMax;"
                 + "hierarchySum;hierarchyAvg;hierarchyMax;"
                 
-                + "size;pairs;ties;density;diameter;"
+                + "size;ties;density;diameter;"
                 
                 + "dev;"
                 + "codeChurn;codeChurn2;codeChurnAvg;"
