@@ -7,6 +7,7 @@ import br.edu.utfpr.cm.JGitMinerWeb.model.matrix.EntityMatrixNode;
 import br.edu.utfpr.cm.JGitMinerWeb.model.miner.EntityRepository;
 import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.UserCommentedSamePairOfFileInAllDateServices;
 import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.UserCommentedSamePairOfFileInDateServices;
+import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.UserCommentedSamePairOfFileInNumberServices;
 import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.auxiliary.AuxFileFile;
 import br.edu.utfpr.cm.JGitMinerWeb.services.metric.auxiliary.AuxFileFileMetrics;
 import br.edu.utfpr.cm.JGitMinerWeb.services.metric.centrality.BarycenterCalculator;
@@ -126,10 +127,10 @@ public class PairFileCommunicationSNAMetricsInDateServices extends AbstractMetri
             AuxFileFile pairFile = new AuxFileFile(columns[1], columns[2]);
             
             // ignora %README%, %Rakefile, %CHANGELOG%, %Gemfile%, %.gitignore
-            if (pairFile.getFileName().endsWith("README")
+            if (pairFile.getFileName().contains("README")
                     || pairFile.getFileName().endsWith("Rakefile")
-                    || pairFile.getFileName().endsWith("CHANGELOG")
-                    || pairFile.getFileName().endsWith("Gemfile")
+                    || pairFile.getFileName().contains("CHANGELOG")
+                    || pairFile.getFileName().contains("Gemfile")
                     || pairFile.getFileName().endsWith(".gitignore")) {
                 out.printLog("Ignoring " + pairFile);
                 continue;
@@ -140,10 +141,10 @@ public class PairFileCommunicationSNAMetricsInDateServices extends AbstractMetri
             Long pairFileNumberOfPullrequestOfPairFuture = pairFileDAO
                     .calculeNumberOfPullRequest(repository, 
                             pairFile.getFileName(), pairFile.getFileName2(), 
-                            futureBeginDate, futureEndDate);
+                            futureBeginDate, futureEndDate, true);
             Long numberOfAllPullrequestFuture = pairFileDAO
                     .calculeNumberOfPullRequest(repository,
-                            null, null, futureBeginDate, futureEndDate);
+                            null, null, futureBeginDate, futureEndDate, true);
             
             Double supportPairFile = numberOfAllPullrequestFuture == 0 ? 0d : 
                     pairFileNumberOfPullrequestOfPairFuture.doubleValue() /
@@ -364,7 +365,7 @@ public class PairFileCommunicationSNAMetricsInDateServices extends AbstractMetri
     @Override
     public List<String> getAvailableMatricesPermitted() {
         return Arrays.asList(UserCommentedSamePairOfFileInDateServices.class.getName(),
-                UserCommentedSamePairOfFileInAllDateServices.class.getName());
+                UserCommentedSamePairOfFileInNumberServices.class.getName());
     }
 
     private long calculeUpdates(String fileName, String fileName2, Date beginDate, Date endDate) {

@@ -40,8 +40,36 @@ public class PairFileDAO {
     private static final String[] CALCULE_UPDATES_PARAMS = new String[]{
         "repo", "fileName", "fileName2", "beginDate", "endDate"
     };
+    
+    private static final String SELECT_PULL_REQUEST_BY_DATE = " SELECT count(1) "
+            + " FROM gitpullrequest pul "
+            + " where pul.repository_id = ? "
+            + "   and pul.createdat between ? and ? ";
+    
+    private static final String SELECT_PULL_REQUEST_BY_NUMBER = " SELECT count(1) "
+            + " FROM gitpullrequest pul "
+            + " where pul.repository_id = ? "
+            + "   and pul.number between ? and ? ";
+    
+    private static final String MERGED_PULL_REQUEST_ONLY = "  and pul.mergedat is not null ";
+    
+    private static final String EXISTS_FILE1_IN_PULL_REQUEST = "  and exists  "
+            + "  ( select 1 "
+            + "  from gitpullrequest_gitrepositorycommit r, "
+            + "       gitcommitfile f  "
+            + "  where r.entitypullrequest_id = pul.id "
+            + "    and f.repositorycommit_id = r.repositorycommits_id "
+            + "    and f.filename = ? ) ";
+    
+    private static final String EXISTS_FILE2_IN_PULL_REQUEST = "  and exists  "
+            + "  ( select 1  "
+            + "  from gitpullrequest_gitrepositorycommit r2, "
+            + "       gitcommitfile f2  "
+            + "  where r2.entitypullrequest_id = pul.id "
+            + "    and f2.repositorycommit_id = r2.repositorycommits_id "
+            + "    and f2.filename = ? ) ";
 
-    private GenericDao dao;
+    private final GenericDao dao;
 
     public PairFileDAO(GenericDao dao) {
         this.dao = dao;
@@ -83,41 +111,58 @@ public class PairFileDAO {
         return dao.selectOneWithParams(CALCULE_UPDATES, CALCULE_UPDATES_PARAMS, queryParams);
     }
     
-    public long calculeNumberOfPullRequest(EntityRepository repository, String file, String file2, Date beginDate, Date endDate) {
-        List selectParams = new ArrayList(); 
-        
-        String jpql = " SELECT count(pul.*) "
-                + " FROM gitpullrequest pul "
-                + " where pul.repository_id = ? "
-                + "   and pul.createdat between ? and ? ";
-        
+    public long calculeNumberOfPullRequest(EntityRepository repository, String file, String file2, Date beginDate, Date endDate, boolean onlyMergeds) {
+        List selectParams = new ArrayList();
+
+        String jpql = SELECT_PULL_REQUEST_BY_DATE;
+
+        if (onlyMergeds) {
+            jpql += MERGED_PULL_REQUEST_ONLY;
+        }
+
         selectParams.add(repository.getId());
         selectParams.add(beginDate);
         selectParams.add(endDate);
-        
+
         if (file != null) {
-            jpql += "  and exists  "
-                    + "  ( select f.* "
-                    + "  from gitpullrequest_gitrepositorycommit r, "
-                    + "       gitcommitfile f  "
-                    + "  where r.entitypullrequest_id = pul.id "
-                    + "    and f.repositorycommit_id = r.repositorycommits_id "
-                    + "    and f.filename = ? ) ";
+            jpql += EXISTS_FILE1_IN_PULL_REQUEST;
             selectParams.add(file);
         }
 
         if (file2 != null) {
-            jpql += "  and exists  "
-                    + "  ( select f2.*  "
-                    + "  from gitpullrequest_gitrepositorycommit r2, "
-                    + "       gitcommitfile f2  "
-                    + "  where r2.entitypullrequest_id = pul.id "
-                    + "    and f2.repositorycommit_id = r2.repositorycommits_id "
-                    + "    and f2.filename = ? ) ";
+            jpql += EXISTS_FILE2_IN_PULL_REQUEST;
             selectParams.add(file2);
         }
 
-         Long count = dao.selectNativeOneWithParams(jpql, selectParams.toArray());
+        Long count = (Long) dao.selectNativeOneWithParams(jpql, selectParams.toArray());
+
+        return count != null ? count : 0l;
+    }
+    
+    public long calculeNumberOfPullRequest(EntityRepository repository, String file, String file2, Long beginNumber, Long endNumber, boolean onlyMergeds) {
+        List selectParams = new ArrayList();
+
+        String jpql = SELECT_PULL_REQUEST_BY_NUMBER;
+
+        if (onlyMergeds) {
+            jpql += MERGED_PULL_REQUEST_ONLY;
+        }
+
+        selectParams.add(repository.getId());
+        selectParams.add(beginNumber);
+        selectParams.add(endNumber);
+
+        if (file != null) {
+            jpql += EXISTS_FILE1_IN_PULL_REQUEST;
+            selectParams.add(file);
+        }
+
+        if (file2 != null) {
+            jpql += EXISTS_FILE2_IN_PULL_REQUEST;
+            selectParams.add(file2);
+        }
+
+        Long count = (Long) dao.selectNativeOneWithParams(jpql, selectParams.toArray());
 
         return count != null ? count : 0l;
     }
