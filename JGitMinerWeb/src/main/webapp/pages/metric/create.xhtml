@@ -23,9 +23,9 @@
             <br/>
             <br/>
             <b><h:outputText value="Select a Metric Service Class: " /></b>
-            <p:selectOneListbox id="listServices"  converter="#{gitMetricBean.converterClass}" style="height:200px;width:100%" value="#{gitMetricBean.serviceClass}"  >
+            <p:selectOneListbox id="listServices" converter="#{gitMetricBean.converterClass}" style="height:200px;width:100%" value="#{gitMetricBean.serviceClass}"  >
                 <f:selectItems value="#{gitMetricBean.servicesClasses}" var="serviceClass" itemLabel="#{serviceClass.simpleName}" itemDescription="#{serviceClass.name}" itemValue="#{serviceClass}" />
-                <p:ajax update="filter" />
+                <p:ajax process="@this" update="filter" />
             </p:selectOneListbox>
             <br/>
             <h:panelGroup id="filter">

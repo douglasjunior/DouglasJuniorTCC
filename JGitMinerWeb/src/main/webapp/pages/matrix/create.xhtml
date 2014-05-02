@@ -17,9 +17,9 @@
             <br />
 
             <b><h:outputText value="Select a Matrix Service Class: " /></b>  
-            <p:selectOneListbox id="serviceClass"  converter="#{gitMatrixBean.converterClass}" style="height:100px;width:500px" value="#{gitMatrixBean.serviceClass}" >
+            <p:selectOneListbox id="serviceClass" converter="#{gitMatrixBean.converterClass}" style="height:100px;width:500px" value="#{gitMatrixBean.serviceClass}" >
                 <f:selectItems value="#{gitMatrixBean.servicesClasses}" var="serviceClass" itemLabel="#{serviceClass.simpleName}" itemDescription="#{serviceClass.name}" itemValue="#{serviceClass}" />
-                <f:ajax render="matrixFilter" />
+                <p:ajax process="@this" update="matrixFilter" />
             </p:selectOneListbox>
 
             <br />
