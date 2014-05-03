@@ -1,6 +1,7 @@
 package br.edu.utfpr.cm.JGitMinerWeb.services.metric.global;
 
 import edu.uci.ics.jung.algorithms.shortestpath.DistanceStatistics;
+import edu.uci.ics.jung.algorithms.shortestpath.UnweightedShortestPath;
 import edu.uci.ics.jung.graph.Graph;
 
 /**
@@ -22,7 +23,7 @@ public class GlobalMeasureCalculator {
             final Graph<V, E> graph) {
         int size = graph.getVertexCount();
         int ties = graph.getEdgeCount();
-        double diameter = DistanceStatistics.diameter(graph);
+        double diameter = DistanceStatistics.diameter(graph, new UnweightedShortestPath<>(graph), true);
         return new GlobalMeasure(size, ties, diameter);
     }
 }
