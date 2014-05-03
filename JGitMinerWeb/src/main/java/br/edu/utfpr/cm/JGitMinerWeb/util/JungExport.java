@@ -51,7 +51,7 @@ public class JungExport {
                     new Dimension(vv.getGraphLayout().getSize()));
 
             // Write image to a png file
-            File outputfile = new File(path, filename);
+            File outputfile = new File(path, filename + ".png");
             outputfile.mkdirs();
 
             try {
