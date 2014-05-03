@@ -379,11 +379,11 @@ public class PairFileGlobalCommunicationSNAMetricsInPullRequestServices extends 
     public String getHeadCSV() {
         return "file;file2;"
                 
-//                + "brcMax;brcAvg;brcSum;"
-                + "btwMax;btwAvg;btwSum;"
-                + "clsMax;clsAvg;clsSum;"
-                + "dgrMax;dgrAvg;dgrSum;"
-                + "egvMax;egvAvg;egvSum;"
+//                + "brcAvg;brcSum;brcMax;"
+                + "btwSum;btwAvg;btwMax;"
+                + "clsSum;clsAvg;clsMax;"
+                + "dgrSum;dgrAvg;dgrMax;"
+                + "egvSum;egvAvg;egvMax;"
                 
                 + "egoBtwSum;egoBtwAvg;egoBtwMax;"
                 + "egoSizeSum;egoSizeAvg;egoSizeMax;"

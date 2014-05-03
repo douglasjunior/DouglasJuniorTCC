@@ -229,7 +229,7 @@ public class PairFileGlobalCommunicationSNAMetricsInDateServices extends Abstrac
         }
 //        SimpleDateFormat format = new SimpleDateFormat("dd.MM.yyyy");
 //        JungExport.exportToImage(graph, "C:/Users/a562273/Desktop/networks/", 
-//                format.format(beginDate) + " a " + format.format(endDate));
+//                "multiple " + format.format(beginDate) + " a " + format.format(endDate));
         
         out.printLog("Número de pares de arquivos ignoradoa: " + countIgnored);
         
@@ -396,11 +396,11 @@ public class PairFileGlobalCommunicationSNAMetricsInDateServices extends Abstrac
     public String getHeadCSV() {
         return "file;file2;"
                 
-//                + "brcMax;brcAvg;brcSum;"
-                + "btwMax;btwAvg;btwSum;"
-                + "clsMax;clsAvg;clsSum;"
-                + "dgrMax;dgrAvg;dgrSum;"
-                + "egvMax;egvAvg;egvSum;"
+//                + "brcAvg;brcSum;brcMax;"
+                + "btwSum;btwAvg;btwMax;"
+                + "clsSum;clsAvg;clsMax;"
+                + "dgrSum;dgrAvg;dgrMax;"
+                + "egvSum;egvAvg;egvMax;"
                 
                 + "egoBtwSum;egoBtwAvg;egoBtwMax;"
                 + "egoSizeSum;egoSizeAvg;egoSizeMax;"

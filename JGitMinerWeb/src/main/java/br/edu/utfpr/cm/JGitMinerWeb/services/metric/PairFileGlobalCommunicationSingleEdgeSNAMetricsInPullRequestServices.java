@@ -300,76 +300,76 @@ public class PairFileGlobalCommunicationSingleEdgeSNAMetricsInPullRequestService
                 effectiveSizeMax = Math.max(effectiveSizeMax, structuralHoles.get(dev).getEffectiveSize());
                 constraintMax = Math.max(constraintMax, structuralHoles.get(dev).getConstraint());
                 hierarchyMax = Math.max(hierarchyMax, structuralHoles.get(dev).getHierarchy());
-
-                // average calculation
-                double distinctCommentersCount = devs.size();
-//                barycenterAvg = barycenterSum / (double) distinctCommentersCount;
-                betweennessAvg = betweennessSum / (double) distinctCommentersCount;
-                closenessAvg = closenessSum / (double) distinctCommentersCount;
-                degreeAvg = degreeSum / (double) distinctCommentersCount;
-                eigenvectorAvg = eigenvectorSum / (double) distinctCommentersCount;
-
-                egoBetweennessAvg = egoBetweennessSum / (double) distinctCommentersCount;
-                egoSizeAvg = egoSizeSum / (double) distinctCommentersCount;
-//            egoPairsAvg = egoPairsSum / (double) distinctCommentersCount;
-                egoTiesAvg = egoTiesSum / (double) distinctCommentersCount;
-                egoDensityAvg = egoDensitySum / (double) distinctCommentersCount;
-
-                efficiencyAvg = efficiencySum / (double) distinctCommentersCount;
-                effectiveSizeAvg = effectiveSizeSum / (double) distinctCommentersCount;
-                constraintAvg = constraintSum / (double) distinctCommentersCount;
-                hierarchyAvg = hierarchySum / (double) distinctCommentersCount;
-
-                Long updates = pairFileDAO.calculeNumberOfPullRequest(repository,
-                        fileFile.getFileName(), fileFile.getFileName2(), 
-                        beginNumber, endNumber, true);
-
-                Long futureUpdates = pairFileDAO.calculeNumberOfPullRequest(repository,
-                        fileFile.getFileName(), fileFile.getFileName2(), 
-                        futureBeginNumber, futureEndNumber, true);
-                
-                Long commentsSum = pairFileDAO.calculeComments(repository,
-                        fileFile.getFileName(), fileFile.getFileName2(), 
-                        beginNumber, endNumber, true);
-
-                Long codeChurn = pairFileDAO.calculeCodeChurn(repository,
-                        fileFile.getFileName(), fileFile.getFileName2(), 
-                        beginNumber, endNumber);
-                Long codeChurn2 = pairFileDAO.calculeCodeChurn(repository,
-                        fileFile.getFileName2(), fileFile.getFileName(),
-                        beginNumber, endNumber);
-
-                double codeChurnAvg = (codeChurn + codeChurn2) / 2.0d;
-
-                AuxFileFileMetrics auxFileFileMetrics = new AuxFileFileMetrics(
-                        fileFile.getFileName(), fileFile.getFileName2(), 
-//                        barycenterSum, barycenterAvg, barycenterMax,
-                        betweennessSum, betweennessAvg, betweennessMax,
-                        closenessSum, closenessAvg, closenessMax,
-                        degreeSum, degreeAvg, degreeMax,
-                        eigenvectorSum, eigenvectorAvg, eigenvectorMax,
-
-                        egoBetweennessSum, egoBetweennessAvg, egoBetweennessMax,
-                        egoSizeSum, egoSizeAvg, egoSizeMax,
-                        egoTiesSum, egoTiesAvg, egoTiesMax,
-    //                    egoPairsSum, egoPairsAvg, egoPairsMax,
-                        egoDensitySum, egoDensityAvg, egoDensityMax,
-
-                        efficiencySum, efficiencyAvg, efficiencyMax, 
-                        effectiveSizeSum, effectiveSizeAvg, effectiveSizeMax,
-                        constraintSum, constraintAvg, constraintMax,
-                        hierarchySum, hierarchyAvg, hierarchyMax,
-
-                        pairFileGlobal.getSize(), pairFileGlobal.getTies(),
-                        pairFileGlobal.getDensity(), pairFileGlobal.getDiameter(), 
-
-                        distinctCommentersCount, commentsSum,
-                        codeChurn, codeChurn2, codeChurnAvg,
-                        updates, futureUpdates
-                );
-
-                fileFileMetrics.add(auxFileFileMetrics);
             }
+
+            // average calculation
+            double distinctCommentersCount = devs.size();
+//                barycenterAvg = barycenterSum / (double) distinctCommentersCount;
+            betweennessAvg = betweennessSum / (double) distinctCommentersCount;
+            closenessAvg = closenessSum / (double) distinctCommentersCount;
+            degreeAvg = degreeSum / (double) distinctCommentersCount;
+            eigenvectorAvg = eigenvectorSum / (double) distinctCommentersCount;
+
+            egoBetweennessAvg = egoBetweennessSum / (double) distinctCommentersCount;
+            egoSizeAvg = egoSizeSum / (double) distinctCommentersCount;
+//            egoPairsAvg = egoPairsSum / (double) distinctCommentersCount;
+            egoTiesAvg = egoTiesSum / (double) distinctCommentersCount;
+            egoDensityAvg = egoDensitySum / (double) distinctCommentersCount;
+
+            efficiencyAvg = efficiencySum / (double) distinctCommentersCount;
+            effectiveSizeAvg = effectiveSizeSum / (double) distinctCommentersCount;
+            constraintAvg = constraintSum / (double) distinctCommentersCount;
+            hierarchyAvg = hierarchySum / (double) distinctCommentersCount;
+
+            Long updates = pairFileDAO.calculeNumberOfPullRequest(repository,
+                    fileFile.getFileName(), fileFile.getFileName2(), 
+                    beginNumber, endNumber, true);
+
+            Long futureUpdates = pairFileDAO.calculeNumberOfPullRequest(repository,
+                    fileFile.getFileName(), fileFile.getFileName2(), 
+                    futureBeginNumber, futureEndNumber, true);
+
+            Long commentsSum = pairFileDAO.calculeComments(repository,
+                    fileFile.getFileName(), fileFile.getFileName2(), 
+                    beginNumber, endNumber, true);
+
+            Long codeChurn = pairFileDAO.calculeCodeChurn(repository,
+                    fileFile.getFileName(), fileFile.getFileName2(), 
+                    beginNumber, endNumber);
+            Long codeChurn2 = pairFileDAO.calculeCodeChurn(repository,
+                    fileFile.getFileName2(), fileFile.getFileName(),
+                    beginNumber, endNumber);
+
+            double codeChurnAvg = (codeChurn + codeChurn2) / 2.0d;
+
+            AuxFileFileMetrics auxFileFileMetrics = new AuxFileFileMetrics(
+                    fileFile.getFileName(), fileFile.getFileName2(), 
+//                        barycenterSum, barycenterAvg, barycenterMax,
+                    betweennessSum, betweennessAvg, betweennessMax,
+                    closenessSum, closenessAvg, closenessMax,
+                    degreeSum, degreeAvg, degreeMax,
+                    eigenvectorSum, eigenvectorAvg, eigenvectorMax,
+
+                    egoBetweennessSum, egoBetweennessAvg, egoBetweennessMax,
+                    egoSizeSum, egoSizeAvg, egoSizeMax,
+                    egoTiesSum, egoTiesAvg, egoTiesMax,
+//                    egoPairsSum, egoPairsAvg, egoPairsMax,
+                    egoDensitySum, egoDensityAvg, egoDensityMax,
+
+                    efficiencySum, efficiencyAvg, efficiencyMax, 
+                    effectiveSizeSum, effectiveSizeAvg, effectiveSizeMax,
+                    constraintSum, constraintAvg, constraintMax,
+                    hierarchySum, hierarchyAvg, hierarchyMax,
+
+                    pairFileGlobal.getSize(), pairFileGlobal.getTies(),
+                    pairFileGlobal.getDensity(), pairFileGlobal.getDiameter(), 
+
+                    distinctCommentersCount, commentsSum,
+                    codeChurn, codeChurn2, codeChurnAvg,
+                    updates, futureUpdates
+            );
+
+            fileFileMetrics.add(auxFileFileMetrics);
         }
 
         addToEntityMetricNodeList(fileFileMetrics);
@@ -379,11 +379,11 @@ public class PairFileGlobalCommunicationSingleEdgeSNAMetricsInPullRequestService
     public String getHeadCSV() {
         return "file;file2;"
                 
-//                + "brcMax;brcAvg;brcSum;"
-                + "btwMax;btwAvg;btwSum;"
-                + "clsMax;clsAvg;clsSum;"
-                + "dgrMax;dgrAvg;dgrSum;"
-                + "egvMax;egvAvg;egvSum;"
+//                + "brcAvg;brcSum;brcMax;"
+                + "btwSum;btwAvg;btwMax;"
+                + "clsSum;clsAvg;clsMax;"
+                + "dgrSum;dgrAvg;dgrMax;"
+                + "egvSum;egvAvg;egvMax;"
                 
                 + "egoBtwSum;egoBtwAvg;egoBtwMax;"
                 + "egoSizeSum;egoSizeAvg;egoSizeMax;"
