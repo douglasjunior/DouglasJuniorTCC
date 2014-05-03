@@ -23,6 +23,7 @@ public class GlobalMeasureCalculator {
             final Graph<V, E> graph) {
         int size = graph.getVertexCount();
         int ties = graph.getEdgeCount();
+        // the true parameter specifies to use the max value, even some distance is null (see javadoc)
         double diameter = DistanceStatistics.diameter(graph, new UnweightedShortestPath<>(graph), true);
         return new GlobalMeasure(size, ties, diameter);
     }
