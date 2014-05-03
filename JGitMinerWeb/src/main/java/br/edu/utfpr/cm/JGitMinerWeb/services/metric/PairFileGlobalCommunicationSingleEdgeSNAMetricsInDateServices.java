@@ -23,7 +23,7 @@ import br.edu.utfpr.cm.JGitMinerWeb.services.metric.structuralholes.StructuralHo
 import br.edu.utfpr.cm.JGitMinerWeb.services.metric.structuralholes.StructuralHolesMeasure;
 import br.edu.utfpr.cm.JGitMinerWeb.util.JsfUtil;
 import br.edu.utfpr.cm.JGitMinerWeb.util.OutLog;
-import edu.uci.ics.jung.graph.DirectedSparseMultigraph;
+import edu.uci.ics.jung.graph.DirectedSparseGraph;
 import edu.uci.ics.jung.graph.util.EdgeType;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -38,15 +38,15 @@ import java.util.Set;
  * 
  * @author Rodrigo T. Kuroda
  */
-public class PairFileGlobalCommunicationSNAMetricsInDateServices extends AbstractMetricServices {
+public class PairFileGlobalCommunicationSingleEdgeSNAMetricsInDateServices extends AbstractMetricServices {
 
     private EntityRepository repository;
 
-    public PairFileGlobalCommunicationSNAMetricsInDateServices(GenericDao dao, OutLog out) {
+    public PairFileGlobalCommunicationSingleEdgeSNAMetricsInDateServices(GenericDao dao, OutLog out) {
         super(dao, out);
     }
 
-    public PairFileGlobalCommunicationSNAMetricsInDateServices(GenericDao dao, EntityMatrix matrix, Map params, OutLog out) {
+    public PairFileGlobalCommunicationSingleEdgeSNAMetricsInDateServices(GenericDao dao, EntityMatrix matrix, Map params, OutLog out) {
         super(dao, matrix, params, out);
     }
 
@@ -119,11 +119,10 @@ public class PairFileGlobalCommunicationSNAMetricsInDateServices extends Abstrac
         final Map<String, Integer> edgesWeigth = new HashMap<>();
         
         // rede de comunicação global, com todos pares de arquivos
-        DirectedSparseMultigraph<String, String> graph= new DirectedSparseMultigraph<>();
-//        DirectedSparseGraph<String, String> graph = new DirectedSparseGraph<>();
+        DirectedSparseGraph<String, String> graph = new DirectedSparseGraph<>();
         
         // rede de comunicação de cada par de arquivo
-        Map<AuxFileFile, DirectedSparseMultigraph<String, String>> pairFileNetwork = new HashMap<>();
+        Map<AuxFileFile, DirectedSparseGraph<String, String>> pairFileNetwork = new HashMap<>();
         
         int countIgnored = 0;
         
@@ -137,7 +136,7 @@ public class PairFileGlobalCommunicationSNAMetricsInDateServices extends Abstrac
         Map<String, Long> futurePullRequest = new HashMap<>();
         
         // construindo a rede de comunicação para cada par de arquivo (desenvolvedores que comentaram)
-//        int nodesSize = getMatrix().getNodes().size();
+        int nodesSize = getMatrix().getNodes().size();
         for (int i = 0; i < getMatrix().getNodes().size(); i++) {
 //            System.out.println(i + "/" + nodesSize);
             EntityMatrixNode node = getMatrix().getNodes().get(i);
@@ -195,35 +194,36 @@ public class PairFileGlobalCommunicationSNAMetricsInDateServices extends Abstrac
             }
 
             // adiciona conforme o peso
-            String edgeName = pairFile.getFileName() + "-" + pairFile.getFileName2() + "-" + i;
+//            String edgeName = pairFile.getFileName() + "-" + pairFile.getFileName2() + "-" + i;
             AuxUserUser pairUser = new AuxUserUser(columns[0], columns[3]);
-//            
-//            /* Sum commit for each pair file that the pair dev has commited. */
-//            // user > user2 - directed
-//            if (edgesWeigth.containsKey(pairUser.toStringUserAndUser2())) {
-//                // edgeName = user + user2
-//                edgesWeigth.put(pairUser.toStringUserAndUser2(), edgesWeigth.get(pairUser.toStringUserAndUser2()) + Integer.valueOf(columns[4]));
-////            } else if (edgesWeigth.containsKey(pairUser.toStringUser2AndUser())) {
-////                // edgeName = user2 + user
-////                edgesWeigth.put(pairUser.toStringUser2AndUser(), edgesWeigth.get(pairUser.toStringUser2AndUser()) + Integer.valueOf(columns[4]));
-//            } else {
-                edgesWeigth.put(edgeName, Integer.valueOf(columns[4]));
-//            }
             
-//            if (!graph.containsVertex(pairUser.getUser()) 
-//                    || !graph.containsVertex(pairUser.getUser2()) 
-//                    || !graph.isNeighbor(pairUser.getUser(), pairUser.getUser2())) {
-                graph.addEdge(edgeName, pairUser.getUser(), pairUser.getUser2(), EdgeType.DIRECTED);
-//            }
+            /* Sum commit for each pair file that the pair dev has commited. */
+            // user > user2 - directed edge
+            if (edgesWeigth.containsKey(pairUser.toStringUserAndUser2())) {
+                // edgeName = user + user2
+                edgesWeigth.put(pairUser.toStringUserAndUser2(), edgesWeigth.get(pairUser.toStringUserAndUser2()) + Integer.valueOf(columns[4]));
+//            
+//            } else if (edgesWeigth.containsKey(pairUser.toStringUser2AndUser())) {
+//                // edgeName = user2 + user - undirected edge
+//                edgesWeigth.put(pairUser.toStringUser2AndUser(), edgesWeigth.get(pairUser.toStringUser2AndUser()) + Integer.valueOf(columns[4]));
+            } else {
+                edgesWeigth.put(pairUser.toStringUserAndUser2(), Integer.valueOf(columns[4]));
+            }
+            
+            if (!graph.containsVertex(pairUser.getUser()) 
+                    || !graph.containsVertex(pairUser.getUser2()) 
+                    || !graph.isNeighbor(pairUser.getUser(), pairUser.getUser2())) {
+                graph.addEdge(pairUser.toStringUserAndUser2(), pairUser.getUser(), pairUser.getUser2(), EdgeType.DIRECTED);
+            }
                 
             // check if network already created
             if (pairFileNetwork.containsKey(pairFile)) {
                 pairFileNetwork.get(pairFile)
-                        .addEdge(edgeName, commiter1, commiter2, EdgeType.DIRECTED);
+                        .addEdge(pairUser.toStringUserAndUser2(), pairUser.getUser(), pairUser.getUser2(), EdgeType.DIRECTED);
             } else {
-                DirectedSparseMultigraph<String, String> graphMulti = 
-                        new DirectedSparseMultigraph<>();
-                graphMulti.addEdge(edgeName, commiter1, commiter2, EdgeType.DIRECTED);
+                DirectedSparseGraph<String, String> graphMulti = 
+                        new DirectedSparseGraph<>();
+                graphMulti.addEdge(pairUser.toStringUserAndUser2(), pairUser.getUser(), pairUser.getUser2(), EdgeType.DIRECTED);
                 pairFileNetwork.put(pairFile, graphMulti);
             }
         }

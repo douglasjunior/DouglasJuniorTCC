@@ -26,8 +26,6 @@ import br.edu.utfpr.cm.JGitMinerWeb.util.OutLog;
 import edu.uci.ics.jung.graph.DirectedSparseMultigraph;
 import edu.uci.ics.jung.graph.util.EdgeType;
 import java.util.Arrays;
-import java.util.Calendar;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -38,15 +36,15 @@ import java.util.Set;
  * 
  * @author Rodrigo T. Kuroda
  */
-public class PairFileGlobalCommunicationSNAMetricsInDateServices extends AbstractMetricServices {
+public class PairFileGlobalCommunicationSNAMetricsInPullRequestServices extends AbstractMetricServices {
 
     private EntityRepository repository;
 
-    public PairFileGlobalCommunicationSNAMetricsInDateServices(GenericDao dao, OutLog out) {
+    public PairFileGlobalCommunicationSNAMetricsInPullRequestServices(GenericDao dao, OutLog out) {
         super(dao, out);
     }
 
-    public PairFileGlobalCommunicationSNAMetricsInDateServices(GenericDao dao, EntityMatrix matrix, Map params, OutLog out) {
+    public PairFileGlobalCommunicationSNAMetricsInPullRequestServices(GenericDao dao, EntityMatrix matrix, Map params, OutLog out) {
         super(dao, matrix, params, out);
     }
 
@@ -54,26 +52,26 @@ public class PairFileGlobalCommunicationSNAMetricsInDateServices extends Abstrac
         return getIntegerParam("intervalOfMonths");
     }
 
-    private Date getBeginDate() {
+    private Long getBeginNumber() {
         if (getMatrix().getClassServicesName().equals(UserCommentedSamePairOfFileInAllDateServices.class.getName())) {
-            return getDateParam("matrixBeginDate");
+            return getLongParam("matrixBeginNumber");
         }
-        return getDateParam("beginDate");
+        return getLongParam("beginNumber");
     }
 
-    private Date getEndDate() {
+    private Long getEndNumber() {
         if (getMatrix().getClassServicesName().equals(UserCommentedSamePairOfFileInAllDateServices.class.getName())) {
-            return getDateParam("matrixEndDate");
+            return getLongParam("matrixEndNumber");
         }
-        return getDateParam("endDate");
+        return getLongParam("endNumber");
     }
 
-    public Date getFutureBeginDate() {
-        return getDateParam("futureBeginDate");
+    public Long getFutureBeginNumber() {
+        return getLongParam("futureBeginNumber");
     }
 
-    public Date getFutureEndDate() {
-        return getDateParam("futureEndDate");
+    public Long getFutureEndNumber() {
+        return getLongParam("futureEndNumber");
     }
 
     @Override
@@ -90,25 +88,14 @@ public class PairFileGlobalCommunicationSNAMetricsInDateServices extends Abstrac
             throw new IllegalArgumentException("Não foi possível encontrar o repositório utilizado nesta matriz.");
         }
 
-        Date futureBeginDate = getFutureBeginDate();
-        Date futureEndDate = getFutureEndDate();
+        Long futureBeginNumber = getFutureBeginNumber();
+        Long futureEndNumber = getFutureEndNumber();
         
-        Date beginDate = getBeginDate();
-        Date endDate = getEndDate();
+        Long beginNumber = getBeginNumber();
+        Long endNumber = getEndNumber();
 
-        if (futureBeginDate == null && futureEndDate == null) {
-            if (getIntervalOfMonths() == null || getIntervalOfMonths() == 0) {
-                throw new IllegalArgumentException("A matriz selecionada não possui parâmetro de Interval Of Months, informe Future Begin Date e Future End Date.");
-            }
-            futureBeginDate = (Date) getEndDate().clone();
-            Calendar cal = Calendar.getInstance();
-            cal.setTime((Date) futureBeginDate.clone());
-            cal.add(Calendar.MONTH, getIntervalOfMonths());
-            futureEndDate = cal.getTime();
-        }
-
-        params.put("futureBeginDate", futureBeginDate);
-        params.put("futureEndDate", futureEndDate);
+        params.put("futureBeginNumber", futureBeginNumber);
+        params.put("futureEndNumber", futureEndNumber);
 
         // user | file | file2 | user2 | weigth
         out.printLog("Iniciado cálculo da métrica de matriz com " + getMatrix().getNodes().size() + " nodes. Parametros: " + params);
@@ -130,16 +117,14 @@ public class PairFileGlobalCommunicationSNAMetricsInDateServices extends Abstrac
         PairFileDAO pairFileDAO = new PairFileDAO(dao);
         Long numberOfAllPullrequestFuture = pairFileDAO
                 .calculeNumberOfPullRequest(repository,
-                        null, null, futureBeginDate, futureEndDate, true);
+                        null, null, futureBeginNumber, futureEndNumber, true);
         
         System.out.println("Number of all future pull requests: " + numberOfAllPullrequestFuture);
         
-        Map<String, Long> futurePullRequest = new HashMap<>();
+        Map<AuxFileFile, Long> futurePullRequest = new HashMap<>();
         
         // construindo a rede de comunicação para cada par de arquivo (desenvolvedores que comentaram)
-//        int nodesSize = getMatrix().getNodes().size();
         for (int i = 0; i < getMatrix().getNodes().size(); i++) {
-//            System.out.println(i + "/" + nodesSize);
             EntityMatrixNode node = getMatrix().getNodes().get(i);
             String[] columns = node.getLine().split(JsfUtil.TOKEN_SEPARATOR);
 
@@ -148,20 +133,19 @@ public class PairFileGlobalCommunicationSNAMetricsInDateServices extends Abstrac
             // ignora %README%, %Rakefile, %CHANGELOG%, %Gemfile%, %.gitignore
             if (isIgnored(pairFile.getFileName())
                     || isIgnored(pairFile.getFileName2())) {
-//                out.printLog("Ignoring " + pairFile);
                 countIgnored++;
                 continue;
             }
             
             Long pairFileNumberOfPullrequestOfPairFuture;
-            if (futurePullRequest.containsKey(pairFile.toString())) {
-                pairFileNumberOfPullrequestOfPairFuture = futurePullRequest.get(pairFile.toString());
+            if (futurePullRequest.containsKey(pairFile)) {
+                pairFileNumberOfPullrequestOfPairFuture = futurePullRequest.get(pairFile);
             } else {
                 pairFileNumberOfPullrequestOfPairFuture = pairFileDAO
                     .calculeNumberOfPullRequest(repository, 
                             pairFile.getFileName(), pairFile.getFileName2(), 
-                            futureBeginDate, futureEndDate, true);
-                futurePullRequest.put(pairFile.toString(), pairFileNumberOfPullrequestOfPairFuture);
+                            futureBeginNumber, futureEndNumber, true);
+                futurePullRequest.put(pairFile, pairFileNumberOfPullrequestOfPairFuture);
             }
             
 //            Double supportPairFile = numberOfAllPullrequestFuture == 0 ? 0d : 
@@ -227,9 +211,8 @@ public class PairFileGlobalCommunicationSNAMetricsInDateServices extends Abstrac
                 pairFileNetwork.put(pairFile, graphMulti);
             }
         }
-//        SimpleDateFormat format = new SimpleDateFormat("dd.MM.yyyy");
 //        JungExport.exportToImage(graph, "C:/Users/a562273/Desktop/networks/", 
-//                format.format(beginDate) + " a " + format.format(endDate));
+//                beginNumber + " a " + endNumber);
         
         out.printLog("Número de pares de arquivos ignoradoa: " + countIgnored);
         
@@ -303,7 +286,7 @@ public class PairFileGlobalCommunicationSNAMetricsInDateServices extends Abstrac
                 // maximum calculation
 //                barycenterMax = Math.max(barycenterMax, barycenter.get(dev));
                 betweennessMax = Math.max(betweennessMax, betweenness.get(dev));
-                closenessMax = Math.max(closenessMax, Double.isInfinite(closeness.get(dev)) ? 0 : closeness.get(dev));
+                closenessMax = Math.max(closenessMax, closeness.get(dev));
                 degreeMax = Math.max(degreeMax, degree.get(dev));
                 eigenvectorMax = Math.max(eigenvectorMax, eigenvector.get(dev));
 
@@ -339,22 +322,22 @@ public class PairFileGlobalCommunicationSNAMetricsInDateServices extends Abstrac
 
                 Long updates = pairFileDAO.calculeNumberOfPullRequest(repository,
                         fileFile.getFileName(), fileFile.getFileName2(), 
-                        beginDate, endDate, true);
+                        beginNumber, endNumber, true);
 
                 Long futureUpdates = pairFileDAO.calculeNumberOfPullRequest(repository,
                         fileFile.getFileName(), fileFile.getFileName2(), 
-                        futureBeginDate, futureEndDate, true);
+                        futureBeginNumber, futureEndNumber, true);
                 
                 Long commentsSum = pairFileDAO.calculeComments(repository,
                         fileFile.getFileName(), fileFile.getFileName2(), 
-                        beginDate, endDate, true);
+                        beginNumber, endNumber, true);
 
                 Long codeChurn = pairFileDAO.calculeCodeChurn(repository,
                         fileFile.getFileName(), fileFile.getFileName2(), 
-                        beginDate, endDate);
+                        beginNumber, endNumber);
                 Long codeChurn2 = pairFileDAO.calculeCodeChurn(repository,
                         fileFile.getFileName2(), fileFile.getFileName(),
-                        beginDate, endDate);
+                        beginNumber, endNumber);
 
                 double codeChurnAvg = (codeChurn + codeChurn2) / 2.0d;
 
