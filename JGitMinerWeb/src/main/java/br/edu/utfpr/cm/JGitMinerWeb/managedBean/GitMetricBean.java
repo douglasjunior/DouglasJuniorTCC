@@ -12,7 +12,9 @@ import br.edu.utfpr.cm.JGitMinerWeb.model.metric.EntityMetricNode;
 import br.edu.utfpr.cm.JGitMinerWeb.services.metric.AbstractMetricServices;
 import br.edu.utfpr.cm.JGitMinerWeb.util.JsfUtil;
 import br.edu.utfpr.cm.JGitMinerWeb.util.OutLog;
+import java.io.PrintWriter;
 import java.io.Serializable;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -191,7 +193,10 @@ public class GitMetricBean implements Serializable {
                         message = "Geração da matriz finalizada.";
                     } catch (Exception ex) {
                         ex.printStackTrace();
-                        message = "Geração da rede abortada, erro: " + ex.toString();
+                        StringWriter errors = new StringWriter();
+                        ex.printStackTrace(new PrintWriter(errors));
+                        message = "Geração da rede abortada, erro: " + errors.toString();
+                        out.printLog(errors.toString());
                         fail = true;
                     } finally {
                         out.printLog("");
