@@ -159,12 +159,13 @@ public class PairFileDAO {
 
     public long calculeNumberOfPullRequest(EntityRepository repository, 
             String file, String file2, Date beginDate, Date endDate, boolean onlyMergeds) {
-        List selectParams = new ArrayList();
+        List<Object> selectParams = new ArrayList<>();
 
-        String jpql = SELECT_PULL_REQUEST_BY_DATE;
+        StringBuilder sql = new StringBuilder();
+        sql.append(SELECT_PULL_REQUEST_BY_DATE);
 
         if (onlyMergeds) {
-            jpql += MERGED_PULL_REQUEST_ONLY;
+            sql.append(MERGED_PULL_REQUEST_ONLY);
         }
 
         selectParams.add(repository.getId());
@@ -172,28 +173,29 @@ public class PairFileDAO {
         selectParams.add(endDate);
 
         if (file != null) {
-            jpql += EXISTS_FILE1_IN_PULL_REQUEST;
+            sql.append(EXISTS_FILE1_IN_PULL_REQUEST);
             selectParams.add(file);
         }
 
         if (file2 != null) {
-            jpql += EXISTS_FILE2_IN_PULL_REQUEST;
+            sql.append(EXISTS_FILE2_IN_PULL_REQUEST);
             selectParams.add(file2);
         }
 
-        Long count = (Long) dao.selectNativeOneWithParams(jpql, selectParams.toArray());
+        Long count = (Long) dao.selectNativeOneWithParams(sql.toString(), selectParams.toArray());
 
         return count != null ? count : 0l;
     }
 
     public long calculeNumberOfPullRequest(EntityRepository repository, 
             String file, String file2, Long beginNumber, Long endNumber, boolean onlyMergeds) {
-        List selectParams = new ArrayList();
+        List<Object> selectParams = new ArrayList<>();
 
-        String jpql = SELECT_PULL_REQUEST_BY_NUMBER;
+        StringBuilder sql = new StringBuilder();
+        sql.append(SELECT_PULL_REQUEST_BY_NUMBER);
 
         if (onlyMergeds) {
-            jpql += MERGED_PULL_REQUEST_ONLY;
+            sql.append(MERGED_PULL_REQUEST_ONLY);
         }
 
         selectParams.add(repository.getId());
@@ -201,28 +203,29 @@ public class PairFileDAO {
         selectParams.add(endNumber);
 
         if (file != null) {
-            jpql += EXISTS_FILE1_IN_PULL_REQUEST;
+            sql.append(EXISTS_FILE1_IN_PULL_REQUEST);
             selectParams.add(file);
         }
 
         if (file2 != null) {
-            jpql += EXISTS_FILE2_IN_PULL_REQUEST;
+            sql.append(EXISTS_FILE2_IN_PULL_REQUEST);
             selectParams.add(file2);
         }
 
-        Long count = dao.selectNativeOneWithParams(jpql, selectParams.toArray());
+        Long count = dao.selectNativeOneWithParams(sql.toString(), selectParams.toArray());
 
         return count != null ? count : 0l;
     }
 
     public long calculeComments(EntityRepository repository, 
             String file, String file2, Date beginDate, Date endDate, boolean onlyMergeds) {
-        List selectParams = new ArrayList();
+        List<Object> selectParams = new ArrayList<>();
 
-        String jpql = COUNT_COMMENTS_OF_FILE_PAIR_BY_DATE;
+        StringBuilder sql = new StringBuilder();
+        sql.append(COUNT_COMMENTS_OF_FILE_PAIR_BY_DATE);
 
         if (onlyMergeds) {
-            jpql += MERGED_PULL_REQUEST_ONLY;
+            sql.append(MERGED_PULL_REQUEST_ONLY);
         }
 
         selectParams.add(repository.getId());
@@ -230,28 +233,29 @@ public class PairFileDAO {
         selectParams.add(endDate);
 
         if (file != null) {
-            jpql += EXISTS_FILE1_IN_PULL_REQUEST;
+            sql.append(EXISTS_FILE1_IN_PULL_REQUEST);
             selectParams.add(file);
         }
 
         if (file2 != null) {
-            jpql += EXISTS_FILE2_IN_PULL_REQUEST;
+            sql.append(EXISTS_FILE2_IN_PULL_REQUEST);
             selectParams.add(file2);
         }
 
-        Long count = dao.selectNativeOneWithParams(jpql, selectParams.toArray());
+        Long count = dao.selectNativeOneWithParams(sql.toString(), selectParams.toArray());
 
         return count != null ? count : 0l;
     }
 
     public long calculeComments(EntityRepository repository, 
             String file, String file2, Long beginNumber, Long endNumber, boolean onlyMergeds) {
-        List selectParams = new ArrayList();
+        List<Object> selectParams = new ArrayList<>();
 
-        String jpql = COUNT_COMMENTS_OF_FILE_PAIR_BY_PULL_REQUEST_NUMBER;
+        StringBuilder sql = new StringBuilder();
+        sql.append(COUNT_COMMENTS_OF_FILE_PAIR_BY_PULL_REQUEST_NUMBER);
 
         if (onlyMergeds) {
-            jpql += MERGED_PULL_REQUEST_ONLY;
+            sql.append(MERGED_PULL_REQUEST_ONLY);
         }
 
         selectParams.add(repository.getId());
@@ -259,16 +263,16 @@ public class PairFileDAO {
         selectParams.add(endNumber);
 
         if (file != null) {
-            jpql += EXISTS_FILE1_IN_PULL_REQUEST;
+            sql.append(EXISTS_FILE1_IN_PULL_REQUEST);
             selectParams.add(file);
         }
 
         if (file2 != null) {
-            jpql += EXISTS_FILE2_IN_PULL_REQUEST;
+            sql.append(EXISTS_FILE2_IN_PULL_REQUEST);
             selectParams.add(file2);
         }
 
-        Long count = dao.selectNativeOneWithParams(jpql, selectParams.toArray());
+        Long count = dao.selectNativeOneWithParams(sql.toString(), selectParams.toArray());
 
         return count != null ? count : 0l;
     }
