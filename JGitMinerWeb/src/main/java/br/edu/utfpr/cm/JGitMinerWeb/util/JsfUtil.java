@@ -286,8 +286,8 @@ public class JsfUtil implements Serializable {
      * @return Classes founds.
      * @throws ClassNotFoundException
      */
-    public static List<Class> getClasses(String pckgname, List<String> exceptionsClassNames) throws ClassNotFoundException {
-        List classes = new ArrayList();
+    public static List<Class<?>> getClasses(String pckgname, List<String> exceptionsClassNames) throws ClassNotFoundException {
+        List<Class<?>> classes = new ArrayList<>();
         // Get a File object for the package
         File directory = null;
         try {
@@ -299,11 +299,11 @@ public class JsfUtil implements Serializable {
         if (directory.exists()) {
             // Get the list of the files contained in the package
             String[] files = directory.list();
-            for (int i = 0; i < files.length; i++) {
+            for (String file : files) {
                 // we are only interested in .class files
-                if (files[i].endsWith("Services.class")) {
+                if (file.endsWith("Services.class")) {
                     // get class simple name
-                    String classSimpleName = files[i].substring(0, files[i].length() - 6);
+                    String classSimpleName = file.substring(0, file.length() - 6);
                     // verify exceptions
                     if (exceptionsClassNames.contains(classSimpleName)) {
                         continue;

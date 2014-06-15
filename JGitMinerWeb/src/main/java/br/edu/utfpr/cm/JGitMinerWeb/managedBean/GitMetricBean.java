@@ -250,8 +250,8 @@ public class GitMetricBean implements Serializable {
         return "";
     }
 
-    public List<Class> getServicesClasses() {
-        List<Class> metricsServices = null;
+    public List<Class<?>> getServicesClasses() {
+        List<Class<?>> metricsServices = null;
         try {
             /*
              * Filtra as matrizes que podem ser utilizadas nesta metrica
@@ -262,8 +262,8 @@ public class GitMetricBean implements Serializable {
                 // pegas as classes do pacote de metricas
                 metricsServices = JsfUtil.getClasses(AbstractMetricServices.class.getPackage().getName(), Arrays.asList(AbstractMetricServices.class.getSimpleName()));
                 // faz uma iteração percorrendo cada classe
-                for (Iterator<Class> itMetricService = metricsServices.iterator(); itMetricService.hasNext();) {
-                    Class metricService = itMetricService.next();
+                for (Iterator<Class<?>> itMetricService = metricsServices.iterator(); itMetricService.hasNext();) {
+                    Class<?> metricService = itMetricService.next();
                     // pegas as matrizes disponíveis para esta metrica
                     List<String> avaliableMatricesServices = ((AbstractMetricServices) metricService.getConstructor(GenericDao.class, OutLog.class).newInstance(dao, out)).getAvailableMatricesPermitted();
                     // verifica se a matriz selecionada está entre as disponíveis
