@@ -1,7 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package br.edu.utfpr.cm.JGitMinerWeb.services.matrix.auxiliary;
 
 import br.edu.utfpr.cm.JGitMinerWeb.util.Util;
@@ -66,6 +62,6 @@ public class AuxFileFile {
 
     @Override
     public String toString() {
-        return fileName + "+" + fileName2;
+        return fileName + ";" + fileName2;
     }
 }

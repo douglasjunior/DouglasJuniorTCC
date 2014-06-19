@@ -1,7 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package br.edu.utfpr.cm.JGitMinerWeb.services.matrix.auxiliary;
 
 import br.edu.utfpr.cm.JGitMinerWeb.util.Util;
@@ -91,6 +87,7 @@ public class AuxUserFileFileUserDirectional {
         int hash = 3;
         hash = 23 * hash + Objects.hashCode(this.user);
         hash = 23 * hash + (Objects.hashCode(this.fileName) + Objects.hashCode(this.fileName2));
+        hash = 23 * hash + Objects.hashCode(this.user2);
         return hash;
     }
 
