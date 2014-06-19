@@ -9,11 +9,8 @@ import java.util.Objects;
  */
 public class AuxFileFile {
 
-    private String fileName;
-    private String fileName2;
-
-    public AuxFileFile() {
-    }
+    private final String fileName;
+    private final String fileName2;
 
     public AuxFileFile(String fileName, String fileName2) {
         this.fileName = fileName;
@@ -24,16 +21,8 @@ public class AuxFileFile {
         return fileName;
     }
 
-    public void setFileName(String fileName) {
-        this.fileName = fileName;
-    }
-
     public String getFileName2() {
         return fileName2;
-    }
-
-    public void setFileName2(String fileName2) {
-        this.fileName2 = fileName2;
     }
 
     @Override

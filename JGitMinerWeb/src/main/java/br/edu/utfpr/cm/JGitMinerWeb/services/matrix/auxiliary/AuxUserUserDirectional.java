@@ -14,8 +14,8 @@ import java.util.Objects;
  */
 public class AuxUserUserDirectional {
 
-    private String user;
-    private String user2;
+    private final String user;
+    private final String user2;
     private int weigth;
 
     public AuxUserUserDirectional(String user, String user2) {
@@ -33,24 +33,12 @@ public class AuxUserUserDirectional {
         return user;
     }
 
-    public void setUser(String user) {
-        this.user = user;
-    }
-
     public String getUser2() {
         return user2;
     }
 
-    public void setUser2(String user2) {
-        this.user2 = user2;
-    }
-
     public int getWeigth() {
         return weigth;
-    }
-
-    public void setWeigth(int weigth) {
-        this.weigth = weigth;
     }
 
     @Override
