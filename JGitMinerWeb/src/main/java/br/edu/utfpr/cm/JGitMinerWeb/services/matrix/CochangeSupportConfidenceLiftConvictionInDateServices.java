@@ -1,5 +1,6 @@
 package br.edu.utfpr.cm.JGitMinerWeb.services.matrix;
 
+import br.edu.utfpr.cm.JGitMinerWeb.dao.FileDAO;
 import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericDao;
 import br.edu.utfpr.cm.JGitMinerWeb.dao.PairFileDAO;
 import br.edu.utfpr.cm.JGitMinerWeb.model.matrix.EntityMatrix;
@@ -46,11 +47,11 @@ public class CochangeSupportConfidenceLiftConvictionInDateServices extends Abstr
     }
 
     public List<String> getFilesToIgnore() {
-        return getStringLinesParam("filesToIgnore", true, true);
+        return getStringLinesParam("filesToIgnore", true, false);
     }
 
     public List<String> getFilesToConsiders() {
-        return getStringLinesParam("filesToConsiders", true, true);
+        return getStringLinesParam("filesToConsiders", true, false);
     }
 
     public Boolean isOnlyMergeds() {
@@ -69,6 +70,7 @@ public class CochangeSupportConfidenceLiftConvictionInDateServices extends Abstr
     public void run() {
         try {
             PairFileDAO pairFileDAO = new PairFileDAO(dao);
+            FileDAO fileDAO = new FileDAO(dao);
 
             if (getRepository() == null) {
                 throw new IllegalArgumentException("Parâmetro Repository não pode ser nulo.");
@@ -91,31 +93,39 @@ public class CochangeSupportConfidenceLiftConvictionInDateServices extends Abstr
                     .append("      gitpullrequest_gitrepositorycommit prc, ")
                     .append("      gitcommitfile fil2, ")
                     .append("      gitpullrequest_gitrepositorycommit prc2, ")
-                    .append("      gitpullrequest pul ")
+                    .append("      gitpullrequest pul, ")
+                    .append("      gitissue i ")
                     .append("where pul.repository_id = ? ")
+                    .append("  and pul.issue_id = i.id ")
+                    .append("  and i.commentscount > 1 ")
                     .append("  and pul.createdat between ? and ? ");
+
+            selectParams.add(getRepository().getId());
+            selectParams.add(beginDate);
+            selectParams.add(endDate);
 
             if (isOnlyMergeds()) {
                 select.append("  and pul.mergedat is not null ");
             }
             select.append("  and prc.entitypullrequest_id = pul.id ")
-                    .append("  and (select count(*) from gitcommitfile f where f.repositorycommit_id = prc.repositorycommits_id) <= ")
-                    .append(getMaxFilesPerCommit())
-                    .append("  and (select count(*) from gitcommitfile f where f.repositorycommit_id = prc.repositorycommits_id) >= ")
-                    .append(getMinFilesPerCommit())
+                    .append("  and (select count(distinct(f.filename)) from gitcommitfile f where f.repositorycommit_id = prc.repositorycommits_id) between ? and ?")
                     .append("  and fil.repositorycommit_id = prc.repositorycommits_id ")
                     .append("  and prc2.entitypullrequest_id = pul.id ")
-                    .append("  and (select count(*) from gitcommitfile f where f.repositorycommit_id = prc2.repositorycommits_id) <= ")
-                    .append(getMaxFilesPerCommit())
-                    .append("  and (select count(*) from gitcommitfile f where f.repositorycommit_id = prc2.repositorycommits_id) >= ")
-                    .append(getMinFilesPerCommit())
+                    .append("  and (select count(distinct(f.filename)) from gitcommitfile f where f.repositorycommit_id = prc2.repositorycommits_id) between ? and ?")
                     .append("  and fil2.repositorycommit_id = prc2.repositorycommits_id ")
-                    .append("  and md5(fil.filename) < md5(fil2.filename) ");
+                    .append("  and md5(fil.filename) <> md5(fil2.filename) ");
+
+            selectParams.add(getMinFilesPerCommit());
+            selectParams.add(getMaxFilesPerCommit());
+            selectParams.add(getMinFilesPerCommit());
+            selectParams.add(getMaxFilesPerCommit());
 
             if (!filesToIgnore.isEmpty()) {
                 for (String fileName : filesToIgnore) {
-                    select.append("  and fil.filename not like '").append(fileName).append("' ")
-                         .append("  and fil2.filename not like '").append(fileName).append("' ");
+                    select.append("  and fil.filename not like ? ")
+                            .append("  and fil2.filename not like ? ");
+                    selectParams.add(fileName);
+                    selectParams.add(fileName);
                 }
             }
 
@@ -127,7 +137,8 @@ public class CochangeSupportConfidenceLiftConvictionInDateServices extends Abstr
                     if (likeFilename++ > 0) {
                         select.append("or");
                     }
-                    select.append(" fil.filename like '").append(fileName).append("' ");
+                    select.append(" fil.filename like ? ");
+                    selectParams.add(fileName);
                 }
                 select.append(")");
 
@@ -138,22 +149,38 @@ public class CochangeSupportConfidenceLiftConvictionInDateServices extends Abstr
                     if (likeFilename++ > 0) {
                         select.append("or");
                     }
-                    select.append(" fil2.filename like '").append(fileName).append("' ");
+                    select.append(" fil2.filename like ? ");
+                    selectParams.add(fileName);
                 }
                 select.append(")");
             }
 
             System.out.println(select);
 
-            selectParams.add(getRepository().getId());
-            selectParams.add(beginDate);
-            selectParams.add(endDate);
-
             List<Object[]> cochangeResult = dao.selectNativeWithParams(select.toString(), selectParams.toArray());
 
             Set<AuxFileFileMetrics> pairFileMetrics = new HashSet<>();
             for (Object[] record : cochangeResult) {
-                pairFileMetrics.add(new AuxFileFileMetrics(record[0] + "", record[1] + ""));
+                AuxFileFileMetrics pairFile = new AuxFileFileMetrics(record[0] + "", record[1] + "");
+
+                // o arquivo deve aparecer em mais de 1 pull request e não somente 1
+                // caso contrário não é incluso
+                long file1PullRequestIn = fileDAO.calculeNumberOfPullRequestWhereFileIsIn(
+                        getRepository(), pairFile.getFile(),
+                        beginDate, endDate, 0, getMaxFilesPerCommit(), isOnlyMergeds());
+                if (file1PullRequestIn > 1) {
+
+                    long file2PullRequestIn = fileDAO.calculeNumberOfPullRequestWhereFileIsIn(
+                            getRepository(), pairFile.getFile2(),
+                            beginDate, endDate, 0, getMaxFilesPerCommit(), isOnlyMergeds());
+                    if (file2PullRequestIn > 1) {
+                        pairFileMetrics.add(pairFile);
+                    } else {
+                        out.printLog(pairFile.getFile2() + " in #" + file2PullRequestIn + " pull requests");
+                    }
+                } else {
+                    out.printLog(pairFile.getFile2() + " in #" + file1PullRequestIn + " pull requests");
+                }
             }
             cochangeResult.clear();
 
@@ -180,7 +207,7 @@ public class CochangeSupportConfidenceLiftConvictionInDateServices extends Abstr
                 Double confidence = supportFile == 0 ? 0d : supportPairFile / supportFile;
                 Double confidence2 = supportFile2 == 0 ? 0d : supportPairFile / supportFile2;
                 Double lift = supportFile * supportFile2 == 0 ? 0d : supportPairFile / (supportFile * supportFile2);
-                Double conviction = 1 - confidence == 0 ? 0d : (1 - supportFile2) / (1 - confidence);
+                Double conviction = 1 - confidence == 0 ? 0d : (1 - supportFile) / (1 - confidence);
                 Double conviction2 = 1 - confidence2 == 0 ? 0d : (1 - supportFile2) / (1 - confidence2);
 
                 pairFile.addMetrics(supportFile, supportFile2, supportPairFile, confidence, confidence2, lift, conviction, conviction2);
