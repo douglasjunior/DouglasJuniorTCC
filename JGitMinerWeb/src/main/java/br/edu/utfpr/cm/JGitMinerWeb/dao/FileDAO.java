@@ -25,10 +25,10 @@ public class FileDAO {
             + "   AND pul.createdat BETWEEN ? AND ? ";
 
     private static final String FILTER_BY_MAX_NUMBER_FILES_IN_COMMIT
-            = "   AND (SELECT count(1) FROM gitcommitfile cf WHERE cf.repositorycommit_id = prc.repositorycommits_id) <= ? ";
+            = "   AND (SELECT count(distinct(cf.filename)) FROM gitcommitfile cf WHERE cf.repositorycommit_id = prc.repositorycommits_id) <= ? ";
 
     private static final String FILTER_BY_MIN_NUMBER_FILES_IN_COMMIT
-            = "   AND (SELECT count(1) FROM gitcommitfile cf WHERE cf.repositorycommit_id = prc.repositorycommits_id) >= ? ";
+            = "   AND (SELECT count(distinct(cf.filename)) FROM gitcommitfile cf WHERE cf.repositorycommit_id = prc.repositorycommits_id) >= ? ";
 
     private static final String MERGED_PULL_REQUEST_ONLY = " AND pul.mergedat IS NOT NULL ";
 
