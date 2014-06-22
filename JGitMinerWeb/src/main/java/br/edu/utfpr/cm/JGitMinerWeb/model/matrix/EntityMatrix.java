@@ -1,7 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package br.edu.utfpr.cm.JGitMinerWeb.model.matrix;
 
 import br.edu.utfpr.cm.JGitMinerWeb.model.InterfaceEntity;
@@ -49,7 +45,7 @@ public class EntityMatrix implements InterfaceEntity, Startable {
     @Lob
     @Basic(fetch = FetchType.LAZY)
     private String log;
-    private Map params;
+    private Map<Object, Object> params;
     private String classServicesName;
     private String repository;
     @OneToMany(mappedBy = "matrix", orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.LAZY)
@@ -59,7 +55,7 @@ public class EntityMatrix implements InterfaceEntity, Startable {
         started = new Date();
         complete = false;
         nodes = new ArrayList<>();
-        params = new HashMap();
+        params = new HashMap<>();
     }
 
     @Override
@@ -96,7 +92,7 @@ public class EntityMatrix implements InterfaceEntity, Startable {
         this.stoped = stoped;
     }
 
-    public Map getParams() {
+    public Map<Object, Object> getParams() {
         return params;
     }
 
@@ -173,7 +169,7 @@ public class EntityMatrix implements InterfaceEntity, Startable {
         return this.repository + "-" + this.started;
     }
 
-    public void setParams(Map params) {
+    public void addAllParams(Map<Object, Object> params) {
         this.params.putAll(params);
     }
 
