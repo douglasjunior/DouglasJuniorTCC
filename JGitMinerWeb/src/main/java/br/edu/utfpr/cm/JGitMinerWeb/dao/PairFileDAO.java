@@ -41,9 +41,16 @@ public class PairFileDAO {
         "repo", "fileName", "fileName2", "beginDate", "endDate"
     };
 
-    private static final String SELECT_PULL_REQUEST_BY_DATE = "SELECT count(1) "
+    private static final String SELECT_PULL_REQUEST_BY_DATE = "SELECT count(distinct(pr.id)) "
             + " FROM gitpullrequest pr "
             + " WHERE pr.repository_id = ? "
+            + "   AND pr.createdat BETWEEN ? AND ? ";
+
+    private static final String SELECT_PULL_REQUEST_AND_ISSUE_BY_DATE = "SELECT count(distinct(pr.id)) "
+            + " FROM gitpullrequest pr, gitissue iss "
+            + " WHERE pr.repository_id = ? "
+            + "   AND iss.id = pr.issue_id "
+            + "   AND iss.commentscount > 1 "
             + "   AND pr.createdat BETWEEN ? AND ? ";
 
     private static final String SELECT_PULL_REQUEST_BY_NUMBER = "SELECT count(1) "
