@@ -129,41 +129,45 @@ public class PairFileGlobalCommunicationSingleEdgeSNAMetricsInDateServices exten
         int countIgnored = 0;
         
         PairFileDAO pairFileDAO = new PairFileDAO(dao);
-        Long numberOfAllPullrequestFuture = pairFileDAO
+        Long pullRequestsSize = pairFileDAO
                 .calculeNumberOfPullRequest(repository,
                         null, null, futureBeginDate, futureEndDate, true);
         
-        System.out.println("Number of all future pull requests: " + numberOfAllPullrequestFuture);
+        System.out.println("Number of all pull requests: " + pullRequestsSize);
         
-        Map<String, Long> futurePullRequest = new HashMap<>();
+        //Map<String, Long> futurePullRequest = new HashMap<>();
         
         // construindo a rede de comunicação para cada par de arquivo (desenvolvedores que comentaram)
         int nodesSize = getMatrix().getNodes().size();
+        int count = 0;
+        Set<AuxFileFile> pairFilesSet = new HashSet<>();
         for (int i = 0; i < getMatrix().getNodes().size(); i++) {
-//            System.out.println(i + "/" + nodesSize);
+            if (count++ % 100 == 0 || count == nodesSize) {
+                System.out.println(count + "/" + nodesSize);
+            }
             EntityMatrixNode node = getMatrix().getNodes().get(i);
             String[] columns = node.getLine().split(JsfUtil.TOKEN_SEPARATOR);
 
             AuxFileFile pairFile = new AuxFileFile(columns[1], columns[2]);
-            
+            pairFilesSet.add(pairFile);
             // ignora %README%, %Rakefile, %CHANGELOG%, %Gemfile%, %.gitignore
-            if (isIgnored(pairFile.getFileName())
-                    || isIgnored(pairFile.getFileName2())) {
+//            if (isIgnored(pairFile.getFileName())
+//                    || isIgnored(pairFile.getFileName2())) {
 //                out.printLog("Ignoring " + pairFile);
-                countIgnored++;
-                continue;
-            }
+//                countIgnored++;
+//                continue;
+//            }
             
-            Long pairFileNumberOfPullrequestOfPairFuture;
-            if (futurePullRequest.containsKey(pairFile.toString())) {
-                pairFileNumberOfPullrequestOfPairFuture = futurePullRequest.get(pairFile.toString());
-            } else {
-                pairFileNumberOfPullrequestOfPairFuture = pairFileDAO
-                    .calculeNumberOfPullRequest(repository, 
-                            pairFile.getFileName(), pairFile.getFileName2(), 
-                            futureBeginDate, futureEndDate, true);
-                futurePullRequest.put(pairFile.toString(), pairFileNumberOfPullrequestOfPairFuture);
-            }
+//            Long pairFileNumberOfPullrequestOfPairFuture;
+//            if (futurePullRequest.containsKey(pairFile.toString())) {
+//                pairFileNumberOfPullrequestOfPairFuture = futurePullRequest.get(pairFile.toString());
+//            } else {
+//                pairFileNumberOfPullrequestOfPairFuture = pairFileDAO
+//                    .calculeNumberOfPullRequest(repository,
+//                            pairFile.getFileName(), pairFile.getFileName2(),
+//                            futureBeginDate, futureEndDate, true);
+//                futurePullRequest.put(pairFile.toString(), pairFileNumberOfPullrequestOfPairFuture);
+//            }
             
 //            Double supportPairFile = numberOfAllPullrequestFuture == 0 ? 0d : 
 //                    pairFileNumberOfPullrequestOfPairFuture.doubleValue() /
@@ -172,11 +176,11 @@ public class PairFileGlobalCommunicationSingleEdgeSNAMetricsInDateServices exten
             
             // minimum support is 0.01, ignore file if lower than this (0.01)
 //            if (supportPairFile < Double.valueOf(0.01d)) {
-            if (pairFileNumberOfPullrequestOfPairFuture < 2) {
+//            if (pairFileNumberOfPullrequestOfPairFuture < 2) {
 //                out.printLog("Ignoring " + pairFile + ": future pull requests " + pairFileNumberOfPullrequestOfPairFuture);
-                countIgnored++;
-                continue;
-            }
+//                countIgnored++;
+//                continue;
+//            }
             
             String commiter1 = columns[0];
             String commiter2 = columns[3];
@@ -204,7 +208,7 @@ public class PairFileGlobalCommunicationSingleEdgeSNAMetricsInDateServices exten
             if (edgesWeigth.containsKey(pairUser.toStringUserAndUser2())) {
                 // edgeName = user + user2
                 edgesWeigth.put(pairUser.toStringUserAndUser2(), edgesWeigth.get(pairUser.toStringUserAndUser2()) + Integer.valueOf(columns[4]));
-//            
+//            // for undirectional graph
 //            } else if (edgesWeigth.containsKey(pairUser.toStringUser2AndUser())) {
 //                // edgeName = user2 + user - undirected edge
 //                edgesWeigth.put(pairUser.toStringUser2AndUser(), edgesWeigth.get(pairUser.toStringUser2AndUser()) + Integer.valueOf(columns[4]));
@@ -214,7 +218,7 @@ public class PairFileGlobalCommunicationSingleEdgeSNAMetricsInDateServices exten
             
             if (!graph.containsVertex(pairUser.getUser()) 
                     || !graph.containsVertex(pairUser.getUser2()) 
-                    || !graph.isNeighbor(pairUser.getUser(), pairUser.getUser2())) {
+                    || !graph.containsEdge(pairUser.toStringUserAndUser2())) {
                 graph.addEdge(pairUser.toStringUserAndUser2(), pairUser.getUser(), pairUser.getUser2(), EdgeType.DIRECTED);
             }
                 
@@ -223,8 +227,8 @@ public class PairFileGlobalCommunicationSingleEdgeSNAMetricsInDateServices exten
                 pairFileNetwork.get(pairFile)
                         .addEdge(pairUser.toStringUserAndUser2(), pairUser.getUser(), pairUser.getUser2(), EdgeType.DIRECTED);
             } else {
-                DirectedSparseGraph<String, String> graphMulti = 
-                        new DirectedSparseGraph<>();
+                DirectedSparseGraph<String, String> graphMulti
+                        = new DirectedSparseGraph<>();
                 graphMulti.addEdge(pairUser.toStringUserAndUser2(), pairUser.getUser(), pairUser.getUser2(), EdgeType.DIRECTED);
                 pairFileNetwork.put(pairFile, graphMulti);
             }
@@ -235,11 +239,10 @@ public class PairFileGlobalCommunicationSingleEdgeSNAMetricsInDateServices exten
         
         out.printLog("Número de pares de arquivos ignoradoa: " + countIgnored);
         
-//        int size = commitersPairFile.size();
-//        int i = 0;
         out.printLog("Número de autores de comentários (commenters): " + graph.getVertexCount());
         out.printLog("Número de pares de arquivos: " + commitersPairFile.size());
-        out.printLog("Iniciando cálculo das metricas.");
+        out.printLog("Número de pares de arquivos new: " + pairFilesSet.size());
+        out.printLog("Iniciando cálculo das métricas.");
 
         Set<AuxFileFileMetrics> fileFileMetrics = new HashSet<>();
         
@@ -255,9 +258,20 @@ public class PairFileGlobalCommunicationSingleEdgeSNAMetricsInDateServices exten
         Map<String, EgoMeasure<String>> ego = EgoMeasureCalculator.calcule(graph, edgesWeigth);
         Map<String, StructuralHolesMeasure<String>> structuralHoles = StructuralHolesCalculator.calcule(graph, edgesWeigth);
 
-        out.printLog("Calculando somas, máximas, médias, updates e code churn para cada par de arquivos...");
+        // number of pull requests in date interval
+        Long numberOfAllPullrequestFuture = pairFileDAO.calculeNumberOfPullRequest(getRepository(), null, null, futureBeginDate, futureEndDate, true);
+        // cache for optimization number of pull requests where file is in,
+        // reducing access to database
+        Map<String, Long> pullRequestFileMap = new HashMap<>();
+
+        out.printLog("Calculando somas, máximas, médias, updates, code churn e apriori para cada par de arquivos...");
+        count = 0;
+        final int size = commitersPairFile.entrySet().size();
+        out.printLog("Número de pares de arquivos: " + commitersPairFile.keySet().size());
         for (Map.Entry<AuxFileFile, Set<String>> entry : commitersPairFile.entrySet()) {
-//            System.out.println(++i + "/" + size);
+            if (count++ % 100 == 0 || count == size) {
+                System.out.println(count + "/" + size);
+            }
             AuxFileFile fileFile = entry.getKey();
             Set<String> devs = entry.getValue();
             
@@ -321,33 +335,38 @@ public class PairFileGlobalCommunicationSingleEdgeSNAMetricsInDateServices exten
                 hierarchyMax = Math.max(hierarchyMax, structuralHoles.get(dev).getHierarchy());
 
             }
-            
+
             // average calculation
             double distinctCommentersCount = devs.size();
-//                barycenterAvg = barycenterSum / (double) distinctCommentersCount;
-            betweennessAvg = betweennessSum / (double) distinctCommentersCount;
-            closenessAvg = closenessSum / (double) distinctCommentersCount;
-            degreeAvg = degreeSum / (double) distinctCommentersCount;
-            eigenvectorAvg = eigenvectorSum / (double) distinctCommentersCount;
+//            barycenterAvg = barycenterSum / (double) distinctCommentersCount;
+            betweennessAvg = betweennessSum / distinctCommentersCount;
+            closenessAvg = closenessSum / distinctCommentersCount;
+            degreeAvg = degreeSum / distinctCommentersCount;
+            eigenvectorAvg = eigenvectorSum / distinctCommentersCount;
 
-            egoBetweennessAvg = egoBetweennessSum / (double) distinctCommentersCount;
-            egoSizeAvg = egoSizeSum / (double) distinctCommentersCount;
-//            egoPairsAvg = egoPairsSum / (double) distinctCommentersCount;
-            egoTiesAvg = egoTiesSum / (double) distinctCommentersCount;
-            egoDensityAvg = egoDensitySum / (double) distinctCommentersCount;
+            egoBetweennessAvg = egoBetweennessSum / distinctCommentersCount;
+            egoSizeAvg = egoSizeSum / distinctCommentersCount;
+//            egoPairsAvg = egoPairsSum / distinctCommentersCount;
+            egoTiesAvg = egoTiesSum / distinctCommentersCount;
+            egoDensityAvg = egoDensitySum / distinctCommentersCount;
 
-            efficiencyAvg = efficiencySum / (double) distinctCommentersCount;
-            effectiveSizeAvg = effectiveSizeSum / (double) distinctCommentersCount;
-            constraintAvg = constraintSum / (double) distinctCommentersCount;
-            hierarchyAvg = hierarchySum / (double) distinctCommentersCount;
+            efficiencyAvg = efficiencySum / distinctCommentersCount;
+            effectiveSizeAvg = effectiveSizeSum / distinctCommentersCount;
+            constraintAvg = constraintSum / distinctCommentersCount;
+            hierarchyAvg = hierarchySum / distinctCommentersCount;
 
             Long updates = pairFileDAO.calculeNumberOfPullRequest(repository,
                     fileFile.getFileName(), fileFile.getFileName2(), 
                     beginDate, endDate, true);
 
-            Long futureUpdates = pairFileDAO.calculeNumberOfPullRequest(repository,
-                    fileFile.getFileName(), fileFile.getFileName2(), 
-                    futureBeginDate, futureEndDate, true);
+            Long futureUpdates;
+            if (beginDate.equals(futureBeginDate) && endDate.equals(futureEndDate)) {
+                futureUpdates = updates;
+            } else {
+                futureUpdates = pairFileDAO.calculeNumberOfPullRequest(repository,
+                        fileFile.getFileName(), fileFile.getFileName2(),
+                        futureBeginDate, futureEndDate, true);
+            }
 
             Long commentsSum = pairFileDAO.calculeComments(repository,
                     fileFile.getFileName(), fileFile.getFileName2(), 
@@ -389,38 +408,70 @@ public class PairFileGlobalCommunicationSingleEdgeSNAMetricsInDateServices exten
                     updates, futureUpdates
             );
 
+            // apriori
+//            // same as updates
+//            Long pairFileNumberOfPullrequestOfPair = pairFileDAO.calculeNumberOfPullRequest(getRepository(), auxFileFileMetrics.getFile(), auxFileFileMetrics.getFile2(), getBeginDate(), getEndDate(), true);
+//            // same as futureUpdates
+//            Long pairFileNumberOfPullrequestOfPairFuture = pairFileDAO.calculeNumberOfPullRequest(getRepository(), auxFileFileMetrics.getFile(), auxFileFileMetrics.getFile2(), futureBeginDate, futureEndDate, true);
+            Long fileNumberOfPullrequestOfPairFuture;
+            if (pullRequestFileMap.containsKey(auxFileFileMetrics.getFile())) {
+                fileNumberOfPullrequestOfPairFuture = pullRequestFileMap.get(auxFileFileMetrics.getFile());
+            } else {
+                fileNumberOfPullrequestOfPairFuture = pairFileDAO.calculeNumberOfPullRequest(getRepository(), auxFileFileMetrics.getFile(), null, futureBeginDate, futureEndDate, true);
+                pullRequestFileMap.put(auxFileFileMetrics.getFile(), fileNumberOfPullrequestOfPairFuture);
+            }
+
+            Long file2NumberOfPullrequestOfPairFuture;
+            if (pullRequestFileMap.containsKey(auxFileFileMetrics.getFile2())) {
+                file2NumberOfPullrequestOfPairFuture = pullRequestFileMap.get(auxFileFileMetrics.getFile2());
+            } else {
+                file2NumberOfPullrequestOfPairFuture = pairFileDAO.calculeNumberOfPullRequest(getRepository(), auxFileFileMetrics.getFile2(), null, futureBeginDate, futureEndDate, true);
+                pullRequestFileMap.put(auxFileFileMetrics.getFile2(), file2NumberOfPullrequestOfPairFuture);
+            }
+
+            auxFileFileMetrics.addMetrics(updates, futureUpdates, fileNumberOfPullrequestOfPairFuture, file2NumberOfPullrequestOfPairFuture, numberOfAllPullrequestFuture);
+
+            Double supportFile = fileNumberOfPullrequestOfPairFuture.doubleValue() / numberOfAllPullrequestFuture.doubleValue();
+            Double supportFile2 = file2NumberOfPullrequestOfPairFuture.doubleValue() / numberOfAllPullrequestFuture.doubleValue();
+            Double supportPairFile = futureUpdates.doubleValue() / numberOfAllPullrequestFuture.doubleValue();
+            Double confidence = supportFile == 0 ? 0d : supportPairFile / supportFile;
+            Double confidence2 = supportFile2 == 0 ? 0d : supportPairFile / supportFile2;
+            Double lift = supportFile * supportFile2 == 0 ? 0d : supportPairFile / (supportFile * supportFile2);
+            Double conviction = 1 - confidence == 0 ? 0d : (1 - supportFile) / (1 - confidence);
+            Double conviction2 = 1 - confidence2 == 0 ? 0d : (1 - supportFile2) / (1 - confidence2);
+
+            auxFileFileMetrics.addMetrics(supportFile, supportFile2, supportPairFile, confidence, confidence2, lift, conviction, conviction2);
+
             fileFileMetrics.add(auxFileFileMetrics);
         }
 
+        out.printLog("Número de pares de arquivos: " + fileFileMetrics.size());
         addToEntityMetricNodeList(fileFileMetrics);
     }
-    
+
     @Override
     public String getHeadCSV() {
         return "file;file2;"
-                
-//                + "brcAvg;brcSum;brcMax;"
+                // + "brcAvg;brcSum;brcMax;"
                 + "btwSum;btwAvg;btwMax;"
                 + "clsSum;clsAvg;clsMax;"
                 + "dgrSum;dgrAvg;dgrMax;"
                 + "egvSum;egvAvg;egvMax;"
-                
                 + "egoBtwSum;egoBtwAvg;egoBtwMax;"
                 + "egoSizeSum;egoSizeAvg;egoSizeMax;"
                 + "egoTiesSum;egoTiesAvg;egoTiesMax;"
-//                + "egoPairsSum;egoPairsAvg;egoPairsMax;"
+                // + "egoPairsSum;egoPairsAvg;egoPairsMax;"
                 + "egoDensitySum;egoDensityAvg;egoDensityMax;"
-                
                 + "efficiencySum;efficiencyAvg;efficiencyMax;"
                 + "efvSizeSum;efvSizeAvg;efvSizeMax;"
                 + "constraintSum;constraintAvg;constraintMax;"
                 + "hierarchySum;hierarchyAvg;hierarchyMax;"
-                
                 + "size;ties;density;diameter;"
-                
                 + "commenters;comments;"
                 + "codeChurn;codeChurn2;codeChurnAvg;"
-                + "updates;futureUpdates";
+                + "updates;futureUpdates;"
+                + "pairFileCochange;pairFileCochangeFuture;fileChangeFuture;file2ChangeFuture;allPullrequestFuture;"
+                + "supportFile;supportFile2;supportPairFile;confidence;confidence2;lift;conviction;conviction2";
     }
 
     @Override
@@ -440,7 +491,7 @@ public class PairFileGlobalCommunicationSingleEdgeSNAMetricsInDateServices exten
         }
         return null;
     }
-    
+
     private boolean isIgnored(String fileName) {
         return fileName.contains("README")
                 || fileName.endsWith("Rakefile")
