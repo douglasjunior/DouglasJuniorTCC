@@ -1,9 +1,6 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package br.edu.utfpr.cm.JGitMinerWeb.services.matrix;
 
+import br.edu.utfpr.cm.JGitMinerWeb.dao.FileDAO;
 import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericDao;
 import br.edu.utfpr.cm.JGitMinerWeb.model.matrix.EntityMatrix;
 import br.edu.utfpr.cm.JGitMinerWeb.model.miner.EntityComment;
@@ -15,17 +12,20 @@ import br.edu.utfpr.cm.JGitMinerWeb.model.miner.EntityRepositoryCommit;
 import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.auxiliary.AuxFileFile;
 import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.auxiliary.AuxUserFileFileUserDirectional;
 import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.auxiliary.AuxUserUserDirectional;
+import br.edu.utfpr.cm.JGitMinerWeb.util.MatcherUtils;
 import br.edu.utfpr.cm.JGitMinerWeb.util.OutLog;
 import br.edu.utfpr.cm.JGitMinerWeb.util.Util;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 /**
- *
+ * 
  * @author douglas
  */
 public class UserCommentedSamePairOfFileInDateServices extends AbstractMatrixServices {
@@ -38,27 +38,24 @@ public class UserCommentedSamePairOfFileInDateServices extends AbstractMatrixSer
         super(dao, repository, matricesToSave, params, out);
     }
 
-    private String getPrefixFile() {
-        return params.get("prefixFile") + "%";
-    }
-
-    private String getSuffixFile() {
-        return "%" + params.get("suffixFile");
-    }
-
     private Integer getMaxFilesPerCommit() {
         return Util.stringToInteger(params.get("maxFilesPerCommit") + "");
     }
 
-    private List<String> getFilesName() {
-        List<String> filesName = new ArrayList<>();
-        for (String fileName : (params.get("filesName") + "").split("\n")) {
-            fileName = fileName.trim();
-            if (!fileName.isEmpty()) {
-                filesName.add(fileName);
-            }
-        }
-        return filesName;
+    private Integer getMinFilesPerCommit() {
+        return Util.stringToInteger(params.get("minFilesPerCommit") + "");
+    }
+
+    private boolean isOnlyMerged() {
+        return "true".equalsIgnoreCase(params.get("mergedOnly") + "");
+    }
+
+    public List<String> getFilesToIgnore() {
+        return getStringLinesParam("filesToIgnore", true, false);
+    }
+
+    public List<String> getFilesToConsiders() {
+        return getStringLinesParam("filesToConsiders", true, false);
     }
 
     public Date getBeginDate() {
@@ -77,158 +74,165 @@ public class UserCommentedSamePairOfFileInDateServices extends AbstractMatrixSer
             throw new IllegalArgumentException("Parâmetro Repository não pode ser nulo.");
         }
 
-        String jpql = "";
+        Date beginDate = getBeginDate();
+        Date endDate = getEndDate();
+        FileDAO fileDAO = new FileDAO(dao);
 
-        List<AuxUserFileFileUserDirectional> result = new ArrayList<>();
+        StringBuilder jpql = new StringBuilder();
 
-        List<String> filesName = getFilesName();
-        String prefix = getPrefixFile();
-        String suffix = getSuffixFile();
+        Map<AuxUserFileFileUserDirectional, AuxUserFileFileUserDirectional> result = new HashMap<>();
 
-        // select a issue/pullrequest comments
-        List<EntityIssue> issuesCommenteds;
-        if (!filesName.isEmpty()) {
-            jpql = "SELECT DISTINCT i "
-                    + "FROM "
-                    + "EntityPullRequest p JOIN p.issue i JOIN p.repositoryCommits rc JOIN rc.files f "
-                    + "WHERE "
-                    + "p.repository = :repo AND "
-                    + "p.createdAt BETWEEN :beginDate AND :endDate AND "
-                    + "i.commentsCount > 1  AND "
-                    + "f.filename IN :filesName";
+        Pattern fileToConsiders = MatcherUtils.createExtensionIncludeMatcher(getFilesToConsiders());
+        //Pattern fileToIgnore = MatcherUtils.createExcludeMatcher(getFilesToIgnore());
 
-            System.out.println(jpql);
+        final List<String> paramNames = new ArrayList<>();
+        paramNames.add("repo");
+        paramNames.add("beginDate");
+        paramNames.add("endDate");
 
-            issuesCommenteds = dao.selectWithParams(jpql,
-                    new String[]{"repo", "beginDate", "endDate", "filesName"},
-                    new Object[]{getRepository(), getBeginDate(), getEndDate(), filesName});
-        } else if (prefix.length() > 1 || suffix.length() > 1) {
-            jpql = "SELECT DISTINCT i "
-                    + "FROM "
-                    + "EntityPullRequest p JOIN p.issue i JOIN p.repositoryCommits rc JOIN rc.files f "
-                    + "WHERE "
-                    + "p.repository = :repo AND "
-                    + "p.createdAt BETWEEN :beginDate AND :endDate AND "
-                    + "i.commentsCount > 1  "
-                    + (prefix.length() > 1 ? " AND f.filename LIKE :prefix " : "")
-                    + (suffix.length() > 1 ? " AND f.filename LIKE :suffix " : "");
+        final List<Object> paramValues = new ArrayList<>();
+        paramValues.add(getRepository());
+        paramValues.add(beginDate);
+        paramValues.add(endDate);
+        
+        jpql.append("SELECT DISTINCT i")
+            .append(" FROM")
+            .append(" EntityPullRequest p JOIN p.issue i")
+            .append(" WHERE")
+            .append(" p.repository = :repo")
+            .append(" AND p.createdAt BETWEEN :beginDate AND :endDate")
+            .append(" AND i.commentsCount > 1");
 
-            System.out.println(jpql);
-
-            issuesCommenteds = dao.selectWithParams(jpql,
-                    new String[]{"repo",
-                        "beginDate",
-                        "endDate",
-                        (prefix.length() > 1 ? "prefix " : "#none#"),
-                        (suffix.length() > 1 ? "suffix" : "#none#")},
-                    new Object[]{getRepository(),
-                        getBeginDate(),
-                        getEndDate(),
-                        prefix,
-                        suffix});
-        } else {
-            jpql = "SELECT DISTINCT i "
-                    + "FROM "
-                    + "EntityPullRequest p JOIN p.issue i "
-                    + "WHERE "
-                    + "p.repository = :repo AND "
-                    + "p.createdAt BETWEEN :beginDate AND :endDate AND "
-                    + "i.commentsCount > 1 ";
-
-            System.out.println(jpql);
-
-            issuesCommenteds = dao.selectWithParams(jpql,
-                    new String[]{"repo", "beginDate", "endDate"},
-                    new Object[]{getRepository(), getBeginDate(), getEndDate()});
+        if (isOnlyMerged()) {
+            jpql.append(" AND p.mergedAt IS NOT NULL");
         }
 
+        System.out.println(jpql);
+
+        // select a issue/pullrequest comments
+        List<EntityIssue> issuesCommenteds = dao.selectWithParams(jpql.toString(),
+                paramNames.toArray(new String[paramNames.size()]),
+                paramValues.toArray());
+        
         out.printLog("Issues comentadas: " + issuesCommenteds.size());
 
+        final String selectPullRequests = "SELECT p "
+                + " FROM EntityPullRequest p "
+                + " WHERE p.repository = :repo "
+                + (isOnlyMerged() ? " AND p.mergedAt IS NOT NULL " : "") // merged
+                + " AND p.createdAt BETWEEN :beginDate AND :endDate"
+                + " AND p.issue = :issue "
+                + " ORDER BY p.createdAt ";
+
+        final String[] selectPullRequestsParams = new String[]{"repo", "beginDate", "endDate", "issue"};
+
+        final String selectComments = "SELECT c "
+                + " FROM EntityComment c "
+                + " WHERE c.issue = :issue "
+                + " ORDER BY c.createdAt ";
+
+        final String[] selectCommentsParams = new String[]{"issue"};
+
         int count = 1;
+        int realPairFilesCount = 0;
+
         for (EntityIssue issue : issuesCommenteds) {
             out.printLog("##################### NR: " + issue.getNumber() + " URL: " + issue.getUrl());
             out.printLog(count + " of the " + issuesCommenteds.size());
 
-            jpql = "SELECT p "
-                    + " FROM EntityPullRequest p "
-                    + " WHERE p.repository = :repo "
-                    + " AND p.issue = :issue ";
+            EntityPullRequest pr = dao.selectOneWithParams(selectPullRequests,
+                    selectPullRequestsParams,
+                    new Object[]{getRepository(), beginDate, endDate, issue});
 
-            EntityPullRequest pr = dao.selectOneWithParams(jpql,
-                    new String[]{"repo", "issue"},
-                    new Object[]{getRepository(), issue});
-
+            out.printLog("Pull Request #" + pr.getId());
             if (pr.getRepositoryCommits().isEmpty()) {
+                out.printLog("No Commits in Pull Request");
+                count++;
                 continue;
             }
 
             out.printLog(pr.getRepositoryCommits().size() + " commits in pull request ");
 
-            List<EntityCommitFile> commitFiles = new ArrayList();
+            List<EntityCommitFile> commitFiles = new ArrayList<>();
             for (EntityRepositoryCommit comm : pr.getRepositoryCommits()) {
                 if (comm.getFiles().size() <= getMaxFilesPerCommit()) {
-                    commitFiles.addAll(comm.getFiles());
-                }
+                    for (EntityCommitFile entityCommitFile : comm.getFiles()) {
+                        long countPullRequestIn = fileDAO.calculeNumberOfPullRequestWhereFileIsIn(
+                                getRepository(), entityCommitFile.getFilename(),
+                                beginDate, endDate, 0, getMaxFilesPerCommit(), isOnlyMerged());
+                        if (//!fileToIgnore.matcher(file2.getFilename()).matches() &&
+                                fileToConsiders.matcher(entityCommitFile.getFilename()).matches()
+                                && countPullRequestIn > 1) {
+                            commitFiles.add(entityCommitFile);
+                        }// else {
+                        //    out.printLog("Excluding file " + entityCommitFile.getFilename() + " #PR=" + countPullRequestIn);
+                        //}
+                    }
+                }// else {
+                //    out.printLog("Excluding Commit #" + comm.getId());
+                //}
             }
 
-            out.printLog(commitFiles.size() + " files in pull request ");
+            out.printLog("Number of files in pull request: " + commitFiles.size());
 
             Set<AuxFileFile> tempResultFiles = new HashSet<>();
-
+            int pullRequestPairFileCount = 0;
             for (int i = 0; i < commitFiles.size(); i++) {
+//                if (i % 50 == 0 || i == commitFiles.size()) {
+//                    System.out.println(i + 1 + "/" + commitFiles.size());
+//                }
                 EntityCommitFile file1 = commitFiles.get(i);
                 for (int j = i + 1; j < commitFiles.size(); j++) {
                     EntityCommitFile file2 = commitFiles.get(j);
                     if (!file1.equals(file2)
                             && !Util.stringEquals(file1.getFilename(), file2.getFilename())) {
-                        tempResultFiles.add(new AuxFileFile(file1.getFilename(), file2.getFilename()));
+                        AuxFileFile fileFile = new AuxFileFile(file1.getFilename(), file2.getFilename());
+                        if (!tempResultFiles.contains(fileFile)) {
+                            tempResultFiles.add(fileFile);
+
+                            realPairFilesCount++;
+                            pullRequestPairFileCount++;
+                        }
                     }
                 }
             }
             commitFiles.clear();
+            out.printLog("Pull Request pair files: " + pullRequestPairFileCount);
 
-            jpql = "SELECT c "
-                    + " FROM EntityComment c "
-                    + " WHERE c.issue = :issue "
-                    + " ORDER BY c.createdAt ";
-
-            System.out.println(jpql);
-
-            List<EntityComment> comments = dao.selectWithParams(jpql,
-                    new String[]{"issue"},
+            List<EntityComment> comments = dao.selectWithParams(selectComments,
+                    selectCommentsParams,
                     new Object[]{issue});
             out.printLog(comments.size() + " comments");
 
-            List<AuxUserUserDirectional> tempResultUsers = new ArrayList<>();
+            Map<AuxUserUserDirectional, AuxUserUserDirectional> tempResultUsers
+                    = new HashMap<>();
 
             for (int k = 0; k < comments.size(); k++) {
+//                if (k % 1000 == 0 || k == comments.size() - 1) {
+//                    System.out.println(k + "/" + comments.size());
+//                }
                 EntityComment iCom = comments.get(k);
                 for (int l = k - 1; l >= 0; l--) {
                     EntityComment jCom = comments.get(l);
                     if (iCom.getUser().equals(jCom.getUser())) {
                         break;
                     }
-                    boolean contem = false;
                     AuxUserUserDirectional aux = new AuxUserUserDirectional(
                             iCom.getUser().getLogin(),
                             iCom.getUser().getEmail(),
                             jCom.getUser().getLogin(),
                             jCom.getUser().getEmail());
-                    for (AuxUserUserDirectional a : tempResultUsers) {
-                        if (a.equals(aux)) {
-                            a.inc();
-                            contem = true;
-                            break;
-                        }
-                    }
-                    if (!contem) {
-                        tempResultUsers.add(aux);
+                    if (tempResultUsers.containsKey(aux)) {
+                        tempResultUsers.get(aux).inc();
+                    } else {
+                        tempResultUsers.put(aux, aux);
                     }
                 }
             }
             comments.clear();
-
-            for (AuxUserUserDirectional users : tempResultUsers) {
+            out.printLog("Creating matrix of users (" + tempResultUsers.size()
+                    + ") and pair file (" + tempResultFiles.size() + ")");
+            for (AuxUserUserDirectional users : tempResultUsers.values()) {
                 for (AuxFileFile files : tempResultFiles) {
                     AuxUserFileFileUserDirectional aux = new AuxUserFileFileUserDirectional(
                             users.getUser(),
@@ -236,16 +240,11 @@ public class UserCommentedSamePairOfFileInDateServices extends AbstractMatrixSer
                             files.getFileName2(),
                             users.getUser2(),
                             users.getWeigth());
-                    boolean contem = false;
-                    for (AuxUserFileFileUserDirectional a : result) {
-                        if (a.equals(aux)) {
-                            a.inc();
-                            contem = true;
-                            break;
-                        }
-                    }
-                    if (!contem) {
-                        result.add(aux);
+
+                    if (result.containsKey(aux)) {
+                        result.get(aux).inc();
+                    } else {
+                        result.put(aux, aux);
                     }
                 }
             }
@@ -254,10 +253,11 @@ public class UserCommentedSamePairOfFileInDateServices extends AbstractMatrixSer
             out.printLog("Temp user result: " + result.size());
         }
 
-        System.out.println("Result: " + result.size());
+        out.printLog("Number of pair files: " + realPairFilesCount);
+        out.printLog("Result: " + result.size());
 
         EntityMatrix matrix = new EntityMatrix();
-        matrix.setNodes(objectsToNodes(result));
+        matrix.setNodes(objectsToNodes(result.values()));
         matricesToSave.add(matrix);
     }
 
