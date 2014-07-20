@@ -21,7 +21,7 @@ public class AuxUserUser {
         this.user2AndUser = user2 + ";" + user;
     }
 
-    public AuxUserUser(String userLogin, String userMail, String userLogin2, String userMail2, String fileName) {
+    public AuxUserUser(String userLogin, String userMail, String userLogin2, String userMail2) {
         this(userLogin == null || userLogin.isEmpty() ? userMail : userLogin,
                 userLogin2 == null || userLogin2.isEmpty() ? userMail2 : userLogin2);
     }
@@ -32,6 +32,14 @@ public class AuxUserUser {
 
     public String getUser2() {
         return user2;
+    }
+    
+    public String toStringUserAndUser2() {
+        return userAndUser2;
+    }
+    
+    public String toStringUser2AndUser() {
+        return user2AndUser;
     }
 
     @Override
@@ -48,14 +56,6 @@ public class AuxUserUser {
             }
         }
         return false;
-    }
-    
-    public String toStringUserAndUser2() {
-        return userAndUser2;
-    }
-    
-    public String toStringUser2AndUser() {
-        return user2AndUser;
     }
 
     @Override
