@@ -25,9 +25,9 @@ public class JungExport {
     public static void exportToImage(
             Graph<String, String> graph, String path, String filename) {
         try {
-            Dimension d = new Dimension(1920, 1080);
-            VisualizationViewer<String, String> vv = 
-                    new VisualizationViewer<>(new FRLayout(graph, d));
+            Dimension d = new Dimension(1920 * 2, 1080 * 2);
+            VisualizationViewer<String, String> vv
+                    = new VisualizationViewer<>(new FRLayout<>(graph, d));
             // Create the VisualizationImageServer
             // vv is the VisualizationViewer containing my graph
             VisualizationImageServer<String, String> vis
