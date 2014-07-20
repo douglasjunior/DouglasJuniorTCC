@@ -8,6 +8,7 @@ import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
+import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
 
@@ -116,6 +117,32 @@ public class GenericDao implements Serializable {
 
     public List selectWithParams(String select, String[] params, Object[] objects, int offset, int limit) {
         Query query = em.createQuery(select);
+        if (params.length != objects.length) {
+            throw new IndexOutOfBoundsException("The lenght of params array is not equals lenght of objects array.");
+        }
+        for (int i = 0; i < params.length; i++) {
+            if (params[i].equals("#none#")) {
+                continue;
+            }
+            String atributo = params[i];
+            Object parametro = objects[i];
+            query.setParameter(atributo, parametro);
+        }
+        if (offset > 0) {
+            query.setFirstResult(offset);
+        }
+        if (limit > 0) {
+            query.setMaxResults(limit);
+        }
+        return query.getResultList();
+    }
+
+    public <T> List<T> selectWithParams(String select, String[] params, Object[] objects, Class<T> clazz) {
+        return selectWithParams(select, params, objects, 0, 0, clazz);
+    }
+
+    public <T> List<T> selectWithParams(String select, String[] params, Object[] objects, int offset, int limit, Class<T> clazz) {
+        TypedQuery<T> query = em.createQuery(select, clazz);
         if (params.length != objects.length) {
             throw new IndexOutOfBoundsException("The lenght of params array is not equals lenght of objects array.");
         }
