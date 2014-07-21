@@ -1,7 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package br.edu.utfpr.cm.JGitMinerWeb.managedBean;
 
 import br.edu.utfpr.cm.JGitMinerWeb.converter.ClassConverter;
@@ -31,10 +27,6 @@ import javax.faces.bean.SessionScoped;
 @SessionScoped
 public class GitMatrixBean implements Serializable {
 
-
-    /*
-     * 
-     */
     @EJB
     private GenericDao dao;
     private OutLog out;
@@ -237,7 +229,7 @@ public class GitMatrixBean implements Serializable {
     public void onComplete() {
         out.printLog("onComplete" + '\n');
         initialized = false;
-        progress = new Integer(0);
+        progress = 0;
         if (fail) {
             JsfUtil.addErrorMessage(message);
         } else {

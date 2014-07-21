@@ -1,7 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package br.edu.utfpr.cm.JGitMinerWeb.managedBean;
 
 import br.edu.utfpr.cm.JGitMinerWeb.converter.ClassConverter;
@@ -34,17 +30,13 @@ import javax.faces.bean.SessionScoped;
 @SessionScoped
 public class GitMetricBean implements Serializable {
 
-
-    /*
-     * 
-     */
     @EJB
     private GenericDao dao;
     private OutLog out;
     private EntityMatrix matrix;
     private String matrixId;
-    private Class serviceClass;
-    private Map params;
+    private Class<?> serviceClass;
+    private Map<Object, Object> params;
     private String message;
     private Thread process;
     private Integer progress;
@@ -57,7 +49,7 @@ public class GitMetricBean implements Serializable {
      */
     public GitMetricBean() {
         out = new OutLog();
-        params = new HashMap();
+        params = new HashMap<>();
     }
 
     public boolean isFail() {
@@ -84,15 +76,15 @@ public class GitMetricBean implements Serializable {
         this.matrixId = matrixId;
     }
 
-    public Class getServiceClass() {
+    public Class<?> getServiceClass() {
         return serviceClass;
     }
 
-    public void setServiceClass(Class serviceClass) {
+    public void setServiceClass(Class<?> serviceClass) {
         this.serviceClass = serviceClass;
     }
 
-    public Map getParamValue() {
+    public Map<Object, Object> getParamValue() {
         return params;
     }
 
@@ -118,11 +110,11 @@ public class GitMetricBean implements Serializable {
 
     public Integer getProgress() {
         if (fail) {
-            progress = new Integer(100);
+            progress = 100;
         } else if (progress == null) {
-            progress = new Integer(0);
+            progress = 0;
         } else if (progress > 100) {
-            progress = new Integer(100);
+            progress = 100;
         }
         System.out.println("progress: " + progress);
         return progress;
@@ -137,7 +129,7 @@ public class GitMetricBean implements Serializable {
         initialized = false;
         canceled = false;
         fail = false;
-        progress = new Integer(0);
+        progress = 0;
 
         matrix = getMatrixSelected();
         params.putAll(matrix.getParams());
@@ -152,7 +144,7 @@ public class GitMetricBean implements Serializable {
         if (matrix == null || serviceClass == null) {
             message = "Erro: Escolha a Matriz e o Service desejado.";
             out.printLog(message);
-            progress = new Integer(0);
+            progress = 0;
             initialized = false;
             fail = true;
         } else {
@@ -165,7 +157,7 @@ public class GitMetricBean implements Serializable {
             dao.edit(entityMetric);
 
             initialized = true;
-            progress = new Integer(10);
+            progress = 10;
 
             final AbstractMetricServices services = createMetricServiceInstance();
 
@@ -178,7 +170,7 @@ public class GitMetricBean implements Serializable {
                             super.run();
                             out.printLog(services.getNodes().size() + " Registros coletados!");
                         }
-                        progress = new Integer(50);
+                        progress = 50;
                         out.printLog("");
                         if (!canceled) {
                             out.setCurrentProcess("Iniciando salvamento dos dados gerados.");
@@ -205,7 +197,7 @@ public class GitMetricBean implements Serializable {
                         } else {
                             out.setCurrentProcess(message);
                         }
-                        progress = new Integer(100);
+                        progress = 100;
                         initialized = false;
                         entityMetric.setLog(out.getLog().toString());
                         entityMetric.setStoped(new Date());
@@ -234,7 +226,7 @@ public class GitMetricBean implements Serializable {
     public void onComplete() {
         out.printLog("onComplete" + '\n');
         initialized = false;
-        progress = new Integer(0);
+        progress = 0;
         if (fail) {
             JsfUtil.addErrorMessage(message);
         } else {
