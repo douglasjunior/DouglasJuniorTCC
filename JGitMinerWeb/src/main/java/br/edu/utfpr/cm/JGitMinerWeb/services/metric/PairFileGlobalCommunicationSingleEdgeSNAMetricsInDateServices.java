@@ -118,15 +118,15 @@ public class PairFileGlobalCommunicationSingleEdgeSNAMetricsInDateServices exten
         // user | file | file2 | user2 | weigth
         out.printLog("Iniciado cálculo da métrica de matriz com " + getMatrix().getNodes().size() + " nodes. Parametros: " + params);
 
-        out.printLog("Iniciando construção da rede.");
+        out.printLog("Iniciando construÃ§ão da rede.");
 
         final Map<AuxFileFile, Set<String>> commitersPairFile = new HashMap<>();
         final Map<String, Integer> edgesWeigth = new HashMap<>();
         
-        // rede de comunicação global, com todos pares de arquivos
+        // rede de comunicaÃ§ão global, com todos pares de arquivos
         DirectedSparseGraph<String, String> graph = new DirectedSparseGraph<>();
         
-        // rede de comunicação de cada par de arquivo
+        // rede de comunicaÃ§ão de cada par de arquivo
         Map<AuxFileFile, DirectedSparseGraph<String, String>> pairFileNetwork = new HashMap<>();
         
         int countIgnored = 0;
@@ -140,7 +140,7 @@ public class PairFileGlobalCommunicationSingleEdgeSNAMetricsInDateServices exten
         
         //Map<String, Long> futurePullRequest = new HashMap<>();
         
-        // construindo a rede de comunicação para cada par de arquivo (desenvolvedores que comentaram)
+        // construindo a rede de comunicaÃ§ão para cada par de arquivo (desenvolvedores que comentaram)
         int nodesSize = getMatrix().getNodes().size();
         int count = 0;
         Set<AuxFileFile> pairFilesSet = new HashSet<>();
@@ -345,6 +345,26 @@ public class PairFileGlobalCommunicationSingleEdgeSNAMetricsInDateServices exten
 
             }
 
+            // Average calculation /////////////////////////////////////////////
+            double distinctCommentersCount = devsCommentters.size();
+//            barycenterAvg = barycenterSum / (double) distinctCommentersCount;
+            betweennessAvg = betweennessSum / distinctCommentersCount;
+            closenessAvg = closenessSum / distinctCommentersCount;
+            degreeAvg = degreeSum / distinctCommentersCount;
+            eigenvectorAvg = eigenvectorSum / distinctCommentersCount;
+
+            egoBetweennessAvg = egoBetweennessSum / distinctCommentersCount;
+            egoSizeAvg = egoSizeSum / distinctCommentersCount;
+//            egoPairsAvg = egoPairsSum / distinctCommentersCount;
+            egoTiesAvg = egoTiesSum / distinctCommentersCount;
+            egoDensityAvg = egoDensitySum / distinctCommentersCount;
+
+            efficiencyAvg = efficiencySum / distinctCommentersCount;
+            effectiveSizeAvg = effectiveSizeSum / distinctCommentersCount;
+            constraintAvg = constraintSum / distinctCommentersCount;
+            hierarchyAvg = hierarchySum / distinctCommentersCount;
+
+            // Commit-based metrics ////////////////////////////////////////////
             final long changes = calculeFileCodeChurn(codeChurnRequestFileMap, fileFile.getFileName(), fileDAO, beginDate, endDate);
             final long changes2 = calculeFileCodeChurn(codeChurnRequestFileMap, fileFile.getFileName2(), fileDAO, beginDate, endDate);
 
@@ -354,7 +374,6 @@ public class PairFileGlobalCommunicationSingleEdgeSNAMetricsInDateServices exten
             Set<AuxUser> devsCommitters = pairFileDAO.selectCommitters(repository,
                     fileFile.getFileName(), fileFile.getFileName2(), beginDate, endDate);
 
-            // Commit-based metrics
             Long devCommitsSum = 0l, devCommitsMax = Long.MIN_VALUE;
             Double devCommitsAvg;
             Double ownershipSum = 0.0d, ownershipAvg, ownershipMax = Double.NEGATIVE_INFINITY;
@@ -362,7 +381,7 @@ public class PairFileGlobalCommunicationSingleEdgeSNAMetricsInDateServices exten
             Double ownerExperience = 0.0d, ownerExperience2 = 0.0d, cummulativeOwnerExperience = 0.0d, cummulativeOwnerExperience2 = 0.0d;
 
             long committers = devsCommitters.size();
-            long allCommitters = pairFileDAO.calculeCommitters(repository,
+            long distinctCommitters = pairFileDAO.calculeCommitters(repository,
                     fileFile.getFileName(), fileFile.getFileName2(), null, endDate);
 
             Long commits = pairFileDAO.calculeCommits(repository,
@@ -378,7 +397,7 @@ public class PairFileGlobalCommunicationSingleEdgeSNAMetricsInDateServices exten
                 Double ownership = devCommits.doubleValue() / commits.doubleValue();
                 ownershipSum += ownership;
 
-                if (ownership < 0.05) { // menor que 5% = minor
+                if (ownership <= 0.05) { // menor ou igual que 5% = minor
                     minorContributors++;
                 } else { // maior que 5% = major
                     majorContributors++;
@@ -403,27 +422,8 @@ public class PairFileGlobalCommunicationSingleEdgeSNAMetricsInDateServices exten
 
             }
 
-            // Average calculation /////////////////////////////////////////////
-            double distinctCommentersCount = devsCommentters.size();
-//            barycenterAvg = barycenterSum / (double) distinctCommentersCount;
-            betweennessAvg = betweennessSum / distinctCommentersCount;
-            closenessAvg = closenessSum / distinctCommentersCount;
-            degreeAvg = degreeSum / distinctCommentersCount;
-            eigenvectorAvg = eigenvectorSum / distinctCommentersCount;
-
-            egoBetweennessAvg = egoBetweennessSum / distinctCommentersCount;
-            egoSizeAvg = egoSizeSum / distinctCommentersCount;
-//            egoPairsAvg = egoPairsSum / distinctCommentersCount;
-            egoTiesAvg = egoTiesSum / distinctCommentersCount;
-            egoDensityAvg = egoDensitySum / distinctCommentersCount;
-
-            efficiencyAvg = efficiencySum / distinctCommentersCount;
-            effectiveSizeAvg = effectiveSizeSum / distinctCommentersCount;
-            constraintAvg = constraintSum / distinctCommentersCount;
-            hierarchyAvg = hierarchySum / distinctCommentersCount;
-
-            devCommitsAvg = devCommitsSum / distinctCommentersCount;
-            ownershipAvg = ownershipSum / distinctCommentersCount;
+            devCommitsAvg = (double) devCommitsSum / (double) committers;
+            ownershipAvg = ownershipSum / committers;
 
             Long updates = pairFileDAO.calculeNumberOfPullRequest(repository,
                     fileFile.getFileName(), fileFile.getFileName2(), 
@@ -481,7 +481,7 @@ public class PairFileGlobalCommunicationSingleEdgeSNAMetricsInDateServices exten
                     majorContributors, minorContributors,
                     ownerExperience, ownerExperience2,
                     cummulativeOwnerExperience, cummulativeOwnerExperience2,
-                    committers, allCommitters, commits,
+                    committers, distinctCommitters, commits,
                     distinctCommentersCount, commentsSum,
                     codeChurn, codeChurn2, codeChurnAvg,
                     pairFileCodeChurn.getAdditionsNormalized(), pairFileCodeChurn.getDeletionsNormalized(), pairFileCodeChurn.getChanges(),
@@ -529,7 +529,7 @@ public class PairFileGlobalCommunicationSingleEdgeSNAMetricsInDateServices exten
         addToEntityMetricNodeList(fileFileMetrics);
     }
 
-    public Long calculeFileCodeChurn(Map<String, AuxCodeChurn> codeChurnRequestFileMap, String fileName, FileDAO fileDAO, Date beginDate, Date endDate) {
+    public long calculeFileCodeChurn(Map<String, AuxCodeChurn> codeChurnRequestFileMap, String fileName, FileDAO fileDAO, Date beginDate, Date endDate) {
         final long /*additions, deletions,*/ changes;
         if (codeChurnRequestFileMap.containsKey(fileName)) { // cached
             AuxCodeChurn sumCodeChurnFile = codeChurnRequestFileMap.get(fileName);
@@ -589,7 +589,7 @@ public class PairFileGlobalCommunicationSingleEdgeSNAMetricsInDateServices exten
                 + "majorContributors;minorContributors;"
                 + "oexp;oexp2;"
                 + "own;own2;"
-                + "committers;allCommiters;commits;"
+                + "adev;ddev;commits;"
                 + "commenters;comments;"
                 + "codeChurn;codeChurn2;codeChurnAvg;"
                 + "add;del;changes;"
