@@ -26,6 +26,7 @@ import br.edu.utfpr.cm.JGitMinerWeb.services.metric.structuralholes.StructuralHo
 import br.edu.utfpr.cm.JGitMinerWeb.services.metric.structuralholes.StructuralHolesMeasure;
 import br.edu.utfpr.cm.JGitMinerWeb.util.JsfUtil;
 import br.edu.utfpr.cm.JGitMinerWeb.util.JungExport;
+import br.edu.utfpr.cm.JGitMinerWeb.util.MathUtils;
 import br.edu.utfpr.cm.JGitMinerWeb.util.OutLog;
 import edu.uci.ics.jung.graph.DirectedSparseGraph;
 import edu.uci.ics.jung.graph.util.EdgeType;
@@ -364,6 +365,12 @@ public class PairFileGlobalCommunicationSingleEdgeSNAMetricsInDateServices exten
             constraintAvg = constraintSum / distinctCommentersCount;
             hierarchyAvg = hierarchySum / distinctCommentersCount;
 
+            // Weighted geometric average: issue > committers + commits ////////
+            final long[][] committersCommitsPerIssue = pairFileDAO.calculeCommittersXCommits(
+                    repository, fileFile.getFileName(), fileFile.getFileName2(), beginDate, endDate);
+            final double geometricAverageCommittersCommits
+                    = MathUtils.calculateWeightedGeometricAverage(committersCommitsPerIssue);
+
             // Commit-based metrics ////////////////////////////////////////////
             final long changes = calculeFileCodeChurn(codeChurnRequestFileMap, fileFile.getFileName(), fileDAO, beginDate, endDate);
             final long changes2 = calculeFileCodeChurn(codeChurnRequestFileMap, fileFile.getFileName2(), fileDAO, beginDate, endDate);
@@ -481,7 +488,7 @@ public class PairFileGlobalCommunicationSingleEdgeSNAMetricsInDateServices exten
                     majorContributors, minorContributors,
                     ownerExperience, ownerExperience2,
                     cummulativeOwnerExperience, cummulativeOwnerExperience2,
-                    committers, distinctCommitters, commits,
+                    committers, distinctCommitters, commits, geometricAverageCommittersCommits,
                     distinctCommentersCount, commentsSum,
                     codeChurn, codeChurn2, codeChurnAvg,
                     pairFileCodeChurn.getAdditionsNormalized(), pairFileCodeChurn.getDeletionsNormalized(), pairFileCodeChurn.getChanges(),
@@ -520,7 +527,12 @@ public class PairFileGlobalCommunicationSingleEdgeSNAMetricsInDateServices exten
             Double conviction = 1 - confidence == 0 ? 0d : (1 - supportFile) / (1 - confidence);
             Double conviction2 = 1 - confidence2 == 0 ? 0d : (1 - supportFile2) / (1 - confidence2);
 
-            auxFileFileMetrics.addMetrics(supportFile, supportFile2, supportPairFile, confidence, confidence2, lift, conviction, conviction2);
+            auxFileFileMetrics.addMetrics(
+                    supportFile, supportFile2, supportPairFile,
+                    confidence, confidence2,
+                    lift,
+                    conviction, conviction2
+            );
 
             fileFileMetrics.add(auxFileFileMetrics);
         }
@@ -589,7 +601,7 @@ public class PairFileGlobalCommunicationSingleEdgeSNAMetricsInDateServices exten
                 + "majorContributors;minorContributors;"
                 + "oexp;oexp2;"
                 + "own;own2;"
-                + "adev;ddev;commits;"
+                + "adev;ddev;commits;wgaCommittersCommit"
                 + "commenters;comments;"
                 + "codeChurn;codeChurn2;codeChurnAvg;"
                 + "add;del;changes;"

@@ -234,6 +234,34 @@ public class PairFileDAO {
             = "   AND ((u.email = ? AND u2.email = ?)"
             + "    OR (u.name = ? AND u2.name = ?))";
 
+    private static final String SELECT_COMMITTERS_X_COMMITS_PER_ISSUE
+            = "SELECT count(distinct(u.email)), count(distinct(rc.id)) FROM "
+            + "	 gitpullrequest pul, gitissue i,"
+            + "	 gitcommitfile fil, gitcommitfile fil2, "
+            + "	 gitpullrequest_gitrepositorycommit prc,"
+            + "	 gitrepositorycommit rc,"
+            + "	 gitcommituser u,"
+            + "	 gitpullrequest_gitrepositorycommit prc2,"
+            + "	 gitrepositorycommit rc2,"
+            + "	 gitcommituser u2"
+            + " WHERE pul.issue_id = i.id"
+            + "   AND prc.entitypullrequest_id = pul.id"
+            + "   AND rc.id = prc.repositorycommits_id"
+            + "   AND fil.repositorycommit_id = rc.id"
+            + "   AND rc.committer_id = u.id"
+            + "   AND prc2.entitypullrequest_id = pul.id"
+            + "   AND rc2.id = prc2.repositorycommits_id"
+            + "   AND fil2.repositorycommit_id = rc2.id"
+            + "   AND rc2.committer_id = u2.id"
+            + "   AND fil.filename <> fil2.filename"
+            + "   AND prc.entitypullrequest_id = prc2.entitypullrequest_id"
+            + "   AND pul.repository_id = ?"
+            + MERGED_PULL_REQUEST_ONLY
+            + FILTER_BY_PULL_REQUEST_CREATION_DATE
+            + "   AND fil.filename = ?"
+            + "   AND fil2.filename = ?"
+            + " GROUP BY i.id";
+
     private final GenericDao dao;
 
     public PairFileDAO(GenericDao dao) {
@@ -598,5 +626,30 @@ public class PairFileDAO {
         Long count = dao.selectNativeOneWithParams(sql.toString(), selectParams.toArray());
 
         return count != null ? count : 0l;
+    }
+
+    public final long[][] calculeCommittersXCommits(EntityRepository repository,
+            String file, String file2, Date beginDate, Date endDate) {
+        List<Object> selectParams = new ArrayList<>();
+
+        if (file == null || file2 == null) {
+            throw new IllegalArgumentException("Pair file could not be null");
+        }
+
+        selectParams.add(repository.getId());
+        selectParams.add(beginDate);
+        selectParams.add(endDate);
+        selectParams.add(file);
+        selectParams.add(file2);
+
+        List<Object[]> list = dao.selectNativeWithParams(SELECT_COMMITTERS_X_COMMITS_PER_ISSUE, selectParams.toArray());
+
+        final long[][] matrix = new long[list.size()][2];
+        for (int i = 0; i < list.size(); i++) {
+            matrix[i][0] = (Long) list.get(i)[0]; // committers
+            matrix[i][1] = (Long) list.get(i)[1]; // commits
+        }
+
+        return matrix;
     }
 }
