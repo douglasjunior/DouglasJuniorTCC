@@ -16,7 +16,7 @@
             <b><h:outputText value="Select a Matrix: " /></b>
             <p:selectOneListbox  style="height:200px;width:100%" value="#{gitMetricBean.matrixId}"  >
                 <f:selectItems value="#{gitMatrixViewBean.matrices}" var="matrix" itemLabel="#{matrix.toString()}" itemDescription="#{matrix.toString()}" itemValue="#{matrix.id}" />
-                <p:ajax process="@this" update="listServices matrixParamsUsed" />
+                <p:ajax event="change" process="@this" update="listServices matrixParamsUsed" />
             </p:selectOneListbox>
             <b><h:outputLabel for="matrixParamsUsed" value="Used params: " /></b>
             <h:outputText id="matrixParamsUsed" value="#{gitMetricBean.matrixParamsToString} empty?#{empty gitMetricBean.servicesClasses}" /> 
@@ -25,7 +25,7 @@
             <b><h:outputText value="Select a Metric Service Class: " /></b>
             <p:selectOneListbox id="listServices" converter="#{gitMetricBean.converterClass}" style="height:200px;width:100%" value="#{gitMetricBean.serviceClass}"  >
                 <f:selectItems value="#{gitMetricBean.servicesClasses}" var="serviceClass" itemLabel="#{serviceClass.simpleName}" itemDescription="#{serviceClass.name}" itemValue="#{serviceClass}" />
-                <p:ajax process="@this" update="filter" />
+                <p:ajax event="change" process="@this" update="filter" />
             </p:selectOneListbox>
             <br/>
             <h:panelGroup id="filter">
