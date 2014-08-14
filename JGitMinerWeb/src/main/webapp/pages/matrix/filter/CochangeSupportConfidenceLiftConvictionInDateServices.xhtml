@@ -9,41 +9,41 @@
     <h:panelGrid columns="2" cellpadding="5" columnClasses="col">
         <h:outputLabel value="Date: " for="beginDate" />  
         <h:panelGroup>
-            <p:calendar value="#{gitMatrixBean.paramValue['beginDate']}" id="beginDate" pattern="dd/MM/yyyy HH:mm:ss" navigator="true" size="20" autocomplete="true" showOn="button"/>
+            <p:calendar value="#{bean.paramValue['beginDate']}" id="beginDate" pattern="dd/MM/yyyy HH:mm:ss" navigator="true" size="20" autocomplete="true" showOn="button"/>
             <h:outputLabel value=" to " for="endDate" />  
-            <p:calendar value="#{gitMatrixBean.paramValue['endDate']}" id="endDate" pattern="dd/MM/yyyy HH:mm:ss" navigator="true" size="20" autocomplete="true" showOn="button" />
+            <p:calendar value="#{bean.paramValue['endDate']}" id="endDate" pattern="dd/MM/yyyy HH:mm:ss" navigator="true" size="20" autocomplete="true" showOn="button" />
         </h:panelGroup>
         <p:spacer />
         <br />
         <h:outputLabel value="Future date: " for="futureBeginDate" />  
         <h:panelGroup>
-            <p:calendar value="#{gitMatrixBean.paramValue['futureBeginDate']}" id="futureBeginDate" pattern="dd/MM/yyyy HH:mm:ss" navigator="true" size="20" autocomplete="true" showOn="button" />
+            <p:calendar value="#{bean.paramValue['futureBeginDate']}" id="futureBeginDate" pattern="dd/MM/yyyy HH:mm:ss" navigator="true" size="20" autocomplete="true" showOn="button" />
             <h:outputLabel value=" to " for="futureEndDate" />  
-            <p:calendar value="#{gitMatrixBean.paramValue['futureEndDate']}" id="futureEndDate" pattern="dd/MM/yyyy HH:mm:ss" navigator="true" size="20" autocomplete="true" showOn="button" />
+            <p:calendar value="#{bean.paramValue['futureEndDate']}" id="futureEndDate" pattern="dd/MM/yyyy HH:mm:ss" navigator="true" size="20" autocomplete="true" showOn="button" />
         </h:panelGroup>
         <p:spacer />
         <br />
         <h:outputLabel value="Only merged pull requests: " for="onlyMergeds" />
-        <p:selectBooleanCheckbox value="#{gitMatrixBean.paramValue['onlyMergeds']}" id="onlyMergeds" />
+        <p:selectBooleanCheckbox value="#{bean.paramValue['onlyMergeds']}" id="onlyMergeds" />
         <p:spacer />
         <br />
         <h:outputText value="Minimum files per commit: " />
-        <p:inputText value="#{gitMatrixBean.paramValue['minFilesPerCommit']}" id="minFilesPerCommit" type="number" size="20"/>
+        <p:inputText value="#{bean.paramValue['minFilesPerCommit']}" id="minFilesPerCommit" type="number" size="20"/>
         <p:spacer />
         <br />
         <h:outputText value="Maximum files per commit: " />
-        <p:inputText value="#{gitMatrixBean.paramValue['maxFilesPerCommit']}" id="maxFilesPerCommit" type="number" size="20" />
+        <p:inputText value="#{bean.paramValue['maxFilesPerCommit']}" id="maxFilesPerCommit" type="number" size="20" />
         <p:spacer />
         <br />
     </h:panelGrid>
     <br />
     <p:accordionPanel activeIndex="999" style="width:80%">  
         <p:tab title="Files to ignore: (click to open)">
-            <p:inputTextarea value="#{gitMatrixBean.paramValue['filesToIgnore']}" id="filesToIgnore" 
+            <p:inputTextarea value="#{bean.paramValue['filesToIgnore']}" id="filesToIgnore" 
                              style="width:100%" rows="20" autoResize="autoResize"  />
         </p:tab>
         <p:tab title="Files to considers: (click to open)">
-            <p:inputTextarea value="#{gitMatrixBean.paramValue['filesToConsiders']}" id="filesToConsiders"
+            <p:inputTextarea value="#{bean.paramValue['filesToConsiders']}" id="filesToConsiders"
                              style="width:100%" rows="20" autoResize="autoResize"  />
         </p:tab>
     </p:accordionPanel>

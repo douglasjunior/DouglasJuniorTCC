@@ -8,26 +8,26 @@
 
     <h:panelGrid columns="2" cellpadding="5" columnClasses="col">
         <h:outputText value="Percent: " />  
-        <p:inputText value="#{gitMatrixBean.paramValue['percent']}" id="percent" type="number"  size="10" />
+        <p:inputText value="#{bean.paramValue['percent']}" id="percent" type="number"  size="10" />
         <h:outputText value="File prefix: " />  
-        <p:inputText value="#{gitMatrixBean.paramValue['prefixFile']}" id="prefixFile"  size="20" />
+        <p:inputText value="#{bean.paramValue['prefixFile']}" id="prefixFile"  size="20" />
         <h:outputText value="File suffix: " />  
-        <p:inputText value="#{gitMatrixBean.paramValue['suffixFile']}" id="suffixFile"  size="20" />
+        <p:inputText value="#{bean.paramValue['suffixFile']}" id="suffixFile"  size="20" />
         <p:spacer />
         <br />
         <h:outputText value="Issue Labels: " />  
-        <p:inputText value="#{gitMatrixBean.paramValue['issueLabels']}" id="issueLabels" title='Separated by semicolons ";"' size="20" />
+        <p:inputText value="#{bean.paramValue['issueLabels']}" id="issueLabels" title='Separated by semicolons ";"' size="20" />
         <p:spacer />
         <br />
         <h:outputText value="Milestone Number: " />  
-        <p:inputText value="#{gitMatrixBean.paramValue['milestoneNumber']}" id="mileNumber" type="number"  size="10" />
+        <p:inputText value="#{bean.paramValue['milestoneNumber']}" id="mileNumber" type="number"  size="10" />
         <h:outputText value="or" />
         <h:outputText value=" " />  
         <h:outputText value="Date: " />     
         <h:panelGroup>
-            <p:calendar value="#{gitMatrixBean.paramValue['beginDate']}" id="beginDate" effect="explode" navigator="true" size="10" />      
+            <p:calendar value="#{bean.paramValue['beginDate']}" id="beginDate" effect="explode" navigator="true" size="10" />      
             <h:outputText value=" to " />        
-            <p:calendar value="#{gitMatrixBean.paramValue['endDate']}" id="endDate" effect="explode" navigator="true" size="10" />
+            <p:calendar value="#{bean.paramValue['endDate']}" id="endDate" effect="explode" navigator="true" size="10" />
         </h:panelGroup>
     </h:panelGrid>
 

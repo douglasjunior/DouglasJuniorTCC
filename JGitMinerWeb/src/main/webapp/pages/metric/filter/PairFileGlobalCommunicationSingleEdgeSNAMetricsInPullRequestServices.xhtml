@@ -5,9 +5,9 @@
     <h:panelGrid columns="2" cellpadding="5" columnClasses="col">
         <h:outputLabel value="Future Number: " for="futureBeginNumber" />  
         <h:panelGroup>
-            <p:inputText value="#{gitMetricBean.paramValue['futureBeginNumber']}" id="futureBeginNumber" type="number" />
+            <p:inputText value="#{bean.paramValue['futureBeginNumber']}" id="futureBeginNumber" type="number" />
             <h:outputLabel value=" to " for="futureEndNumber" />  
-            <p:inputText value="#{gitMetricBean.paramValue['futureEndNumber']}" id="futureEndNumber" type="number" />
+            <p:inputText value="#{bean.paramValue['futureEndNumber']}" id="futureEndNumber" type="number" />
             <i>(Used for count modifications)</i>
         </h:panelGroup>
     </h:panelGrid>

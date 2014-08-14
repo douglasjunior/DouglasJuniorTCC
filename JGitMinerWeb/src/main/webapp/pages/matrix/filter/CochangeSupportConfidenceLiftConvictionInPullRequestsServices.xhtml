@@ -2,48 +2,48 @@
      xmlns:h="http://java.sun.com/jsf/html" 
      xmlns:p="http://primefaces.org/ui">
 
-    <h2>Usuarios que comentaram no mesmo arquivo no intervalo de Pull Requests</h2>
+    <h2>Usuários que comentaram no mesmo arquivo no intervalo de Pull Requests</h2>
 
     <br />
 
     <h:panelGrid columns="2" cellpadding="5" columnClasses="col">
         <h:outputLabel value="Pull Request number: " for="beginPullRequest" />  
         <h:panelGroup>
-            <p:inputText value="#{gitMatrixBean.paramValue['beginPullRequest']}" id="beginPullRequest" type="number"  size="20" />
+            <p:inputText value="#{bean.paramValue['beginPullRequest']}" id="beginPullRequest" type="number"  size="20" />
             <h:outputLabel value=" to " for="endPullRequest" />  
-            <p:inputText value="#{gitMatrixBean.paramValue['endPullRequest']}" id="endPullRequest" type="number"  size="20" />
+            <p:inputText value="#{bean.paramValue['endPullRequest']}" id="endPullRequest" type="number"  size="20" />
         </h:panelGroup>
         <p:spacer />
         <br />
         <h:outputLabel value="Future Pull Request number: " for="futureBeginPullRequest" />  
         <h:panelGroup>
-            <p:inputText value="#{gitMatrixBean.paramValue['futureBeginPullRequest']}" id="futureBeginPullRequest" type="number"  size="20" />
+            <p:inputText value="#{bean.paramValue['futureBeginPullRequest']}" id="futureBeginPullRequest" type="number"  size="20" />
             <h:outputLabel value=" to " for="futureEndPullRequest" />  
-            <p:inputText value="#{gitMatrixBean.paramValue['futureEndPullRequest']}" id="futureEndPullRequest" type="number"  size="20" />
+            <p:inputText value="#{bean.paramValue['futureEndPullRequest']}" id="futureEndPullRequest" type="number"  size="20" />
         </h:panelGroup>
         <p:spacer />
         <br />
         <h:outputLabel value="Only merged pull requests: " for="onlyMergeds" />
-        <p:selectBooleanCheckbox value="#{gitMatrixBean.paramValue['onlyMergeds']}" id="onlyMergeds" />
+        <p:selectBooleanCheckbox value="#{bean.paramValue['onlyMergeds']}" id="onlyMergeds" />
         <p:spacer />
         <br />
         <h:outputText value="Minimum files per commit: " />
-        <p:inputText value="#{gitMatrixBean.paramValue['minFilesPerCommit']}" id="minFilesPerCommit" type="number" size="20"/>
+        <p:inputText value="#{bean.paramValue['minFilesPerCommit']}" id="minFilesPerCommit" type="number" size="20"/>
         <p:spacer />
         <br />
         <h:outputText value="Maximum files per commit: " />  
-        <p:inputText value="#{gitMatrixBean.paramValue['maxFilesPerCommit']}" id="maxFilesPerCommit" type="number" size="20" />
+        <p:inputText value="#{bean.paramValue['maxFilesPerCommit']}" id="maxFilesPerCommit" type="number" size="20" />
         <p:spacer />
         <br />
     </h:panelGrid>
     <br />
     <p:accordionPanel activeIndex="999" style="width:80%">  
         <p:tab title="Files to ignore: (click to open)">  
-            <p:inputTextarea value="#{gitMatrixBean.paramValue['filesToIgnore']}" id="filesToIgnore" 
+            <p:inputTextarea value="#{bean.paramValue['filesToIgnore']}" id="filesToIgnore" 
                              style="width:100%" rows="20" autoResize="autoResize"  />
         </p:tab>
         <p:tab title="Files to considers: (click to open)">
-            <p:inputTextarea value="#{gitMatrixBean.paramValue['filesToConsiders']}" id="filesToConsiders"
+            <p:inputTextarea value="#{bean.paramValue['filesToConsiders']}" id="filesToConsiders"
                              style="width:100%" rows="20" autoResize="autoResize"  />
         </p:tab>
     </p:accordionPanel>

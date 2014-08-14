@@ -31,7 +31,9 @@
             <h:panelGroup id="filter">
                 <c:if test="#{gitMetricBean.serviceClass != null}" >
                     <p:panel header="Filters for #{gitMetricBean.serviceClass.simpleName}:" >
-                        <ui:include src="./filter/#{gitMetricBean.serviceClass.simpleName}.xhtml" />
+                        <ui:include src="./filter/#{gitMetricBean.serviceClass.simpleName}.xhtml">
+                            <ui:param name="bean" value="#{gitMetricBean}" />
+                        </ui:include>
                     </p:panel>
                 </c:if>
             </h:panelGroup>
