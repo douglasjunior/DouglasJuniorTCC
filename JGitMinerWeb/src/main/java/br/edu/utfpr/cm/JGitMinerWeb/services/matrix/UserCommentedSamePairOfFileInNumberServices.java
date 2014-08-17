@@ -23,6 +23,7 @@ import java.util.Set;
  *
  * @author douglas
  */
+// TODO Testar, foi refatorado por Rodrigo Kuroda 01/06/2014
 public class UserCommentedSamePairOfFileInNumberServices extends AbstractMatrixServices {
 
     public UserCommentedSamePairOfFileInNumberServices(GenericDao dao, OutLog out) {
@@ -43,6 +44,10 @@ public class UserCommentedSamePairOfFileInNumberServices extends AbstractMatrixS
 
     private Integer getMaxFilesPerCommit() {
         return Util.stringToInteger(params.get("maxFilesPerCommit") + "");
+    }
+    
+    private boolean isOnlyMerged() {
+        return "true".equals(params.get("onlyMerged"));
     }
 
     private List<String> getFilesName() {
@@ -72,85 +77,96 @@ public class UserCommentedSamePairOfFileInNumberServices extends AbstractMatrixS
             throw new IllegalArgumentException("Parâmetro Repository não pode ser nulo.");
         }
 
-        String jpql = "";
+        StringBuilder jpql = new StringBuilder();
 
         List<AuxUserFileFileUserDirectional> result = new ArrayList<>();
 
         List<String> filesName = getFilesName();
         String prefix = getPrefixFile();
         String suffix = getSuffixFile();
+        
+        final List<String> paramNames = new ArrayList<>();
+        paramNames.add("repo");
+        paramNames.add("beginNumber");
+        paramNames.add("endNumber");
 
+        final List<Object> paramValues = new ArrayList<>();
+        paramValues.add(getRepository());
+        paramValues.add(getBeginNumber());
+        paramValues.add(getEndNumber());
+
+        jpql.append("SELECT DISTINCT i")
+            .append(" FROM")
+            .append(" EntityPullRequest p JOIN p.issue i JOIN p.repositoryCommits rc JOIN rc.files f")
+            .append(" WHERE")
+            .append(" p.repository = :repo")
+            .append(" AND p.number BETWEEN :beginNumber AND :endNumber")
+            .append(" AND i.commentsCount > 1");
+
+        if (isOnlyMerged()) {
+            jpql.append(" AND p.mergedAt IS NOT NULL");
+        }
+        
         // select a issue/pullrequest comments
         List<EntityIssue> issuesCommenteds;
         if (!filesName.isEmpty()) {
-            jpql = "SELECT DISTINCT i "
-                    + "FROM "
-                    + "EntityPullRequest p JOIN p.issue i JOIN p.repositoryCommits rc JOIN rc.files f "
-                    + "WHERE "
-                    + "p.repository = :repo AND "
-                    + "p.number BETWEEN :beginNumber AND :endNumber AND "
-                    + "i.commentsCount > 1  AND "
-                    + "f.filename IN :filesName";
-
-            System.out.println(jpql);
-
-            issuesCommenteds = dao.selectWithParams(jpql,
-                    new String[]{"repo", "beginNumber", "endNumber", "filesName"},
-                    new Object[]{getRepository(), getBeginNumber(), getEndNumber(), filesName});
-        } else if (prefix.length() > 1 || suffix.length() > 1) {
-            jpql = "SELECT DISTINCT i "
-                    + "FROM "
-                    + "EntityPullRequest p JOIN p.issue i JOIN p.repositoryCommits rc JOIN rc.files f "
-                    + "WHERE "
-                    + "p.repository = :repo AND "
-                    + "p.number BETWEEN :beginNumber AND :endNumber AND "
-                    + "i.commentsCount > 1  "
-                    + (prefix.length() > 1 ? " AND f.filename LIKE :prefix " : "")
-                    + (suffix.length() > 1 ? " AND f.filename LIKE :suffix " : "");
-
-            System.out.println(jpql);
-
-            issuesCommenteds = dao.selectWithParams(jpql,
-                    new String[]{"repo",
-                        "beginNumber",
-                        "endNumber",
-                        (prefix.length() > 1 ? "prefix " : "#none#"),
-                        (suffix.length() > 1 ? "suffix" : "#none#")},
-                    new Object[]{getRepository(),
-                        getBeginNumber(),
-                        getEndNumber(),
-                        prefix,
-                        suffix});
-        } else {
-            jpql = "SELECT DISTINCT i "
-                    + "FROM "
-                    + "EntityPullRequest p JOIN p.issue i "
-                    + "WHERE "
-                    + "p.repository = :repo AND "
-                    + "p.number BETWEEN :beginNumber AND :endNumber AND "
-                    + "i.commentsCount > 1 ";
-
-            System.out.println(jpql);
-
-            issuesCommenteds = dao.selectWithParams(jpql,
-                    new String[]{"repo", "beginNumber", "endNumber"},
-                    new Object[]{getRepository(), getBeginNumber(), getEndNumber()});
+            
+            int nameIndex = 0;
+            for (String fileName : filesName) {
+                String paramName = "filesName" + nameIndex++;
+                
+                paramNames.add(paramName);
+                jpql.append(" AND f.filename NOT LIKE :").append(paramName);
+                
+                paramValues.add(fileName);
+            }
         }
+        
+        if (prefix.length() > 1 || suffix.length() > 1) {
+            if (prefix.length() > 1) {
+                jpql.append(" AND f.filename LIKE :prefix");
+                paramNames.add("prefix");
+                paramValues.add(prefix);
+            }
+            
+            if (suffix.length() > 1) {
+                jpql.append(" AND f.filename LIKE :suffix");
+                paramNames.add("suffix");
+                paramValues.add(suffix);
+            }
+        }
+        
+        System.out.println(jpql);
 
+        issuesCommenteds = dao.selectWithParams(jpql.toString(),
+                    paramNames.toArray(new String[paramNames.size()]), 
+                    paramValues.toArray());
+        
         out.printLog("Issues comentadas: " + issuesCommenteds.size());
+        
+        String selectPullRequests = "SELECT p "
+                + " FROM EntityPullRequest p "
+                + " WHERE p.repository = :repo "
+                + (isOnlyMerged() ? " AND p.mergedAt IS NOT NULL " : "") // merged
+                + " AND p.issue = :issue "
+                + " ORDER BY p.createdAt ";
 
+        String[] selectPullRequestsParams = new String[]{"repo", "issue"};
+
+        String selectComments = "SELECT c "
+                + " FROM EntityComment c "
+                + " WHERE c.issue = :issue "
+                + " ORDER BY c.createdAt ";
+
+        String[] selectCommentsParams = new String[]{"issue"};
+        
         int count = 1;
         for (EntityIssue issue : issuesCommenteds) {
             out.printLog("##################### NR: " + issue.getNumber() + " URL: " + issue.getUrl());
             out.printLog(count + " of the " + issuesCommenteds.size());
 
-            jpql = "SELECT p "
-                    + " FROM EntityPullRequest p "
-                    + " WHERE p.repository = :repo "
-                    + " AND p.issue = :issue ";
-
-            EntityPullRequest pr = dao.selectOneWithParams(jpql,
-                    new String[]{"repo", "issue"},
+            EntityPullRequest pr = dao.selectOneWithParams(selectPullRequests,
+                    selectPullRequestsParams,
                     new Object[]{getRepository(), issue});
 
             if (pr.getRepositoryCommits().isEmpty()) {
@@ -159,7 +175,7 @@ public class UserCommentedSamePairOfFileInNumberServices extends AbstractMatrixS
 
             out.printLog(pr.getRepositoryCommits().size() + " commits in pull request ");
 
-            List<EntityCommitFile> commitFiles = new ArrayList();
+            List<EntityCommitFile> commitFiles = new ArrayList<>();
             for (EntityRepositoryCommit comm : pr.getRepositoryCommits()) {
                 if (comm.getFiles().size() <= getMaxFilesPerCommit()) {
                     commitFiles.addAll(comm.getFiles());
@@ -182,15 +198,8 @@ public class UserCommentedSamePairOfFileInNumberServices extends AbstractMatrixS
             }
             commitFiles.clear();
 
-            jpql = "SELECT c "
-                    + " FROM EntityComment c "
-                    + " WHERE c.issue = :issue "
-                    + " ORDER BY c.createdAt ";
-
-            System.out.println(jpql);
-
-            List<EntityComment> comments = dao.selectWithParams(jpql,
-                    new String[]{"issue"},
+            List<EntityComment> comments = dao.selectWithParams(selectComments,
+                    selectCommentsParams,
                     new Object[]{issue});
             out.printLog(comments.size() + " comments");
 
