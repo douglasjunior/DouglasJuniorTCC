@@ -602,7 +602,7 @@ public class PairFileGlobalCommunicationSingleEdgeSNAMetricsInDateServices exten
                 + "oexp;oexp2;"
                 + "own;own2;"
                 + "adev;ddev;commits;wgaCommittersCommit;"
-                + "commentters;comments;"
+                + "commenters;comments;"
                 + "codeChurn;codeChurn2;codeChurnAvg;"
                 + "add;del;changes;"
                 + "updates;futureUpdates;"
