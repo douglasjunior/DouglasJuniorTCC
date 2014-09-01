@@ -1,0 +1,75 @@
+<div xmlns="http://www.w3.org/1999/xhtml"
+     xmlns:h="http://java.sun.com/jsf/html"
+     xmlns:f="http://java.sun.com/jsf/core"
+     xmlns:p="http://primefaces.org/ui"
+     xmlns:ui="http://java.sun.com/jsf/facelets" 
+     xmlns:c="http://java.sun.com/jsp/jstl/core">
+
+    <p:fieldset legend="Matrix generation">
+        <h:form prependId="false" id="formMatrixQueue" >
+            <p:growl globalOnly="true" id="messages" />
+
+            <b><h:outputText value="Select a Repository: " /></b>  
+            <p:selectOneListbox  id="repositories" style="height:100px;width:500px" value="#{gitMatrixQueueBean.repositoryId}"  >
+                <f:selectItems value="#{gitMinerRepositoryBean.repositoriesPrimaryMiner}" var="repo" itemLabel="#{repo.name} / #{repo.owner.login}" itemDescription="#{repo.name}" itemValue="#{repo.id}" />
+                <p:ajax event="change" process="@this" />
+            </p:selectOneListbox>
+
+            <br />
+
+            <b><h:outputText value="Select a Matrix Service Class: " /></b>  
+            <p:selectOneListbox id="serviceClass" converter="#{gitMatrixQueueBean.converterClass}" style="height:100px;width:500px" value="#{gitMatrixQueueBean.serviceClass}" >
+                <f:selectItems value="#{gitMatrixQueueBean.servicesClasses}" var="serviceClass" itemLabel="#{serviceClass.simpleName}" itemDescription="#{serviceClass.name}" itemValue="#{serviceClass}" />
+                <p:ajax event="change" process="@this" update="matrixFilter" />
+            </p:selectOneListbox>
+
+            <br />
+            <br />
+            <h:panelGroup id="matrixFilter">
+                <c:if test="#{gitMatrixQueueBean.serviceClass != null}" >
+                    <p:panel header="Filters for #{gitMatrixQueueBean.serviceClass.simpleName}:" >
+                        <ui:include src="./filter/#{gitMatrixQueueBean.serviceClass.simpleName}.xhtml">
+                            <ui:param name="bean" value="#{gitMatrixQueueBean}" />
+                        </ui:include>
+                    </p:panel>
+                </c:if>
+            </h:panelGroup>
+            <br />
+            <br />
+
+            <p:commandButton widgetVar="queueButtonVar" actionListener="#{gitMatrixQueueBean.queue()}" value="Queue"
+                             update="logTextArea" />
+
+            <p:commandButton widgetVar="showQueueButtonVar" actionListener="#{gitMatrixQueueBean.showQueue()}" value="Show Queue"
+                             update="logTextArea" />
+
+            <p:commandButton widgetVar="clearQueueButtonVar" actionListener="#{gitMatrixQueueBean.clearQueue()}" value="Clear Queue"
+                             update="logTextArea" />
+
+            <p:commandButton widgetVar="startQueueButtonVar" actionListener="#{gitMatrixQueueBean.startQueue()}" value="Start Queue"
+                             onclick="startButtonVar.disable();progressVar.start();textAreaUpdaterVar.start();" update="loadingImage,logTextArea" />
+
+            <br />
+            <br />
+
+            <p:progressBar id="progress" widgetVar="progressVar" ajax="true" value="#{gitMatrixQueueBean.progress}" labelTemplate="{value}%" styleClass="animated" interval="3000" >
+                <p:ajax event="complete" listener="#{gitMatrixQueueBean.onComplete()}" update="messages,loadingImage,logTextArea" oncomplete="startButtonVar.enable();textAreaUpdaterVar.stop();"/>
+            </p:progressBar>
+
+            <br />
+            <div style="margin: auto;text-align: center">
+                <p:outputPanel  id="loadingImage"  >
+                    <p:graphicImage alt="Loading..." width="50" url="resources/images/loading.gif" rendered="#{gitMatrixQueueBean.initialized}" />
+                </p:outputPanel>
+            </div>
+            <br />
+
+            <p:poll id="textAreaUpdater" widgetVar="textAreaUpdaterVar" async="true" interval="4" update="logTextArea,loadingImage" autoStart="#{gitMatrixQueueBean.initialized}" />
+
+            <h3>Log:</h3>
+            <br />
+            <p:inputTextarea value="#{gitMatrixQueueBean.log}" id="logTextArea" style="width: 100%" rows="30" autoResize="autoResize" readonly="true" />
+
+        </h:form>
+    </p:fieldset>
+</div>

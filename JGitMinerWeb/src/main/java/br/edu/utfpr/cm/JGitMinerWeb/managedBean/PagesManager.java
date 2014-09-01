@@ -58,6 +58,11 @@ public class PagesManager implements Serializable {
         return "refreshPage";
     }
 
+    public String matrixCreateQueue() {
+        this.body = "./pages/matrix/createQueue.xhtml";
+        return "refreshPage";
+    }
+
     public String matrixView() {
         this.body = "./pages/matrix/view.xhtml";
         return "refreshPage";
@@ -65,6 +70,11 @@ public class PagesManager implements Serializable {
 
     public String metricCreate() {
         this.body = "./pages/metric/create.xhtml";
+        return "refreshPage";
+    }
+
+    public String metricCreateQueue() {
+        this.body = "./pages/metric/createQueue.xhtml";
         return "refreshPage";
     }
 

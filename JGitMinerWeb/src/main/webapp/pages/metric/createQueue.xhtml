@@ -1,0 +1,79 @@
+<div xmlns="http://www.w3.org/1999/xhtml"
+     xmlns:h="http://java.sun.com/jsf/html"
+     xmlns:f="http://java.sun.com/jsf/core"
+     xmlns:p="http://primefaces.org/ui"
+     xmlns:ui="http://java.sun.com/jsf/facelets" 
+     xmlns:c="http://java.sun.com/jsp/jstl/core">
+
+    <h:form>
+        <h:outputText value="#{gitMatrixViewBean.reloadList()}" />
+    </h:form>
+
+    <p:fieldset legend="Metrics calculation">
+        <h:form prependId="false" id="formMetricQueue" >
+            <p:growl globalOnly="true" id="messages" />
+
+            <b><h:outputText value="Select a Matrix: " /></b>
+            <p:selectOneListbox  style="height:200px;width:100%" value="#{gitMetricQueueBean.matrixId}"  >
+                <f:selectItems value="#{gitMatrixViewBean.matrices}" var="matrix" itemLabel="#{matrix.toString()}" itemDescription="#{matrix.toString()}" itemValue="#{matrix.id}" />
+                <p:ajax process="@this" update="listServices matrixParamsUsed" />
+            </p:selectOneListbox>
+            <b><h:outputLabel for="matrixParamsUsed" value="Used params: " /></b>
+            <h:outputText id="matrixParamsUsed" value="#{gitMetricQueueBean.matrixParamsToString} empty?#{empty gitMetricQueueBean.servicesClasses}" />
+            <br/>
+            <br/>
+            <b><h:outputText value="Select a Metric Service Class: " /></b>
+            <p:selectOneListbox id="listServices" converter="#{gitMetricQueueBean.converterClass}" style="height:200px;width:100%" value="#{gitMetricQueueBean.serviceClass}"  >
+                <f:selectItems value="#{gitMetricQueueBean.servicesClasses}" var="serviceClass" itemLabel="#{serviceClass.simpleName}" itemDescription="#{serviceClass.name}" itemValue="#{serviceClass}" />
+                <p:ajax process="@this" update="filter" />
+            </p:selectOneListbox>
+            <br/>
+            <h:panelGroup id="filter">
+                <c:if test="#{gitMetricQueueBean.serviceClass != null}" >
+                    <p:panel header="Filters for #{gitMetricQueueBean.serviceClass.simpleName}:" >
+                        <ui:include src="./filter/#{gitMetricQueueBean.serviceClass.simpleName}.xhtml">
+                            <ui:param name="bean" value="#{gitMetricQueueBean}" />
+                        </ui:include>
+                    </p:panel>
+                </c:if>
+            </h:panelGroup>
+            <br />
+            <br />
+
+            <p:commandButton widgetVar="queueButtonVar" actionListener="#{gitMetricQueueBean.queue()}" value="Queue"
+                             update="logTextArea" />
+
+            <p:commandButton widgetVar="showQueueButtonVar" actionListener="#{gitMetricQueueBean.showQueue()}" value="Show Queue"
+                             update="logTextArea" />
+
+            <p:commandButton widgetVar="clearQueueButtonVar" actionListener="#{gitMetricQueueBean.clearQueue()}" value="Clear Queue"
+                             update="logTextArea" />
+
+            <p:commandButton widgetVar="startQueueButtonVar" actionListener="#{gitMetricQueueBean.startQueue()}" value="Start Queue"
+                             onclick="startButtonVar.disable();progressVar.start();textAreaUpdaterVar.start();" update="loadingImage,logTextArea" />
+
+            <br />
+            <br />
+
+            <p:progressBar id="progress" widgetVar="progressVar" ajax="true" value="#{gitMetricQueueBean.progress}" labelTemplate="{value}%" styleClass="animated" interval="3000" >
+                <p:ajax event="complete" listener="#{gitMetricQueueBean.onComplete()}" update="messages,loadingImage,logTextArea" oncomplete="startButtonVar.enable();textAreaUpdaterVar.stop();"/>
+            </p:progressBar>
+
+            <br />
+            <div style="margin: auto;text-align: center">
+                <p:outputPanel  id="loadingImage"  >
+                    <p:graphicImage alt="Loading..." width="50" url="resources/images/loading.gif" rendered="#{gitMetricQueueBean.initialized}" />
+                </p:outputPanel>
+            </div>
+            <br />
+
+            <p:poll id="textAreaUpdater" widgetVar="textAreaUpdaterVar" async="true" interval="4" update="logTextArea,loadingImage" autoStart="#{gitMetricQueueBean.initialized}" />
+
+            <h3>Log:</h3>
+            <br />
+            <p:inputTextarea value="#{gitMetricQueueBean.log}" id="logTextArea" style="width: 100%" rows="30" autoResize="autoResize" readonly="true" />
+
+        </h:form>
+
+    </p:fieldset>
+</div>
