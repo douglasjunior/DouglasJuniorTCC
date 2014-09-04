@@ -14,10 +14,12 @@ import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.UserCommentedSamePairOfFileI
 import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.auxiliary.AuxFileFile;
 import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.auxiliary.AuxUserUser;
 import br.edu.utfpr.cm.JGitMinerWeb.services.metric.auxiliary.AuxFileFileMetrics;
+import br.edu.utfpr.cm.JGitMinerWeb.services.metric.auxiliary.AuxWordiness;
 import br.edu.utfpr.cm.JGitMinerWeb.services.metric.centrality.BetweennessCalculator;
 import br.edu.utfpr.cm.JGitMinerWeb.services.metric.centrality.ClosenessCalculator;
 import br.edu.utfpr.cm.JGitMinerWeb.services.metric.centrality.DegreeCalculator;
 import br.edu.utfpr.cm.JGitMinerWeb.services.metric.centrality.EigenvectorCalculator;
+import br.edu.utfpr.cm.JGitMinerWeb.services.metric.discussion.WordinessCalculator;
 import br.edu.utfpr.cm.JGitMinerWeb.services.metric.ego.EgoMeasure;
 import br.edu.utfpr.cm.JGitMinerWeb.services.metric.ego.EgoMeasureCalculator;
 import br.edu.utfpr.cm.JGitMinerWeb.services.metric.global.GlobalMeasure;
@@ -381,10 +383,11 @@ public class PairFileGlobalCommunicationSingleEdgeSNAMetricsInDateServices exten
             Set<AuxUser> devsCommitters = pairFileDAO.selectCommitters(repository,
                     fileFile.getFileName(), fileFile.getFileName2(), beginDate, endDate);
 
-            Long devCommitsSum = 0l, devCommitsMax = Long.MIN_VALUE;
+            Long devCommitsSum = 0l, devCommitsMax = 0l;
             Double devCommitsAvg;
-            Double ownershipSum = 0.0d, ownershipAvg, ownershipMax = Double.NEGATIVE_INFINITY;
+            Double ownershipSum = 0.0d, ownershipAvg, ownershipMax = 0.0d;
             Long minorContributors = 0l, majorContributors = 0l;
+            Double minorContributorsRate = 0.0d, majorContributorsRate = 0.0d;
             Double ownerExperience = 0.0d, ownerExperience2 = 0.0d, cummulativeOwnerExperience = 0.0d, cummulativeOwnerExperience2 = 0.0d;
 
             long committers = devsCommitters.size();
@@ -430,7 +433,10 @@ public class PairFileGlobalCommunicationSingleEdgeSNAMetricsInDateServices exten
             }
 
             devCommitsAvg = (double) devCommitsSum / (double) committers;
-            ownershipAvg = ownershipSum / committers;
+            ownershipAvg = (double) ownershipSum / (double) committers;
+
+            majorContributorsRate = (double) majorContributors / committers; // % de major
+            minorContributorsRate = (double) minorContributors / committers; // % de minor
 
             Long updates = pairFileDAO.calculeNumberOfPullRequest(repository,
                     fileFile.getFileName(), fileFile.getFileName2(), 
@@ -443,6 +449,15 @@ public class PairFileGlobalCommunicationSingleEdgeSNAMetricsInDateServices exten
                 futureUpdates = pairFileDAO.calculeNumberOfPullRequest(repository,
                         fileFile.getFileName(), fileFile.getFileName2(),
                         futureBeginDate, futureEndDate, true);
+            }
+
+            // list all issues and its comments
+            List<AuxWordiness> issuesAndComments = pairFileDAO.listIssues(repository,
+                    fileFile.getFileName(), fileFile.getFileName2(), beginDate, endDate, true);
+
+            long wordiness = 0;
+            for (AuxWordiness auxWordiness : issuesAndComments) {
+                wordiness += WordinessCalculator.calcule(auxWordiness);
             }
 
             Long commentsSum = pairFileDAO.calculeComments(repository,
@@ -462,6 +477,11 @@ public class PairFileGlobalCommunicationSingleEdgeSNAMetricsInDateServices exten
 
             double codeChurnAvg = (codeChurn + codeChurn2) / 2.0d;
 
+            closenessSum = MathUtils.zeroIfNaN(closenessSum);
+            closenessAvg = MathUtils.zeroIfNaN(closenessAvg);
+            closenessMax = MathUtils.zeroIfNaN(closenessMax);
+
+            
             AuxFileFileMetrics auxFileFileMetrics = new AuxFileFileMetrics(
                     fileFile.getFileName(), fileFile.getFileName2(), 
 //                        barycenterSum, barycenterAvg, barycenterMax,
@@ -485,11 +505,11 @@ public class PairFileGlobalCommunicationSingleEdgeSNAMetricsInDateServices exten
                     pairFileGlobal.getDensity(), pairFileGlobal.getDiameter(), 
                     devCommitsSum, devCommitsAvg, devCommitsMax,
                     ownershipSum, ownershipAvg, ownershipMax,
-                    majorContributors, minorContributors,
+                    majorContributorsRate, minorContributorsRate,
                     ownerExperience, ownerExperience2,
                     cummulativeOwnerExperience, cummulativeOwnerExperience2,
                     committers, distinctCommitters, commits, geometricAverageCommittersCommits,
-                    distinctCommentersCount, commentsSum,
+                    distinctCommentersCount, commentsSum, wordiness,
                     codeChurn, codeChurn2, codeChurnAvg,
                     pairFileCodeChurn.getAdditionsNormalized(), pairFileCodeChurn.getDeletionsNormalized(), pairFileCodeChurn.getChanges(),
                     updates, futureUpdates
@@ -602,7 +622,7 @@ public class PairFileGlobalCommunicationSingleEdgeSNAMetricsInDateServices exten
                 + "oexp;oexp2;"
                 + "own;own2;"
                 + "adev;ddev;commits;wgaCommittersCommit;"
-                + "commenters;comments;"
+                + "commenters;comments;wordiness;"
                 + "codeChurn;codeChurn2;codeChurnAvg;"
                 + "add;del;changes;"
                 + "updates;futureUpdates;"

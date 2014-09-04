@@ -7,6 +7,8 @@ package br.edu.utfpr.cm.JGitMinerWeb.util;
  */
 public class MathUtils {
 
+    public static final Double ZERO = 0.0d;
+
     /**
      * Calcule weighted geometric average. Needs a matrix with values and
      * weight, where each matrix line (vector) contains: 0 = value 1 = weight
@@ -23,6 +25,10 @@ public class MathUtils {
             weightSum += weight;
             weightedValues *= Math.pow(value, weight);
         }
-        return Math.pow(weightedValues, (1.0d / weightSum));
+        return weightSum == 0 ? 0 : Math.pow(weightedValues, (1.0d / weightSum));
+    }
+
+    public static Double zeroIfNaN(Double d) {
+        return d == null || d.isNaN() ? ZERO : d;
     }
 }

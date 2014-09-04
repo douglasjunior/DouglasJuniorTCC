@@ -1,10 +1,12 @@
 package br.edu.utfpr.cm.JGitMinerWeb.dao;
 
+import br.edu.utfpr.cm.JGitMinerWeb.model.miner.EntityComment;
 import br.edu.utfpr.cm.JGitMinerWeb.model.miner.EntityCommit;
 import br.edu.utfpr.cm.JGitMinerWeb.model.miner.EntityCommitFile;
 import br.edu.utfpr.cm.JGitMinerWeb.model.miner.EntityCommitUser;
 import br.edu.utfpr.cm.JGitMinerWeb.model.miner.EntityRepository;
 import br.edu.utfpr.cm.JGitMinerWeb.model.miner.EntityRepositoryCommit;
+import br.edu.utfpr.cm.JGitMinerWeb.services.metric.auxiliary.AuxWordiness;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
@@ -87,6 +89,29 @@ public class PairFileDAO {
             + "WHERE r2.entitypullrequest_id = pul.id "
             + "  AND f2.repositorycommit_id = r2.repositorycommits_id "
             + "  AND f2.filename = ?) ";
+
+    private static final String LIST_COMMENTS_OF_FILE_PAIR_BY_DATE = "SELECT * "
+            + "FROM gitpullrequest pul "
+            + "  JOIN gitissue i ON i.id = pul.issue_id "
+            + "  JOIN gitcomment c ON c.issue_id = i.id "
+            + "WHERE pul.repository_id = ? "
+            + "  AND pul.createdat BETWEEN ? AND ? ";
+
+    private static final String LIST_ISSUES_OF_FILE_PAIR_BY_DATE
+            = "SELECT pul.number, i.url, i.body "
+            + "  FROM gitpullrequest pul "
+            + "  JOIN gitissue i ON i.id = pul.issue_id "
+            + " WHERE pul.repository_id = ? "
+            + "   AND i.commentsCount > 0 "
+            + "   AND pul.createdat BETWEEN ? AND ? ";
+
+    private static final String LIST_COMMENTS_BY_PULL_REQUEST_NUMBER
+            = "SELECT c.body "
+            + "  FROM gitcomment c "
+            + "  JOIN gitissue i ON i.id = c.issue_id "
+            + "  JOIN gitpullrequest pul ON i.id = pul.issue_id "
+            + " WHERE pul.number = ?"
+            + "   AND i.commentsCount > 0 ";
 
     private static final String COUNT_COMMENTS_OF_FILE_PAIR_BY_DATE = "SELECT SUM(i.commentscount) "
             + "FROM gitpullrequest pul "
@@ -476,8 +501,12 @@ public class PairFileDAO {
                 SELECT_SUM_OF_ADD_DEL_CHANGES_IN_FILE_BY_DATE,
                 SELECT_SUM_OF_ADD_DEL_CHANGES_IN_FILE_BY_DATE_PARAMS, bdObjects, Object[].class);
 
+        Long additions = sum.get(0)[0] == null ? 0 : (Long) sum.get(0)[0];
+        Long deletions = sum.get(0)[1] == null ? 0 : (Long) sum.get(0)[1];
+        Long changes = sum.get(0)[2] == null ? 0 : (Long) sum.get(0)[2];
+
         return new AuxCodeChurn(fileName, fileName2,
-                (Long) sum.get(0)[0], (Long) sum.get(0)[1], (Long) sum.get(0)[2]);
+                additions, deletions, changes);
     }
 
     public Set<AuxUser> selectCommitters(EntityRepository repository,
@@ -651,5 +680,85 @@ public class PairFileDAO {
         }
 
         return matrix;
+    }
+
+    public List<AuxWordiness> listIssues(EntityRepository repository, String file, String file2, Date beginDate, Date endDate, boolean onlyMergeds) {
+        List<Object> selectParams = new ArrayList<>();
+
+        StringBuilder sql = new StringBuilder();
+        sql.append(LIST_ISSUES_OF_FILE_PAIR_BY_DATE);
+
+        if (onlyMergeds) {
+            sql.append(MERGED_PULL_REQUEST_ONLY);
+        }
+
+        selectParams.add(repository.getId());
+        selectParams.add(beginDate);
+        selectParams.add(endDate);
+
+        if (file != null) {
+            sql.append(EXISTS_FILE1_IN_PULL_REQUEST);
+            selectParams.add(file);
+        }
+
+        if (file2 != null) {
+            sql.append(EXISTS_FILE2_IN_PULL_REQUEST);
+            selectParams.add(file2);
+        }
+
+        List<Object[]> rawIssues = dao.selectNativeWithParams(sql.toString(), selectParams.toArray());
+        List<AuxWordiness> issuesAndComments = new ArrayList<>(rawIssues.size());
+        for (Object[] objects : rawIssues) {
+            Integer issuedNumber = (Integer) objects[0];
+            AuxWordiness issue = new AuxWordiness(
+                    issuedNumber,
+                    (String) objects[1],
+                    (String) objects[2],
+                    listComments(issuedNumber));
+
+
+            issuesAndComments.add(issue);
+        }
+
+        return issuesAndComments;
+    }
+
+    private List<String> listComments(Integer pullRequestNumber) {
+
+        StringBuilder sql = new StringBuilder();
+        sql.append(LIST_COMMENTS_BY_PULL_REQUEST_NUMBER);
+
+        List<String> comments = dao.selectNativeWithParams(sql.toString(), new Object[]{pullRequestNumber});
+
+        return comments;
+    }
+
+    public List<EntityComment> listComments(EntityRepository repository, String file, String file2, Date beginDate, Date endDate, boolean onlyMergeds) {
+        List<Object> selectParams = new ArrayList<>();
+
+        StringBuilder sql = new StringBuilder();
+        sql.append(LIST_COMMENTS_OF_FILE_PAIR_BY_DATE);
+
+        if (onlyMergeds) {
+            sql.append(MERGED_PULL_REQUEST_ONLY);
+        }
+
+        selectParams.add(repository.getId());
+        selectParams.add(beginDate);
+        selectParams.add(endDate);
+
+        if (file != null) {
+            sql.append(EXISTS_FILE1_IN_PULL_REQUEST);
+            selectParams.add(file);
+        }
+
+        if (file2 != null) {
+            sql.append(EXISTS_FILE2_IN_PULL_REQUEST);
+            selectParams.add(file2);
+        }
+
+        List<EntityComment> comments = dao.selectNativeWithParams(sql.toString(), selectParams.toArray());
+
+        return comments;
     }
 }
