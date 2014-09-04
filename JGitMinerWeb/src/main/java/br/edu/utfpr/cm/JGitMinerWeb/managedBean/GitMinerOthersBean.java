@@ -34,7 +34,18 @@ import java.util.List;
 import javax.ejb.EJB;
 import javax.faces.bean.ManagedBean;
 import javax.faces.bean.SessionScoped;
-import org.eclipse.egit.github.core.*;
+import org.eclipse.egit.github.core.Comment;
+import org.eclipse.egit.github.core.CommitComment;
+import org.eclipse.egit.github.core.CommitFile;
+import org.eclipse.egit.github.core.CommitStats;
+import org.eclipse.egit.github.core.Issue;
+import org.eclipse.egit.github.core.IssueEvent;
+import org.eclipse.egit.github.core.Milestone;
+import org.eclipse.egit.github.core.PullRequest;
+import org.eclipse.egit.github.core.Repository;
+import org.eclipse.egit.github.core.RepositoryCommit;
+import org.eclipse.egit.github.core.Team;
+import org.eclipse.egit.github.core.User;
 
 @ManagedBean(name = "gitMinerOthersBean")
 @SessionScoped
@@ -218,8 +229,8 @@ public class GitMinerOthersBean implements Serializable {
         initialized = true;
         canceled = false;
         fail = false;
-        progress = new Integer(0);
-        subProgress = new Integer(0);
+        progress = 0;
+        subProgress = 0;
         final EntityMiner mineration = new EntityMiner();
 
         final EntityRepository repositoryToMiner = dao.findByID(repositoryToMinerId, EntityRepository.class);
@@ -244,8 +255,8 @@ public class GitMinerOthersBean implements Serializable {
         if (repositoryToMiner == null) {
             message = "Erro: Escolha o repositorio desejado.";
             out.printLog(message);
-            progress = new Integer(0);
-            subProgress = new Integer(0);
+            progress = 0;
+            subProgress = 0;
             initialized = false;
             fail = true;
         } else {
@@ -260,75 +271,75 @@ public class GitMinerOthersBean implements Serializable {
 
                     try {
                         Repository gitRepo = RepositoryServices.getGitRepository(repositoryToMiner.getOwner().getLogin(), repositoryToMiner.getName());
-                        progress = new Integer(10);
+                        progress = 10;
                         if (!canceled && (minerOpenIssues || minerClosedIssues)) {
-                            subProgress = new Integer(0);
+                            subProgress = 0;
                             out.setCurrentProcess("Minerando issues...\n");
                             List<Issue> gitIssues = IssueServices.getGitIssuesFromRepository(gitRepo, minerOpenIssues, minerClosedIssues, out);
                             minerIssues(gitIssues, gitRepo);
                             mineration.setLog(out.getLog().toString());
                             dao.edit(mineration);
                         }
-                        progress = new Integer(22);
+                        progress = 22;
                         if (!canceled && minerRepositoryCommits) {
-                            subProgress = new Integer(0);
+                            subProgress = 0;
                             out.setCurrentProcess("Minerando RepositoryCommits...\n");
                             List<RepositoryCommit> gitRepoCommits = RepositoryCommitServices.getGitCommitsFromRepository(gitRepo, out);
                             minerRepositoryCommits(gitRepoCommits, gitRepo, null);
                             dao.edit(mineration);
                         }
-                        progress = new Integer(33);
+                        progress = 33;
                         if (!canceled && (minerClosedPullRequests || minerOpenPullRequests)) {
-                            subProgress = new Integer(0);
+                            subProgress = 0;
                             out.setCurrentProcess("Minerando Pull Requests...\n");
                             List<PullRequest> gitPullRequests = PullRequestServices.getGitPullRequestsFromRepository(gitRepo, minerOpenPullRequests, minerClosedPullRequests, out);
                             minerPullRequests(gitPullRequests, gitRepo);
                             dao.edit(mineration);
                         }
-                        progress = new Integer(44);
+                        progress = 44;
                         if (!canceled && (minerOpenMilestones || minerClosedMilestones)) {
-                            subProgress = new Integer(0);
+                            subProgress = 0;
                             out.setCurrentProcess("Minerando milestones...\n");
                             List<Milestone> gitMilestones = MilestoneServices.getGitMilestoneFromRepository(gitRepo, minerOpenMilestones, minerClosedMilestones, out);
                             minerMilestones(gitMilestones);
                             mineration.setLog(out.getLog().toString());
                             dao.edit(mineration);
                         }
-                        progress = new Integer(55);
+                        progress = 55;
                         if (!canceled && minerCollaborators) {
-                            subProgress = new Integer(0);
+                            subProgress = 0;
                             out.setCurrentProcess("Minerando collaborators...\n");
                             List<User> collaborators = UserServices.getGitCollaboratorsFromRepository(gitRepo, out);
                             minerCollaborators(collaborators);
                             mineration.setLog(out.getLog().toString());
                             dao.edit(mineration);
                         }
-                        progress = new Integer(66);
+                        progress = 66;
                         if (!canceled && minerWatchers) {
-                            subProgress = new Integer(0);
+                            subProgress = 0;
                             out.setCurrentProcess("Minerando watchers...\n");
                             List<User> wacthers = UserServices.getGitWatchersFromRepository(gitRepo, out);
                             minerWatchers(wacthers);
                             mineration.setLog(out.getLog().toString());
                             dao.edit(mineration);
                         }
-                        progress = new Integer(77);
+                        progress = 77;
                         if (!canceled && minerForks) {
-                            subProgress = new Integer(0);
+                            subProgress = 0;
                             out.setCurrentProcess("Minerando Forks...\n");
                             List<Repository> gitForks = RepositoryServices.getGitForksFromRepository(gitRepo, out);
                             minerForks(gitForks);
                             dao.edit(mineration);
                         }
-                        progress = new Integer(88);
+                        progress = 88;
                         if (!canceled && minerTeams) {
-                            subProgress = new Integer(0);
+                            subProgress = 0;
                             out.setCurrentProcess("Minerando Teams...\n");
                             List<Team> gitTeams = TeamServices.getGitTeamsFromRepository(gitRepo, out);
                             minerTeams(gitTeams);
                             dao.edit(mineration);
                         }
-                        progress = new Integer(99);
+                        progress = 99;
                         if (canceled) {
                             out.printLog("Processo de mineração cancelado pelo usuário.\n");
                         }
@@ -342,8 +353,8 @@ public class GitMinerOthersBean implements Serializable {
                     }
                     System.gc();
                     out.setCurrentProcess(message);
-                    progress = new Integer(100);
-                    subProgress = new Integer(100);
+                    progress = 100;
+                    subProgress = 100;
                     initialized = false;
                     mineration.setStoped(new Date());
                     mineration.setLog(out.getLog().toString());
@@ -367,11 +378,11 @@ public class GitMinerOthersBean implements Serializable {
 
     public Integer getProgress() {
         if (fail) {
-            progress = new Integer(100);
+            progress = 100;
         } else if (progress == null) {
-            progress = new Integer(0);
+            progress = 0;
         } else if (progress > 100) {
-            progress = new Integer(100);
+            progress = 100;
         }
         System.gc();
         return progress;
@@ -379,11 +390,11 @@ public class GitMinerOthersBean implements Serializable {
 
     public Integer getSubProgress() {
         if (fail) {
-            subProgress = new Integer(100);
+            subProgress = 100;
         } else if (subProgress == null) {
-            subProgress = new Integer(0);
+            subProgress = 0;
         } else if (subProgress > 100) {
-            subProgress = new Integer(100);
+            subProgress = 100;
         }
         return subProgress;
     }
@@ -391,8 +402,8 @@ public class GitMinerOthersBean implements Serializable {
     public void onComplete() {
         out.printLog("onComplete" + '\n');
         initialized = false;
-        progress = new Integer(0);
-        subProgress = new Integer(0);
+        progress = 0;
+        subProgress = 0;
         if (fail) {
             JsfUtil.addErrorMessage(message);
         } else {
@@ -402,7 +413,7 @@ public class GitMinerOthersBean implements Serializable {
 
     private void calculeSubProgress(double i, double size) {
         double subProg = (i / size) * 100;
-        subProgress = new Integer((int) subProg);
+        subProgress = (int) subProg;
         out.printLog("progress: " + progress);
         out.printLog("subProgress: " + subProgress);
     }

@@ -9,10 +9,13 @@ import javax.faces.bean.SessionScoped;
 @SessionScoped
 public class PagesManager implements Serializable {
 
-    private String header = "./pages/header.xhtml";
-    private String menu = "./pages/menu.xhtml";
+    // static pages
+    private static final String header = "./pages/header.xhtml";
+    private static final String menu = "./pages/menu.xhtml";
+    private static final String footer = "./pages/footer.xhtml";
+
+    // dynamic page se
     private String body = "./pages/home.xhtml";
-    private String footer = "./pages/footer.xhtml";
 
     public PagesManager() {
     }
