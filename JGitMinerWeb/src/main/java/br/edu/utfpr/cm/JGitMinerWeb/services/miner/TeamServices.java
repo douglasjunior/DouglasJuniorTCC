@@ -51,7 +51,7 @@ public class TeamServices implements Serializable {
         team.setReposCount(gitTeam.getReposCount());
         team.setUrl(gitTeam.getUrl());
 
-        if (team.getId() == null || team.getId().equals(new Long(0))) {
+        if (team.getId() == null || team.getId().equals(0l)) {
             dao.insert(team);
         } else {
             dao.edit(team);

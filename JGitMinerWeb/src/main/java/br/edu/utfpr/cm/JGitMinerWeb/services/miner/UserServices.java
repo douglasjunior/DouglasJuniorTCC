@@ -66,7 +66,7 @@ public class UserServices implements Serializable {
         user.setLogin(gitUser.getLogin());
         user.setUrl(gitUser.getUrl());
 
-        if (user.getId() == null || user.getId().equals(new Long(0))) {
+        if (user.getId() == null || user.getId().equals(0l)) {
             dao.insert(user);
         } else {
             dao.edit(user);

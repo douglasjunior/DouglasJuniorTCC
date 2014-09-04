@@ -38,7 +38,7 @@ public class CommitServices implements Serializable {
         //  commit.setTree(TreeServices.createTreeEntity(gitCommit.getTree(), gitRepo, dao));
         commit.setUrl(gitCommit.getUrl());
 
-        if (commit.getId() == null || commit.getId().equals(new Long(0))) {
+        if (commit.getId() == null || commit.getId().equals(0l)) {
             dao.insert(commit);
         } else {
             dao.edit(commit);

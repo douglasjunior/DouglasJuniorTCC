@@ -41,7 +41,7 @@ public class TreeServices implements Serializable  {
         tree.setSha(gitTree.getSha());
         tree.setUrl(gitTree.getUrl());
 
-        if (tree.getId() == null || tree.getId().equals(new Long(0))) {
+        if (tree.getId() == null || tree.getId().equals(0l)) {
             dao.insert(tree);
         } else {
             dao.edit(tree);
@@ -78,7 +78,7 @@ public class TreeServices implements Serializable  {
                 treeEntry.setUrl(gitTreeEntry.getUrl());
                 tree.addTreeEntry(treeEntry);
 
-                if (treeEntry.getId() == null || treeEntry.getId().equals(new Long(0))) {
+                if (treeEntry.getId() == null || treeEntry.getId().equals(0l)) {
                     dao.insert(treeEntry);
                 } else {
                     dao.edit(treeEntry);

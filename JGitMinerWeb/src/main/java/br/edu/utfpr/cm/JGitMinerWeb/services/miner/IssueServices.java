@@ -94,7 +94,7 @@ public class IssueServices implements Serializable {
 
 
 
-        if (issue.getId() == null || issue.getId().equals(new Long(0))) {
+        if (issue.getId() == null || issue.getId().equals(0l)) {
             dao.insert(issue);
         } else {
             dao.edit(issue);

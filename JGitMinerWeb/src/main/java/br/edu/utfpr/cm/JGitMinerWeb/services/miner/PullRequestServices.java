@@ -66,7 +66,7 @@ public class PullRequestServices implements Serializable {
         pull.setMergedBy(UserServices.createEntity(gitPullRequest.getMergedBy(), dao, false));
         pull.setUser(UserServices.createEntity(gitPullRequest.getUser(), dao, false));
 
-        if (pull.getId() == null || pull.getId().equals(new Long(0))) {
+        if (pull.getId() == null || pull.getId().equals(0l)) {
             dao.insert(pull);
         } else {
             dao.edit(pull);

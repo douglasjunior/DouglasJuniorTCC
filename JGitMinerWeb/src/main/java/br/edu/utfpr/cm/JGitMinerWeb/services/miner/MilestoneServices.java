@@ -46,7 +46,7 @@ public class MilestoneServices implements Serializable {
         milestone.setStateMilestone(gitMilestone.getState());
         milestone.setTitle(gitMilestone.getTitle());
 
-        if (milestone.getId() == null || milestone.getId().equals(new Long(0))) {
+        if (milestone.getId() == null || milestone.getId().equals(0l)) {
             dao.insert(milestone);
         } else {
             dao.edit(milestone);

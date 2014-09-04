@@ -68,7 +68,7 @@ public class RepositoryServices implements Serializable {
         repo.setUrl(gitRepository.getUrl());
         repo.setOwner(UserServices.createEntity(gitRepository.getOwner(), dao, false));
 
-        if (repo.getId() == null || repo.getId().equals(new Long(0))) {
+        if (repo.getId() == null || repo.getId().equals(0l)) {
             dao.insert(repo);
         } else {
             dao.edit(repo);
