@@ -32,20 +32,21 @@ import javax.faces.bean.SessionScoped;
 @SessionScoped
 public class GitMetricQueueBean implements Serializable {
 
+    private final OutLog out;
+    private final Map<Object, Object> params;
+    private final List<Map<Object, Object>> paramsQueue;
+    private final ExecutorService threadPool;
+
     @EJB
     private GenericDao dao;
-    private final OutLog out;
     private EntityMatrix matrix;
     private String matrixId;
     private Class<?> serviceClass;
-    private Map<Object, Object> params;
     private String message;
-    private Thread process;
     private Integer progress;
     private boolean initialized;
     private boolean fail;
     private boolean canceled;
-    private List<Map<Object, Object>> paramsQueue;
 
     /**
      * Creates a new instance of GitNet
@@ -54,22 +55,15 @@ public class GitMetricQueueBean implements Serializable {
         out = new OutLog();
         params = new HashMap<>();
         paramsQueue = new ArrayList<>();
+        threadPool = Executors.newSingleThreadExecutor();
     }
 
     public boolean isFail() {
         return fail;
     }
 
-    public void setFail(boolean fail) {
-        this.fail = fail;
-    }
-
     public boolean isCanceled() {
         return canceled;
-    }
-
-    public void setCanceled(boolean canceled) {
-        this.canceled = canceled;
     }
 
     public String getMatrixId() {
@@ -92,20 +86,8 @@ public class GitMetricQueueBean implements Serializable {
         return params;
     }
 
-    public GenericDao getDao() {
-        return dao;
-    }
-
-    public void setDao(GenericDao dao) {
-        this.dao = dao;
-    }
-
     public boolean isInitialized() {
         return initialized;
-    }
-
-    public void setInitialized(boolean initialized) {
-        this.initialized = initialized;
     }
 
     public String getLog() {
@@ -140,7 +122,7 @@ public class GitMetricQueueBean implements Serializable {
         params.put("matrix", matrix);
         out.printLog("Queued params: " + params);
         paramsQueue.add(params);
-        params = new HashMap<>();
+        params.clear();
     }
 
     public void showQueue() {
@@ -194,7 +176,7 @@ public class GitMetricQueueBean implements Serializable {
 
                 final AbstractMetricServices services = createMetricServiceInstance(params, matrix);
 
-                process = new Thread(services) {
+                Thread process = new Thread(services) {
                     @Override
                     public void run() {
                         try {
@@ -241,8 +223,7 @@ public class GitMetricQueueBean implements Serializable {
                     }
                 };
 
-                ExecutorService pool = Executors.newSingleThreadExecutor();
-                pool.submit(process);
+                threadPool.submit(process);
             }
             progress = 100;
         }
@@ -253,7 +234,7 @@ public class GitMetricQueueBean implements Serializable {
             out.printLog("Pedido de cancelamento enviado.\n");
             canceled = true;
             try {
-                process.interrupt();
+                threadPool.shutdown();
             } catch (Exception ex) {
                 ex.printStackTrace();
             }
@@ -263,7 +244,7 @@ public class GitMetricQueueBean implements Serializable {
     public void onComplete() {
         out.printLog("onComplete" + '\n');
         initialized = false;
-        progress = new Integer(0);
+        progress = 0;
         if (fail) {
             JsfUtil.addErrorMessage(message);
         } else {
