@@ -30,7 +30,6 @@ import javax.faces.bean.SessionScoped;
 public class GitMatrixQueueBean implements Serializable {
 
     private final OutLog out;
-    private final Map<Object, Object> params;
     private final List<Map<Object, Object>> paramsQueue;
     private final ExecutorService threadPool;
 
@@ -44,6 +43,7 @@ public class GitMatrixQueueBean implements Serializable {
     private boolean initialized;
     private boolean fail;
     private boolean canceled;
+    private Map<Object, Object> params;
 
     /**
      * Creates a new instance of GitNet
@@ -114,7 +114,7 @@ public class GitMatrixQueueBean implements Serializable {
         }
         out.printLog("Queued params: " + params);
         paramsQueue.add(params);
-        params.clear();
+        params = new HashMap<>();
     }
 
     public void showQueue() {
@@ -211,7 +211,6 @@ public class GitMatrixQueueBean implements Serializable {
                             }
                             progress += fraction / 2;
                             initialized = false;
-                            params.clear();
                             System.gc();
                         }
                     }

@@ -33,7 +33,6 @@ import javax.faces.bean.SessionScoped;
 public class GitMetricQueueBean implements Serializable {
 
     private final OutLog out;
-    private final Map<Object, Object> params;
     private final List<Map<Object, Object>> paramsQueue;
     private final ExecutorService threadPool;
 
@@ -47,6 +46,7 @@ public class GitMetricQueueBean implements Serializable {
     private boolean initialized;
     private boolean fail;
     private boolean canceled;
+    private Map<Object, Object> params;
 
     /**
      * Creates a new instance of GitNet
@@ -122,7 +122,7 @@ public class GitMetricQueueBean implements Serializable {
         params.put("matrix", matrix);
         out.printLog("Queued params: " + params);
         paramsQueue.add(params);
-        params.clear();
+        params = new HashMap<>();
     }
 
     public void showQueue() {
