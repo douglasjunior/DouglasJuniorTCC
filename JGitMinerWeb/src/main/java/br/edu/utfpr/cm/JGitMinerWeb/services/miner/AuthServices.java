@@ -1,7 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package br.edu.utfpr.cm.JGitMinerWeb.services.miner;
 
 import java.io.BufferedReader;
@@ -13,7 +9,6 @@ import java.io.Serializable;
 import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.List;
-import org.eclipse.egit.github.core.Application;
 import org.eclipse.egit.github.core.Authorization;
 import org.eclipse.egit.github.core.client.GitHubClient;
 import org.eclipse.egit.github.core.service.OAuthService;
@@ -62,6 +57,9 @@ public class AuthServices implements Serializable {
         while (bf.ready()) {
             String linha = bf.readLine();
             try {
+                if (linha.startsWith("#")) {
+                    continue;
+                }
                 String[] login = linha.split("[,]");
                 GitHubClient cl = createClient(login[0], login[1]);
                 if (cl != null) {
