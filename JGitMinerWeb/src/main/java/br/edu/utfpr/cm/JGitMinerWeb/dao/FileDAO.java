@@ -45,12 +45,14 @@ public class FileDAO {
             + "  gitcommitfile fil, "
             + "  gitpullrequest_gitrepositorycommit prc,"
             + "  gitrepositorycommit rc,"
+            + "  gitcommit c,"
             + "  gitcommituser u"
             + " WHERE pul.issue_id = i.id"
             + "   AND prc.entitypullrequest_id = pul.id"
             + "   AND prc.repositorycommits_id = rc.id"
             + "   AND fil.repositorycommit_id = rc.id"
-            + "   AND rc.committer_id = u.id"
+            + "   AND rc.commit_id = c.id"
+            + "   AND c.committer_id = u.id"
             + "   AND pul.repository_id = ? "
             + "   AND fil.filename = ?";
 
@@ -60,12 +62,14 @@ public class FileDAO {
             + "  gitcommitfile fil, "
             + "  gitpullrequest_gitrepositorycommit prc,"
             + "  gitrepositorycommit rc,"
+            + "  gitcommit c,"
             + "  gitcommituser u"
             + " WHERE pul.issue_id = i.id"
             + "   AND prc.entitypullrequest_id = pul.id"
             + "   AND prc.repositorycommits_id = rc.id"
             + "   AND fil.repositorycommit_id = rc.id"
-            + "   AND rc.committer_id = u.id"
+            + "   AND rc.commit_id = c.id"
+            + "   AND c.committer_id = u.id"
             + "   AND pul.repository_id = ? "
             + "   AND fil.filename = ?";
 
@@ -77,12 +81,14 @@ public class FileDAO {
             + "  gitcommitfile fil, "
             + "  gitpullrequest_gitrepositorycommit prc,"
             + "  gitrepositorycommit rc,"
+            + "  gitcommit c,"
             + "  gitcommituser u"
             + " WHERE pul.issue_id = i.id"
             + "   AND prc.entitypullrequest_id = pul.id"
             + "   AND prc.repositorycommits_id = rc.id"
             + "   AND fil.repositorycommit_id = rc.id"
-            + "   AND rc.committer_id = u.id"
+            + "   AND rc.commit_id = c.id"
+            + "   AND c.committer_id = u.id"
             + "   AND pul.repository_id = ? "
             + "   AND fil.filename = ?";
 

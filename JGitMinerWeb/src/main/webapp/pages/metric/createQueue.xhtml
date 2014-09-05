@@ -16,7 +16,7 @@
             <b><h:outputText value="Select a Matrix: " /></b>
             <p:selectOneListbox  style="height:200px;width:100%" value="#{gitMetricQueueBean.matrixId}"  >
                 <f:selectItems value="#{gitMatrixViewBean.matrices}" var="matrix" itemLabel="#{matrix.toString()}" itemDescription="#{matrix.toString()}" itemValue="#{matrix.id}" />
-                <p:ajax process="@this" update="listServices matrixParamsUsed" />
+                <p:ajax process="@this" update="listServices matrixParamsUsed filter" />
             </p:selectOneListbox>
             <b><h:outputLabel for="matrixParamsUsed" value="Used params: " /></b>
             <h:outputText id="matrixParamsUsed" value="#{gitMetricQueueBean.matrixParamsToString} empty?#{empty gitMetricQueueBean.servicesClasses}" />
