@@ -296,7 +296,7 @@ public class PairFileGlobalCommunicationSingleEdgeSNAMetricsInDateServices exten
             Double closenessSum = 0d, closenessAvg, closenessMax = Double.NEGATIVE_INFINITY;
             Integer degreeSum = 0, degreeMax = Integer.MIN_VALUE; 
             Double degreeAvg;
-            Double eigenvectorSum = 0d, eigenvectorAvg, eigenvectorMax = Double.NEGATIVE_INFINITY;
+//            Double eigenvectorSum = 0d, eigenvectorAvg, eigenvectorMax = Double.NEGATIVE_INFINITY;
 
             Double egoBetweennessSum = 0d, egoBetweennessAvg, egoBetweennessMax = Double.NEGATIVE_INFINITY;
             Long egoSizeSum = 0l, egoSizeMax = Long.MIN_VALUE;
@@ -310,41 +310,41 @@ public class PairFileGlobalCommunicationSingleEdgeSNAMetricsInDateServices exten
             Double constraintSum = 0.0d, constraintAvg, constraintMax = Double.NEGATIVE_INFINITY;
             Double hierarchySum = 0.0d, hierarchyAvg, hierarchyMax = Double.NEGATIVE_INFINITY;
 
-            for (String devCommentter : devsCommentters) {
+            for (String commenter : devsCommentters) {
                 // sums calculation
-//                barycenterSum += barycenter.get(devCommentter);
-                betweennessSum += betweenness.get(devCommentter);
-                closenessSum += Double.isInfinite(closeness.get(devCommentter)) ? 0 : closeness.get(devCommentter);
-                degreeSum += degree.get(devCommentter);
-                eigenvectorSum += eigenvector.get(devCommentter);
+//                barycenterSum += barycenter.get(commenter);
+                betweennessSum += betweenness.get(commenter);
+                closenessSum += Double.isInfinite(closeness.get(commenter)) ? 0 : closeness.get(commenter);
+                degreeSum += degree.get(commenter);
+//                eigenvectorSum += eigenvector.get(commenter);
 
-                egoBetweennessSum += ego.get(devCommentter).getBetweennessCentrality();
-                egoSizeSum += ego.get(devCommentter).getSize();
-//                egoPairsSum += ego.get(devCommentter).getPairs();
-                egoTiesSum += ego.get(devCommentter).getTies();
-                egoDensitySum += ego.get(devCommentter).getDensity();
+                egoBetweennessSum += ego.get(commenter).getBetweennessCentrality();
+                egoSizeSum += ego.get(commenter).getSize();
+//                egoPairsSum += ego.get(commenter).getPairs();
+                egoTiesSum += ego.get(commenter).getTies();
+                egoDensitySum += ego.get(commenter).getDensity();
 
-                efficiencySum += structuralHoles.get(devCommentter).getEfficiency();
-                effectiveSizeSum += structuralHoles.get(devCommentter).getEffectiveSize();
-                constraintSum += structuralHoles.get(devCommentter).getConstraint();
-                hierarchySum += structuralHoles.get(devCommentter).getHierarchy();
+                efficiencySum += structuralHoles.get(commenter).getEfficiency();
+                effectiveSizeSum += structuralHoles.get(commenter).getEffectiveSize();
+                constraintSum += structuralHoles.get(commenter).getConstraint();
+                hierarchySum += structuralHoles.get(commenter).getHierarchy();
                 // maximum calculation
-//                barycenterMax = Math.max(barycenterMax, barycenter.get(devCommentter));
-                betweennessMax = Math.max(betweennessMax, betweenness.get(devCommentter));
-                closenessMax = Math.max(closenessMax, Double.isInfinite(closeness.get(devCommentter)) ? 0 : closeness.get(devCommentter));
-                degreeMax = Math.max(degreeMax, degree.get(devCommentter));
-                eigenvectorMax = Math.max(eigenvectorMax, eigenvector.get(devCommentter));
+//                barycenterMax = Math.max(barycenterMax, barycenter.get(commenter));
+                betweennessMax = Math.max(betweennessMax, betweenness.get(commenter));
+                closenessMax = Math.max(closenessMax, Double.isInfinite(closeness.get(commenter)) ? 0 : closeness.get(commenter));
+                degreeMax = Math.max(degreeMax, degree.get(commenter));
+//                eigenvectorMax = Math.max(eigenvectorMax, eigenvector.get(commenter));
 
-                egoBetweennessMax = Math.max(egoBetweennessMax, ego.get(devCommentter).getBetweennessCentrality());
-                egoSizeMax = Math.max(egoSizeMax, ego.get(devCommentter).getSize());
-//                egoPairsMax = Math.max(egoPairsMax, ego.get(devCommentter).getPairs());
-                egoTiesMax = Math.max(egoTiesMax, ego.get(devCommentter).getTies());
-                egoDensityMax = Math.max(egoDensityMax, ego.get(devCommentter).getDensity());
+                egoBetweennessMax = Math.max(egoBetweennessMax, ego.get(commenter).getBetweennessCentrality());
+                egoSizeMax = Math.max(egoSizeMax, ego.get(commenter).getSize());
+//                egoPairsMax = Math.max(egoPairsMax, ego.get(commenter).getPairs());
+                egoTiesMax = Math.max(egoTiesMax, ego.get(commenter).getTies());
+                egoDensityMax = Math.max(egoDensityMax, ego.get(commenter).getDensity());
 
-                efficiencyMax = Math.max(efficiencyMax, structuralHoles.get(devCommentter).getEfficiency());
-                effectiveSizeMax = Math.max(effectiveSizeMax, structuralHoles.get(devCommentter).getEffectiveSize());
-                constraintMax = Math.max(constraintMax, structuralHoles.get(devCommentter).getConstraint());
-                hierarchyMax = Math.max(hierarchyMax, structuralHoles.get(devCommentter).getHierarchy());
+                efficiencyMax = Math.max(efficiencyMax, structuralHoles.get(commenter).getEfficiency());
+                effectiveSizeMax = Math.max(effectiveSizeMax, structuralHoles.get(commenter).getEffectiveSize());
+                constraintMax = Math.max(constraintMax, structuralHoles.get(commenter).getConstraint());
+                hierarchyMax = Math.max(hierarchyMax, structuralHoles.get(commenter).getHierarchy());
 
             }
 
@@ -354,7 +354,7 @@ public class PairFileGlobalCommunicationSingleEdgeSNAMetricsInDateServices exten
             betweennessAvg = betweennessSum / distinctCommentersCount;
             closenessAvg = closenessSum / distinctCommentersCount;
             degreeAvg = degreeSum / distinctCommentersCount;
-            eigenvectorAvg = eigenvectorSum / distinctCommentersCount;
+//            eigenvectorAvg = eigenvectorSum / distinctCommentersCount;
 
             egoBetweennessAvg = egoBetweennessSum / distinctCommentersCount;
             egoSizeAvg = egoSizeSum / distinctCommentersCount;
@@ -487,7 +487,7 @@ public class PairFileGlobalCommunicationSingleEdgeSNAMetricsInDateServices exten
                     betweennessSum, betweennessAvg, betweennessMax,
                     closenessSum, closenessAvg, closenessMax,
                     degreeSum, degreeAvg, degreeMax,
-                    eigenvectorSum, eigenvectorAvg, eigenvectorMax,
+//                    eigenvectorSum, eigenvectorAvg, eigenvectorMax,
 
                     egoBetweennessSum, egoBetweennessAvg, egoBetweennessMax,
                     egoSizeSum, egoSizeAvg, egoSizeMax,
@@ -514,11 +514,7 @@ public class PairFileGlobalCommunicationSingleEdgeSNAMetricsInDateServices exten
                     updates, futureUpdates
             );
 
-            // apriori
-//            // same as updates
-//            Long pairFileNumberOfPullrequestOfPair = pairFileDAO.calculeNumberOfPullRequest(getRepository(), auxFileFileMetrics.getFile(), auxFileFileMetrics.getFile2(), getBeginDate(), getEndDate(), true);
-//            // same as futureUpdates
-//            Long pairFileNumberOfPullrequestOfPairFuture = pairFileDAO.calculeNumberOfPullRequest(getRepository(), auxFileFileMetrics.getFile(), auxFileFileMetrics.getFile2(), futureBeginDate, futureEndDate, true);
+            // apriori /////////////////////////////////////////////////////////
             Long fileNumberOfPullrequestOfPairFuture;
             if (pullRequestFileMap.containsKey(auxFileFileMetrics.getFile())) {
                 fileNumberOfPullrequestOfPairFuture = pullRequestFileMap.get(auxFileFileMetrics.getFile());
@@ -535,7 +531,7 @@ public class PairFileGlobalCommunicationSingleEdgeSNAMetricsInDateServices exten
                 pullRequestFileMap.put(auxFileFileMetrics.getFile2(), file2NumberOfPullrequestOfPairFuture);
             }
 
-            auxFileFileMetrics.addMetrics(updates, futureUpdates, fileNumberOfPullrequestOfPairFuture, file2NumberOfPullrequestOfPairFuture, numberOfAllPullrequestFuture);
+            auxFileFileMetrics.addMetrics(fileNumberOfPullrequestOfPairFuture, file2NumberOfPullrequestOfPairFuture, numberOfAllPullrequestFuture);
 
             Double supportFile = fileNumberOfPullrequestOfPairFuture.doubleValue() / numberOfAllPullrequestFuture.doubleValue();
             Double supportFile2 = file2NumberOfPullrequestOfPairFuture.doubleValue() / numberOfAllPullrequestFuture.doubleValue();
@@ -604,7 +600,7 @@ public class PairFileGlobalCommunicationSingleEdgeSNAMetricsInDateServices exten
                 + "btwSum;btwAvg;btwMax;"
                 + "clsSum;clsAvg;clsMax;"
                 + "dgrSum;dgrAvg;dgrMax;"
-                + "egvSum;egvAvg;egvMax;"
+                // + "egvSum;egvAvg;egvMax;"
                 + "egoBtwSum;egoBtwAvg;egoBtwMax;"
                 + "egoSizeSum;egoSizeAvg;egoSizeMax;"
                 + "egoTiesSum;egoTiesAvg;egoTiesMax;"
@@ -625,7 +621,7 @@ public class PairFileGlobalCommunicationSingleEdgeSNAMetricsInDateServices exten
                 + "codeChurn;codeChurn2;codeChurnAvg;"
                 + "add;del;changes;"
                 + "updates;futureUpdates;"
-                + "pairFileCochange;pairFileCochangeFuture;fileChangeFuture;file2ChangeFuture;allPullrequestFuture;"
+                + "fileChangeFuture;file2ChangeFuture;allPullrequestFuture;"
                 + "supportFile;supportFile2;supportPairFile;confidence;confidence2;lift;conviction;conviction2";
     }
 
