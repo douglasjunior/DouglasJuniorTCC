@@ -387,7 +387,6 @@ public class PairFileGlobalCommunicationSingleEdgeSNAMetricsInDateServices exten
             Double devCommitsAvg;
             Double ownershipSum = 0.0d, ownershipAvg, ownershipMax = 0.0d;
             Long minorContributors = 0l, majorContributors = 0l;
-            Double minorContributorsRate = 0.0d, majorContributorsRate = 0.0d;
             Double ownerExperience = 0.0d, ownerExperience2 = 0.0d, cummulativeOwnerExperience = 0.0d, cummulativeOwnerExperience2 = 0.0d;
 
             long committers = devsCommitters.size();
@@ -435,8 +434,8 @@ public class PairFileGlobalCommunicationSingleEdgeSNAMetricsInDateServices exten
             devCommitsAvg = (double) devCommitsSum / (double) committers;
             ownershipAvg = (double) ownershipSum / (double) committers;
 
-            majorContributorsRate = (double) majorContributors / committers; // % de major
-            minorContributorsRate = (double) minorContributors / committers; // % de minor
+            double majorContributorsRate = (double) majorContributors / (double) committers; // % de major
+            double minorContributorsRate = (double) minorContributors / (double) committers; // % de minor
 
             Long updates = pairFileDAO.calculeNumberOfPullRequest(repository,
                     fileFile.getFileName(), fileFile.getFileName2(), 
