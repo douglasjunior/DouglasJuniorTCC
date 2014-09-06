@@ -125,57 +125,61 @@ public class PairFileDAO {
             + "WHERE pul.repository_id = ? "
             + "  AND pul.number BETWEEN ? AND ? ";
 
-    private static final String SELECT_SUM_OF_CHANGES_IN_FILE_BY_PULL_REQUEST_NUMBER = "SELECT SUM(ff.changes) "
-            + "FROM "
-            + "EntityPullRequest pp JOIN pp.repositoryCommits rc JOIN rc.files ff "
-            + "WHERE "
-            + "pp.repository = :repo AND "
-            + "pp.number BETWEEN :beginNumber AND :endNumber AND "
-            + "ff.filename = :fileName AND pp.mergedAt IS NOT NULL AND "
-            + "EXISTS (SELECT p2 FROM EntityPullRequest p2 JOIN p2.repositoryCommits r2 JOIN r2.files f2 WHERE p2 = pp AND f2.filename = :fileName2) ";
+    private static final String SELECT_SUM_OF_CHANGES_OF_FILE_PAIR_BY_PULL_REQUEST_NUMBER
+            = "SELECT (sum(fil.changes) + sum(fil2.changes)) AS codeChurn"
+            + "  FROM gitpullrequest pul,"
+            + "       gitcommitfile fil, gitcommitfile fil2,"
+            + "       gitpullrequest_gitrepositorycommit prc,"
+            + "       gitpullrequest_gitrepositorycommit prc2"
+            + " WHERE prc.entitypullrequest_id = pul.id"
+            + "   AND fil.repositorycommit_id = prc.repositorycommits_id"
+            + "   AND prc2.entitypullrequest_id = pul.id"
+            + "   AND fil2.repositorycommit_id = prc2.repositorycommits_id"
+            + "   AND fil.filename <> fil2.filename"
+            + "   AND prc.entitypullrequest_id = prc2.entitypullrequest_id"
+            + "   AND pul.mergedat IS NOT NULL"
+            + "   AND pul.repository_id = ?"
+            + "   AND fil.filename = ?"
+            + "   AND fil2.filename = ?"
+            + "   AND pul.number between ? AND ?";
 
-    private static final String[] SELECT_SUM_OF_CHANGES_IN_FILE_BY_PULL_REQUEST_NUMBER_PARAMS = new String[]{
-        "repo",
-        "fileName",
-        "fileName2",
-        "beginNumber",
-        "endNumber"
-    };
+    private static final String SELECT_SUM_OF_CHANGES_OF_FILE_PAIR_BY_DATE
+            = "SELECT (sum(fil.changes) + sum(fil2.changes)) AS codeChurn"
+            + "  FROM gitpullrequest pul,"
+            + "       gitcommitfile fil, gitcommitfile fil2,"
+            + "       gitpullrequest_gitrepositorycommit prc,"
+            + "       gitpullrequest_gitrepositorycommit prc2"
+            + " WHERE prc.entitypullrequest_id = pul.id"
+            + "   AND fil.repositorycommit_id = prc.repositorycommits_id"
+            + "   AND prc2.entitypullrequest_id = pul.id"
+            + "   AND fil2.repositorycommit_id = prc2.repositorycommits_id"
+            + "   AND fil.filename <> fil2.filename"
+            + "   AND prc.entitypullrequest_id = prc2.entitypullrequest_id"
+            + "   AND pul.mergedat IS NOT NULL"
+            + "   AND pul.repository_id = ?"
+            + "   AND fil.filename = ?"
+            + "   AND fil2.filename = ?"
+            + "   AND pul.createdat between ? AND ?";
 
-    private static final String SELECT_SUM_OF_CHANGES_IN_FILE_BY_DATE = "SELECT SUM(ff.changes) "
-            + "FROM "
-            + "EntityPullRequest pp JOIN pp.repositoryCommits rc JOIN rc.files ff "
-            + "WHERE "
-            + "pp.repository = :repo AND "
-            + "pp.createdAt BETWEEN :beginDate AND :endDate AND "
-            + "ff.filename = :fileName AND pp.mergedAt IS NOT NULL AND "
-            + "EXISTS (SELECT p2 FROM EntityPullRequest p2 JOIN p2.repositoryCommits r2 JOIN r2.files f2 WHERE p2 = pp AND f2.filename = :fileName2) ";
-
-    private static final String[] SELECT_SUM_OF_CHANGES_IN_FILE_BY_DATE_PARAMS = new String[]{
-        "repo",
-        "fileName",
-        "fileName2",
-        "beginDate",
-        "endDate"
-    };
-
-    private static final String SELECT_SUM_OF_ADD_DEL_CHANGES_IN_FILE_BY_DATE
-            = "SELECT SUM(ff.additions), SUM(ff.deletions), SUM(ff.changes) "
-            + "FROM "
-            + "EntityPullRequest pp JOIN pp.repositoryCommits rc JOIN rc.files ff "
-            + "WHERE "
-            + "pp.repository = :repo AND "
-            + "pp.createdAt BETWEEN :beginDate AND :endDate AND "
-            + "ff.filename = :fileName AND pp.mergedAt IS NOT NULL AND "
-            + "EXISTS (SELECT p2 FROM EntityPullRequest p2 JOIN p2.repositoryCommits r2 JOIN r2.files f2 WHERE p2 = pp AND f2.filename = :fileName2) ";
-
-    private static final String[] SELECT_SUM_OF_ADD_DEL_CHANGES_IN_FILE_BY_DATE_PARAMS = new String[]{
-        "repo",
-        "fileName",
-        "fileName2",
-        "beginDate",
-        "endDate"
-    };
+    private static final String SELECT_SUM_OF_ADD_DEL_CHANGES_OF_FILE_PAIR_BY_DATE
+            = "SELECT (sum(fil.additions) + sum(fil2.additions)) AS additions,"
+            + "       (sum(fil.deletions) + sum(fil2.deletions)) AS deletions,"
+            + "       (sum(fil.changes) + sum(fil2.changes)) AS codeChurn"
+            + "  FROM gitpullrequest pul,"
+            + "       gitcommitfile fil, gitcommitfile fil2,"
+            + "       gitpullrequest_gitrepositorycommit prc,"
+            + "       gitpullrequest_gitrepositorycommit prc2"
+            + " WHERE prc.entitypullrequest_id = pul.id"
+            + "   AND fil.repositorycommit_id = prc.repositorycommits_id"
+            + "   AND prc2.entitypullrequest_id = pul.id"
+            + "   AND fil2.repositorycommit_id = prc2.repositorycommits_id"
+            + "   AND fil.filename <> fil2.filename"
+            + "   AND prc.entitypullrequest_id = prc2.entitypullrequest_id"
+            + "   AND pul.mergedat IS NOT NULL"
+            + "   AND pul.repository_id = ?"
+            + "   AND fil.filename = ?"
+            + "   AND fil2.filename = ?"
+            + "   AND pul.createdat between ? AND ?";
 
 
     private static final String SELECT_PAIR_FILE_COMMITTERS
@@ -469,53 +473,49 @@ public class PairFileDAO {
             String fileName, String fileName2, Long beginNumber, Long endNumber) {
 
         Object[] bdObjects = new Object[]{
-            repository,
+            repository.getId(),
             fileName,
             fileName2,
             beginNumber,
             endNumber
         };
 
-        Long sum = dao.selectOneWithParams(
-                SELECT_SUM_OF_CHANGES_IN_FILE_BY_PULL_REQUEST_NUMBER,
-                SELECT_SUM_OF_CHANGES_IN_FILE_BY_PULL_REQUEST_NUMBER_PARAMS,
-                bdObjects);
+        Long sum = dao.selectNativeOneWithParams(
+                SELECT_SUM_OF_CHANGES_OF_FILE_PAIR_BY_PULL_REQUEST_NUMBER, bdObjects);
 
-        return sum != null ? sum : 0l;
+        return sum;
     }
 
     public Long calculeCodeChurn(EntityRepository repository, 
             String fileName, String fileName2, Date beginDate, Date endDate) {
 
         Object[] bdObjects = new Object[]{
-            repository,
+            repository.getId(),
             fileName,
             fileName2,
             beginDate,
             endDate
         };
 
-        Long sum = dao.selectOneWithParams(
-                SELECT_SUM_OF_CHANGES_IN_FILE_BY_DATE,
-                SELECT_SUM_OF_CHANGES_IN_FILE_BY_DATE_PARAMS, bdObjects);
+        Long sum = dao.selectNativeOneWithParams(
+                SELECT_SUM_OF_CHANGES_OF_FILE_PAIR_BY_DATE, bdObjects);
 
-        return sum != null ? sum : 0l;
+        return sum;
     }
 
     public AuxCodeChurn calculeCodeChurnAddDelChange(EntityRepository repository,
             String fileName, String fileName2, Date beginDate, Date endDate) {
 
-        Object[] bdObjects = new Object[]{
-            repository,
+        Object[] params = new Object[]{
+            repository.getId(),
             fileName,
             fileName2,
             beginDate,
             endDate
         };
 
-        List<Object[]> sum = dao.selectWithParams(
-                SELECT_SUM_OF_ADD_DEL_CHANGES_IN_FILE_BY_DATE,
-                SELECT_SUM_OF_ADD_DEL_CHANGES_IN_FILE_BY_DATE_PARAMS, bdObjects, Object[].class);
+        List<Object[]> sum = dao.selectNativeWithParams(
+                SELECT_SUM_OF_ADD_DEL_CHANGES_OF_FILE_PAIR_BY_DATE, params);
 
         Long additions = sum.get(0)[0] == null ? 0 : (Long) sum.get(0)[0];
         Long deletions = sum.get(0)[1] == null ? 0 : (Long) sum.get(0)[1];

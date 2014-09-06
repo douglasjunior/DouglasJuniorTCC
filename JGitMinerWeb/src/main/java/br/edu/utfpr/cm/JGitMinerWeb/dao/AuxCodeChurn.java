@@ -53,11 +53,11 @@ public class AuxCodeChurn {
     }
 
     public double getAdditionsNormalized() {
-        return (double) additions / (double) changes;
+        return changes == 0 ? 0 : (double) additions / (double) changes;
     }
 
     public double getDeletionsNormalized() {
-        return (double) deletions / (double) changes;
+        return changes == 0 ? 0 : (double) deletions / (double) changes;
     }
 
     public long getChanges() {

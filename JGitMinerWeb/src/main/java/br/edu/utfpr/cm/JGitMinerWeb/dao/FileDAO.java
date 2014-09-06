@@ -95,6 +95,18 @@ public class FileDAO {
     private static final String FILTER_BY_USER_EMAIL_OR_NAME
             = " AND (u.email = ? OR u.name = ?)";
 
+    private static final String SELECT_SUM_OF_CHANGES_OF_FILE_BY_DATE
+            = "SELECT sum(fil.changes) AS codeChurn"
+            + "  FROM gitpullrequest pul,"
+            + "       gitcommitfile fil,"
+            + "       gitpullrequest_gitrepositorycommit prc"
+            + " WHERE prc.entitypullrequest_id = pul.id"
+            + "   AND fil.repositorycommit_id = prc.repositorycommits_id"
+            + "   AND pul.mergedat IS NOT NULL"
+            + "   AND pul.repository_id = ?"
+            + "   AND fil.filename = ?"
+            + "   AND pul.createdat between ? AND ?";
+
     private final GenericDao dao;
 
     public FileDAO(GenericDao dao) {
@@ -332,5 +344,19 @@ public class FileDAO {
 
         return new AuxCodeChurn(fileName,
                 (Long) sum.get(0)[0], (Long) sum.get(0)[1], (Long) sum.get(0)[2]);
+    }
+
+    public long calculeCodeChurn(EntityRepository repository, String fileName, Date beginDate, Date endDate) {
+        Object[] bdObjects = new Object[]{
+            repository.getId(),
+            fileName,
+            beginDate,
+            endDate
+        };
+
+        Long sum = dao.selectNativeOneWithParams(
+                SELECT_SUM_OF_CHANGES_OF_FILE_BY_DATE, bdObjects);
+
+        return sum;
     }
 }
