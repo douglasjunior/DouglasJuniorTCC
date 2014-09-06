@@ -264,7 +264,7 @@ public class PairFileGlobalCommunicationSingleEdgeSNAMetricsInDateServices exten
         Map<String, StructuralHolesMeasure<String>> structuralHoles = StructuralHolesCalculator.calcule(graph, edgesWeigth);
 
         // number of pull requests in date interval
-        double numberOfAllPullrequestFuture = pairFileDAO.calculeNumberOfPullRequest(getRepository(), null, null, futureBeginDate, futureEndDate, true);
+        Long numberOfAllPullrequestFuture = pairFileDAO.calculeNumberOfPullRequest(getRepository(), null, null, futureBeginDate, futureEndDate, true);
         // cache for optimization number of pull requests where file is in,
         // reducing access to database
         Map<String, Long> pullRequestFileMap = new HashMap<>();
@@ -348,23 +348,23 @@ public class PairFileGlobalCommunicationSingleEdgeSNAMetricsInDateServices exten
             }
 
             // Average calculation /////////////////////////////////////////////
-            double distinctCommentersCount = devsCommentters.size();
+            Integer distinctCommentersCount = devsCommentters.size();
 //            barycenterAvg = barycenterSum / (double) distinctCommentersCount;
-            betweennessAvg = betweennessSum / distinctCommentersCount;
-            closenessAvg = closenessSum / distinctCommentersCount;
-            degreeAvg = degreeSum / distinctCommentersCount;
+            betweennessAvg = betweennessSum / distinctCommentersCount.doubleValue();
+            closenessAvg = closenessSum / distinctCommentersCount.doubleValue();
+            degreeAvg = degreeSum / distinctCommentersCount.doubleValue();
 //            eigenvectorAvg = eigenvectorSum / distinctCommentersCount;
 
-            egoBetweennessAvg = egoBetweennessSum / distinctCommentersCount;
-            egoSizeAvg = egoSizeSum / distinctCommentersCount;
+            egoBetweennessAvg = egoBetweennessSum / distinctCommentersCount.doubleValue();
+            egoSizeAvg = egoSizeSum / distinctCommentersCount.doubleValue();
 //            egoPairsAvg = egoPairsSum / distinctCommentersCount;
-            egoTiesAvg = egoTiesSum / distinctCommentersCount;
-            egoDensityAvg = egoDensitySum / distinctCommentersCount;
+            egoTiesAvg = egoTiesSum / distinctCommentersCount.doubleValue();
+            egoDensityAvg = egoDensitySum / distinctCommentersCount.doubleValue();
 
-            efficiencyAvg = efficiencySum / distinctCommentersCount;
-            effectiveSizeAvg = effectiveSizeSum / distinctCommentersCount;
-            constraintAvg = constraintSum / distinctCommentersCount;
-            hierarchyAvg = hierarchySum / distinctCommentersCount;
+            efficiencyAvg = efficiencySum / distinctCommentersCount.doubleValue();
+            effectiveSizeAvg = effectiveSizeSum / distinctCommentersCount.doubleValue();
+            constraintAvg = constraintSum / distinctCommentersCount.doubleValue();
+            hierarchyAvg = hierarchySum / distinctCommentersCount.doubleValue();
 
             // Weighted geometric average: issue > committers + commits ////////
             final long[][] committersCommitsPerIssue = pairFileDAO.calculeCommittersXCommits(
@@ -415,17 +415,17 @@ public class PairFileGlobalCommunicationSingleEdgeSNAMetricsInDateServices exten
                 ownershipMax = Math.max(ownershipMax, ownership);
 
                 // Calculing OEXP of each file
-                double experience = calculeDevFileExperience(changes, fileUserCommitMap, fileFile.getFileName(), devCommitter.getUser(), fileDAO, beginDate, endDate);
+                Double experience = calculeDevFileExperience(changes, fileUserCommitMap, fileFile.getFileName(), devCommitter.getUser(), fileDAO, beginDate, endDate);
                 ownerExperience = Math.max(experience, ownerExperience);
 
-                double experience2 = calculeDevFileExperience(changes2, fileUserCommitMap, fileFile.getFileName2(), devCommitter.getUser(), fileDAO, beginDate, endDate);
+                Double experience2 = calculeDevFileExperience(changes2, fileUserCommitMap, fileFile.getFileName2(), devCommitter.getUser(), fileDAO, beginDate, endDate);
                 ownerExperience2 = Math.max(experience2, ownerExperience2);
 
                 // Calculing OWN
-                double cumulativeExperience = calculeDevFileExperience(cummulativeChanges, fileUserCommitMap, fileFile.getFileName(), devCommitter.getUser(), fileDAO, null, endDate);
+                Double cumulativeExperience = calculeDevFileExperience(cummulativeChanges, fileUserCommitMap, fileFile.getFileName(), devCommitter.getUser(), fileDAO, null, endDate);
                 cummulativeOwnerExperience = Math.max(cummulativeOwnerExperience, cumulativeExperience);
 
-                double cumulativeExperience2 = calculeDevFileExperience(cummulativeChanges2, fileUserCommitMap, fileFile.getFileName2(), devCommitter.getUser(), fileDAO, null, endDate);
+                Double cumulativeExperience2 = calculeDevFileExperience(cummulativeChanges2, fileUserCommitMap, fileFile.getFileName2(), devCommitter.getUser(), fileDAO, null, endDate);
                 cummulativeOwnerExperience2 = Math.max(cummulativeOwnerExperience2, cumulativeExperience2);
 
             }
@@ -436,11 +436,11 @@ public class PairFileGlobalCommunicationSingleEdgeSNAMetricsInDateServices exten
 //            double majorContributorsRate = (double) majorContributors / (double) committers; // % de major
 //            double minorContributorsRate = (double) minorContributors / (double) committers; // % de minor
 
-            double updates = pairFileDAO.calculeNumberOfPullRequest(repository,
+            Long updates = pairFileDAO.calculeNumberOfPullRequest(repository,
                     fileFile.getFileName(), fileFile.getFileName2(), 
                     beginDate, endDate, true);
 
-            double futureUpdates;
+            Long futureUpdates;
             if (beginDate.equals(futureBeginDate) && endDate.equals(futureEndDate)) {
                 futureUpdates = updates;
             } else {
@@ -458,13 +458,13 @@ public class PairFileGlobalCommunicationSingleEdgeSNAMetricsInDateServices exten
                 wordiness += WordinessCalculator.calcule(auxWordiness);
             }
 
-            long commentsSum = pairFileDAO.calculeComments(repository,
+            Long commentsSum = pairFileDAO.calculeComments(repository,
                     fileFile.getFileName(), fileFile.getFileName2(), 
                     beginDate, endDate, true);
 
-            long codeChurn = fileDAO.calculeCodeChurn(repository,
+            Long codeChurn = fileDAO.calculeCodeChurn(repository,
                     fileFile.getFileName(), beginDate, endDate);
-            long codeChurn2 = fileDAO.calculeCodeChurn(repository,
+            Long codeChurn2 = fileDAO.calculeCodeChurn(repository,
                     fileFile.getFileName2(), beginDate, endDate);
 
             AuxCodeChurn pairFileCodeChurn = pairFileDAO.calculeCodeChurnAddDelChange(repository,
@@ -512,22 +512,22 @@ public class PairFileGlobalCommunicationSingleEdgeSNAMetricsInDateServices exten
             );
 
             // apriori /////////////////////////////////////////////////////////
-            double fileNumberOfPullrequestOfPairFuture
+            Long fileNumberOfPullrequestOfPairFuture
                     = calculeNumberOfPullRequest(pullRequestFileMap, auxFileFileMetrics.getFile(), pairFileDAO, futureBeginDate, futureEndDate);
 
-            double file2NumberOfPullrequestOfPairFuture
+            Long file2NumberOfPullrequestOfPairFuture
                     = calculeNumberOfPullRequest(pullRequestFileMap, auxFileFileMetrics.getFile2(), pairFileDAO, futureBeginDate, futureEndDate);
 
             auxFileFileMetrics.addMetrics(fileNumberOfPullrequestOfPairFuture, file2NumberOfPullrequestOfPairFuture, numberOfAllPullrequestFuture);
 
-            double supportFile = fileNumberOfPullrequestOfPairFuture / numberOfAllPullrequestFuture;
-            double supportFile2 = file2NumberOfPullrequestOfPairFuture / numberOfAllPullrequestFuture;
-            double supportPairFile = futureUpdates / numberOfAllPullrequestFuture;
-            double confidence = supportFile == 0 ? 0d : supportPairFile / supportFile;
-            double confidence2 = supportFile2 == 0 ? 0d : supportPairFile / supportFile2;
-            double lift = supportFile * supportFile2 == 0 ? 0d : supportPairFile / (supportFile * supportFile2);
-            double conviction = 1 - confidence == 0 ? 0d : (1 - supportFile) / (1 - confidence);
-            double conviction2 = 1 - confidence2 == 0 ? 0d : (1 - supportFile2) / (1 - confidence2);
+            Double supportFile = fileNumberOfPullrequestOfPairFuture.doubleValue() / numberOfAllPullrequestFuture.doubleValue();
+            Double supportFile2 = file2NumberOfPullrequestOfPairFuture.doubleValue() / numberOfAllPullrequestFuture.doubleValue();
+            Double supportPairFile = futureUpdates.doubleValue() / numberOfAllPullrequestFuture.doubleValue();
+            Double confidence = supportFile == 0 ? 0d : supportPairFile / supportFile;
+            Double confidence2 = supportFile2 == 0 ? 0d : supportPairFile / supportFile2;
+            Double lift = supportFile * supportFile2 == 0 ? 0d : supportPairFile / (supportFile * supportFile2);
+            Double conviction = 1 - confidence == 0 ? 0d : (1 - supportFile) / (1 - confidence);
+            Double conviction2 = 1 - confidence2 == 0 ? 0d : (1 - supportFile2) / (1 - confidence2);
 
             auxFileFileMetrics.addMetrics(
                     supportFile, supportFile2, supportPairFile,
