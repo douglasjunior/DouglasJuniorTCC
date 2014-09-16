@@ -1,11 +1,7 @@
 package br.edu.utfpr.cm.JGitMinerWeb.dao;
 
 import br.edu.utfpr.cm.JGitMinerWeb.model.miner.EntityComment;
-import br.edu.utfpr.cm.JGitMinerWeb.model.miner.EntityCommit;
-import br.edu.utfpr.cm.JGitMinerWeb.model.miner.EntityCommitFile;
-import br.edu.utfpr.cm.JGitMinerWeb.model.miner.EntityCommitUser;
 import br.edu.utfpr.cm.JGitMinerWeb.model.miner.EntityRepository;
-import br.edu.utfpr.cm.JGitMinerWeb.model.miner.EntityRepositoryCommit;
 import br.edu.utfpr.cm.JGitMinerWeb.services.metric.auxiliary.AuxWordiness;
 import java.util.ArrayList;
 import java.util.Date;
@@ -20,30 +16,44 @@ import java.util.Set;
 public class PairFileDAO {
 
     private static final String CALCULE_SUM_UPDATES_OF_TWO_FILE
-            = "SELECT count(1) FROM " + EntityRepositoryCommit.class.getSimpleName() + " rc "
-            + "JOIN " + EntityCommit.class.getSimpleName() + " c ON rc.commit = c "
-            + "JOIN " + EntityCommitUser.class.getSimpleName() + " u ON c.committer = u "
-            + "JOIN " + EntityCommitFile.class.getSimpleName() + " f ON f.repositoryCommit = rc "
-            + "WHERE "
-            + "rc.repository = :repo AND "
-            + "u.dateCommitUser BETWEEN :beginDate AND :endDate AND "
-            + "(f.filename = :fileName OR f.filename = :fileName2)";
-
-    private static final String[] CALCULE_SUM_UPDATES_OF_TWO_FILE_PARAMS = new String[]{
-        "repo", "fileName", "fileName2", "beginDate", "endDate"
-    };
+            = "SELECT count(1)"
+            + "  FROM gitrepositorycommit rc,"
+            + "       gitcommit c,"
+            + "       gitcommituser u,"
+            + "       gitcommitfile fil"
+            + " WHERE rc.commit_id = c.id"
+            + "   AND c.committer_id = u.id"
+            + "   AND fil.repositorycommit_id = rc.id"
+            + "   AND rc.repository_id = ?"
+            + "   AND u.datecommituser BETWEEN ? AND ?"
+            + "   AND (fil.filename = ? OR fil.filename = ?)";
 
     private static final String CALCULE_UPDATES
-            = "SELECT COUNT(rc) FROM EntityRepositoryCommit rc "
-            + "WHERE "
-            + "rc.repository = :repo AND "
-            + "rc.commit.committer.dateCommitUser BETWEEN :beginDate AND :endDate AND "
-            + "EXISTS (SELECT f FROM EntityCommitFile f WHERE f.repositoryCommit = rc AND f.filename = :fileName) AND "
-            + "EXISTS (SELECT f2 FROM EntityCommitFile f2 WHERE f2.repositoryCommit = rc AND f2.filename = :fileName2)";
-
-    private static final String[] CALCULE_UPDATES_PARAMS = new String[]{
-        "repo", "fileName", "fileName2", "beginDate", "endDate"
-    };
+            = "SELECT count(distinct(rc.id)) FROM "
+            + "  gitcommitfile fil, gitcommitfile fil2, "
+            + "  gitpullrequest_gitrepositorycommit prc,"
+            + "  gitpullrequest_gitrepositorycommit prc2,"
+            + "  gitrepositorycommit rc,"
+            + "  gitrepositorycommit rc2,"
+            + "  gitcommit c,"
+            + "  gitcommit c2,"
+            + "  gitcommituser u,"
+            + "  gitcommituser u2"
+            + " WHERE fil.repositorycommit_id = prc.repositorycommits_id"
+            + "   AND fil.repositorycommit_id = rc.id"
+            + "   AND rc.commit_id = c.id"
+            + "   AND u.id = c.committer_id"
+            + "   AND fil2.repositorycommit_id = prc2.repositorycommits_id"
+            + "   AND fil2.repositorycommit_id = rc2.id"
+            + "   AND rc2.commit_id = c2.id"
+            + "   AND u2.id = c2.committer_id"
+            + "   AND fil.filename <> fil2.filename"
+            + "   AND prc.entitypullrequest_id = prc2.entitypullrequest_id"
+            + "   AND rc.repository_id = ?"
+            + "   AND u.datecommituser BETWEEN ? AND ?"
+            + "   AND u2.datecommituser BETWEEN ? AND ?"
+            + "   AND fil.filename = ?"
+            + "   AND fil2.filename = ?";
 
     private static final String SELECT_PULL_REQUEST_BY_DATE = "SELECT count(distinct(pul.id)) "
             + " FROM gitpullrequest pul "
@@ -328,7 +338,7 @@ public class PairFileDAO {
             endDate
         };
 
-        return dao.selectOneWithParams(CALCULE_SUM_UPDATES_OF_TWO_FILE, CALCULE_SUM_UPDATES_OF_TWO_FILE_PARAMS, queryParams);
+        return dao.selectNativeOneWithParams(CALCULE_SUM_UPDATES_OF_TWO_FILE, queryParams);
     }
 
     public Long calculeUpdates(EntityRepository repository,
@@ -340,13 +350,15 @@ public class PairFileDAO {
 
         Object[] queryParams = new Object[]{
             repository,
-            fileName,
-            fileName2,
             beginDate,
-            endDate
+            endDate,
+            beginDate,
+            endDate,
+            fileName,
+            fileName2
         };
 
-        return dao.selectOneWithParams(CALCULE_UPDATES, CALCULE_UPDATES_PARAMS, queryParams);
+        return dao.selectNativeOneWithParams(CALCULE_UPDATES, queryParams);
     }
 
     public long calculeNumberOfPullRequest(EntityRepository repository, 
