@@ -8,6 +8,8 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import org.joda.time.Days;
+import org.joda.time.LocalDate;
 
 /**
  *
@@ -316,6 +318,40 @@ public class PairFileDAO {
             + "   AND fil.filename = ?"
             + "   AND fil2.filename = ?"
             + " GROUP BY i.id";
+
+    private static final String SELECT_RELEASE_MIN_MAX_DATE_CREATION
+            = "SELECT min(u.datecommituser), max(u.datecommituser) "
+            + "  FROM gitpullrequest pul, gitissue i,"
+            + "       gitcommitfile fil, gitcommitfile fil2, "
+            + "       gitpullrequest_gitrepositorycommit prc,"
+            + "       gitrepositorycommit rc,       "
+            + "       gitcommit c,"
+            + "       gitcommituser u,"
+            + "       gitpullrequest_gitrepositorycommit prc2,"
+            + "       gitrepositorycommit rc2,"
+            + "       gitcommituser u2,"
+            + "       gitcommit c2"
+            + " WHERE pul.issue_id = i.id"
+            + "   AND prc.entitypullrequest_id = pul.id"
+            + "   AND rc.id = prc.repositorycommits_id"
+            + "   AND fil.repositorycommit_id = rc.id"
+            + "   AND rc.commit_id = c.id"
+            + "   AND c.committer_id = u.id"
+            + "   AND prc2.entitypullrequest_id = pul.id"
+            + "   AND rc2.id = prc2.repositorycommits_id"
+            + "   AND fil2.repositorycommit_id = rc2.id"
+            + "   AND rc2.commit_id = c2.id"
+            + "   AND c2.committer_id = u2.id"
+            + "   AND fil.filename <> fil2.filename"
+            + "   AND prc.entitypullrequest_id = prc2.entitypullrequest_id"
+            + "   AND pul.repository_id = ?"
+            + "   AND fil.filename = ?"
+            + "   AND fil2.filename = ?";
+
+    private static final String BEGIN_DATE
+            = " AND pul.createdat >= ?";
+    private static final String END_DATE
+            = " AND pul.createdat <= ?";
 
     private final GenericDao dao;
 
@@ -788,5 +824,45 @@ public class PairFileDAO {
         List<EntityComment> comments = dao.selectNativeWithParams(sql.toString(), selectParams.toArray());
 
         return comments;
+    }
+
+    public int calculePairFileDaysAge(EntityRepository repository, String file, String file2, Date beginDate, Date endDate, boolean onlyMergeds) {
+        if (file == null || file2 == null) {
+            throw new IllegalArgumentException("The file and file2 parameters can not be null.");
+        }
+
+        List<Object> selectParams = new ArrayList<>();
+
+        StringBuilder sql = new StringBuilder();
+        sql.append(SELECT_RELEASE_MIN_MAX_DATE_CREATION);
+
+        if (onlyMergeds) {
+            sql.append(MERGED_PULL_REQUEST_ONLY);
+        }
+
+        selectParams.add(repository.getId());
+        selectParams.add(file);
+        selectParams.add(file2);
+
+        if (beginDate != null) {
+            sql.append(BEGIN_DATE);
+            selectParams.add(beginDate);
+        }
+
+        if (endDate != null) {
+            sql.append(END_DATE);
+            selectParams.add(endDate);
+        }
+
+        List<Object[]> minMaxDateList = dao.selectNativeWithParams(sql.toString(), selectParams.toArray());
+        Object[] minMaxDate = minMaxDateList.get(0);
+        java.sql.Timestamp minDate = (java.sql.Timestamp) minMaxDate[0];
+        java.sql.Timestamp maxDate = (java.sql.Timestamp) minMaxDate[1];
+
+        LocalDate createdAt = new LocalDate(minDate.getTime());
+        LocalDate finalDate = new LocalDate(maxDate.getTime());
+        Days age = Days.daysBetween(createdAt, finalDate);
+
+        return age.getDays();
     }
 }

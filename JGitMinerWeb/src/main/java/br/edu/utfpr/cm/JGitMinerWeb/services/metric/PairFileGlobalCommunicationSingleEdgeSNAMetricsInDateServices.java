@@ -18,6 +18,7 @@ import br.edu.utfpr.cm.JGitMinerWeb.services.metric.auxiliary.AuxWordiness;
 import br.edu.utfpr.cm.JGitMinerWeb.services.metric.centrality.BetweennessCalculator;
 import br.edu.utfpr.cm.JGitMinerWeb.services.metric.centrality.ClosenessCalculator;
 import br.edu.utfpr.cm.JGitMinerWeb.services.metric.centrality.DegreeCalculator;
+import br.edu.utfpr.cm.JGitMinerWeb.services.metric.centrality.EigenvectorCalculator;
 import br.edu.utfpr.cm.JGitMinerWeb.services.metric.discussion.WordinessCalculator;
 import br.edu.utfpr.cm.JGitMinerWeb.services.metric.ego.EgoMeasure;
 import br.edu.utfpr.cm.JGitMinerWeb.services.metric.ego.EgoMeasureCalculator;
@@ -259,7 +260,7 @@ public class PairFileGlobalCommunicationSingleEdgeSNAMetricsInDateServices exten
         Map<String, Double> betweenness = BetweennessCalculator.calcule(graph, edgesWeigth);
         Map<String, Double> closeness = ClosenessCalculator.calcule(graph, edgesWeigth);
         Map<String, Integer> degree = DegreeCalculator.calcule(graph);
-        // Map<String, Double> eigenvector = EigenvectorCalculator.calcule(graph, edgesWeigth);
+         Map<String, Double> eigenvector = EigenvectorCalculator.calcule(graph, edgesWeigth);
         Map<String, EgoMeasure<String>> ego = EgoMeasureCalculator.calcule(graph, edgesWeigth);
         Map<String, StructuralHolesMeasure<String>> structuralHoles = StructuralHolesCalculator.calcule(graph, edgesWeigth);
 
@@ -295,7 +296,7 @@ public class PairFileGlobalCommunicationSingleEdgeSNAMetricsInDateServices exten
             Double closenessSum = 0d, closenessAvg, closenessMax = Double.NEGATIVE_INFINITY;
             Integer degreeSum = 0, degreeMax = Integer.MIN_VALUE; 
             Double degreeAvg;
-//            Double eigenvectorSum = 0d, eigenvectorAvg, eigenvectorMax = Double.NEGATIVE_INFINITY;
+            Double eigenvectorSum = 0d, eigenvectorAvg, eigenvectorMax = Double.NEGATIVE_INFINITY;
 
             Double egoBetweennessSum = 0d, egoBetweennessAvg, egoBetweennessMax = Double.NEGATIVE_INFINITY;
             Long egoSizeSum = 0l, egoSizeMax = Long.MIN_VALUE;
@@ -332,7 +333,7 @@ public class PairFileGlobalCommunicationSingleEdgeSNAMetricsInDateServices exten
                 betweennessMax = Math.max(betweennessMax, betweenness.get(commenter));
                 closenessMax = Math.max(closenessMax, Double.isInfinite(closeness.get(commenter)) ? 0 : closeness.get(commenter));
                 degreeMax = Math.max(degreeMax, degree.get(commenter));
-//                eigenvectorMax = Math.max(eigenvectorMax, eigenvector.get(commenter));
+                eigenvectorMax = Math.max(eigenvectorMax, eigenvector.get(commenter));
 
                 egoBetweennessMax = Math.max(egoBetweennessMax, ego.get(commenter).getBetweennessCentrality());
                 egoSizeMax = Math.max(egoSizeMax, ego.get(commenter).getSize());
@@ -353,7 +354,7 @@ public class PairFileGlobalCommunicationSingleEdgeSNAMetricsInDateServices exten
             betweennessAvg = betweennessSum / distinctCommentersCount.doubleValue();
             closenessAvg = closenessSum / distinctCommentersCount.doubleValue();
             degreeAvg = degreeSum / distinctCommentersCount.doubleValue();
-//            eigenvectorAvg = eigenvectorSum / distinctCommentersCount;
+            eigenvectorAvg = eigenvectorSum / distinctCommentersCount.doubleValue();
 
             egoBetweennessAvg = egoBetweennessSum / distinctCommentersCount.doubleValue();
             egoSizeAvg = egoSizeSum / distinctCommentersCount.doubleValue();
@@ -477,14 +478,19 @@ public class PairFileGlobalCommunicationSingleEdgeSNAMetricsInDateServices exten
             closenessAvg = MathUtils.zeroIfNaN(closenessAvg);
             closenessMax = MathUtils.zeroIfNaN(closenessMax);
 
-            
+            // pair file age in release interval (days)
+            int ageRelease = pairFileDAO.calculePairFileDaysAge(repository, fileFile.getFileName(), fileFile.getFileName2(), beginDate, endDate, true);
+
+            // pair file age in total until final date (days)
+            int ageTotal = pairFileDAO.calculePairFileDaysAge(repository, fileFile.getFileName(), fileFile.getFileName2(), null, endDate, true);
+
             AuxFileFileMetrics auxFileFileMetrics = new AuxFileFileMetrics(
                     fileFile.getFileName(), fileFile.getFileName2(), 
 //                        barycenterSum, barycenterAvg, barycenterMax,
                     betweennessSum, betweennessAvg, betweennessMax,
                     closenessSum, closenessAvg, closenessMax,
                     degreeSum, degreeAvg, degreeMax,
-//                    eigenvectorSum, eigenvectorAvg, eigenvectorMax,
+                    eigenvectorSum, eigenvectorAvg, eigenvectorMax,
 
                     egoBetweennessSum, egoBetweennessAvg, egoBetweennessMax,
                     egoSizeSum, egoSizeAvg, egoSizeMax,
@@ -508,7 +514,7 @@ public class PairFileGlobalCommunicationSingleEdgeSNAMetricsInDateServices exten
                     distinctCommentersCount, commentsSum, wordiness,
                     codeChurn, codeChurn2, codeChurnAvg,
                     pairFileCodeChurn.getAdditionsNormalized(), pairFileCodeChurn.getDeletionsNormalized(), pairFileCodeChurn.getChanges(),
-                    updates, futureUpdates
+                    ageRelease, ageTotal, updates, futureUpdates
             );
 
             // apriori /////////////////////////////////////////////////////////
@@ -598,7 +604,7 @@ public class PairFileGlobalCommunicationSingleEdgeSNAMetricsInDateServices exten
                 + "btwSum;btwAvg;btwMax;"
                 + "clsSum;clsAvg;clsMax;"
                 + "dgrSum;dgrAvg;dgrMax;"
-                // + "egvSum;egvAvg;egvMax;"
+                 + "egvSum;egvAvg;egvMax;"
                 + "egoBtwSum;egoBtwAvg;egoBtwMax;"
                 + "egoSizeSum;egoSizeAvg;egoSizeMax;"
                 + "egoTiesSum;egoTiesAvg;egoTiesMax;"
@@ -618,6 +624,7 @@ public class PairFileGlobalCommunicationSingleEdgeSNAMetricsInDateServices exten
                 + "commenters;comments;wordiness;"
                 + "codeChurn;codeChurn2;codeChurnAvg;"
                 + "add;del;changes;"
+                + "ageRelease;ageTotal;"
                 + "updates;futureUpdates;"
                 + "fileChangeFuture;file2ChangeFuture;allPullrequestFuture;"
                 + "supportFile;supportFile2;supportPairFile;confidence;confidence2;lift;conviction;conviction2";
