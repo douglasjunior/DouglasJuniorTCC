@@ -1,6 +1,7 @@
 package br.edu.utfpr.cm.JGitMinerWeb.util;
 
 import edu.uci.ics.jung.algorithms.layout.FRLayout;
+import edu.uci.ics.jung.algorithms.layout.Layout;
 import edu.uci.ics.jung.graph.Graph;
 import edu.uci.ics.jung.visualization.VisualizationImageServer;
 import edu.uci.ics.jung.visualization.VisualizationViewer;
@@ -22,15 +23,24 @@ import javax.imageio.ImageIO;
  */
 public class JungExport {
 
-    public static void exportToImage(
-            Graph<String, String> graph, String path, String filename) {
+    public static <V, E> void exportToImage(Graph<V, E> graph, String path, String filename) {
+        exportToImage(graph, null, path, filename);
+    }
+
+    public static <V, E> void exportToImage(
+            Graph<V, E> graph, Layout<V, E> layout, String path, String filename) {
         try {
             Dimension d = new Dimension(1920 * 2, 1080 * 2);
-            VisualizationViewer<String, String> vv
-                    = new VisualizationViewer<>(new FRLayout<>(graph, d));
+
+            if (layout == null) {
+                layout = new FRLayout<>(graph, d);
+            }
+
+            VisualizationViewer<V, E> vv
+                    = new VisualizationViewer<>(layout);
             // Create the VisualizationImageServer
             // vv is the VisualizationViewer containing my graph
-            VisualizationImageServer<String, String> vis
+            VisualizationImageServer<V, E> vis
                     = new VisualizationImageServer<>(vv.getGraphLayout(),
                             vv.getGraphLayout().getSize());
 
@@ -39,8 +49,8 @@ public class JungExport {
             vis.setBackground(Color.WHITE);
 
             // vis.getRenderContext().setEdgeLabelTransformer(NOPTransformer.INSTANCE);
-            vis.getRenderContext().setEdgeShapeTransformer(new EdgeShape.Line<String, String>());
-            vis.getRenderContext().setVertexLabelTransformer(new ToStringLabeller<String>());
+            vis.getRenderContext().setEdgeShapeTransformer(new EdgeShape.Line<V, E>());
+            vis.getRenderContext().setVertexLabelTransformer(new ToStringLabeller<V>());
             vis.getRenderer().getVertexLabelRenderer()
                     .setPosition(Renderer.VertexLabel.Position.CNTR);
 
