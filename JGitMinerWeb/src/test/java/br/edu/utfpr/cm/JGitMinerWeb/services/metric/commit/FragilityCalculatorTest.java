@@ -1,7 +1,6 @@
 package br.edu.utfpr.cm.JGitMinerWeb.services.metric.commit;
 
 import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.auxiliary.AuxFileFile;
-import edu.uci.ics.jung.graph.UndirectedGraph;
 import java.util.HashSet;
 import java.util.Set;
 import org.junit.Assert;
@@ -28,8 +27,8 @@ public class FragilityCalculatorTest {
         pairFiles.add(new AuxFileFile("A/C/E/F/Z", "A/B/Y"));
         // fragility = sum(path) / pair of files = 16 / 3 = 5,333.
 
-        UndirectedGraph<String, String> commitGraph = CommitGraphBuilder.build(files);
-        double fragility = FragilityCalculator.calcule(commitGraph, pairFiles);
+        FragilityCalculator fc = new FragilityCalculator(files, false);
+        double fragility = fc.calcule(pairFiles);
         Assert.assertEquals(5.3333, fragility, 0.0001);
     }
 
@@ -45,8 +44,8 @@ public class FragilityCalculatorTest {
         pairFiles.add(new AuxFileFile("root/A/C/E/F/Z", "root/A/B/Y"));
         // fragility = sum(path) / pair of files = 16 / 3 = 5,333.
 
-        UndirectedGraph<String, String> commitGraph = CommitGraphBuilder.buildAddingRoot(files);
-        double fragility = FragilityCalculator.calcule(commitGraph, pairFiles);
+        FragilityCalculator fc = new FragilityCalculator(files, true);
+        double fragility = fc.calcule(pairFiles);
         Assert.assertEquals(5.3333, fragility, 0.0001);
     }
 

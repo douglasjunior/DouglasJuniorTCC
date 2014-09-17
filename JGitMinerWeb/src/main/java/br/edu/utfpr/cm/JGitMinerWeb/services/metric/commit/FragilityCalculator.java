@@ -24,9 +24,23 @@ import java.util.Set;
  */
 public class FragilityCalculator {
 
-    public static double calcule(final UndirectedGraph<String, String> graph, final Set<AuxFileFile> files) {
-        DijkstraShortestPath<String, String> shortestPath = new DijkstraShortestPath<>(graph);
+    private final DijkstraShortestPath<String, String> shortestPath;
 
+    public FragilityCalculator(Set<String> files, boolean addRoot) {
+        UndirectedGraph<String, String> graph;
+        if (addRoot) {
+            graph = CommitGraphBuilder.buildAddingRoot(files);
+        } else {
+            graph = CommitGraphBuilder.build(files);
+        }
+        this.shortestPath = new DijkstraShortestPath<>(graph);
+    }
+
+    public FragilityCalculator(UndirectedGraph<String, String> graph) {
+        this.shortestPath = new DijkstraShortestPath<>(graph);
+    }
+
+    public double calcule(final Set<AuxFileFile> files) {
         int pathSum = 0;
         for (AuxFileFile auxFileFile : files) {
             List<String> edges = shortestPath.getPath(auxFileFile.getFileName(), auxFileFile.getFileName2());

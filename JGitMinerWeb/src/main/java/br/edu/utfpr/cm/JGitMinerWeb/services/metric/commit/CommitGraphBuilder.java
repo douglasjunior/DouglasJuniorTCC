@@ -9,11 +9,11 @@ import java.util.Set;
  *
  * @author Rodrigo T. Kuroda
  */
-public class CommitGraphBuilder {
+class CommitGraphBuilder {
 
     public static final String PATH_SEPARATOR = "/";
 
-    public static UndirectedGraph<String, String> build(final Set<String> files) {
+    static UndirectedGraph<String, String> build(final Set<String> files) {
 
         UndirectedGraph<String, String> graph = new UndirectedSparseGraph<>();
         // DelegateTree<String, String> graph = new DelegateTree<>();
@@ -45,7 +45,7 @@ public class CommitGraphBuilder {
         return graph;
     }
 
-    public static UndirectedGraph<String, String> buildAddingRoot(final Set<String> files) {
+    static UndirectedGraph<String, String> buildAddingRoot(final Set<String> files) {
 
         UndirectedGraph<String, String> graph = new UndirectedSparseGraph<>();
         // DelegateTree<String, String> graph = new DelegateTree<>();
