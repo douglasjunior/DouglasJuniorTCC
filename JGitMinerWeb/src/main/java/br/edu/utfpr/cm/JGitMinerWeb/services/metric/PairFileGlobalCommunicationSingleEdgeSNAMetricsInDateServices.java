@@ -30,6 +30,7 @@ import br.edu.utfpr.cm.JGitMinerWeb.util.JsfUtil;
 import br.edu.utfpr.cm.JGitMinerWeb.util.JungExport;
 import br.edu.utfpr.cm.JGitMinerWeb.util.MathUtils;
 import br.edu.utfpr.cm.JGitMinerWeb.util.OutLog;
+import br.edu.utfpr.cm.JGitMinerWeb.util.PathUtils;
 import edu.uci.ics.jung.graph.DirectedSparseGraph;
 import edu.uci.ics.jung.graph.util.EdgeType;
 import java.text.SimpleDateFormat;
@@ -41,6 +42,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.apache.commons.lang3.BooleanUtils;
 
 /**
  * 
@@ -484,9 +486,11 @@ public class PairFileGlobalCommunicationSingleEdgeSNAMetricsInDateServices exten
             // pair file age in total until final date (days)
             int ageTotal = pairFileDAO.calculePairFileDaysAge(repository, fileFile.getFileName(), fileFile.getFileName2(), null, endDate, true);
 
+            boolean samePackage = PathUtils.isSameFullPath(fileFile.getFileName(), fileFile.getFileName2());
+
             AuxFileFileMetrics auxFileFileMetrics = new AuxFileFileMetrics(
-                    fileFile.getFileName(), fileFile.getFileName2(), 
-//                        barycenterSum, barycenterAvg, barycenterMax,
+                    fileFile.getFileName(), fileFile.getFileName2(), BooleanUtils.toInteger(samePackage),
+                    //                        barycenterSum, barycenterAvg, barycenterMax,
                     betweennessSum, betweennessAvg, betweennessMax,
                     closenessSum, closenessAvg, closenessMax,
                     degreeSum, degreeAvg, degreeMax,
@@ -599,7 +603,7 @@ public class PairFileGlobalCommunicationSingleEdgeSNAMetricsInDateServices exten
 
     @Override
     public String getHeadCSV() {
-        return "file;file2;"
+        return "file;file2;samePackage;"
                 // + "brcAvg;brcSum;brcMax;"
                 + "btwSum;btwAvg;btwMax;"
                 + "clsSum;clsAvg;clsMax;"
