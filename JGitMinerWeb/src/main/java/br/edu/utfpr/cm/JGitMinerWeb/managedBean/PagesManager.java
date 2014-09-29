@@ -66,6 +66,11 @@ public class PagesManager implements Serializable {
         return "refreshPage";
     }
 
+    public String bichoMatrixCreateQueue() {
+        this.body = "./pages/matrix/bichoCreateQueue.xhtml";
+        return "refreshPage";
+    }
+
     public String matrixView() {
         this.body = "./pages/matrix/view.xhtml";
         return "refreshPage";
