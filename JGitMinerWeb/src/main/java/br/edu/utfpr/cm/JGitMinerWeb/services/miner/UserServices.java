@@ -14,6 +14,7 @@ import java.util.List;
 import org.eclipse.egit.github.core.Repository;
 import org.eclipse.egit.github.core.User;
 import org.eclipse.egit.github.core.service.CollaboratorService;
+import org.eclipse.egit.github.core.service.UserService;
 import org.eclipse.egit.github.core.service.WatcherService;
 
 /**
@@ -40,6 +41,11 @@ public class UserServices implements Serializable {
         if (firstMiner || user == null) {
             if (user == null) {
                 user = new EntityUser();
+            }
+            if (gitUser.getLogin() != null
+                    && (gitUser.getEmail() == null
+                    || gitUser.getName() == null)) {
+                gitUser = getGitUserByLogin(gitUser.getLogin());
             }
             user.setCreatedAt(gitUser.getCreatedAt());
             user.setCollaborators(gitUser.getCollaborators());
@@ -72,6 +78,17 @@ public class UserServices implements Serializable {
             dao.edit(user);
         }
 
+        return user;
+    }
+
+    public static User getGitUserByLogin(String login) {
+        User user = null;
+        try {
+            user = new UserService(AuthServices.getGitHubClient()).getUser(login);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            System.out.println("Erro ao consultar usuário \"" + login + "\": " + ex.toString());
+        }
         return user;
     }
 

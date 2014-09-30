@@ -62,8 +62,15 @@ public class CommitCommentServices implements Serializable {
     public static List<CommitComment> getGitCommitComments(Repository gitRepo, EntityRepositoryCommit repoCommit) throws Exception {
         try {
             return new CommitService(AuthServices.getGitHubClient()).getComments(gitRepo, repoCommit.getSha());
+        } catch (java.net.UnknownHostException ex) {
+            ex.printStackTrace();
+            Thread.sleep(100 * 1000);
+            return getGitCommitComments(gitRepo, repoCommit);
         } catch (Exception ex) {
             ex.printStackTrace();
+            if (ex instanceof java.net.UnknownHostException) {
+                Thread.sleep(100 * 1000);
+            }
             return getGitCommitComments(gitRepo, repoCommit);
         }
     }
