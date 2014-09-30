@@ -16,14 +16,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import javax.ejb.EJB;
-import javax.faces.bean.ManagedBean;
-import javax.faces.bean.SessionScoped;
+import javax.enterprise.context.SessionScoped;
+import javax.inject.Named;
 
 /**
  *
  * @author douglas
  */
-@ManagedBean(name = "gitMatrixBean")
+@Named
 @SessionScoped
 public class GitMatrixBean implements Serializable {
 

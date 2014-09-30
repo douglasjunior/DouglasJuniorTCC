@@ -21,14 +21,14 @@ import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import javax.ejb.EJB;
-import javax.faces.bean.ManagedBean;
-import javax.faces.bean.SessionScoped;
+import javax.enterprise.context.SessionScoped;
+import javax.inject.Named;
 
 /**
  *
  * @author Rodrigo T. Kuroda
  */
-@ManagedBean
+@Named
 @SessionScoped
 public class GitMetricQueueBean implements Serializable {
 
@@ -255,6 +255,8 @@ public class GitMetricQueueBean implements Serializable {
     public String getMatrixParamsToString() {
         matrix = getMatrixSelected();
         if (matrix != null) {
+            params.put("futureBeginDate", matrix.getParams().get("beginDate"));
+            params.put("futureEndDate", matrix.getParams().get("endDate"));
             return matrix.getParams() + "";
         }
         return "";

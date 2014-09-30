@@ -5,30 +5,27 @@ import br.edu.utfpr.cm.JGitMinerWeb.model.matrix.EntityMatrix;
 import br.edu.utfpr.cm.JGitMinerWeb.model.matrix.EntityMatrixNode;
 import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.AbstractMatrixServices;
 import br.edu.utfpr.cm.JGitMinerWeb.util.JsfUtil;
-import br.edu.utfpr.cm.JGitMinerWeb.util.OutLog;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintWriter;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import javax.ejb.EJB;
-import javax.faces.bean.ManagedBean;
-import javax.faces.bean.RequestScoped;
+import javax.enterprise.context.RequestScoped;
+import javax.inject.Named;
 import org.primefaces.model.StreamedContent;
 
 /**
  *
  * @author douglas
  */
-@ManagedBean(name = "gitMatrixViewBean")
+@Named
 @RequestScoped
 public class GitMatrixViewBean implements Serializable {
 
     private final String FOR_DELETE = "matrixForDelete";
     private final String LIST = "listMatrices";
-    /*
-     * 
-     */
+
     @EJB
     private GenericDao dao;
 
@@ -84,8 +81,6 @@ public class GitMatrixViewBean implements Serializable {
     public StreamedContent downloadCSV(EntityMatrix matrix) {
         StreamedContent file = null;
         try {
-            OutLog out = new OutLog();
-
             System.out.println("Matriz tem nodes: " + matrix.getNodes().size());
 
             String fileName = generateFileName(matrix) + ".csv";
@@ -93,7 +88,7 @@ public class GitMatrixViewBean implements Serializable {
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             PrintWriter pw = new PrintWriter(baos);
 
-            AbstractMatrixServices services = AbstractMatrixServices.createInstance(dao, out, matrix.getClassServicesName());
+            AbstractMatrixServices services = AbstractMatrixServices.createInstance(null, null, matrix.getClassServicesName());
 
             pw.println(services.getHeadCSV());
 
@@ -151,6 +146,6 @@ public class GitMatrixViewBean implements Serializable {
     }
 
     private String generateFileName(EntityMatrix matrix) {
-        return matrix.getClassServicesSingleName() + " (" + matrix.getRepository() + ") - " + matrix.getStarted();
+        return "(" + matrix.getId() + ") " + matrix.getClassServicesSingleName() + " (" + matrix.getRepository() + ")";
     }
 }

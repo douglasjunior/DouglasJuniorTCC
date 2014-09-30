@@ -19,14 +19,14 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import javax.ejb.EJB;
-import javax.faces.bean.ManagedBean;
-import javax.faces.bean.SessionScoped;
+import javax.enterprise.context.SessionScoped;
+import javax.inject.Named;
 
 /**
  *
  * @author douglas
  */
-@ManagedBean(name = "gitMetricBean")
+@Named
 @SessionScoped
 public class GitMetricBean implements Serializable {
 

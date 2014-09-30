@@ -4,11 +4,11 @@ import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericBichoDAO;
 import java.io.Serializable;
 import java.util.List;
 import javax.ejb.EJB;
-import javax.faces.bean.ManagedBean;
-import javax.faces.bean.RequestScoped;
+import javax.enterprise.context.SessionScoped;
+import javax.inject.Named;
 
-@ManagedBean
-@RequestScoped
+@Named
+@SessionScoped
 public class BichoMinerRepositoryBean implements Serializable {
 
     @EJB

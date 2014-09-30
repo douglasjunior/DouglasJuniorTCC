@@ -6,15 +6,15 @@ import br.edu.utfpr.cm.JGitMinerWeb.util.JsfUtil;
 import java.io.Serializable;
 import java.util.List;
 import javax.ejb.EJB;
-import javax.faces.bean.ManagedBean;
-import javax.faces.bean.RequestScoped;
+import javax.enterprise.context.RequestScoped;
+import javax.inject.Named;
 import org.primefaces.model.StreamedContent;
 
 /**
  *
  * @author douglas
  */
-@ManagedBean(name = "gitMinerViewBean")
+@Named
 @RequestScoped
 public class GitMinerViewBean implements Serializable {
 

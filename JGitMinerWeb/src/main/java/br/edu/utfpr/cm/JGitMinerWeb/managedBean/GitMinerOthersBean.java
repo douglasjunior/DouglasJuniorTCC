@@ -32,8 +32,8 @@ import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
 import javax.ejb.EJB;
-import javax.faces.bean.ManagedBean;
-import javax.faces.bean.SessionScoped;
+import javax.enterprise.context.SessionScoped;
+import javax.inject.Named;
 import org.eclipse.egit.github.core.Comment;
 import org.eclipse.egit.github.core.CommitComment;
 import org.eclipse.egit.github.core.CommitFile;
@@ -47,7 +47,7 @@ import org.eclipse.egit.github.core.RepositoryCommit;
 import org.eclipse.egit.github.core.Team;
 import org.eclipse.egit.github.core.User;
 
-@ManagedBean(name = "gitMinerOthersBean")
+@Named
 @SessionScoped
 public class GitMinerOthersBean implements Serializable {
 

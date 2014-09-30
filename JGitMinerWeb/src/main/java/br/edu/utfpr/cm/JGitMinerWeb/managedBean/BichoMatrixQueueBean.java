@@ -18,14 +18,14 @@ import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import javax.ejb.EJB;
-import javax.faces.bean.ManagedBean;
-import javax.faces.bean.SessionScoped;
+import javax.enterprise.context.SessionScoped;
+import javax.inject.Named;
 
 /**
  *
  * @author Rodrigo T. Kuroda
  */
-@ManagedBean
+@Named
 @SessionScoped
 public class BichoMatrixQueueBean implements Serializable {
 
@@ -257,7 +257,7 @@ public class BichoMatrixQueueBean implements Serializable {
 
     private AbstractBichoMatrixServices createMatrixServiceInstance(List<EntityMatrix> matricesToSave, Map<Object, Object> params) {
         try {
-            return (AbstractBichoMatrixServices) serviceClass.getConstructor(GenericBichoDAO.class, String.class, List.class, Map.class, OutLog.class).newInstance(dao, repositoryId, matricesToSave, params, out);
+            return (AbstractBichoMatrixServices) serviceClass.getConstructor(GenericDao.class, String.class, List.class, Map.class, OutLog.class).newInstance(dao, repositoryId, matricesToSave, params, out);
         } catch (Exception ex) {
             ex.printStackTrace();
         }
