@@ -165,10 +165,11 @@ public class BichoUserCommentedSamePairOfFileInDateServices extends AbstractBich
 //                + " ORDER BY c.submitted_on ASC";
 
         final String selectFiles
-                = "SELECT fil.file_name"
+                = "SELECT fill.file_path"
                 + "  FROM " + getRepository() + "_vcs.files fil"
                 + "  JOIN " + getRepository() + "_vcs.actions a ON a.file_id = fil.id"
                 + "  JOIN " + getRepository() + "_vcs.scmlog s ON s.id = a.commit_id"
+                + "  JOIN " + getRepository() + "_vcs.file_links fill ON fill.file_id = fil.id AND fill.commit_id = s.id"
                 + " WHERE s.id = ?"
                 + "   AND (SELECT COUNT(1)"
                 + "          FROM " + getRepository() + "_vcs.files cfil"
