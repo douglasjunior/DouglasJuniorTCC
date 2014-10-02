@@ -52,6 +52,10 @@ public class BichoPairFileGlobalCommunicationSingleEdgeSNAMetricsInDateServices 
 
     private EntityRepository repository;
 
+    public BichoPairFileGlobalCommunicationSingleEdgeSNAMetricsInDateServices() {
+        super(null, null);
+    }
+
     public BichoPairFileGlobalCommunicationSingleEdgeSNAMetricsInDateServices(GenericBichoDAO dao, OutLog out) {
         super(dao, out);
     }
