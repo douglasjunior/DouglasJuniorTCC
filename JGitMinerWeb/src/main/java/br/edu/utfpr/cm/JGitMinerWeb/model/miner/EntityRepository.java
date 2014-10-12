@@ -94,6 +94,8 @@ public class EntityRepository implements InterfaceEntity, Serializable {
     private Set<EntityRepositoryCommit> repoCommits;
     @ManyToMany(mappedBy = "collaboratedRepositories", fetch = FetchType.LAZY)
     private Set<EntityUser> collaborators;
+    @ManyToMany(mappedBy = "starredRepositories", fetch = FetchType.LAZY)
+    private Set<EntityUser> starreds;
     @ManyToMany(mappedBy = "watchedRepositories", fetch = FetchType.LAZY)
     private Set<EntityUser> watchers;
     @OneToMany(mappedBy = "parent", fetch = FetchType.LAZY)
@@ -108,6 +110,7 @@ public class EntityRepository implements InterfaceEntity, Serializable {
         pullRequests = new HashSet<>();
         repoCommits = new HashSet<>();
         collaborators = new HashSet<>();
+        starreds = new HashSet<>();
         watchers = new HashSet<>();
         forks = new HashSet<>();
         teams = new HashSet<>();
@@ -307,6 +310,14 @@ public class EntityRepository implements InterfaceEntity, Serializable {
 
     public void setWatchers(Set<EntityUser> watchers) {
         this.watchers = watchers;
+    }
+
+    public Set<EntityUser> getStars() {
+        return starreds;
+    }
+
+    public void setStars(Set<EntityUser> starreds) {
+        this.starreds = starreds;
     }
 
     public Set<EntityRepository> getForks() {
