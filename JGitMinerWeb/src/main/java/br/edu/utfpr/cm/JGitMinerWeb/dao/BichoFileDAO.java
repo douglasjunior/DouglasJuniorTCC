@@ -1,6 +1,5 @@
 package br.edu.utfpr.cm.JGitMinerWeb.dao;
 
-import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -11,124 +10,160 @@ import java.util.List;
  */
 public class BichoFileDAO {
 
-    public static final String SELECT_COUNT_COMMITS_WHERE_FILE_IS_IN
-            = "SELECT COUNT(DISTINCT(is.scmlog_id)) "
-            + "  FROM {0}_vcs.files fil"
-            + "  JOIN {0}_vcs.actions a ON a.file_id = fil.id"
-            + "  JOIN {0}_issues.issues_scmlog is ON is.scmlog_id = a.commit_id"
-            + "  JOIN {0}_issues.issues i ON i.id = is.issue_id"
-            + " WHERE fil.file_name = ? ";
+    // filters
+    private final String FILTER_BY_ISSUE_CREATION_DATE;
 
-    private static final String FILTER_BY_ISSUE_CREATION_DATE
-            = " AND i.date BETWEEN ? AND ? ";
+    private final String FILTER_BY_BEFORE_ISSUE_CREATION_DATE;
 
-    private static final String FILTER_BY_BEFORE_ISSUE_CREATION_DATE
-            = " AND i.date <= ? ";
+    private final String FILTER_BY_AFTER_ISSUE_CREATION_DATE;
 
-    private static final String FILTER_BY_AFTER_ISSUE_CREATION_DATE
-            = " AND i.date >= ? ";
+    private final String FILTER_BY_MAX_FILES_IN_COMMIT;
 
-    private static final String FILTER_BY_MAX_NUMBER_FILES_IN_COMMIT
-            = " AND (SELECT COUNT(1)"
-            + "        FROM {0}_vcs.files cfil"
-            + "        JOIN {0}_vcs.actions ca ON ca.file_id = cfil.id"
-            + "        JOIN {0}_vcs.scmlog cs ON cs.id = ca.commit_id"
-            + "       WHERE cs.id = s.id) <= ? ";
+    private final String FILTER_BY_MIN_FILES_IN_COMMIT;
 
-    private static final String FILTER_BY_MIN_NUMBER_FILES_IN_COMMIT
-            = " AND (SELECT COUNT(1)"
-            + "        FROM {0}_vcs.files cfil"
-            + "        JOIN {0}_vcs.actions ca ON ca.file_id = cfil.id"
-            + "        JOIN {0}_vcs.scmlog cs ON cs.id = ca.commit_id"
-            + "       WHERE cs.id = s.id) >= ? ";
+    private final String FILTER_BY_MIN_ISSUE_COMMENTS;
 
-    private static final String FILTER_BY_MIN_ISSUE_COMMENTS
-            = " AND (SELECT COUNT(1)"
-            + "        FROM {0}_issues.comments ic2"
-            + "       WHERE ic2.issue_id = i.id) > 1";
+    private final String FILTER_BY_USER_NAME;
 
-    private static final String FIXED_ISSUES_ONLY = " AND i.status = 'Fixed' ";
+    private final String FIXED_ISSUES_ONLY;
 
-    private static final String COUNT_DISTINCT_COMMITERS_BY_FILE_NAME
-            = "SELECT COUNT(DISTINCT(p.name))"
-            + "  FROM {0}_vcs.files fil"
-            + "  JOIN {0}_vcs.actions a ON a.file_id = fil.id"
-            + "  JOIN {0}_vcs.scmlog s ON s.id = a.commit_id"
-            + "  JOIN {0}_vcs.people p ON p.id = s.committer_id"
-            + "  JOIN {0}_issues.issues_scmlog i2s ON i2s.scmlog_id = a.commit_id"
-            + "  JOIN {0}_issues.issues i ON i.id = i2s.issue_id"
-            + " WHERE fil.file_name = ?";
+    private final String FILTER_BY_ISSUES_THAT_HAS_AT_LEAST_ONE_COMMENT;
 
-    private static final String COUNT_COMMITS_BY_FILE_NAME
-            = "SELECT COUNT(s.id)"
-            + "  FROM {0}_vcs.files fil"
-            + "  JOIN {0}_vcs.actions a ON a.file_id = fil.id"
-            + "  JOIN {0}_vcs.scmlog s ON s.id = a.commit_id"
-            + " WHERE fil.file_name = ?";
+    // queries
+    private final String COUNT_DISTINCT_COMMITERS_BY_FILE_NAME;
 
-//    private static final String SUM_CODE_CHURN_BY_FILE_NAME
-//            = "SELECT coalesce(sum(fil.additions), 0) AS additions, "
-//            + "       coalesce(sum(fil.deletions), 0) AS deletions, "
-//            + "       coalesce(sum(fil.changes), 0) AS changes FROM "
-//            + "  gitpullrequest pul, gitissue i, "
-//            + "  gitcommitfile fil, "
-//            + "  gitpullrequest_gitrepositorycommit prc,"
-//            + "  gitrepositorycommit rc,"
-//            + "  gitcommit c,"
-//            + "  gitcommituser u"
-//            + " WHERE pul.issue_id = i.id"
-//            + "   AND prc.entitypullrequest_id = pul.id"
-//            + "   AND prc.repositorycommits_id = rc.id"
-//            + "   AND fil.repositorycommit_id = rc.id"
-//            + "   AND rc.commit_id = c.id"
-//            + "   AND c.committer_id = u.id"
-//            + "   AND pul.repository_id = ? "
-//            + "   AND fil.filename = ?";
+    private final String COUNT_COMMITS_BY_FILE_NAME;
 
-    private static final String FILTER_BY_USER_EMAIL_OR_NAME
-            = " AND (p.email = ? OR p.name = ?)";
+    private final String COUNT_ISSUES;
 
-//    private static final String SELECT_SUM_OF_CHANGES_OF_FILE_BY_DATE
-//            = "SELECT sum(fil.changes) AS codeChurn"
-//            + "  FROM gitpullrequest pul,"
-//            + "       gitcommitfile fil,"
-//            + "       gitpullrequest_gitrepositorycommit prc"
-//            + " WHERE prc.entitypullrequest_id = pul.id"
-//            + "   AND fil.repositorycommit_id = prc.repositorycommits_id"
-//            + "   AND pul.mergedat IS NOT NULL"
-//            + "   AND pul.repository_id = ?"
-//            + "   AND fil.filename = ?"
-//            + "   AND pul.createdat between ? AND ?";
+    private final String SUM_CODE_CHURN_BY_FILE_NAME;
+
+    private final String SUM_CHANGES_OF_FILE;
 
     private final GenericBichoDAO dao;
 
-    public BichoFileDAO(GenericBichoDAO dao) {
+    public BichoFileDAO(GenericBichoDAO dao, String repository) {
         this.dao = dao;
+
+        FILTER_BY_ISSUE_CREATION_DATE
+                = " AND i.date BETWEEN ? AND ? ";
+
+        FILTER_BY_BEFORE_ISSUE_CREATION_DATE
+                = " AND i.date <= ? ";
+
+        FILTER_BY_AFTER_ISSUE_CREATION_DATE
+                = " AND i.date >= ? ";
+
+        FILTER_BY_MAX_FILES_IN_COMMIT
+                = QueryUtils.getQueryForDatabase(" AND (SELECT COUNT(1)"
+                        + "        FROM {0}_vcs.files cfil"
+                + "        JOIN {0}_vcs.actions ca ON ca.file_id = cfil.id"
+                + "        JOIN {0}_vcs.scmlog cs ON cs.id = ca.commit_id"
+                + "       WHERE cs.id = s.id) <= ? ", repository);
+
+        FILTER_BY_MIN_FILES_IN_COMMIT
+                = QueryUtils.getQueryForDatabase(" AND (SELECT COUNT(1)"
+                        + "        FROM {0}_vcs.files cfil"
+                + "        JOIN {0}_vcs.actions ca ON ca.file_id = cfil.id"
+                + "        JOIN {0}_vcs.scmlog cs ON cs.id = ca.commit_id"
+                + "       WHERE cs.id = s.id) >= ? ", repository);
+
+        FILTER_BY_MIN_ISSUE_COMMENTS
+                = QueryUtils.getQueryForDatabase(
+                        " AND (SELECT COUNT(1)"
+                + "        FROM {0}_issues.comments ic2"
+                + "       WHERE ic2.issue_id = i.id) > 0", repository);
+
+        FILTER_BY_ISSUES_THAT_HAS_AT_LEAST_ONE_COMMENT
+                = QueryUtils.getQueryForDatabase(" AND (SELECT COUNT(1)"
+                        + "        FROM {0}_issues.comments ic2"
+                        + "       WHERE ic2.issue_id = i.id) > 0", repository);
+
+        FILTER_BY_USER_NAME
+                = " AND (p.name IS NOT NULL AND p2.name IS NOT NULL AND p.name = ? AND p2.name = ?)";
+
+        FIXED_ISSUES_ONLY = " AND i.status = 'Fixed' ";
+
+        COUNT_ISSUES
+                = QueryUtils.getQueryForDatabase("SELECT DISTINCT(i.id)"
+                        + "  FROM {0}_vcs.scmlog s"
+                + "  JOIN {0}_issues.issues_scmlog i2s ON i2s.scmlog_id = s.id"
+                + "  JOIN {0}_issues.issues i ON i.id = i2s.issue_id"
+                + "  JOIN {0}_vcs.actions a ON a.commit_id = s.id"
+                + "  JOIN {0}_vcs.files fil ON fil.id = a.file_id"
+                + "  JOIN {0}_vcs.file_links fill ON fill.file_id = fil.id"
+                        + " WHERE fil.file_name = ?", repository);
+
+        COUNT_DISTINCT_COMMITERS_BY_FILE_NAME
+                = QueryUtils.getQueryForDatabase("SELECT COUNT(DISTINCT(p.name))"
+                        + "  FROM {0}_vcs.files fil"
+                + "  JOIN {0}_vcs.actions a ON a.file_id = fil.id"
+                + "  JOIN {0}_vcs.scmlog s ON s.id = a.commit_id"
+                + "  JOIN {0}_vcs.people p ON p.id = s.committer_id"
+                + "  JOIN {0}_issues.issues_scmlog i2s ON i2s.scmlog_id = a.commit_id"
+                + "  JOIN {0}_issues.issues i ON i.id = i2s.issue_id"
+                + " WHERE fil.file_name = ?", repository);
+
+        COUNT_COMMITS_BY_FILE_NAME
+                = QueryUtils.getQueryForDatabase("SELECT COUNT(s.id)"
+                        + "  FROM {0}_vcs.files fil"
+                + "  JOIN {0}_vcs.actions a ON a.file_id = fil.id"
+                + "  JOIN {0}_vcs.scmlog s ON s.id = a.commit_id"
+                + " WHERE fil.file_name = ?", repository);
+
+        SUM_CODE_CHURN_BY_FILE_NAME
+                = QueryUtils.getQueryForDatabase("SELECT (SUM(filcl.added)),"
+                        + "       (SUM(filcl.removed))"
+                + "  FROM {0}_vcs.scmlog s"
+                + "  JOIN {0}_issues.issues_scmlog i2s ON i2s.scmlog_id = s.id"
+                + "  JOIN {0}_issues.issues i ON i.id = i2s.issue_id"
+                + "  JOIN {0}_vcs.actions a ON a.commit_id = s.id"
+                + "  JOIN {0}_vcs.files fil ON fil.id = a.file_id"
+                + "  JOIN {0}_vcs.file_links fill ON fill.file_id = fil.id"
+                + "  JOIN {0}_vcs.commits_files_lines filcl ON filcl.file_id = fil.id AND filcl.commit_id = s.id"
+                        + " WHERE fil.file_name = ?", repository);
+
+        SUM_CHANGES_OF_FILE
+                = QueryUtils.getQueryForDatabase("SELECT (SUM(filcl.added) + SUM(filcl.removed))"
+                        + "  FROM {0}_vcs.scmlog s"
+                + "  JOIN {0}_issues.issues_scmlog i2s ON i2s.scmlog_id = s.id"
+                + "  JOIN {0}_issues.issues i ON i.id = i2s.issue_id"
+                + "  JOIN {0}_vcs.actions a ON a.commit_id = s.id"
+                + "  JOIN {0}_vcs.files fil ON fil.id = a.file_id"
+                + "  JOIN {0}_vcs.file_links fill ON fill.file_id = fil.id"
+                + "  JOIN {0}_vcs.commits_files_lines filcl ON filcl.file_id = fil.id AND filcl.commit_id = s.id"
+                        + " WHERE fil.file_name = ?", repository);
     }
 
-    // Pull Requests ///////////////////////////////////////////////////////////
-    public long calculeNumberOfPullRequestWhereFileIsIn(String repository,
+    // Issues //////////////////////////////////////////////////////////////////
+    public long calculeNumberOfIssues(
             String filename, Date beginDate, Date endDate) {
-        return calculeNumberOfPullRequestWhereFileIsIn(repository, filename,
+        return calculeNumberOfIssues(filename,
                 beginDate, endDate, 0, 0, true);
     }
 
-    public long calculeNumberOfPullRequestWhereFileIsIn(String repository,
+    public long calculeNumberOfIssues(
+            String filename, Date beginDate, Date endDate, boolean onlyFixed) {
+        return calculeNumberOfIssues(filename,
+                beginDate, endDate, 0, 0, onlyFixed);
+    }
+
+    public long calculeNumberOfIssues(
             String filename, Date beginDate, Date endDate,
             int minFilesPerCommit, int maxFilesPerCommit) {
-        return calculeNumberOfPullRequestWhereFileIsIn(repository, filename,
+        return calculeNumberOfIssues(filename,
                 beginDate, endDate,
                 minFilesPerCommit, maxFilesPerCommit,
                 true);
     }
 
-    public long calculeNumberOfPullRequestWhereFileIsIn(String repository,
+    public long calculeNumberOfIssues(
             String filename, Date beginDate, Date endDate,
             int minFilesPerCommit, int maxFilesPerCommit, boolean onlyFixed) {
         List<Object> selectParams = new ArrayList<>();
 
         StringBuilder sql = new StringBuilder();
-        sql.append(getQueryForDatabase(SELECT_COUNT_COMMITS_WHERE_FILE_IS_IN, repository));
+        sql.append(COUNT_ISSUES);
         sql.append(FILTER_BY_MIN_ISSUE_COMMENTS);
         selectParams.add(filename);
 
@@ -149,46 +184,42 @@ public class BichoFileDAO {
         }
 
         if (minFilesPerCommit > 0) {
-            sql.append(FILTER_BY_MIN_NUMBER_FILES_IN_COMMIT);
+            sql.append(FILTER_BY_MIN_FILES_IN_COMMIT);
             selectParams.add(minFilesPerCommit);
         }
 
         if (maxFilesPerCommit > 0) {
-            sql.append(FILTER_BY_MAX_NUMBER_FILES_IN_COMMIT);
+            sql.append(FILTER_BY_MAX_FILES_IN_COMMIT);
             selectParams.add(maxFilesPerCommit);
         }
 
         Long count = (Long) dao.selectNativeOneWithParams(
-                getQueryForDatabase(sql.toString(), repository),
+                sql.toString(),
                 selectParams.toArray());
 
         return count != null ? count : 0l;
     }
 
-    private static String getQueryForDatabase(String query, String repository) {
-        return MessageFormat.format(query, new Object[]{repository});
-    }
-
     // COMMITTERS //////////////////////////////////////////////////////////////
-    public long countDistinctCommittersByFilename(String repository,
+    public long countDistinctCommittersByFilename(
             String filename, Date beginDate, Date endDate) {
-        return countDistinctCommittersByFilename(repository, filename, null,
+        return countDistinctCommittersByFilename(filename, null,
                 beginDate, endDate, 0, 0, true);
     }
 
-    public long countDistinctCommittersByFilename(String repository,
+    public long countDistinctCommittersByFilename(
             String filename, String user, Date beginDate, Date endDate) {
-        return countDistinctCommittersByFilename(repository, filename, user,
+        return countDistinctCommittersByFilename(filename, user,
                 beginDate, endDate, 0, 0, true);
     }
 
-    public long countDistinctCommittersByFilename(String repository,
+    public long countDistinctCommittersByFilename(
             String filename, String user, Date beginDate, Date endDate,
             int minFilesPerCommit, int maxFilesPerCommit, boolean onlyFixed) {
         List<Object> selectParams = new ArrayList<>();
 
         StringBuilder sql = new StringBuilder();
-        sql.append(getQueryForDatabase(COUNT_DISTINCT_COMMITERS_BY_FILE_NAME, repository));
+        sql.append(COUNT_DISTINCT_COMMITERS_BY_FILE_NAME);
 
         selectParams.add(maxFilesPerCommit);
         selectParams.add(filename);
@@ -210,17 +241,17 @@ public class BichoFileDAO {
         }
 
         if (minFilesPerCommit > 0) {
-            sql.append(FILTER_BY_MIN_NUMBER_FILES_IN_COMMIT);
+            sql.append(FILTER_BY_MIN_FILES_IN_COMMIT);
             selectParams.add(minFilesPerCommit);
         }
 
         if (maxFilesPerCommit > 0) {
-            sql.append(FILTER_BY_MAX_NUMBER_FILES_IN_COMMIT);
+            sql.append(FILTER_BY_MAX_FILES_IN_COMMIT);
             selectParams.add(maxFilesPerCommit);
         }
 
         if (user != null) {
-            sql.append(FILTER_BY_USER_EMAIL_OR_NAME);
+            sql.append(FILTER_BY_USER_NAME);
             selectParams.add(user);
         }
 
@@ -230,25 +261,25 @@ public class BichoFileDAO {
     }
 
     // COMMITS /////////////////////////////////////////////////////////////////
-    public long countCommitsByFilename(String repository,
+    public long countCommitsByFilename(
             String filename, Date beginDate, Date endDate) {
-        return countCommitsByFilename(repository, filename, null, beginDate, endDate, 0, 0, true);
+        return countCommitsByFilename(filename, null, beginDate, endDate, 0, 0, true);
     }
 
-    public long countCommitsByFilename(String repository,
+    public long countCommitsByFilename(
             String filename, String user, Date beginDate, Date endDate) {
-        return countCommitsByFilename(repository, filename, user, beginDate, endDate, 0, 0, true);
+        return countCommitsByFilename(filename, user, beginDate, endDate, 0, 0, true);
     }
 
-    public long countCommitsByFilename(String repository,
+    public long countCommitsByFilename(
             String filename, String user, Date beginDate, Date endDate,
             int minFilesPerCommit, int maxFilesPerCommit) {
-        return countCommitsByFilename(repository, filename, user,
+        return countCommitsByFilename(filename, user,
                 beginDate, endDate,
                 minFilesPerCommit, maxFilesPerCommit, true);
     }
 
-    public long countCommitsByFilename(String repository,
+    public long countCommitsByFilename(
             String filename, String user, Date beginDate, Date endDate,
             int minFilesPerCommit, int maxFilesPerCommit, boolean onlyFixed) {
         List<Object> selectParams = new ArrayList<>();
@@ -256,7 +287,6 @@ public class BichoFileDAO {
         StringBuilder sql = new StringBuilder();
         sql.append(COUNT_COMMITS_BY_FILE_NAME);
 
-        selectParams.add(repository);
         selectParams.add(filename);
 
         if (beginDate != null && endDate != null) { // from begin to end
@@ -276,17 +306,17 @@ public class BichoFileDAO {
         }
 
         if (minFilesPerCommit > 0) {
-            sql.append(FILTER_BY_MIN_NUMBER_FILES_IN_COMMIT);
+            sql.append(FILTER_BY_MIN_FILES_IN_COMMIT);
             selectParams.add(minFilesPerCommit);
         }
 
         if (maxFilesPerCommit > 0) {
-            sql.append(FILTER_BY_MAX_NUMBER_FILES_IN_COMMIT);
+            sql.append(FILTER_BY_MAX_FILES_IN_COMMIT);
             selectParams.add(maxFilesPerCommit);
         }
 
         if (user != null) {
-            sql.append(FILTER_BY_USER_EMAIL_OR_NAME);
+            sql.append(FILTER_BY_USER_NAME);
             selectParams.add(user);
         }
 
@@ -296,83 +326,80 @@ public class BichoFileDAO {
     }
 
     // CORE CHURN //////////////////////////////////////////////////////////////
-//    public AuxCodeChurn sumCodeChurnByFilename(String repository,
-//            String filename, Date beginDate, Date endDate) {
-//        return sumCodeChurnByFilename(repository, filename, null, beginDate, endDate, 0, 0, true);
-//    }
-//
-//    public AuxCodeChurn sumCodeChurnByFilename(String repository,
-//            String filename, String user, Date beginDate, Date endDate) {
-//        return sumCodeChurnByFilename(repository, filename, user, beginDate, endDate, 0, 0, true);
-//    }
-//
-//    public AuxCodeChurn sumCodeChurnByFilename(String repository,
-//            String filename, String user, Date beginDate, Date endDate,
-//            int minFilesPerCommit, int maxFilesPerCommit) {
-//        return sumCodeChurnByFilename(repository, filename, user,
-//                beginDate, endDate,
-//                minFilesPerCommit, maxFilesPerCommit, true);
-//    }
-//
-//    public AuxCodeChurn sumCodeChurnByFilename(String repository,
-//            String fileName, String user, Date beginDate, Date endDate,
-//            int minFilesPerCommit, int maxFilesPerCommit, boolean onlyFixed) {
-//        List<Object> selectParams = new ArrayList<>();
-//
-//        StringBuilder sql = new StringBuilder();
-//        sql.append(SUM_CODE_CHURN_BY_FILE_NAME);
-//
-//        selectParams.add(repository);
-//        selectParams.add(fileName);
-//
-//        if (beginDate != null) {
-//            sql.append(FILTER_BY_AFTER_PULL_REQUEST_CREATION_DATE);
-//            selectParams.add(beginDate);
-//        }
-//
-//        if (endDate != null) {
-//            sql.append(FILTER_BY_BEFORE_PULL_REQUEST_CREATION_DATE);
-//            selectParams.add(endDate);
-//        }
-//
-//        if (onlyFixed) {
-//            sql.append(FIXED_ISSUES_ONLY);
-//        }
-//
-//        if (minFilesPerCommit > 0) {
-//            sql.append(FILTER_BY_MIN_NUMBER_FILES_IN_COMMIT);
-//            selectParams.add(minFilesPerCommit);
-//        }
-//
-//        if (maxFilesPerCommit > 0) {
-//            sql.append(FILTER_BY_MAX_NUMBER_FILES_IN_COMMIT);
-//            selectParams.add(maxFilesPerCommit);
-//        }
-//
-//        if (user != null) {
-//            sql.append(FILTER_BY_USER_EMAIL_OR_NAME);
-//            selectParams.add(user);
-//            selectParams.add(user);
-//        }
-//
-//        List<Object[]> sum = dao.selectNativeWithParams(sql.toString(),
-//                selectParams.toArray());
-//
-//        return new AuxCodeChurn(fileName,
-//                (Long) sum.get(0)[0], (Long) sum.get(0)[1], (Long) sum.get(0)[2]);
-//    }
-//
-//    public long calculeCodeChurn(String repository, String fileName, Date beginDate, Date endDate) {
-//        Object[] bdObjects = new Object[]{
-//            repository,
-//            fileName,
-//            beginDate,
-//            endDate
-//        };
-//
-//        Long sum = dao.selectNativeOneWithParams(
-//                SELECT_SUM_OF_CHANGES_OF_FILE_BY_DATE, bdObjects);
-//
-//        return sum;
-//    }
+    public AuxCodeChurn sumCodeChurnByFilename(
+            String filename, Date beginDate, Date endDate) {
+        return sumCodeChurnByFilename(filename, null, beginDate, endDate, 0, 0, true);
+    }
+
+    public AuxCodeChurn sumCodeChurnByFilename(
+            String filename, String user, Date beginDate, Date endDate) {
+        return sumCodeChurnByFilename(filename, user, beginDate, endDate, 0, 0, true);
+    }
+
+    public AuxCodeChurn sumCodeChurnByFilename(
+            String filename, String user, Date beginDate, Date endDate,
+            int minFilesPerCommit, int maxFilesPerCommit) {
+        return sumCodeChurnByFilename(filename, user,
+                beginDate, endDate,
+                minFilesPerCommit, maxFilesPerCommit, true);
+    }
+
+    public AuxCodeChurn sumCodeChurnByFilename(
+            String fileName, String user, Date beginDate, Date endDate,
+            int minFilesPerCommit, int maxFilesPerCommit, boolean onlyFixed) {
+        List<Object> selectParams = new ArrayList<>();
+
+        StringBuilder sql = new StringBuilder();
+        sql.append(SUM_CODE_CHURN_BY_FILE_NAME);
+
+        selectParams.add(fileName);
+
+        if (beginDate != null) {
+            sql.append(FILTER_BY_AFTER_ISSUE_CREATION_DATE);
+            selectParams.add(beginDate);
+        }
+
+        if (endDate != null) {
+            sql.append(FILTER_BY_BEFORE_ISSUE_CREATION_DATE);
+            selectParams.add(endDate);
+        }
+
+        if (onlyFixed) {
+            sql.append(FIXED_ISSUES_ONLY);
+        }
+
+        if (minFilesPerCommit > 0) {
+            sql.append(FILTER_BY_MIN_FILES_IN_COMMIT);
+            selectParams.add(minFilesPerCommit);
+        }
+
+        if (maxFilesPerCommit > 0) {
+            sql.append(FILTER_BY_MAX_FILES_IN_COMMIT);
+            selectParams.add(maxFilesPerCommit);
+        }
+
+        if (user != null) {
+            sql.append(FILTER_BY_USER_NAME);
+            selectParams.add(user);
+            selectParams.add(user);
+        }
+
+        List<Object[]> sum = dao.selectNativeWithParams(sql.toString(),
+                selectParams.toArray());
+
+        return new AuxCodeChurn(fileName,
+                (Long) sum.get(0)[0], (Long) sum.get(0)[1], (Long) sum.get(0)[2]);
+    }
+
+    public long calculeCodeChurn(String fileName, Date beginDate, Date endDate) {
+        Object[] bdObjects = new Object[]{
+            fileName,
+            beginDate,
+            endDate
+        };
+
+        Long sum = dao.selectNativeOneWithParams(SUM_CHANGES_OF_FILE, bdObjects);
+
+        return sum;
+    }
 }

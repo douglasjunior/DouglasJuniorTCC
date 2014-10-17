@@ -7,7 +7,6 @@ import br.edu.utfpr.cm.JGitMinerWeb.dao.BichoPairFileDAO;
 import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericBichoDAO;
 import br.edu.utfpr.cm.JGitMinerWeb.model.matrix.EntityMatrix;
 import br.edu.utfpr.cm.JGitMinerWeb.model.matrix.EntityMatrixNode;
-import br.edu.utfpr.cm.JGitMinerWeb.model.miner.EntityRepository;
 import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.UserCommentedSamePairOfFileInAllDateServices;
 import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.UserCommentedSamePairOfFileInDateServices;
 import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.UserCommentedSamePairOfFileInNumberServices;
@@ -36,6 +35,7 @@ import edu.uci.ics.jung.graph.util.EdgeType;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -50,7 +50,7 @@ import org.apache.commons.lang3.BooleanUtils;
  */
 public class BichoPairFileGlobalCommunicationSingleEdgeSNAMetricsInDateServices extends AbstractBichoMetricServices {
 
-    private EntityRepository repository;
+    private String repository;
 
     public BichoPairFileGlobalCommunicationSingleEdgeSNAMetricsInDateServices() {
         super(null, null);
@@ -132,24 +132,24 @@ public class BichoPairFileGlobalCommunicationSingleEdgeSNAMetricsInDateServices 
         final Map<AuxFileFile, Set<String>> commitersPairFile = new HashMap<>();
         final Map<String, Integer> edgesWeigth = new HashMap<>();
         
-        // rede de comunicaÃ§ão global, com todos pares de arquivos
+        // rede de comunicação global, com todos pares de arquivos
         DirectedSparseGraph<String, String> graph = new DirectedSparseGraph<>();
         
-        // rede de comunicaÃ§ão de cada par de arquivo
+        // rede de comunicação de cada par de arquivo
         Map<AuxFileFile, DirectedSparseGraph<String, String>> pairFileNetwork = new HashMap<>();
         
         int countIgnored = 0;
-        BichoFileDAO fileDAO = new BichoFileDAO(dao);
-        BichoPairFileDAO pairFileDAO = new BichoPairFileDAO(dao);
-        Long pullRequestsSize = pairFileDAO
-                .calculeNumberOfPullRequest(repository,
+        BichoFileDAO bichoFileDAO = new BichoFileDAO(dao, repository);
+        BichoPairFileDAO bichoPairFileDAO = new BichoPairFileDAO(dao, repository, 20);
+        Long pullRequestsSize = bichoPairFileDAO
+                .calculeNumberOfIssues(
                         null, null, futureBeginDate, futureEndDate, true);
         
         System.out.println("Number of all pull requests: " + pullRequestsSize);
         
         //Map<String, Long> futurePullRequest = new HashMap<>();
         
-        // construindo a rede de comunicaÃ§ão para cada par de arquivo (desenvolvedores que comentaram)
+        // construindo a rede de comunicação para cada par de arquivo (desenvolvedores que comentaram)
         int nodesSize = getMatrix().getNodes().size();
         int count = 0;
         Set<AuxFileFile> pairFilesSet = new HashSet<>();
@@ -174,8 +174,8 @@ public class BichoPairFileGlobalCommunicationSingleEdgeSNAMetricsInDateServices 
 //            if (futurePullRequest.containsKey(pairFile.toString())) {
 //                pairFileNumberOfPullrequestOfPairFuture = futurePullRequest.get(pairFile.toString());
 //            } else {
-//                pairFileNumberOfPullrequestOfPairFuture = pairFileDAO
-//                    .calculeNumberOfPullRequest(repository,
+//                pairFileNumberOfPullrequestOfPairFuture = bichoPairFileDAO
+//                    .calculeNumberOfIssues(
 //                            pairFile.getFileName(), pairFile.getFileName2(),
 //                            futureBeginDate, futureEndDate, true);
 //                futurePullRequest.put(pairFile.toString(), pairFileNumberOfPullrequestOfPairFuture);
@@ -247,7 +247,7 @@ public class BichoPairFileGlobalCommunicationSingleEdgeSNAMetricsInDateServices 
         }
         SimpleDateFormat format = new SimpleDateFormat("dd.MM.yyyy");
         JungExport.exportToImage(graph, "C:/Users/a562273/Desktop/networks/", 
-                repository.getName() + " Single " + format.format(beginDate) + " a " + format.format(endDate));
+                repository + " Single " + format.format(beginDate) + " a " + format.format(endDate));
         
         out.printLog("Número de pares de arquivos ignoradoa: " + countIgnored);
         
@@ -271,7 +271,7 @@ public class BichoPairFileGlobalCommunicationSingleEdgeSNAMetricsInDateServices 
         Map<String, StructuralHolesMeasure<String>> structuralHoles = StructuralHolesCalculator.calcule(graph, edgesWeigth);
 
         // number of pull requests in date interval
-        Long numberOfAllPullrequestFuture = pairFileDAO.calculeNumberOfPullRequest(getRepository(), null, null, futureBeginDate, futureEndDate, true);
+        Long numberOfAllPullrequestFuture = bichoPairFileDAO.calculeNumberOfIssues(null, null, futureBeginDate, futureEndDate, true);
         // cache for optimization number of pull requests where file is in,
         // reducing access to database
         Map<String, Long> pullRequestFileMap = new HashMap<>();
@@ -373,20 +373,14 @@ public class BichoPairFileGlobalCommunicationSingleEdgeSNAMetricsInDateServices 
             constraintAvg = constraintSum / distinctCommentersCount.doubleValue();
             hierarchyAvg = hierarchySum / distinctCommentersCount.doubleValue();
 
-            // Weighted geometric average: issue > committers + commits ////////
-            final long[][] committersCommitsPerIssue = pairFileDAO.calculeCommittersXCommits(
-                    repository, fileFile.getFileName(), fileFile.getFileName2(), beginDate, endDate);
-            final double geometricAverageCommittersCommits
-                    = MathUtils.calculateWeightedGeometricAverage(committersCommitsPerIssue);
-
             // Commit-based metrics ////////////////////////////////////////////
-            final long changes = calculeFileCodeChurn(codeChurnRequestFileMap, fileFile.getFileName(), fileDAO, beginDate, endDate);
-            final long changes2 = calculeFileCodeChurn(codeChurnRequestFileMap, fileFile.getFileName2(), fileDAO, beginDate, endDate);
+            final long changes = calculeFileCodeChurn(codeChurnRequestFileMap, fileFile.getFileName(), bichoFileDAO, beginDate, endDate);
+            final long changes2 = calculeFileCodeChurn(codeChurnRequestFileMap, fileFile.getFileName2(), bichoFileDAO, beginDate, endDate);
 
-            final long cummulativeChanges = calculeFileCodeChurn(cummulativeCodeChurnRequestFileMap, fileFile.getFileName(), fileDAO, null, endDate);
-            final long cummulativeChanges2 = calculeFileCodeChurn(cummulativeCodeChurnRequestFileMap, fileFile.getFileName2(), fileDAO, null, endDate);
+            final long cummulativeChanges = calculeFileCodeChurn(cummulativeCodeChurnRequestFileMap, fileFile.getFileName(), bichoFileDAO, null, endDate);
+            final long cummulativeChanges2 = calculeFileCodeChurn(cummulativeCodeChurnRequestFileMap, fileFile.getFileName2(), bichoFileDAO, null, endDate);
 
-            Set<AuxUser> devsCommitters = pairFileDAO.selectCommitters(repository,
+            Set<AuxUser> devsCommitters = bichoPairFileDAO.selectCommitters(
                     fileFile.getFileName(), fileFile.getFileName2(), beginDate, endDate);
 
             Long devCommitsSum = 0l, devCommitsMax = 0l;
@@ -396,15 +390,15 @@ public class BichoPairFileGlobalCommunicationSingleEdgeSNAMetricsInDateServices 
             Double ownerExperience = 0.0d, ownerExperience2 = 0.0d, cummulativeOwnerExperience = 0.0d, cummulativeOwnerExperience2 = 0.0d;
 
             long committers = devsCommitters.size();
-            long distinctCommitters = pairFileDAO.calculeCommitters(repository,
+            long distinctCommitters = bichoPairFileDAO.calculeCommitters(
                     fileFile.getFileName(), fileFile.getFileName2(), null, endDate);
 
-            Long commits = pairFileDAO.calculeCommits(repository,
+            Long commits = bichoPairFileDAO.calculeCommits(
                     fileFile.getFileName(), fileFile.getFileName2(),
                     beginDate, endDate);
 
             for (AuxUser devCommitter : devsCommitters) {
-                Long devCommits = pairFileDAO.calculeCommits(repository,
+                Long devCommits = bichoPairFileDAO.calculeCommits(
                         fileFile.getFileName(), fileFile.getFileName2(), devCommitter.getUser(),
                         beginDate, endDate);
                 devCommitsSum += devCommits;
@@ -422,17 +416,17 @@ public class BichoPairFileGlobalCommunicationSingleEdgeSNAMetricsInDateServices 
                 ownershipMax = Math.max(ownershipMax, ownership);
 
                 // Calculing OEXP of each file
-                Double experience = calculeDevFileExperience(changes, fileUserCommitMap, fileFile.getFileName(), devCommitter.getUser(), fileDAO, beginDate, endDate);
+                Double experience = calculeDevFileExperience(changes, fileUserCommitMap, fileFile.getFileName(), devCommitter.getUser(), bichoFileDAO, beginDate, endDate);
                 ownerExperience = Math.max(experience, ownerExperience);
 
-                Double experience2 = calculeDevFileExperience(changes2, fileUserCommitMap, fileFile.getFileName2(), devCommitter.getUser(), fileDAO, beginDate, endDate);
+                Double experience2 = calculeDevFileExperience(changes2, fileUserCommitMap, fileFile.getFileName2(), devCommitter.getUser(), bichoFileDAO, beginDate, endDate);
                 ownerExperience2 = Math.max(experience2, ownerExperience2);
 
                 // Calculing OWN
-                Double cumulativeExperience = calculeDevFileExperience(cummulativeChanges, fileUserCommitMap, fileFile.getFileName(), devCommitter.getUser(), fileDAO, null, endDate);
+                Double cumulativeExperience = calculeDevFileExperience(cummulativeChanges, fileUserCommitMap, fileFile.getFileName(), devCommitter.getUser(), bichoFileDAO, null, endDate);
                 cummulativeOwnerExperience = Math.max(cummulativeOwnerExperience, cumulativeExperience);
 
-                Double cumulativeExperience2 = calculeDevFileExperience(cummulativeChanges2, fileUserCommitMap, fileFile.getFileName2(), devCommitter.getUser(), fileDAO, null, endDate);
+                Double cumulativeExperience2 = calculeDevFileExperience(cummulativeChanges2, fileUserCommitMap, fileFile.getFileName2(), devCommitter.getUser(), bichoFileDAO, null, endDate);
                 cummulativeOwnerExperience2 = Math.max(cummulativeOwnerExperience2, cumulativeExperience2);
 
             }
@@ -443,7 +437,7 @@ public class BichoPairFileGlobalCommunicationSingleEdgeSNAMetricsInDateServices 
 //            double majorContributorsRate = (double) majorContributors / (double) committers; // % de major
 //            double minorContributorsRate = (double) minorContributors / (double) committers; // % de minor
 
-            Long updates = pairFileDAO.calculeNumberOfPullRequest(repository,
+            Long updates = bichoPairFileDAO.calculeNumberOfIssues(
                     fileFile.getFileName(), fileFile.getFileName2(), 
                     beginDate, endDate, true);
 
@@ -451,13 +445,13 @@ public class BichoPairFileGlobalCommunicationSingleEdgeSNAMetricsInDateServices 
             if (beginDate.equals(futureBeginDate) && endDate.equals(futureEndDate)) {
                 futureUpdates = updates;
             } else {
-                futureUpdates = pairFileDAO.calculeNumberOfPullRequest(repository,
+                futureUpdates = bichoPairFileDAO.calculeNumberOfIssues(
                         fileFile.getFileName(), fileFile.getFileName2(),
                         futureBeginDate, futureEndDate, true);
             }
 
             // list all issues and its comments
-            List<AuxWordiness> issuesAndComments = pairFileDAO.listIssues(repository,
+            Collection<AuxWordiness> issuesAndComments = bichoPairFileDAO.listIssues(
                     fileFile.getFileName(), fileFile.getFileName2(), beginDate, endDate, true);
 
             long wordiness = 0;
@@ -465,16 +459,16 @@ public class BichoPairFileGlobalCommunicationSingleEdgeSNAMetricsInDateServices 
                 wordiness += WordinessCalculator.calcule(auxWordiness);
             }
 
-            Long commentsSum = pairFileDAO.calculeComments(repository,
+            Long commentsSum = bichoPairFileDAO.calculeComments(
                     fileFile.getFileName(), fileFile.getFileName2(), 
                     beginDate, endDate, true);
 
-            Long codeChurn = 0l/*fileDAO.calculeCodeChurn(repository,
+            Long codeChurn = 0l/*bichoFileDAO.calculeCodeChurn(
                      fileFile.getFileName(), beginDate, endDate)*/;
-            Long codeChurn2 = 0l /*fileDAO.calculeCodeChurn(repository,
+            Long codeChurn2 = 0l /*bichoFileDAO.calculeCodeChurn(
                      fileFile.getFileName2(), beginDate, endDate)*/;
 
-            AuxCodeChurn pairFileCodeChurn = pairFileDAO.calculeCodeChurnAddDelChange(repository,
+            AuxCodeChurn pairFileCodeChurn = bichoPairFileDAO.calculeCodeChurnAddDelChange(
                     fileFile.getFileName2(), fileFile.getFileName(),
                     beginDate, endDate);
 
@@ -485,10 +479,10 @@ public class BichoPairFileGlobalCommunicationSingleEdgeSNAMetricsInDateServices 
             closenessMax = MathUtils.zeroIfNaN(closenessMax);
 
             // pair file age in release interval (days)
-            int ageRelease = pairFileDAO.calculePairFileDaysAge(repository, fileFile.getFileName(), fileFile.getFileName2(), beginDate, endDate, true);
+            int ageRelease = bichoPairFileDAO.calculePairFileDaysAge( fileFile.getFileName(), fileFile.getFileName2(), beginDate, endDate, true);
 
             // pair file age in total until final date (days)
-            int ageTotal = pairFileDAO.calculePairFileDaysAge(repository, fileFile.getFileName(), fileFile.getFileName2(), null, endDate, true);
+            int ageTotal = bichoPairFileDAO.calculePairFileDaysAge( fileFile.getFileName(), fileFile.getFileName2(), null, endDate, true);
 
             boolean samePackage = PathUtils.isSameFullPath(fileFile.getFileName(), fileFile.getFileName2());
 
@@ -518,7 +512,7 @@ public class BichoPairFileGlobalCommunicationSingleEdgeSNAMetricsInDateServices 
                     majorContributors, minorContributors,
                     ownerExperience, ownerExperience2,
                     cummulativeOwnerExperience, cummulativeOwnerExperience2,
-                    committers, distinctCommitters, commits, geometricAverageCommittersCommits,
+                    committers, distinctCommitters, commits,
                     distinctCommentersCount, commentsSum, wordiness,
                     codeChurn, codeChurn2, codeChurnAvg,
                     pairFileCodeChurn.getAdditionsNormalized(), pairFileCodeChurn.getDeletionsNormalized(), pairFileCodeChurn.getChanges(),
@@ -527,10 +521,10 @@ public class BichoPairFileGlobalCommunicationSingleEdgeSNAMetricsInDateServices 
 
             // apriori /////////////////////////////////////////////////////////
             Long fileNumberOfPullrequestOfPairFuture
-                    = calculeNumberOfPullRequest(pullRequestFileMap, auxFileFileMetrics.getFile(), pairFileDAO, futureBeginDate, futureEndDate);
+                    = calculeNumberOfIssues(pullRequestFileMap, auxFileFileMetrics.getFile(), bichoFileDAO, futureBeginDate, futureEndDate);
 
             Long file2NumberOfPullrequestOfPairFuture
-                    = calculeNumberOfPullRequest(pullRequestFileMap, auxFileFileMetrics.getFile2(), pairFileDAO, futureBeginDate, futureEndDate);
+                    = calculeNumberOfIssues(pullRequestFileMap, auxFileFileMetrics.getFile2(), bichoFileDAO, futureBeginDate, futureEndDate);
 
             auxFileFileMetrics.addMetrics(fileNumberOfPullrequestOfPairFuture, file2NumberOfPullrequestOfPairFuture, numberOfAllPullrequestFuture);
 
@@ -557,12 +551,12 @@ public class BichoPairFileGlobalCommunicationSingleEdgeSNAMetricsInDateServices 
         addToEntityMetricNodeList(fileFileMetrics);
     }
 
-    public Long calculeNumberOfPullRequest(Map<String, Long> pullRequestFileMap, String fileName, BichoPairFileDAO pairFileDAO, Date futureBeginDate, Date futureEndDate) {
+    public Long calculeNumberOfIssues(Map<String, Long> pullRequestFileMap, String fileName, BichoFileDAO fileDAO, Date futureBeginDate, Date futureEndDate) {
         Long fileNumberOfPullrequestOfPairFuture;
         if (pullRequestFileMap.containsKey(fileName)) {
             fileNumberOfPullrequestOfPairFuture = pullRequestFileMap.get(fileName);
         } else {
-            fileNumberOfPullrequestOfPairFuture = pairFileDAO.calculeNumberOfPullRequest(getRepository(), fileName, null, futureBeginDate, futureEndDate, true);
+            fileNumberOfPullrequestOfPairFuture = fileDAO.calculeNumberOfIssues(fileName, futureBeginDate, futureEndDate, true);
             pullRequestFileMap.put(fileName, fileNumberOfPullrequestOfPairFuture);
         }
         return fileNumberOfPullrequestOfPairFuture;
@@ -576,7 +570,7 @@ public class BichoPairFileGlobalCommunicationSingleEdgeSNAMetricsInDateServices 
 //                deletions = sumCodeChurnFile.getDeletions();
             changes = sumCodeChurnFile.getChanges();
         } else {
-            AuxCodeChurn sumCodeChurnFile = new AuxCodeChurn(0, 0, 0);//fileDAO.sumCodeChurnByFilename(repository, fileName, beginDate, endDate);
+            AuxCodeChurn sumCodeChurnFile = new AuxCodeChurn(0, 0, 0);//fileDAO.sumCodeChurnByFilename( fileName, beginDate, endDate);
             codeChurnRequestFileMap.put(fileName, sumCodeChurnFile);
 //                additions = sumCodeChurnFile.getAdditions();
 //                deletions = sumCodeChurnFile.getDeletions();
@@ -594,7 +588,7 @@ public class BichoPairFileGlobalCommunicationSingleEdgeSNAMetricsInDateServices 
 //                    devDeletions = sumCodeChurnFile.getDeletions();
             devChanges = sumCodeChurnFile.getChanges();
         } else {
-            AuxCodeChurn sumCodeChurnFile = new AuxCodeChurn(0, 0, 0);//fileDAO.sumCodeChurnByFilename(repository, fileName, user, beginDate, endDate);
+            AuxCodeChurn sumCodeChurnFile = new AuxCodeChurn(0, 0, 0);//fileDAO.sumCodeChurnByFilename( fileName, user, beginDate, endDate);
             fileUserCommitMap.put(fileName, sumCodeChurnFile);
 //                    devAdditions = sumCodeChurnFile.getAdditions();
 //                    devDeletions = sumCodeChurnFile.getDeletions();
@@ -627,7 +621,7 @@ public class BichoPairFileGlobalCommunicationSingleEdgeSNAMetricsInDateServices 
                 + "majorContributors;minorContributors;"
                 + "oexp;oexp2;"
                 + "own;own2;"
-                + "adev;ddev;commits;wgaCommittersCommit;"
+                + "adev;ddev;commits;"
                 + "commenters;comments;wordiness;"
                 + "codeChurn;codeChurn2;codeChurnAvg;"
                 + "add;del;changes;"
@@ -643,16 +637,8 @@ public class BichoPairFileGlobalCommunicationSingleEdgeSNAMetricsInDateServices 
                 UserCommentedSamePairOfFileInNumberServices.class.getName());
     }
 
-    private EntityRepository getRepository() {
-        String[] repoStr = getMatrix().getRepository().split("/");
-        List<EntityRepository> repos = dao.executeNamedQueryWithParams(
-                "Repository.findByNameAndOwner",
-                new String[]{"login", "name"},
-                new Object[]{repoStr[0], repoStr[1]});
-        if (repos.size() == 1) {
-            return repos.get(0);
-        }
-        return null;
+    private String getRepository() {
+        return getMatrix().getRepository();
     }
 
     private boolean isIgnored(String fileName) {
