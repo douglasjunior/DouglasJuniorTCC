@@ -91,11 +91,24 @@ public class EntityUser implements InterfaceEntity, Serializable {
             })
     private List<EntityRepository> collaboratedRepositories;
 
+    @ManyToMany
+    @JoinTable(name = "gitrepository_userstarreds",
+            joinColumns = {
+                @JoinColumn(name = "starred_id", referencedColumnName = "id")},
+            inverseJoinColumns = {
+                @JoinColumn(name = "starredrepositories_id", referencedColumnName = "id")},
+            indexes = {
+                @Index(columnList = "starred_id"),
+                @Index(columnList = "starredrepositories_id")
+            })
+    private List<EntityRepository> starredRepositories;
+
     public EntityUser() {
         issues = new ArrayList<>();
         issuesAssigned = new ArrayList<>();
         collaboratedRepositories = new ArrayList<>();
         watchedRepositories = new ArrayList<>();
+        starredRepositories = new ArrayList<>();
         mineredAt = new Date();
     }
 

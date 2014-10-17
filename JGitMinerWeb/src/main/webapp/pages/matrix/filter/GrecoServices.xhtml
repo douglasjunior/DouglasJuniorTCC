@@ -1,0 +1,20 @@
+<div xmlns="http://www.w3.org/1999/xhtml"
+     xmlns:h="http://java.sun.com/jsf/html" 
+     xmlns:p="http://primefaces.org/ui">
+
+    <h2>Porcentagem de arquivos mais modificados</h2>
+
+    <br />
+
+    <h:panelGrid columns="2" cellpadding="5" columnClasses="col">
+        <h:outputText value="Texto: " />  
+        <p:inputText value="#{gitMatrixBean.paramValue['texto']}" id="texto" size="10" />
+        <h:outputText value="Date: " />     
+        <h:panelGroup>
+            <p:calendar value="#{gitMatrixBean.paramValue['dataInicial']}" id="dataInicial" effect="explode" navigator="true" size="10" />      
+            <h:outputText value=" to " />        
+            <p:calendar value="#{gitMatrixBean.paramValue['dataFinal']}" id="dataFinal" effect="explode" navigator="true" size="10" />
+        </h:panelGroup>
+    </h:panelGrid>
+
+</div>
