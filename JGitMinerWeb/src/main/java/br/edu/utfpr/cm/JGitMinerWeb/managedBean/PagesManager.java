@@ -86,6 +86,11 @@ public class PagesManager implements Serializable {
         return "refreshPage";
     }
 
+    public String bichoMetricCreateQueue() {
+        this.body = "./pages/metric/bichoCreateQueue.xhtml";
+        return "refreshPage";
+    }
+
     public String metricView() {
         this.body = "./pages/metric/view.xhtml";
         return "refreshPage";
