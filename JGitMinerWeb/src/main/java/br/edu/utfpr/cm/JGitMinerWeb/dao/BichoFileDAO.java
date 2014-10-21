@@ -1,5 +1,6 @@
 package br.edu.utfpr.cm.JGitMinerWeb.dao;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -46,93 +47,104 @@ public class BichoFileDAO {
         this.dao = dao;
 
         FILTER_BY_ISSUE_CREATION_DATE
-                = " AND i.date BETWEEN ? AND ? ";
+                = " AND i.submitted_on BETWEEN ? AND ? ";
 
         FILTER_BY_BEFORE_ISSUE_CREATION_DATE
-                = " AND i.date <= ? ";
+                = " AND i.submitted_on <= ? ";
 
         FILTER_BY_AFTER_ISSUE_CREATION_DATE
-                = " AND i.date >= ? ";
+                = " AND i.submitted_on >= ? ";
 
         FILTER_BY_MAX_FILES_IN_COMMIT
-                = QueryUtils.getQueryForDatabase(" AND (SELECT COUNT(1)"
+                = QueryUtils.getQueryForDatabase(
+                        " AND (SELECT COUNT(1)"
                         + "        FROM {0}_vcs.files cfil"
-                + "        JOIN {0}_vcs.actions ca ON ca.file_id = cfil.id"
-                + "        JOIN {0}_vcs.scmlog cs ON cs.id = ca.commit_id"
-                + "       WHERE cs.id = s.id) <= ? ", repository);
+                        + "        JOIN {0}_vcs.actions ca ON ca.file_id = cfil.id"
+                        + "        JOIN {0}_vcs.scmlog cs ON cs.id = ca.commit_id"
+                        + "       WHERE cs.id = s.id) <= ? ", repository);
 
         FILTER_BY_MIN_FILES_IN_COMMIT
-                = QueryUtils.getQueryForDatabase(" AND (SELECT COUNT(1)"
+                = QueryUtils.getQueryForDatabase(
+                        " AND (SELECT COUNT(1)"
                         + "        FROM {0}_vcs.files cfil"
-                + "        JOIN {0}_vcs.actions ca ON ca.file_id = cfil.id"
-                + "        JOIN {0}_vcs.scmlog cs ON cs.id = ca.commit_id"
-                + "       WHERE cs.id = s.id) >= ? ", repository);
+                        + "        JOIN {0}_vcs.actions ca ON ca.file_id = cfil.id"
+                        + "        JOIN {0}_vcs.scmlog cs ON cs.id = ca.commit_id"
+                        + "       WHERE cs.id = s.id) >= ? ", repository);
 
         FILTER_BY_MIN_ISSUE_COMMENTS
                 = QueryUtils.getQueryForDatabase(
                         " AND (SELECT COUNT(1)"
-                + "        FROM {0}_issues.comments ic2"
-                + "       WHERE ic2.issue_id = i.id) > 0", repository);
+                        + "        FROM {0}_issues.comments ic2"
+                        + "       WHERE ic2.issue_id = i.id) > 0", repository);
 
         FILTER_BY_ISSUES_THAT_HAS_AT_LEAST_ONE_COMMENT
-                = QueryUtils.getQueryForDatabase(" AND (SELECT COUNT(1)"
+                = QueryUtils.getQueryForDatabase(
+                        " AND (SELECT COUNT(1)"
                         + "        FROM {0}_issues.comments ic2"
                         + "       WHERE ic2.issue_id = i.id) > 0", repository);
 
         FILTER_BY_USER_NAME
-                = " AND (p.name IS NOT NULL AND p2.name IS NOT NULL AND p.name = ? AND p2.name = ?)";
+                = " AND (p.name IS NOT NULL AND "
+                + "      p2.name IS NOT NULL AND "
+                + "      p.name = ? AND "
+                + "      p2.name = ?)";
 
-        FIXED_ISSUES_ONLY = " AND i.status = 'Fixed' ";
+        FIXED_ISSUES_ONLY = " AND i.resolution = 'Fixed' ";
 
         COUNT_ISSUES
-                = QueryUtils.getQueryForDatabase("SELECT DISTINCT(i.id)"
+                = QueryUtils.getQueryForDatabase(
+                        "SELECT DISTINCT(i.id)"
                         + "  FROM {0}_vcs.scmlog s"
-                + "  JOIN {0}_issues.issues_scmlog i2s ON i2s.scmlog_id = s.id"
-                + "  JOIN {0}_issues.issues i ON i.id = i2s.issue_id"
-                + "  JOIN {0}_vcs.actions a ON a.commit_id = s.id"
-                + "  JOIN {0}_vcs.files fil ON fil.id = a.file_id"
-                + "  JOIN {0}_vcs.file_links fill ON fill.file_id = fil.id"
-                        + " WHERE fil.file_name = ?", repository);
+                        + "  JOIN {0}_issues.issues_scmlog i2s ON i2s.scmlog_id = s.id"
+                        + "  JOIN {0}_issues.issues i ON i.id = i2s.issue_id"
+                        + "  JOIN {0}_vcs.actions a ON a.commit_id = s.id"
+                        + "  JOIN {0}_vcs.files fil ON fil.id = a.file_id"
+                        + "  JOIN {0}_vcs.file_links fill ON fill.file_id = fil.id"
+                        + " WHERE fill.file_path = ?", repository);
 
         COUNT_DISTINCT_COMMITERS_BY_FILE_NAME
-                = QueryUtils.getQueryForDatabase("SELECT COUNT(DISTINCT(p.name))"
+                = QueryUtils.getQueryForDatabase(
+                        "SELECT COUNT(DISTINCT(p.name))"
                         + "  FROM {0}_vcs.files fil"
-                + "  JOIN {0}_vcs.actions a ON a.file_id = fil.id"
-                + "  JOIN {0}_vcs.scmlog s ON s.id = a.commit_id"
-                + "  JOIN {0}_vcs.people p ON p.id = s.committer_id"
-                + "  JOIN {0}_issues.issues_scmlog i2s ON i2s.scmlog_id = a.commit_id"
-                + "  JOIN {0}_issues.issues i ON i.id = i2s.issue_id"
-                + " WHERE fil.file_name = ?", repository);
+                        + "  JOIN {0}_vcs.actions a ON a.file_id = fil.id"
+                        + "  JOIN {0}_vcs.scmlog s ON s.id = a.commit_id"
+                        + "  JOIN {0}_vcs.people p ON p.id = s.committer_id"
+                        + "  JOIN {0}_issues.issues_scmlog i2s ON i2s.scmlog_id = a.commit_id"
+                        + "  JOIN {0}_issues.issues i ON i.id = i2s.issue_id"
+                        + " WHERE fill.file_path = ?", repository);
 
         COUNT_COMMITS_BY_FILE_NAME
-                = QueryUtils.getQueryForDatabase("SELECT COUNT(s.id)"
+                = QueryUtils.getQueryForDatabase(
+                        "SELECT COUNT(s.id)"
                         + "  FROM {0}_vcs.files fil"
-                + "  JOIN {0}_vcs.actions a ON a.file_id = fil.id"
-                + "  JOIN {0}_vcs.scmlog s ON s.id = a.commit_id"
-                + " WHERE fil.file_name = ?", repository);
+                        + "  JOIN {0}_vcs.actions a ON a.file_id = fil.id"
+                        + "  JOIN {0}_vcs.scmlog s ON s.id = a.commit_id"
+                        + " WHERE fill.file_path = ?", repository);
 
         SUM_CODE_CHURN_BY_FILE_NAME
-                = QueryUtils.getQueryForDatabase("SELECT (SUM(filcl.added)),"
-                        + "       (SUM(filcl.removed))"
-                + "  FROM {0}_vcs.scmlog s"
-                + "  JOIN {0}_issues.issues_scmlog i2s ON i2s.scmlog_id = s.id"
-                + "  JOIN {0}_issues.issues i ON i.id = i2s.issue_id"
-                + "  JOIN {0}_vcs.actions a ON a.commit_id = s.id"
-                + "  JOIN {0}_vcs.files fil ON fil.id = a.file_id"
-                + "  JOIN {0}_vcs.file_links fill ON fill.file_id = fil.id"
-                + "  JOIN {0}_vcs.commits_files_lines filcl ON filcl.file_id = fil.id AND filcl.commit_id = s.id"
-                        + " WHERE fil.file_name = ?", repository);
+                = QueryUtils.getQueryForDatabase(
+                        "SELECT COALESCE(SUM(filcl.added), 0),"
+                        + "       COALESCE(SUM(filcl.removed), 0)"
+                        + "  FROM {0}_vcs.scmlog s"
+                        + "  JOIN {0}_issues.issues_scmlog i2s ON i2s.scmlog_id = s.id"
+                        + "  JOIN {0}_issues.issues i ON i.id = i2s.issue_id"
+                        + "  JOIN {0}_vcs.actions a ON a.commit_id = s.id"
+                        + "  JOIN {0}_vcs.files fil ON fil.id = a.file_id"
+                        + "  JOIN {0}_vcs.file_links fill ON fill.file_id = fil.id"
+                        + "  JOIN {0}_vcs.commits_files_lines filcl ON filcl.file_id = fil.id AND filcl.commit_id = s.id"
+                        + " WHERE fill.file_path = ?", repository);
 
         SUM_CHANGES_OF_FILE
-                = QueryUtils.getQueryForDatabase("SELECT (SUM(filcl.added) + SUM(filcl.removed))"
+                = QueryUtils.getQueryForDatabase(
+                        "SELECT COALESCE((SUM(filcl.added) + SUM(filcl.removed)), 0)"
                         + "  FROM {0}_vcs.scmlog s"
-                + "  JOIN {0}_issues.issues_scmlog i2s ON i2s.scmlog_id = s.id"
-                + "  JOIN {0}_issues.issues i ON i.id = i2s.issue_id"
-                + "  JOIN {0}_vcs.actions a ON a.commit_id = s.id"
-                + "  JOIN {0}_vcs.files fil ON fil.id = a.file_id"
-                + "  JOIN {0}_vcs.file_links fill ON fill.file_id = fil.id"
-                + "  JOIN {0}_vcs.commits_files_lines filcl ON filcl.file_id = fil.id AND filcl.commit_id = s.id"
-                        + " WHERE fil.file_name = ?", repository);
+                        + "  JOIN {0}_issues.issues_scmlog i2s ON i2s.scmlog_id = s.id"
+                        + "  JOIN {0}_issues.issues i ON i.id = i2s.issue_id"
+                        + "  JOIN {0}_vcs.actions a ON a.commit_id = s.id"
+                        + "  JOIN {0}_vcs.files fil ON fil.id = a.file_id"
+                        + "  JOIN {0}_vcs.file_links fill ON fill.file_id = fil.id"
+                        + "  JOIN {0}_vcs.commits_files_lines filcl ON filcl.file_id = fil.id AND filcl.commit_id = s.id"
+                        + " WHERE fill.file_path = ?", repository);
     }
 
     // Issues //////////////////////////////////////////////////////////////////
@@ -388,7 +400,7 @@ public class BichoFileDAO {
                 selectParams.toArray());
 
         return new AuxCodeChurn(fileName,
-                (Long) sum.get(0)[0], (Long) sum.get(0)[1], (Long) sum.get(0)[2]);
+                ((BigDecimal) sum.get(0)[0]).longValue(), ((BigDecimal) sum.get(0)[1]).longValue(), 0);
     }
 
     public long calculeCodeChurn(String fileName, Date beginDate, Date endDate) {

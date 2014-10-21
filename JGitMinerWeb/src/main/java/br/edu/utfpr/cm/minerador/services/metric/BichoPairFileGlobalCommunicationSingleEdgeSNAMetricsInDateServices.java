@@ -8,8 +8,6 @@ import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericBichoDAO;
 import br.edu.utfpr.cm.JGitMinerWeb.model.matrix.EntityMatrix;
 import br.edu.utfpr.cm.JGitMinerWeb.model.matrix.EntityMatrixNode;
 import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.UserCommentedSamePairOfFileInAllDateServices;
-import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.UserCommentedSamePairOfFileInDateServices;
-import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.UserCommentedSamePairOfFileInNumberServices;
 import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.auxiliary.AuxFileFile;
 import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.auxiliary.AuxUserUser;
 import br.edu.utfpr.cm.JGitMinerWeb.services.metric.auxiliary.AuxFileFileMetrics;
@@ -30,6 +28,7 @@ import br.edu.utfpr.cm.JGitMinerWeb.util.JungExport;
 import br.edu.utfpr.cm.JGitMinerWeb.util.MathUtils;
 import br.edu.utfpr.cm.JGitMinerWeb.util.OutLog;
 import br.edu.utfpr.cm.JGitMinerWeb.util.PathUtils;
+import br.edu.utfpr.cm.minerador.services.matrix.BichoUserCommentedSamePairOfFileInDateServices;
 import edu.uci.ics.jung.graph.DirectedSparseGraph;
 import edu.uci.ics.jung.graph.util.EdgeType;
 import java.text.SimpleDateFormat;
@@ -141,11 +140,10 @@ public class BichoPairFileGlobalCommunicationSingleEdgeSNAMetricsInDateServices 
         int countIgnored = 0;
         BichoFileDAO bichoFileDAO = new BichoFileDAO(dao, repository);
         BichoPairFileDAO bichoPairFileDAO = new BichoPairFileDAO(dao, repository, 20);
-        Long pullRequestsSize = bichoPairFileDAO
-                .calculeNumberOfIssues(
-                        null, null, futureBeginDate, futureEndDate, true);
+        Long issuesSize = bichoPairFileDAO
+                .calculeNumberOfIssues(futureBeginDate, futureEndDate, true);
         
-        System.out.println("Number of all pull requests: " + pullRequestsSize);
+        System.out.println("Number of all pull requests: " + issuesSize);
         
         //Map<String, Long> futurePullRequest = new HashMap<>();
         
@@ -266,15 +264,15 @@ public class BichoPairFileGlobalCommunicationSingleEdgeSNAMetricsInDateServices 
         Map<String, Double> betweenness = BetweennessCalculator.calcule(graph, edgesWeigth);
         Map<String, Double> closeness = ClosenessCalculator.calcule(graph, edgesWeigth);
         Map<String, Integer> degree = DegreeCalculator.calcule(graph);
-         Map<String, Double> eigenvector = EigenvectorCalculator.calcule(graph, edgesWeigth);
+        Map<String, Double> eigenvector = EigenvectorCalculator.calcule(graph, edgesWeigth);
         Map<String, EgoMeasure<String>> ego = EgoMeasureCalculator.calcule(graph, edgesWeigth);
         Map<String, StructuralHolesMeasure<String>> structuralHoles = StructuralHolesCalculator.calcule(graph, edgesWeigth);
 
         // number of pull requests in date interval
-        Long numberOfAllPullrequestFuture = bichoPairFileDAO.calculeNumberOfIssues(null, null, futureBeginDate, futureEndDate, true);
+        Long numberOfAllPullrequestFuture = issuesSize;
         // cache for optimization number of pull requests where file is in,
         // reducing access to database
-        Map<String, Long> pullRequestFileMap = new HashMap<>();
+        Map<String, Long> issueFileMap = new HashMap<>();
         // cache for optimization file code churn (add, del, change),
         // reducing access to database
         Map<String, AuxCodeChurn> codeChurnRequestFileMap = new HashMap<>();
@@ -521,10 +519,10 @@ public class BichoPairFileGlobalCommunicationSingleEdgeSNAMetricsInDateServices 
 
             // apriori /////////////////////////////////////////////////////////
             Long fileNumberOfPullrequestOfPairFuture
-                    = calculeNumberOfIssues(pullRequestFileMap, auxFileFileMetrics.getFile(), bichoFileDAO, futureBeginDate, futureEndDate);
+                    = calculeNumberOfIssues(issueFileMap, auxFileFileMetrics.getFile(), bichoFileDAO, futureBeginDate, futureEndDate);
 
             Long file2NumberOfPullrequestOfPairFuture
-                    = calculeNumberOfIssues(pullRequestFileMap, auxFileFileMetrics.getFile2(), bichoFileDAO, futureBeginDate, futureEndDate);
+                    = calculeNumberOfIssues(issueFileMap, auxFileFileMetrics.getFile2(), bichoFileDAO, futureBeginDate, futureEndDate);
 
             auxFileFileMetrics.addMetrics(fileNumberOfPullrequestOfPairFuture, file2NumberOfPullrequestOfPairFuture, numberOfAllPullrequestFuture);
 
@@ -551,29 +549,25 @@ public class BichoPairFileGlobalCommunicationSingleEdgeSNAMetricsInDateServices 
         addToEntityMetricNodeList(fileFileMetrics);
     }
 
-    public Long calculeNumberOfIssues(Map<String, Long> pullRequestFileMap, String fileName, BichoFileDAO fileDAO, Date futureBeginDate, Date futureEndDate) {
+    public Long calculeNumberOfIssues(Map<String, Long> issueFileMap, String fileName, BichoFileDAO fileDAO, Date futureBeginDate, Date futureEndDate) {
         Long fileNumberOfPullrequestOfPairFuture;
-        if (pullRequestFileMap.containsKey(fileName)) {
-            fileNumberOfPullrequestOfPairFuture = pullRequestFileMap.get(fileName);
+        if (issueFileMap.containsKey(fileName)) {
+            fileNumberOfPullrequestOfPairFuture = issueFileMap.get(fileName);
         } else {
             fileNumberOfPullrequestOfPairFuture = fileDAO.calculeNumberOfIssues(fileName, futureBeginDate, futureEndDate, true);
-            pullRequestFileMap.put(fileName, fileNumberOfPullrequestOfPairFuture);
+            issueFileMap.put(fileName, fileNumberOfPullrequestOfPairFuture);
         }
         return fileNumberOfPullrequestOfPairFuture;
     }
 
     public long calculeFileCodeChurn(Map<String, AuxCodeChurn> codeChurnRequestFileMap, String fileName, BichoFileDAO fileDAO, Date beginDate, Date endDate) {
-        final long /*additions, deletions,*/ changes;
+        final long changes;
         if (codeChurnRequestFileMap.containsKey(fileName)) { // cached
             AuxCodeChurn sumCodeChurnFile = codeChurnRequestFileMap.get(fileName);
-//                additions = sumCodeChurnFile.getAdditions();
-//                deletions = sumCodeChurnFile.getDeletions();
             changes = sumCodeChurnFile.getChanges();
         } else {
-            AuxCodeChurn sumCodeChurnFile = new AuxCodeChurn(0, 0, 0);//fileDAO.sumCodeChurnByFilename( fileName, beginDate, endDate);
+            AuxCodeChurn sumCodeChurnFile = fileDAO.sumCodeChurnByFilename( fileName, beginDate, endDate);
             codeChurnRequestFileMap.put(fileName, sumCodeChurnFile);
-//                additions = sumCodeChurnFile.getAdditions();
-//                deletions = sumCodeChurnFile.getDeletions();
             changes = sumCodeChurnFile.getChanges();
         }
         return changes;
@@ -581,17 +575,13 @@ public class BichoPairFileGlobalCommunicationSingleEdgeSNAMetricsInDateServices 
 
     public double calculeDevFileExperience(final Long changes, Map<String, AuxCodeChurn> fileUserCommitMap,
             String fileName, String user, BichoFileDAO fileDAO, Date beginDate, Date endDate) {
-        final long /*devAdditions, devDeletions,*/ devChanges;
+        final long devChanges;
         if (fileUserCommitMap.containsKey(fileName)) { // cached
             AuxCodeChurn sumCodeChurnFile = fileUserCommitMap.get(fileName);
-//                    devAdditions = sumCodeChurnFile.getAdditions();
-//                    devDeletions = sumCodeChurnFile.getDeletions();
             devChanges = sumCodeChurnFile.getChanges();
         } else {
-            AuxCodeChurn sumCodeChurnFile = new AuxCodeChurn(0, 0, 0);//fileDAO.sumCodeChurnByFilename( fileName, user, beginDate, endDate);
+            AuxCodeChurn sumCodeChurnFile = fileDAO.sumCodeChurnByFilename( fileName, user, beginDate, endDate);
             fileUserCommitMap.put(fileName, sumCodeChurnFile);
-//                    devAdditions = sumCodeChurnFile.getAdditions();
-//                    devDeletions = sumCodeChurnFile.getDeletions();
             devChanges = sumCodeChurnFile.getChanges();
         }
 
@@ -633,19 +623,10 @@ public class BichoPairFileGlobalCommunicationSingleEdgeSNAMetricsInDateServices 
 
     @Override
     public List<String> getAvailableMatricesPermitted() {
-        return Arrays.asList(UserCommentedSamePairOfFileInDateServices.class.getName(),
-                UserCommentedSamePairOfFileInNumberServices.class.getName());
+        return Arrays.asList(BichoUserCommentedSamePairOfFileInDateServices.class.getName());
     }
 
     private String getRepository() {
         return getMatrix().getRepository();
-    }
-
-    private boolean isIgnored(String fileName) {
-        return fileName.contains("README")
-                || fileName.endsWith("Rakefile")
-                || fileName.contains("CHANGELOG")
-                || fileName.contains("Gemfile")
-                || fileName.endsWith(".gitignore");
     }
 }

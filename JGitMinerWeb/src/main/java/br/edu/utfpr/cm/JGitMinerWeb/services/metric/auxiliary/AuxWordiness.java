@@ -37,6 +37,10 @@ public class AuxWordiness {
         return Collections.unmodifiableList(comments);
     }
 
+    public void addComment(String comment) {
+        comments.add(comment);
+    }
+
     @Override
     public String toString() {
         return issueNumber + ";" + url;
