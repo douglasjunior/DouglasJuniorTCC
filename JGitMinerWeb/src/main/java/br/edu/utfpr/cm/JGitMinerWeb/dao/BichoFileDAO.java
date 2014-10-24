@@ -57,31 +57,19 @@ public class BichoFileDAO {
 
         FILTER_BY_MAX_FILES_IN_COMMIT
                 = QueryUtils.getQueryForDatabase(
-                        " AND (SELECT COUNT(1)"
-                        + "        FROM {0}_vcs.files cfil"
-                        + "        JOIN {0}_vcs.actions ca ON ca.file_id = cfil.id"
-                        + "        JOIN {0}_vcs.scmlog cs ON cs.id = ca.commit_id"
-                        + "       WHERE cs.id = s.id) <= ? ", repository);
+                        " AND s.num_files <= ? ", repository);
 
         FILTER_BY_MIN_FILES_IN_COMMIT
                 = QueryUtils.getQueryForDatabase(
-                        " AND (SELECT COUNT(1)"
-                        + "        FROM {0}_vcs.files cfil"
-                        + "        JOIN {0}_vcs.actions ca ON ca.file_id = cfil.id"
-                        + "        JOIN {0}_vcs.scmlog cs ON cs.id = ca.commit_id"
-                        + "       WHERE cs.id = s.id) >= ? ", repository);
+                        " AND s.num_files >= ? ", repository);
 
         FILTER_BY_MIN_ISSUE_COMMENTS
                 = QueryUtils.getQueryForDatabase(
-                        " AND (SELECT COUNT(1)"
-                        + "        FROM {0}_issues.comments ic2"
-                        + "       WHERE ic2.issue_id = i.id) > 0", repository);
+                        " AND i.num_comments >= ? ", repository);
 
         FILTER_BY_ISSUES_THAT_HAS_AT_LEAST_ONE_COMMENT
                 = QueryUtils.getQueryForDatabase(
-                        " AND (SELECT COUNT(1)"
-                        + "        FROM {0}_issues.comments ic2"
-                        + "       WHERE ic2.issue_id = i.id) > 0", repository);
+                        " AND i.num_comments > 0", repository);
 
         FILTER_BY_USER_NAME
                 = " AND (p.name IS NOT NULL AND "
@@ -93,7 +81,7 @@ public class BichoFileDAO {
 
         COUNT_ISSUES
                 = QueryUtils.getQueryForDatabase(
-                        "SELECT DISTINCT(i.id)"
+                        "SELECT COUNT(DISTINCT(i.id))"
                         + "  FROM {0}_vcs.scmlog s"
                         + "  JOIN {0}_issues.issues_scmlog i2s ON i2s.scmlog_id = s.id"
                         + "  JOIN {0}_issues.issues i ON i.id = i2s.issue_id"
@@ -115,7 +103,7 @@ public class BichoFileDAO {
 
         COUNT_COMMITS_BY_FILE_NAME
                 = QueryUtils.getQueryForDatabase(
-                        "SELECT COUNT(s.id)"
+                        "SELECT COUNT(DISTINCT(s.id))"
                         + "  FROM {0}_vcs.files fil"
                         + "  JOIN {0}_vcs.actions a ON a.file_id = fil.id"
                         + "  JOIN {0}_vcs.scmlog s ON s.id = a.commit_id"
@@ -131,7 +119,7 @@ public class BichoFileDAO {
                         + "  JOIN {0}_vcs.actions a ON a.commit_id = s.id"
                         + "  JOIN {0}_vcs.files fil ON fil.id = a.file_id"
                         + "  JOIN {0}_vcs.file_links fill ON fill.file_id = fil.id"
-                        + "  JOIN {0}_vcs.commits_files_lines filcl ON filcl.file_id = fil.id AND filcl.commit_id = s.id"
+                        + "  JOIN {0}_vcs.commits_files_lines filcl ON filcl.commit = s.id AND filcl.path = fill.file_path"
                         + " WHERE fill.file_path = ?", repository);
 
         SUM_CHANGES_OF_FILE
@@ -143,7 +131,7 @@ public class BichoFileDAO {
                         + "  JOIN {0}_vcs.actions a ON a.commit_id = s.id"
                         + "  JOIN {0}_vcs.files fil ON fil.id = a.file_id"
                         + "  JOIN {0}_vcs.file_links fill ON fill.file_id = fil.id"
-                        + "  JOIN {0}_vcs.commits_files_lines filcl ON filcl.file_id = fil.id AND filcl.commit_id = s.id"
+                        + "  JOIN {0}_vcs.commits_files_lines filcl ON filcl.commit = s.id AND filcl.path = fill.file_path"
                         + " WHERE fill.file_path = ?", repository);
     }
 
@@ -176,7 +164,6 @@ public class BichoFileDAO {
 
         StringBuilder sql = new StringBuilder();
         sql.append(COUNT_ISSUES);
-        sql.append(FILTER_BY_MIN_ISSUE_COMMENTS);
         selectParams.add(filename);
 
         if (beginDate != null && endDate != null) { // from begin to end

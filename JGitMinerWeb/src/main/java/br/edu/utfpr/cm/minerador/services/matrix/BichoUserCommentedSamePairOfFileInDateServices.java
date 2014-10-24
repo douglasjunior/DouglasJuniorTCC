@@ -93,9 +93,6 @@ public class BichoUserCommentedSamePairOfFileInDateServices extends AbstractBich
                 + "  JOIN " + getRepository() + "_issues.issues i ON i.id = i2s.issue_id"
                 + "  JOIN " + getRepository() + "_vcs.scmlog s ON s.id = i2s.scmlog_id"
                 + " WHERE (SELECT COUNT(1)"
-                + "          FROM aries_issues.comments ic2"
-                + "         WHERE ic2.issue_id = i.id) > 1"
-                + "   AND (SELECT COUNT(1)"
                 + "          FROM aries_vcs.scmlog s"
                 + "          JOIN aries_issues.issues_scmlog i2s ON i2s.scmlog_id = s.id"
                 + "         WHERE i2s.issue_id = i.id) > 1";
@@ -171,11 +168,7 @@ public class BichoUserCommentedSamePairOfFileInDateServices extends AbstractBich
                 + "  JOIN " + getRepository() + "_vcs.scmlog s ON s.id = a.commit_id"
                 + "  JOIN " + getRepository() + "_vcs.file_links fill ON fill.file_id = fil.id AND fill.commit_id = s.id"
                 + " WHERE s.id = ?"
-                + "   AND (SELECT COUNT(1)"
-                + "          FROM " + getRepository() + "_vcs.files cfil"
-                + "          JOIN " + getRepository() + "_vcs.actions ca ON ca.file_id = cfil.id"
-                + "          JOIN " + getRepository() + "_vcs.scmlog cs ON cs.id = ca.commit_id"
-                + "         WHERE cs.id = s.id) <= ?";
+                + "   AND s.num_files <= ?";
 
         int count = 1;
         int totalFilePairsCount = 0;

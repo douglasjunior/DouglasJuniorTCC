@@ -71,11 +71,7 @@ public class BichoPairFileDAO {
         // filters
         FILTER_BY_MAX_FILES_IN_COMMIT
                 = QueryUtils.getQueryForDatabase(
-                        " AND (SELECT COUNT(1)"
-                        + "        FROM {0}_vcs.files cfil"
-                        + "        JOIN {0}_vcs.actions ca ON ca.file_id = cfil.id"
-                        + "        JOIN {0}_vcs.scmlog cs ON cs.id = ca.commit_id"
-                        + "       WHERE cs.id = s.id) <= " + maxFilePerCommit, repository);
+                        " AND s.num_files <= " + maxFilePerCommit, repository);
 
         FILTER_BY_ISSUE_CREATION_DATE
                 = " AND i.submitted_on BETWEEN ? AND ?";
@@ -91,9 +87,7 @@ public class BichoPairFileDAO {
 
         FILTER_BY_ISSUES_THAT_HAS_AT_LEAST_ONE_COMMENT
                 = QueryUtils.getQueryForDatabase(
-                        "AND (SELECT COUNT(1)"
-                        + "        FROM {0}_issues.comments ic2"
-                        + "       WHERE ic2.issue_id = i.id) > 0", repository);
+                        "AND i.num_comments > 0", repository);
 
         FILTER_BY_USER_NAME
                 = " AND (p.name IS NOT NULL AND "
@@ -104,7 +98,7 @@ public class BichoPairFileDAO {
         // commit
         COUNT_ISSUES
                 = QueryUtils.getQueryForDatabase(
-                        "SELECT DISTINCT(i.id)"
+                        "SELECT COUNT(DISTINCT(i.id))"
                         + "  FROM {0}_vcs.scmlog s"
                         + "  JOIN {0}_issues.issues_scmlog i2s ON i2s.scmlog_id = s.id"
                         + "  JOIN {0}_issues.issues i ON i.id = i2s.issue_id"
@@ -119,7 +113,7 @@ public class BichoPairFileDAO {
 
         COUNT_ISSUES_BY_FILE_NAME
                 = QueryUtils.getQueryForDatabase(
-                        "SELECT DISTINCT(i.id)"
+                        "SELECT COUNT(DISTINCT(i.id))"
                         + "  FROM {0}_vcs.scmlog s"
                         + "  JOIN {0}_issues.issues_scmlog i2s ON i2s.scmlog_id = s.id"
                         + "  JOIN {0}_issues.issues i ON i.id = i2s.issue_id"
@@ -198,8 +192,8 @@ public class BichoPairFileDAO {
                         + "  JOIN {0}_vcs.actions a2 ON a2.commit_id = s.id"
                         + "  JOIN {0}_vcs.files fil2 ON fil2.id = a2.file_id AND a2.file_id <> a.file_id"
                         + "  JOIN {0}_vcs.file_links fill2 ON fill2.file_id = fil2.id"
-                        + "  JOIN {0}_vcs.commits_files_lines filcl ON filcl.file_id = fil.id AND filcl.commit_id = s.id"
-                        + "  JOIN {0}_vcs.commits_files_lines filcl2 ON filcl2.file_id = fil2.id AND filcl2.commit_id = s.id"
+                        + "  JOIN {0}_vcs.commits_files_lines filcl ON filcl.commit = s.id AND filcl.path = fill.file_path"
+                        + "  JOIN {0}_vcs.commits_files_lines filcl2 ON filcl2.commit = s.id AND filcl2.path = fill2.file_path"
                         + " WHERE fill.file_path = ?"
                         + "   AND fill2.file_path = ?", repository)
                 + FILTER_BY_MAX_FILES_IN_COMMIT;
@@ -218,8 +212,8 @@ public class BichoPairFileDAO {
                         + "  JOIN {0}_vcs.actions a2 ON a2.commit_id = s.id"
                         + "  JOIN {0}_vcs.files fil2 ON fil2.id = a2.file_id AND a2.file_id <> a.file_id"
                         + "  JOIN {0}_vcs.file_links fill2 ON fill2.file_id = fil2.id"
-                        + "  JOIN {0}_vcs.commits_files_lines filcl ON filcl.file_id = fil.id AND filcl.commit_id = s.id"
-                        + "  JOIN {0}_vcs.commits_files_lines filcl2 ON filcl2.file_id = fil2.id AND filcl2.commit_id = s.id"
+                        + "  JOIN {0}_vcs.commits_files_lines filcl ON filcl.commit = s.id AND filcl.path = fill.file_path"
+                        + "  JOIN {0}_vcs.commits_files_lines filcl2 ON filcl2.commit = s.id AND filcl2.path = fill2.file_path"
                         + " WHERE fill.file_path = ?"
                         + "   AND fill2.file_path = ?", repository)
                 + FILTER_BY_MAX_FILES_IN_COMMIT

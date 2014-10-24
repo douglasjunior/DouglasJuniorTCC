@@ -114,7 +114,7 @@ public class BichoMetricQueueBean implements Serializable {
     }
 
     public void queue() {
-        if (matrix == null) {
+        if (matrix == null || matrix.getId() == null) {
             out.printLog("Matrix is not selected.");
             return;
         }
