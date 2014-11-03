@@ -91,9 +91,7 @@ public class BichoPairFileDAO {
 
         FILTER_BY_USER_NAME
                 = " AND (p.name IS NOT NULL AND "
-                + "      p2.name IS NOT NULL AND "
-                + "      p.name = ? AND "
-                + "      p2.name = ?)";
+                + "      p.name = ?)";
 
         // commit
         COUNT_ISSUES
@@ -146,10 +144,11 @@ public class BichoPairFileDAO {
 
         SELECT_ISSUES_COMMENTS_OF_FILE_PAIR_BY_DATE
                 = QueryUtils.getQueryForDatabase(
-                        "SELECT i.id, i.issue, i.description, c.text"
+                        "SELECT distinct i.id, i.issue, i.description, c.text, iej.issue_key"
                         + "  FROM {0}_vcs.scmlog s"
                         + "  JOIN {0}_issues.issues_scmlog i2s ON i2s.scmlog_id = s.id"
                         + "  JOIN {0}_issues.issues i ON i.id = i2s.issue_id"
+                        + "  JOIN {0}_issues.issues_ext_jira iej ON iej.issue_id = i.id"
                         + "  JOIN {0}_issues.comments c ON c.issue_id = i.id"
                         + "  JOIN {0}_vcs.actions a ON a.commit_id = s.id"
                         + "  JOIN {0}_vcs.files fil ON fil.id = a.file_id"
@@ -240,6 +239,7 @@ public class BichoPairFileDAO {
                 = QueryUtils.getQueryForDatabase(
                         "SELECT COUNT(DISTINCT(s.id))"
                         + "  FROM {0}_vcs.scmlog s"
+                        + "  JOIN {0}_vcs.people p ON p.id = s.committer_id"
                         + "  JOIN {0}_vcs.actions a ON a.commit_id = s.id"
                         + "  JOIN {0}_vcs.files fil ON fil.id = a.file_id"
                         + "  JOIN {0}_vcs.file_links fill ON fill.file_id = fil.id"
@@ -431,13 +431,12 @@ public class BichoPairFileDAO {
             selectParams.add(endDate);
         }
 
-        List<Object[]> committers = dao.selectNativeWithParams(
+        List<String> committers = dao.selectNativeWithParams(
                 sql.toString(), selectParams.toArray());
 
         Set<AuxUser> commitersList = new HashSet<>(committers.size());
-        for (Object[] nameAndEmail : committers) {
-            commitersList.add(new AuxUser((String) nameAndEmail[0],
-                    (String) nameAndEmail[1]));
+        for (String name : committers) {
+            commitersList.add(new AuxUser(name));
         }
 
         return commitersList;
@@ -485,8 +484,7 @@ public class BichoPairFileDAO {
 
         if (user != null) {
             sql.append(FILTER_BY_USER_NAME);
-            selectParams.add(user); // commiter name of file 1
-            selectParams.add(user); // commiter name of file 2
+            selectParams.add(user);
         }
 
         Long count = dao.selectNativeOneWithParams(sql.toString(), selectParams.toArray());
@@ -567,6 +565,7 @@ public class BichoPairFileDAO {
                         issueNumber,
                         (String) objects[1],
                         (String) objects[2],
+                        (String) objects[4],
                         comments);
                 cache.put(issueNumber, issue);
             }
