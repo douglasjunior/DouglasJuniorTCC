@@ -18,6 +18,10 @@ public abstract class AbstractBichoMetricServices extends AbstractBichoServices 
 
     private final EntityMatrix matrix;
 
+    public AbstractBichoMetricServices() {
+        matrix = null;
+    }
+
     public AbstractBichoMetricServices(GenericBichoDAO dao, OutLog out) {
         super(dao, out);
         this.matrix = null;

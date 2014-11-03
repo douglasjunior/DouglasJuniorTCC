@@ -23,6 +23,10 @@ public abstract class AbstractBichoServices implements Runnable, Serializable {
     protected Map params;
     protected OutLog out;
 
+    public AbstractBichoServices() {
+        this.dao = null;
+    }
+
     public AbstractBichoServices(GenericBichoDAO dao, OutLog out) {
         this.dao = dao;
         this.out = out;
