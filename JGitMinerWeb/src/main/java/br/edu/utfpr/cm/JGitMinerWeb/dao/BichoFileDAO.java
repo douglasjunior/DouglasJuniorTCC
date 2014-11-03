@@ -73,9 +73,7 @@ public class BichoFileDAO {
 
         FILTER_BY_USER_NAME
                 = " AND (p.name IS NOT NULL AND "
-                + "      p2.name IS NOT NULL AND "
-                + "      p.name = ? AND "
-                + "      p2.name = ?)";
+                + "      p.name = ?)";
 
         FIXED_ISSUES_ONLY = " AND i.resolution = 'Fixed' ";
 
@@ -107,6 +105,7 @@ public class BichoFileDAO {
                         + "  FROM {0}_vcs.files fil"
                         + "  JOIN {0}_vcs.actions a ON a.file_id = fil.id"
                         + "  JOIN {0}_vcs.scmlog s ON s.id = a.commit_id"
+                        + "  JOIN {0}_vcs.people p ON p.id = s.committer_id"
                         + " WHERE fill.file_path = ?", repository);
 
         SUM_CODE_CHURN_BY_FILE_NAME
@@ -114,6 +113,7 @@ public class BichoFileDAO {
                         "SELECT COALESCE(SUM(filcl.added), 0),"
                         + "       COALESCE(SUM(filcl.removed), 0)"
                         + "  FROM {0}_vcs.scmlog s"
+                        + "  JOIN {0}_vcs.people p ON p.id = s.committer_id"
                         + "  JOIN {0}_issues.issues_scmlog i2s ON i2s.scmlog_id = s.id"
                         + "  JOIN {0}_issues.issues i ON i.id = i2s.issue_id"
                         + "  JOIN {0}_vcs.actions a ON a.commit_id = s.id"
@@ -380,7 +380,6 @@ public class BichoFileDAO {
         if (user != null) {
             sql.append(FILTER_BY_USER_NAME);
             selectParams.add(user);
-            selectParams.add(user);
         }
 
         List<Object[]> sum = dao.selectNativeWithParams(sql.toString(),
@@ -397,8 +396,8 @@ public class BichoFileDAO {
             endDate
         };
 
-        Long sum = dao.selectNativeOneWithParams(SUM_CHANGES_OF_FILE, bdObjects);
+        BigDecimal sum = dao.selectNativeOneWithParams(SUM_CHANGES_OF_FILE, bdObjects);
 
-        return sum;
+        return sum.longValue();
     }
 }
