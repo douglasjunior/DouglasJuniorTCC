@@ -1,6 +1,7 @@
 package br.edu.utfpr.cm.minerador.services.matrix;
 
 import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericBichoDAO;
+import br.edu.utfpr.cm.JGitMinerWeb.dao.QueryUtils;
 import br.edu.utfpr.cm.JGitMinerWeb.model.matrix.EntityMatrix;
 import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.auxiliary.AuxFileFile;
 import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.auxiliary.AuxUserFileFileUserDirectional;
@@ -87,24 +88,20 @@ public class BichoUserCommentedSamePairOfFileInDateServices extends AbstractBich
         paramValues.add(beginDate);
         paramValues.add(endDate);
 
-        String selectFixedIssuesWithMoreThanOneComment
-                = "SELECT i.id, s.id"
-                + "  FROM " + getRepository() + "_issues.issues_scmlog i2s"
-                + "  JOIN " + getRepository() + "_issues.issues i ON i.id = i2s.issue_id"
-                + "  JOIN " + getRepository() + "_vcs.scmlog s ON s.id = i2s.scmlog_id"
-                + " WHERE (SELECT COUNT(1)"
-                + "          FROM aries_vcs.scmlog s"
-                + "          JOIN aries_issues.issues_scmlog i2s ON i2s.scmlog_id = s.id"
-                + "         WHERE i2s.issue_id = i.id) > 1";
+        String selectFixedIssues
+                = QueryUtils.getQueryForDatabase("SELECT i.id, s.id"
+                        + "  FROM {0}_issues.issues_scmlog i2s"
+                        + "  JOIN {0}_issues.issues i ON i.id = i2s.issue_id"
+                        + "  JOIN {0}_vcs.scmlog s ON s.id = i2s.scmlog_id"
+                        + " WHERE s.num_files <= " + getMaxFilesPerCommit(), getRepository());
 
         if (isOnlyFixed()) {
-            selectFixedIssuesWithMoreThanOneComment
+            selectFixedIssues
                     += " AND i.resolution = 'Fixed'";
         }
 
         // select a issue/pullrequest commenters
-        List<Object[]> filteredIssues = dao.selectNativeWithParams(
-                selectFixedIssuesWithMoreThanOneComment,
+        List<Object[]> filteredIssues = dao.selectNativeWithParams(selectFixedIssues,
                 paramValues.toArray());
 
         Map<Integer, List<Integer>> issuesCommits = new HashMap<>();
@@ -123,52 +120,21 @@ public class BichoUserCommentedSamePairOfFileInDateServices extends AbstractBich
         
         out.printLog("Issues: " + filteredIssues.size());
 
-//        final String selectCommits
-//                = "SELECT s.id,"
-//                + "       s.rev,"
-//                + "       s.committer_id,"
-//                + "       s.author_id,"
-//                + "       s.date,"
-//                + "       s.date_tz,"
-//                + "       s.author_date,"
-//                + "       s.author_date_tz,"
-//                + "       s.message,"
-//                + "       s.composed_rev,"
-//                + "       s.repository_id"
-//                + "  FROM " + getRepository() + "_issues.issues_scmlog i2s"
-//                + "  JOIN " + getRepository() + "_issues.issues i ON i.id = i2s.issue_id"
-//                + "  JOIN " + getRepository() + "_vcs.scmlog s ON s.id = i2s.scactionsmlog_id"
-//                + " WHERE s.id = ?"
-//                + "   AND (SELECT COUNT(1) FROM aries_vcs.files fil"
-//                + "          JOIN aries_vcs.actions a ON a.file_id = fil.id"
-//                + "         WHERE a.commit_id = ?) <= ?"
-//                + " ORDER BY s.date";
-
         final String selectComments
-                = "SELECT p.name, p.email"
-                + "  FROM " + getRepository() + "_issues.comments c"
-                + "  JOIN " + getRepository() + "_issues.people p ON p.id = c.submitted_by"
-                + " WHERE c.issue_id = ?"
-                + " ORDER BY c.submitted_on ASC";
-//                = "SELECT c.id,"
-//                + "       c.issue_id,"
-//                + "       c.comment_id,"
-//                + "       c.text,"
-//                + "       c.submitted_by,"
-//                + "       c.submitted_on"
-//                + "  FROM " + getRepository() + "_issues.commenters c"
-//                + "  JOIN " + getRepository() + "_issues.people p ON p.id = c.submitted_by"
-//                + " WHERE c.issue_id = ?"
-//                + " ORDER BY c.submitted_on ASC";
+                = QueryUtils.getQueryForDatabase("SELECT p.name, p.email"
+                        + "  FROM {0}_issues.comments c"
+                        + "  JOIN {0}_issues.people p ON p.id = c.submitted_by"
+                        + " WHERE c.issue_id = ?"
+                        + " ORDER BY c.submitted_on ASC", getRepository());
 
         final String selectFiles
-                = "SELECT fill.file_path"
-                + "  FROM " + getRepository() + "_vcs.files fil"
-                + "  JOIN " + getRepository() + "_vcs.actions a ON a.file_id = fil.id"
-                + "  JOIN " + getRepository() + "_vcs.scmlog s ON s.id = a.commit_id"
-                + "  JOIN " + getRepository() + "_vcs.file_links fill ON fill.file_id = fil.id AND fill.commit_id = s.id"
-                + " WHERE s.id = ?"
-                + "   AND s.num_files <= ?";
+                = QueryUtils.getQueryForDatabase("SELECT fill.file_path"
+                        + "  FROM {0}_vcs.files fil"
+                        + "  JOIN {0}_vcs.actions a ON a.file_id = fil.id"
+                        + "  JOIN {0}_vcs.scmlog s ON s.id = a.commit_id"
+                        + "  JOIN {0}_vcs.file_links fill ON fill.file_id = fil.id AND fill.commit_id = s.id"
+                        + " WHERE s.id = ?"
+                        + "   AND s.num_files <= ?", getRepository());
 
         int count = 1;
         int totalFilePairsCount = 0;
