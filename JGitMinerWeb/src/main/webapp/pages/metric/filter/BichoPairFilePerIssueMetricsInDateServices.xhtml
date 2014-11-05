@@ -1,0 +1,16 @@
+<div xmlns="http://www.w3.org/1999/xhtml"
+     xmlns:h="http://java.sun.com/jsf/html"
+     xmlns:p="http://primefaces.org/ui">
+    
+    <h:panelGrid columns="2" cellpadding="5" columnClasses="col">
+        <h:outputLabel value="Future Date: " for="futureBeginDate" />  
+        <h:panelGroup>
+            <p:calendar value="#{bean.paramValue['futureBeginDate']}" id="futureBeginDate" pattern="dd/MM/yyyy HH:mm:ss" navigator="true" size="20" autocomplete="true" showOn="button" />
+            <h:outputLabel value=" to " for="futureEndDate" />
+            <p:calendar value="#{bean.paramValue['futureEndDate']}" id="futureEndDate" pattern="dd/MM/yyyy HH:mm:ss" navigator="true" size="20" autocomplete="true" showOn="button" />
+            <i>(Used for count modifications)</i>
+        </h:panelGroup>
+    </h:panelGrid>
+    
+</div>
+
