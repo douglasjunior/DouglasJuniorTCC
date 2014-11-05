@@ -132,7 +132,11 @@ public class BichoUserCommentedSamePairOfFileInDateServices extends AbstractBich
                         + "  FROM {0}_vcs.files fil"
                         + "  JOIN {0}_vcs.actions a ON a.file_id = fil.id"
                         + "  JOIN {0}_vcs.scmlog s ON s.id = a.commit_id"
-                        + "  JOIN {0}_vcs.file_links fill ON fill.file_id = fil.id AND fill.commit_id = s.id"
+                        + "  JOIN {0}_vcs.file_links fill ON fill.file_id = fil.id AND fill.commit_id = "
+                        + "       (SELECT MAX(fill.commit_id) " // last commit where file has introduced, because it can have more than one
+                        + "          FROM aries_vcs.file_links afill "
+                        + "         WHERE afill.commit_id <= s.id "
+                        + "           AND afill.file_id = fil.id)"
                         + " WHERE s.id = ?"
                         + "   AND s.num_files <= ?", getRepository());
 
