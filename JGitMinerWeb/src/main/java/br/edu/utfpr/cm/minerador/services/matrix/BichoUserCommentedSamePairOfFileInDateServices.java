@@ -84,7 +84,6 @@ public class BichoUserCommentedSamePairOfFileInDateServices extends AbstractBich
         //Pattern fileToIgnore = MatcherUtils.createExcludeMatcher(getFilesToIgnore());
 
         final List<Object> paramValues = new ArrayList<>();
-        paramValues.add(getRepository());
         paramValues.add(beginDate);
         paramValues.add(endDate);
 
@@ -99,6 +98,8 @@ public class BichoUserCommentedSamePairOfFileInDateServices extends AbstractBich
             selectFixedIssues
                     += " AND i.resolution = 'Fixed'";
         }
+
+        selectFixedIssues += " AND i.submitted_on BETWEEN ? AND ? ";
 
         // select a issue/pullrequest commenters
         List<Object[]> filteredIssues = dao.selectNativeWithParams(selectFixedIssues,
