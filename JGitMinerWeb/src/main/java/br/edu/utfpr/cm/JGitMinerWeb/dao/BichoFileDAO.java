@@ -12,6 +12,8 @@ import java.util.List;
 public class BichoFileDAO {
 
     // filters
+    private final String FILTER_BY_ISSUE;
+
     private final String FILTER_BY_ISSUE_CREATION_DATE;
 
     private final String FILTER_BY_BEFORE_ISSUE_CREATION_DATE;
@@ -45,6 +47,9 @@ public class BichoFileDAO {
 
     public BichoFileDAO(GenericBichoDAO dao, String repository) {
         this.dao = dao;
+
+        FILTER_BY_ISSUE
+                = " AND i.id = ? ";
 
         FILTER_BY_ISSUE_CREATION_DATE
                 = " AND i.submitted_on BETWEEN ? AND ? ";
@@ -386,7 +391,7 @@ public class BichoFileDAO {
                 selectParams.toArray());
 
         return new AuxCodeChurn(fileName,
-                ((BigDecimal) sum.get(0)[0]).longValue(), ((BigDecimal) sum.get(0)[1]).longValue(), 0);
+                ((BigDecimal) sum.get(0)[0]).longValue(), ((BigDecimal) sum.get(0)[1]).longValue());
     }
 
     public long calculeCodeChurn(String fileName, Date beginDate, Date endDate) {

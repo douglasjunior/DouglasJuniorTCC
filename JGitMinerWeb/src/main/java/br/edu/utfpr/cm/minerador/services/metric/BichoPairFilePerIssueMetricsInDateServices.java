@@ -491,11 +491,11 @@ public class BichoPairFilePerIssueMetricsInDateServices extends AbstractBichoMet
                     fileFile.getFileName(), fileFile.getFileName2(),
                     fileFile.getPullNumber(),
                     BooleanUtils.toInteger(samePackage),
-                    //                        barycenterSum, barycenterAvg, barycenterMax,
+                    // barycenterSum, barycenterAvg, barycenterMax,
                     betweennessSum, betweennessAvg, betweennessMax,
                     closenessSum, closenessAvg, closenessMax,
                     degreeSum, degreeAvg, degreeMax,
-                    eigenvectorSum, eigenvectorAvg, eigenvectorMax,
+                    // eigenvectorSum, eigenvectorAvg, eigenvectorMax,
 
                     egoBetweennessSum, egoBetweennessAvg, egoBetweennessMax,
                     egoSizeSum, egoSizeAvg, egoSizeMax,
@@ -571,7 +571,7 @@ public class BichoPairFilePerIssueMetricsInDateServices extends AbstractBichoMet
             AuxCodeChurn sumCodeChurnFile = codeChurnRequestFileMap.get(fileName);
             changes = sumCodeChurnFile.getChanges();
         } else {
-            AuxCodeChurn sumCodeChurnFile = fileDAO.sumCodeChurnByFilename( fileName, beginDate, endDate);
+            AuxCodeChurn sumCodeChurnFile = fileDAO.sumCodeChurnByFilename(fileName, null, beginDate, endDate, 0, 20);
             codeChurnRequestFileMap.put(fileName, sumCodeChurnFile);
             changes = sumCodeChurnFile.getChanges();
         }
@@ -585,7 +585,7 @@ public class BichoPairFilePerIssueMetricsInDateServices extends AbstractBichoMet
             AuxCodeChurn sumCodeChurnFile = fileUserCommitMap.get(fileName);
             devChanges = sumCodeChurnFile.getChanges();
         } else {
-            AuxCodeChurn sumCodeChurnFile = fileDAO.sumCodeChurnByFilename( fileName, user, beginDate, endDate);
+            AuxCodeChurn sumCodeChurnFile = fileDAO.sumCodeChurnByFilename(fileName, user, beginDate, endDate, 0, 20);
             fileUserCommitMap.put(fileName, sumCodeChurnFile);
             devChanges = sumCodeChurnFile.getChanges();
         }
@@ -600,7 +600,7 @@ public class BichoPairFilePerIssueMetricsInDateServices extends AbstractBichoMet
                 + "btwSum;btwAvg;btwMax;"
                 + "clsSum;clsAvg;clsMax;"
                 + "dgrSum;dgrAvg;dgrMax;"
-                 + "egvSum;egvAvg;egvMax;"
+                //+ "egvSum;egvAvg;egvMax;"
                 + "egoBtwSum;egoBtwAvg;egoBtwMax;"
                 + "egoSizeSum;egoSizeAvg;egoSizeMax;"
                 + "egoTiesSum;egoTiesAvg;egoTiesMax;"

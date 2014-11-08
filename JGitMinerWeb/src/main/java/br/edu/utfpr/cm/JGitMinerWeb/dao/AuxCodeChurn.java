@@ -12,6 +12,14 @@ public class AuxCodeChurn {
     private final long deletions;
     private final long changes;
 
+    public AuxCodeChurn(String file, long additions, long deletions) {
+        this.file = file;
+        this.file2 = null;
+        this.additions = additions;
+        this.deletions = deletions;
+        this.changes = additions + deletions;
+    }
+
     public AuxCodeChurn(String file, long additions, long deletions, long changes) {
         this.file = file;
         this.file2 = null;
