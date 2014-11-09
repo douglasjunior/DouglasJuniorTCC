@@ -647,16 +647,16 @@ public class BichoPairFileDAO {
         List<Object[]> rawIssues = dao.selectNativeWithParams(sql.toString(), selectParams.toArray());
 
         Map<Integer, AuxWordiness> cache = new HashMap<>(rawIssues.size());
-        for (Object[] objects : rawIssues) {
-            Integer issueNumber = (Integer) objects[0];
+        for (Object[] issue : rawIssues) {
+            Integer issueNumber = (Integer) issue[0];
 
             List<String> comments = dao.selectNativeWithParams(SELECT_COMMENTS_BY_ISSUE_ID, new Object[]{issueNumber});
-            AuxWordiness issue = new AuxWordiness(
+            AuxWordiness comment = new AuxWordiness(
                     issueNumber,
-                    (String) objects[1],
-                    (String) objects[2],
+                    (String) issue[1],
+                    (String) issue[2],
                     comments);
-            cache.put(issueNumber, issue);
+            cache.put(issueNumber, comment);
         }
 
         return cache.values();
