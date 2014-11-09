@@ -1,6 +1,10 @@
 
 package br.edu.utfpr.cm.JGitMinerWeb.util;
 
+import com.google.common.primitives.Doubles;
+import java.util.Collection;
+import org.apache.commons.math3.stat.descriptive.rank.Median;
+
 /**
  *
  * @author Rodrigo T. Kuroda
@@ -30,5 +34,13 @@ public class MathUtils {
 
     public static Double zeroIfNaN(Double d) {
         return d == null || d.isNaN() ? ZERO : d;
+    }
+
+    public static Integer median(Collection<? extends Number> numbers) {
+        double[] numFilesPrimitive = Doubles.toArray(numbers);
+
+        Median medianNumFilesPerCommit = new Median();
+        medianNumFilesPerCommit.setData(numFilesPrimitive);
+        return Double.valueOf(medianNumFilesPerCommit.evaluate()).intValue();
     }
 }

@@ -1,5 +1,6 @@
 package br.edu.utfpr.cm.minerador.services.matrix;
 
+import br.edu.utfpr.cm.JGitMinerWeb.dao.BichoDAO;
 import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericBichoDAO;
 import br.edu.utfpr.cm.JGitMinerWeb.dao.QueryUtils;
 import br.edu.utfpr.cm.JGitMinerWeb.model.matrix.EntityMatrix;
@@ -8,6 +9,7 @@ import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.auxiliary.AuxUserFileFileUse
 import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.auxiliary.AuxUserFileFileUserIssueDirectional;
 import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.auxiliary.AuxUserUserDirectional;
 import br.edu.utfpr.cm.JGitMinerWeb.util.MatcherUtils;
+import br.edu.utfpr.cm.JGitMinerWeb.util.MathUtils;
 import br.edu.utfpr.cm.JGitMinerWeb.util.OutLog;
 import br.edu.utfpr.cm.JGitMinerWeb.util.Util;
 import java.util.ArrayList;
@@ -25,6 +27,8 @@ import java.util.regex.Pattern;
  */
 public class BichoUserCommentedSamePairOfFileOnIssueInDateServices extends AbstractBichoMatrixServices {
 
+    private Integer maxFilesPerCommit = 0;
+
     public BichoUserCommentedSamePairOfFileOnIssueInDateServices() {
         super(null, null);
     }
@@ -38,7 +42,7 @@ public class BichoUserCommentedSamePairOfFileOnIssueInDateServices extends Abstr
     }
 
     private Integer getMaxFilesPerCommit() {
-        return Util.stringToInteger(params.get("maxFilesPerCommit") + "");
+        return maxFilesPerCommit;//Util.stringToInteger(params.get("maxFilesPerCommit") + "");
     }
 
     private Integer getMinFilesPerCommit() {
@@ -84,43 +88,16 @@ public class BichoUserCommentedSamePairOfFileOnIssueInDateServices extends Abstr
         }
         //Pattern fileToIgnore = MatcherUtils.createExcludeMatcher(getFilesToIgnore());
 
-        final List<Object> paramValues = new ArrayList<>();
-        paramValues.add(beginDate);
-        paramValues.add(endDate);
+        BichoDAO bichoDAO = new BichoDAO(dao, getRepository());
 
-        String selectFixedIssues
-                = QueryUtils.getQueryForDatabase("SELECT i.id, s.id"
-                        + "  FROM {0}_issues.issues_scmlog i2s"
-                        + "  JOIN {0}_issues.issues i ON i.id = i2s.issue_id"
-                        + "  JOIN {0}_vcs.scmlog s ON s.id = i2s.scmlog_id"
-                        + " WHERE s.num_files <= " + getMaxFilesPerCommit(), getRepository());
-
-        if (isOnlyFixed()) {
-            selectFixedIssues
-                    += " AND i.resolution = 'Fixed'";
-        }
-
-        selectFixedIssues += " AND i.submitted_on BETWEEN ? AND ? ";
+        Map<Integer, Integer> numFilesPerCommit = bichoDAO.countFilesPerCommit(beginDate, endDate, true);
+        maxFilesPerCommit = MathUtils.median(numFilesPerCommit.values());
 
         // select a issue/pullrequest commenters
-        List<Object[]> filteredIssues = dao.selectNativeWithParams(selectFixedIssues,
-                paramValues.toArray());
-
-        Map<Integer, List<Integer>> issuesCommits = new HashMap<>();
-        for (Object[] issueCommit : filteredIssues) {
-            Integer issue = (Integer) issueCommit[0];
-            Integer commit = (Integer) issueCommit[1];
-
-            if (issuesCommits.containsKey(issue)) {
-                issuesCommits.get(issue).add(commit);
-            } else {
-                List<Integer> commits = new ArrayList<>();
-                commits.add(commit);
-                issuesCommits.put(issue, commits);
-            }
-        }
+        Map<Integer, List<Integer>> issuesCommits = bichoDAO.selectIssues(
+                beginDate, endDate, maxFilesPerCommit, isOnlyFixed());
         
-        out.printLog("Issues: " + filteredIssues.size());
+        out.printLog("Issues (filtered): " + issuesCommits.size());
 
         final String selectComments
                 = QueryUtils.getQueryForDatabase("SELECT p.name, p.email"
@@ -154,13 +131,7 @@ public class BichoUserCommentedSamePairOfFileOnIssueInDateServices extends Abstr
 
             out.printLog(commits.size() + " commits references the issue");
 
-            // precisa do id do scmlog para parear os arquivos
-            // precisa do id da issue para combinar o par de arquivo + par de devs
-            //
-            // montar os pares com os arquivos
-            // de todos os commits da issue ou apenas os arquivos de um commit?
-            // estou considerando que os pares serão montado pelos commits
-            // com referencia a issue
+            // monta os pares com os arquivos de todos os commits da issue
             List<String> commitedFiles = new ArrayList<>();
             for (Integer commit : commits) {
 
@@ -195,7 +166,6 @@ public class BichoUserCommentedSamePairOfFileOnIssueInDateServices extends Abstr
                 }
             }
             totalFilePairsCount += totalPullRequestFilePairsCount;
-            commitedFiles = null;
             out.printLog("Issue files pairs: " + totalPullRequestFilePairsCount);
 
             // seleciona os autores de cada comentario (mesmo repetido)

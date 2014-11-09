@@ -15,7 +15,6 @@ import br.edu.utfpr.cm.JGitMinerWeb.services.metric.auxiliary.AuxWordiness;
 import br.edu.utfpr.cm.JGitMinerWeb.services.metric.centrality.BetweennessCalculator;
 import br.edu.utfpr.cm.JGitMinerWeb.services.metric.centrality.ClosenessCalculator;
 import br.edu.utfpr.cm.JGitMinerWeb.services.metric.centrality.DegreeCalculator;
-import br.edu.utfpr.cm.JGitMinerWeb.services.metric.centrality.EigenvectorCalculator;
 import br.edu.utfpr.cm.JGitMinerWeb.services.metric.discussion.WordinessCalculator;
 import br.edu.utfpr.cm.JGitMinerWeb.services.metric.ego.EgoMeasure;
 import br.edu.utfpr.cm.JGitMinerWeb.services.metric.ego.EgoMeasureCalculator;
@@ -157,8 +156,9 @@ public class BichoPairFilePerIssueMetricsInDateServices extends AbstractBichoMet
             }
             EntityMatrixNode node = getMatrix().getNodes().get(i);
             String[] columns = node.getLine().split(JsfUtil.TOKEN_SEPARATOR);
+            final Integer weight = Integer.valueOf(columns[4]);
 
-            final Integer issue = Integer.valueOf(columns[4]);
+            final Integer issue = Integer.valueOf(columns[5]);
             final String filename1 = columns[1];
             final String filename2 = columns[2];
             AuxFileFilePull pairFile = new AuxFileFilePull(filename1, filename2, issue);
@@ -220,13 +220,13 @@ public class BichoPairFilePerIssueMetricsInDateServices extends AbstractBichoMet
             // user > user2 - directed edge
             if (edgesWeigth.containsKey(pairUser.toStringUserAndUser2())) {
                 // edgeName = user + user2
-                edgesWeigth.put(pairUser.toStringUserAndUser2(), edgesWeigth.get(pairUser.toStringUserAndUser2()) + Integer.valueOf(columns[4]));
+                edgesWeigth.put(pairUser.toStringUserAndUser2(), edgesWeigth.get(pairUser.toStringUserAndUser2()) + weight);
 //            // for undirectional graph
 //            } else if (edgesWeigth.containsKey(pairUser.toStringUser2AndUser())) {
 //                // edgeName = user2 + user - undirected edge
-//                edgesWeigth.put(pairUser.toStringUser2AndUser(), edgesWeigth.get(pairUser.toStringUser2AndUser()) + Integer.valueOf(columns[4]));
+//                edgesWeigth.put(pairUser.toStringUser2AndUser(), edgesWeigth.get(pairUser.toStringUser2AndUser()) + weight);
             } else {
-                edgesWeigth.put(pairUser.toStringUserAndUser2(), Integer.valueOf(columns[4]));
+                edgesWeigth.put(pairUser.toStringUserAndUser2(), weight);
             }
             
             if (!graph.containsVertex(pairUser.getUser()) 
@@ -267,7 +267,7 @@ public class BichoPairFilePerIssueMetricsInDateServices extends AbstractBichoMet
         Map<String, Double> betweenness = BetweennessCalculator.calcule(graph, edgesWeigth);
         Map<String, Double> closeness = ClosenessCalculator.calcule(graph, edgesWeigth);
         Map<String, Integer> degree = DegreeCalculator.calcule(graph);
-        Map<String, Double> eigenvector = EigenvectorCalculator.calcule(graph, edgesWeigth);
+        // Map<String, Double> eigenvector = EigenvectorCalculator.calcule(graph, edgesWeigth);
         Map<String, EgoMeasure<String>> ego = EgoMeasureCalculator.calcule(graph, edgesWeigth);
         Map<String, StructuralHolesMeasure<String>> structuralHoles = StructuralHolesCalculator.calcule(graph, edgesWeigth);
 
@@ -289,7 +289,7 @@ public class BichoPairFilePerIssueMetricsInDateServices extends AbstractBichoMet
         final int size = commitersPairFile.entrySet().size();
         out.printLog("Número de pares de arquivos: " + commitersPairFile.keySet().size());
         for (Map.Entry<AuxFileFilePull, Set<String>> entry : commitersPairFile.entrySet()) {
-            if (count++ % 100 == 0 || count == size) {
+            if (count++ % 10 == 0 || count == size) {
                 System.out.println(count + "/" + size);
             }
             AuxFileFilePull fileFile = entry.getKey();
@@ -303,7 +303,7 @@ public class BichoPairFilePerIssueMetricsInDateServices extends AbstractBichoMet
             Double closenessSum = 0d, closenessAvg, closenessMax = Double.NEGATIVE_INFINITY;
             Integer degreeSum = 0, degreeMax = Integer.MIN_VALUE; 
             Double degreeAvg;
-            Double eigenvectorSum = 0d, eigenvectorAvg, eigenvectorMax = Double.NEGATIVE_INFINITY;
+//            Double eigenvectorSum = 0d, eigenvectorAvg, eigenvectorMax = Double.NEGATIVE_INFINITY;
 
             Double egoBetweennessSum = 0d, egoBetweennessAvg, egoBetweennessMax = Double.NEGATIVE_INFINITY;
             Long egoSizeSum = 0l, egoSizeMax = Long.MIN_VALUE;
@@ -340,7 +340,7 @@ public class BichoPairFilePerIssueMetricsInDateServices extends AbstractBichoMet
                 betweennessMax = Math.max(betweennessMax, betweenness.get(commenter));
                 closenessMax = Math.max(closenessMax, Double.isInfinite(closeness.get(commenter)) ? 0 : closeness.get(commenter));
                 degreeMax = Math.max(degreeMax, degree.get(commenter));
-                eigenvectorMax = Math.max(eigenvectorMax, eigenvector.get(commenter));
+//                eigenvectorMax = Math.max(eigenvectorMax, eigenvector.get(commenter));
 
                 egoBetweennessMax = Math.max(egoBetweennessMax, ego.get(commenter).getBetweennessCentrality());
                 egoSizeMax = Math.max(egoSizeMax, ego.get(commenter).getSize());
@@ -361,7 +361,7 @@ public class BichoPairFilePerIssueMetricsInDateServices extends AbstractBichoMet
             betweennessAvg = betweennessSum / distinctCommentersCount.doubleValue();
             closenessAvg = closenessSum / distinctCommentersCount.doubleValue();
             degreeAvg = degreeSum / distinctCommentersCount.doubleValue();
-            eigenvectorAvg = eigenvectorSum / distinctCommentersCount.doubleValue();
+//            eigenvectorAvg = eigenvectorSum / distinctCommentersCount.doubleValue();
 
             egoBetweennessAvg = egoBetweennessSum / distinctCommentersCount.doubleValue();
             egoSizeAvg = egoSizeSum / distinctCommentersCount.doubleValue();
@@ -464,10 +464,10 @@ public class BichoPairFilePerIssueMetricsInDateServices extends AbstractBichoMet
                     fileFile.getFileName(), fileFile.getFileName2(), 
                     beginDate, endDate, true);
 
-            Long codeChurn = 0l/*bichoFileDAO.calculeCodeChurn(
-                     fileFile.getFileName(), beginDate, endDate)*/;
-            Long codeChurn2 = 0l /*bichoFileDAO.calculeCodeChurn(
-                     fileFile.getFileName2(), beginDate, endDate)*/;
+            Long codeChurn = bichoFileDAO.calculeCodeChurn(
+                     fileFile.getFileName(), beginDate, endDate);
+            Long codeChurn2 = bichoFileDAO.calculeCodeChurn(
+                     fileFile.getFileName2(), beginDate, endDate);
 
             AuxCodeChurn pairFileCodeChurn = bichoPairFileDAO.calculeCodeChurnAddDelChange(
                     fileFile.getFileName2(), fileFile.getFileName(),
