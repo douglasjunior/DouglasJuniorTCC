@@ -33,6 +33,10 @@ public class BichoPairFileDAO {
 
     private final String FILTER_BY_ISSUES_THAT_HAS_AT_LEAST_ONE_COMMENT;
 
+    private final String FILTER_BY_USER_NAME;
+
+    private final String FILTER_BY_ISSUE_ID;
+
     // commits
     private final String COUNT_ISSUES_BY_FILE_NAME;
 
@@ -55,8 +59,6 @@ public class BichoPairFileDAO {
     private final String COUNT_COMMENTERS_BY_ISSUE_ID;
 
     private final String COUNT_ISSUES;
-
-    private final String FILTER_BY_USER_NAME;
 
     private final String SELECT_RELEASE_MIN_MAX_DATE_CREATION;
 
@@ -96,6 +98,9 @@ public class BichoPairFileDAO {
         FILTER_BY_USER_NAME
                 = " AND (p.name IS NOT NULL AND "
                 + "      p.name = ?)";
+
+        FILTER_BY_ISSUE_ID
+                = " AND i.id = ?";
 
         // commit
         COUNT_ISSUES
@@ -155,7 +160,7 @@ public class BichoPairFileDAO {
 
         SELECT_ISSUES_COMMENTS_OF_FILE_PAIR_BY_DATE
                 = QueryUtils.getQueryForDatabase(
-                        "SELECT distinct i.id, i.issue, i.description"
+                        "SELECT DISTINCT i.id, i.issue, i.description"
                         + "  FROM {0}_issues.issues i"
                         + "  JOIN {0}_issues.issues_scmlog i2s ON i2s.issue_id = i.id"
                         + "  JOIN {0}_vcs.scmlog s ON s.id = i2s.scmlog_id"
@@ -373,6 +378,16 @@ public class BichoPairFileDAO {
     }
 
     public long calculeComments(
+            String file, String file2, Date beginDate, Date endDate) {
+        return calculeComments(null, file, file2, beginDate, endDate, true);
+    }
+
+    public long calculeComments(
+            String file, String file2, Date beginDate, Date endDate, boolean onlyFixed) {
+        return calculeComments(null, file, file2, beginDate, endDate, onlyFixed);
+    }
+
+    public long calculeComments(Integer issueId,
             String file, String file2, Date beginDate, Date endDate, boolean onlyFixed) {
 
         if (file == null || file2 == null) {
@@ -392,6 +407,11 @@ public class BichoPairFileDAO {
         selectParams.add(file2);
         selectParams.add(beginDate);
         selectParams.add(endDate);
+
+        if (issueId != null) {
+            sql.append(FILTER_BY_ISSUE_ID);
+            selectParams.add(issueId);
+        }
 
         Long count = dao.selectNativeOneWithParams(sql.toString(), selectParams.toArray());
 
