@@ -7,7 +7,6 @@ import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.auxiliary.AuxFileFile;
 import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.auxiliary.AuxUserFileFileUserDirectional;
 import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.auxiliary.AuxUserFileFileUserIssueDirectional;
 import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.auxiliary.AuxUserUserDirectional;
-import br.edu.utfpr.cm.JGitMinerWeb.util.MathUtils;
 import br.edu.utfpr.cm.JGitMinerWeb.util.OutLog;
 import br.edu.utfpr.cm.JGitMinerWeb.util.Util;
 import br.edu.utfpr.cm.minerador.services.matrix.model.Commenter;
@@ -26,8 +25,6 @@ import java.util.Set;
  */
 public class BichoUserCommentedSamePairOfFileOnIssueInDateServices extends AbstractBichoMatrixServices {
 
-    private Integer maxFilesPerCommit = 0;
-
     public BichoUserCommentedSamePairOfFileOnIssueInDateServices() {
         super(null, null);
     }
@@ -41,7 +38,7 @@ public class BichoUserCommentedSamePairOfFileOnIssueInDateServices extends Abstr
     }
 
     private Integer getMaxFilesPerCommit() {
-        return maxFilesPerCommit;//Util.stringToInteger(params.get("maxFilesPerCommit") + "");
+        return Util.stringToInteger(params.get("maxFilesPerCommit") + "");
     }
 
     private Integer getMinFilesPerCommit() {
@@ -89,14 +86,12 @@ public class BichoUserCommentedSamePairOfFileOnIssueInDateServices extends Abstr
 
         BichoDAO bichoDAO = new BichoDAO(dao, getRepository());
 
-        Map<Integer, Integer> numFilesPerCommit = bichoDAO.countFilesPerCommit(beginDate, endDate, true);
-        maxFilesPerCommit = MathUtils.median(numFilesPerCommit.values());
-
-        out.printLog("Median of files per commit: " + maxFilesPerCommit);
+        out.printLog("Maximum files per commit: " + getMaxFilesPerCommit());
+        out.printLog("Minimum files per commit: " + getMinFilesPerCommit());
 
         // select a issue/pullrequest commenters
         Map<Integer, List<Integer>> issuesCommits = bichoDAO.selectIssues(
-                beginDate, endDate, maxFilesPerCommit, isOnlyFixed());
+                beginDate, endDate, getMaxFilesPerCommit(), isOnlyFixed());
         
         out.printLog("Issues (filtered): " + issuesCommits.size());
 
