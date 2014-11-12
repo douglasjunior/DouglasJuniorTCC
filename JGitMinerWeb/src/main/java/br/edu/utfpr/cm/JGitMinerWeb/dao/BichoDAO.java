@@ -1,7 +1,6 @@
 package br.edu.utfpr.cm.JGitMinerWeb.dao;
 
 import br.edu.utfpr.cm.minerador.services.matrix.model.Commenter;
-import br.edu.utfpr.cm.minerador.services.matrix.model.FilePath;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -26,7 +25,6 @@ public class BichoDAO {
     private final String COUNT_FILES_PER_COMMITS;
     private final String SELECT_ISSUES_BY_CREATION_DATE;
     private final String SELECT_COMMENTERS_BY_ISSUE;
-    private final String SELECT_FILES_PATH_BY_ISSUE;
 
     private final GenericBichoDAO dao;
 
@@ -78,18 +76,6 @@ public class BichoDAO {
                         + "  JOIN {0}_issues.people p ON p.id = c.submitted_by"
                         + " WHERE c.issue_id = ?"
                         + " ORDER BY c.submitted_on ASC", repository);
-
-        SELECT_FILES_PATH_BY_ISSUE
-                = QueryUtils.getQueryForDatabase("SELECT fill.file_id, fill.file_path"
-                        + "  FROM {0}_vcs.files fil"
-                        + "  JOIN {0}_vcs.actions a ON a.file_id = fil.id"
-                        + "  JOIN {0}_vcs.scmlog s ON s.id = a.commit_id"
-                        + "  JOIN {0}_vcs.file_links fill ON fill.file_id = fil.id AND fill.commit_id = "
-                        + "       (SELECT MAX(fill.commit_id) " // last commit where file has introduced, because it can have more than one
-                        + "          FROM aries_vcs.file_links afill "
-                        + "         WHERE afill.commit_id <= s.id "
-                        + "           AND afill.file_id = fil.id)"
-                        + " WHERE s.id = ?", repository);
     }
 
     public Map<Integer, Integer> countFilesPerCommit(Date beginDate, Date endDate, boolean onlyFixed) {
@@ -162,31 +148,6 @@ public class BichoDAO {
         for (Object[] row : rawFilesPath) {
             Commenter commenter = new Commenter((Integer) row[0], (String) row[1], (String) row[2]);
             files.add(commenter);
-        }
-
-        return files;
-    }
-
-    public List<FilePath> selectFilesByCommitId(Integer commitId, Integer maxFilesPerCommit) {
-        List<Object> selectParams = new ArrayList<>();
-
-        StringBuilder sql = new StringBuilder();
-        sql.append(SELECT_FILES_PATH_BY_ISSUE);
-
-        selectParams.add(commitId);
-
-        if (maxFilesPerCommit > 0) {
-            sql.append(FILTER_BY_MAX_FILES_IN_COMMIT);
-            selectParams.add(maxFilesPerCommit);
-        }
-
-        List<Object[]> rawFilesPath
-                = dao.selectNativeWithParams(sql.toString(), selectParams.toArray());
-
-        List<FilePath> files = new ArrayList<>();
-        for (Object[] row : rawFilesPath) {
-            FilePath filePath = new FilePath(commitId, (Integer) row[0], (String) row[1]);
-            files.add(filePath);
         }
 
         return files;

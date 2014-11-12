@@ -138,8 +138,9 @@ public class BichoPairFileGlobalCommunicationSingleEdgeSNAMetricsInDateServices 
         Map<AuxFileFile, DirectedSparseGraph<String, String>> pairFileNetwork = new HashMap<>();
         
         int countIgnored = 0;
-        BichoFileDAO bichoFileDAO = new BichoFileDAO(dao, repository);
-        BichoPairFileDAO bichoPairFileDAO = new BichoPairFileDAO(dao, repository, 20);
+        final int maxFilePerCommit = 20;
+        BichoFileDAO bichoFileDAO = new BichoFileDAO(dao, repository, maxFilePerCommit);
+        BichoPairFileDAO bichoPairFileDAO = new BichoPairFileDAO(dao, repository, maxFilePerCommit);
         Long issuesSize = bichoPairFileDAO
                 .calculeNumberOfIssues(futureBeginDate, futureEndDate, true);
         

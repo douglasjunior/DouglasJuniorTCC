@@ -1,5 +1,6 @@
 package br.edu.utfpr.cm.JGitMinerWeb.dao;
 
+import br.edu.utfpr.cm.minerador.services.matrix.model.FilePath;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Date;
@@ -32,6 +33,11 @@ public class BichoFileDAO {
 
     private final String FILTER_BY_ISSUES_THAT_HAS_AT_LEAST_ONE_COMMENT;
 
+    private final String FILTER_BY_LIKE_FILE_NAME;
+    private final String FILTER_BY_JAVA_EXTENSION;
+    private final String FILTER_BY_XML_EXTENSION;
+    private final String FILTER_BY_JAVA_OR_XML_EXTENSION;
+
     // queries
     private final String COUNT_DISTINCT_COMMITERS_BY_FILE_NAME;
 
@@ -43,9 +49,11 @@ public class BichoFileDAO {
 
     private final String SUM_CHANGES_OF_FILE;
 
+    private final String SELECT_FILES_PATH_BY_ISSUE;
+
     private final GenericBichoDAO dao;
 
-    public BichoFileDAO(GenericBichoDAO dao, String repository) {
+    public BichoFileDAO(GenericBichoDAO dao, String repository, Integer maxFilePerCommit) {
         this.dao = dao;
 
         FILTER_BY_ISSUE
@@ -62,7 +70,7 @@ public class BichoFileDAO {
 
         FILTER_BY_MAX_FILES_IN_COMMIT
                 = QueryUtils.getQueryForDatabase(
-                        " AND s.num_files <= ? ", repository);
+                        " AND s.num_files <= " + maxFilePerCommit, repository);
 
         FILTER_BY_MIN_FILES_IN_COMMIT
                 = QueryUtils.getQueryForDatabase(
@@ -81,6 +89,16 @@ public class BichoFileDAO {
                 + "      p.name = ?)";
 
         FIXED_ISSUES_ONLY = " AND i.resolution = 'Fixed' ";
+
+        FILTER_BY_LIKE_FILE_NAME
+                = " AND fill.file_path LIKE ?";
+        FILTER_BY_JAVA_EXTENSION
+                = " AND fill.file_path LIKE '%.java'";
+        FILTER_BY_XML_EXTENSION
+                = " AND fill.file_path LIKE '%.xml'";
+        FILTER_BY_JAVA_OR_XML_EXTENSION
+                = " AND (fill.file_path LIKE '%.java'"
+                + " OR fill.file_path LIKE '%.xml')";
 
         COUNT_ISSUES
                 = QueryUtils.getQueryForDatabase(
@@ -138,6 +156,20 @@ public class BichoFileDAO {
                         + "  JOIN {0}_vcs.file_links fill ON fill.file_id = fil.id"
                         + "  JOIN {0}_vcs.commits_files_lines filcl ON filcl.commit = s.id AND filcl.path = fill.file_path"
                         + " WHERE fill.file_path = ?", repository);
+
+        SELECT_FILES_PATH_BY_ISSUE
+                = QueryUtils.getQueryForDatabase("SELECT fill.file_id, fill.file_path"
+                        + "  FROM {0}_vcs.files fil"
+                        + "  JOIN {0}_vcs.actions a ON a.file_id = fil.id"
+                        + "  JOIN {0}_vcs.scmlog s ON s.id = a.commit_id"
+                        + "  JOIN {0}_vcs.file_links fill ON fill.file_id = fil.id AND fill.commit_id = "
+                        + "       (SELECT MAX(fill.commit_id) " // last commit where file has introduced, because it can have more than one
+                        + "          FROM aries_vcs.file_links afill "
+                        + "         WHERE afill.commit_id <= s.id "
+                        + "           AND afill.file_id = fil.id)"
+                        + " WHERE s.id = ?", repository)
+                + FILTER_BY_MAX_FILES_IN_COMMIT
+                + FILTER_BY_JAVA_OR_XML_EXTENSION;
     }
 
     // Issues //////////////////////////////////////////////////////////////////
@@ -404,5 +436,37 @@ public class BichoFileDAO {
         BigDecimal sum = dao.selectNativeOneWithParams(SUM_CHANGES_OF_FILE, bdObjects);
 
         return sum.longValue();
+    }
+
+    public List<FilePath> selectFilesByCommitId(Integer commitId) {
+// TODO comment for optimize performance
+//        return selectFilesByCommitId(commitId, null);
+//    }
+//
+//    public List<FilePath> selectFilesByCommitId(Integer commitId, String[] filesExtension) {
+//        List<Object> selectParams = new ArrayList<>();
+//
+//        StringBuilder sql = new StringBuilder(SELECT_FILES_PATH_BY_ISSUE);
+
+//        selectParams.add(commitId);
+//
+//        if (filesExtension != null) {
+//            for (String extension : filesExtension) {
+//                sql.append(FILTER_BY_LIKE_FILE_NAME);
+//                selectParams.add("%" + extension);
+//            }
+//        }
+
+        List<Object[]> rawFilesPath
+//                = dao.selectNativeWithParams(sql.toString(), selectParams.toArray());
+                = dao.selectNativeWithParams(SELECT_FILES_PATH_BY_ISSUE, new Object[]{commitId});
+
+        List<FilePath> files = new ArrayList<>();
+        for (Object[] row : rawFilesPath) {
+            FilePath filePath = new FilePath(commitId, (Integer) row[0], (String) row[1]);
+            files.add(filePath);
+        }
+
+        return files;
     }
 }
