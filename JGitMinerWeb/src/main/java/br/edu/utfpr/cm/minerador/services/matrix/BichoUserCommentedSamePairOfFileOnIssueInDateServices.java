@@ -1,6 +1,7 @@
 package br.edu.utfpr.cm.minerador.services.matrix;
 
 import br.edu.utfpr.cm.JGitMinerWeb.dao.BichoDAO;
+import br.edu.utfpr.cm.JGitMinerWeb.dao.BichoFileDAO;
 import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericBichoDAO;
 import br.edu.utfpr.cm.JGitMinerWeb.model.matrix.EntityMatrix;
 import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.auxiliary.AuxFileFile;
@@ -83,8 +84,9 @@ public class BichoUserCommentedSamePairOfFileOnIssueInDateServices extends Abstr
 //            fileToConsiders = MatcherUtils.createExtensionIncludeMatcher(getFilesToConsiders());
 //        }
 //        Pattern fileToIgnore = MatcherUtils.createExcludeMatcher(getFilesToIgnore());
-
+        int maxFilePerCommit = 20;
         BichoDAO bichoDAO = new BichoDAO(dao, getRepository());
+        BichoFileDAO bichoFileDAO = new BichoFileDAO(dao, getRepository(), maxFilePerCommit);
 
         out.printLog("Maximum files per commit: " + getMaxFilesPerCommit());
         out.printLog("Minimum files per commit: " + getMinFilesPerCommit());
@@ -112,7 +114,7 @@ public class BichoUserCommentedSamePairOfFileOnIssueInDateServices extends Abstr
             for (Integer commit : commits) {
 
                 // select name of commited files
-                List<FilePath> files = bichoDAO.selectFilesByCommitId(commit, getMaxFilesPerCommit());
+                List<FilePath> files = bichoFileDAO.selectFilesByCommitId(commit);
                 out.printLog(files.size() + " files in commit #" + commit);
                 commitedFiles.addAll(files);
             }

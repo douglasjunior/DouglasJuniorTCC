@@ -1,6 +1,9 @@
 package br.edu.utfpr.cm.JGitMinerWeb.services.matrix.auxiliary;
 
+import java.util.HashSet;
+import java.util.Set;
 import org.junit.After;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import org.junit.Before;
@@ -48,5 +51,32 @@ public class AuxFileFileTest {
         AuxFileFile notEqual = new AuxFileFile("FileB.java", "FileC.java");
         assertFalse(instance.equals(notEqual));
         assertFalse(instance.hashCode() == notEqual.hashCode());
+    }
+
+    @Test
+    public void testAddIssueId() {
+        AuxFileFile fileFile = new AuxFileFile("FileA.java", "FileB.java");
+        fileFile.addIssueId(1);
+        fileFile.addIssueId(2);
+
+        Set<Integer> issuesExpected = new HashSet<>(2);
+        issuesExpected.add(1);
+        issuesExpected.add(2);
+
+        int weightExpected = 2;
+
+        assertEquals(issuesExpected, fileFile.getIssuesId());
+        assertEquals(weightExpected, fileFile.getIssuesWeight());
+    }
+
+    @Test
+    public void testToString() {
+        AuxFileFile fileFile = new AuxFileFile("FileA.java", "FileB.java");
+        fileFile.addIssueId(1);
+        fileFile.addIssueId(2);
+
+        String toStringExpected = "FileA.java;FileB.java;2;1,2;";
+
+        assertEquals(toStringExpected, fileFile.toString());
     }
 }
