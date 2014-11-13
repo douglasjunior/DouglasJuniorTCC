@@ -25,7 +25,11 @@ public class ClosenessCalculator {
      *      a POJO with result of metrics, named <code>BetweennessMeasure</code>.
      */
     public static <V, E> Map<V, Double> calcule(final Graph<V, E> graph) {
-        
+
+        if (graph == null) {
+            return new HashMap<>(1);
+        }
+
         ClosenessCentrality<V, E> cc = new ClosenessCentrality<>(graph);
         
         Map<V, Double> result = new HashMap<>(graph.getVertexCount());
@@ -49,6 +53,10 @@ public class ClosenessCalculator {
      */
     public static <V, E> Map<V, Double> calcule(final Graph<V, E> graph, 
             final Map<E, ? extends Number> edgeWeigth) {
+
+        if (graph == null) {
+            return new HashMap<>(1);
+        }
 
         Transformer<E, ? extends Number> edgeWeigthTransformer = new Transformer<E, Number>() {
             @Override

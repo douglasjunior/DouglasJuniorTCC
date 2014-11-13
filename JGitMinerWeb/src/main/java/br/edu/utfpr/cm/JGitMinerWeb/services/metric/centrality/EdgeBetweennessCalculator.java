@@ -25,7 +25,11 @@ public class EdgeBetweennessCalculator {
      *      a POJO with result of metrics, named <code>EdgeBetweennessMeasure</code>.
      */
     public static <V, E> Map<E, Double> calcule(final Graph<V, E> graph) {
-        
+
+        if (graph == null) {
+            return new HashMap<>(1);
+        }
+
         BetweennessCentrality<V, E> bc = new BetweennessCentrality<>(graph);
         
         Map<E, Double> result = new HashMap<>(graph.getVertexCount());
@@ -49,6 +53,10 @@ public class EdgeBetweennessCalculator {
      */
     public static <V, E> Map<E, Double> calcule(final Graph<V, E> graph, 
             final Map<E, ? extends Number> edgeWeigth) {
+
+        if (graph == null) {
+            return new HashMap<>(1);
+        }
 
         Transformer<E, ? extends Number> edgeWeigthTransformer = new Transformer<E, Number>() {
             @Override

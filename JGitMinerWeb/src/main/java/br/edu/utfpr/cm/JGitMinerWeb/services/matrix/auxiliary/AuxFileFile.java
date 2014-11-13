@@ -126,7 +126,7 @@ public class AuxFileFile {
         boolean appendComma = false;
         for (Integer integer : set) {
             if (appendComma) {
-                toString.append(", ");
+                toString.append(",");
             }
             toString.append(integer);
             appendComma = true;

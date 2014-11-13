@@ -32,7 +32,11 @@ public class EgoMeasureCalculator {
      *      a POJO with result of metrics, named <code>EigenvectorMeasure</code>.
      */
     public static <V, E> Map<V, EgoMeasure<V>> calcule(final Graph<V, E> graph) {
-        
+
+        if (graph == null) {
+            return new HashMap<>(1);
+        }
+
         final Map<V, Graph<V, E>> egoNetworks = 
                 EgoNetworkExtractor.extractEgoNetwork(graph);
         
@@ -65,6 +69,10 @@ public class EgoMeasureCalculator {
      */
     public static <V, E> Map<V, EgoMeasure<V>> calcule(final Graph<V, E> graph, 
             final Map<E, ? extends Number> edgeWeigth) {
+
+        if (graph == null) {
+            return new HashMap<>(1);
+        }
 
         Transformer<E, ? extends Number> edgeWeigthTransformer = new Transformer<E, Number>() {
             @Override

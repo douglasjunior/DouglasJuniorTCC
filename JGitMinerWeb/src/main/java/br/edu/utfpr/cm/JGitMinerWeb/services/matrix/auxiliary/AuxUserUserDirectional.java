@@ -76,4 +76,7 @@ public class AuxUserUserDirectional {
         return user + ";" + user2 + ";" + weigth;
     }
 
+    public String toStringDirectional() {
+        return user + ";" + user2;
+    }
 }

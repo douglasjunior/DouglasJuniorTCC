@@ -25,8 +25,12 @@ public class BarycenterCalculator {
      *      a POJO with result of metrics, named <code>BetweennessMeasure</code>.
      */
     public static <V, E> Map<V, Double> calcule(final Graph<V, E> graph) {
-        
-        BarycenterScorer<V, E> bs = new BarycenterScorer(graph);
+
+        if (graph == null) {
+            return new HashMap<>(1);
+        }
+
+        BarycenterScorer<V, E> bs = new BarycenterScorer<>(graph);
         
         Map<V, Double> result = new HashMap<>(graph.getVertexCount());
         for (V v : graph.getVertices()) {
@@ -50,6 +54,10 @@ public class BarycenterCalculator {
     public static <V, E> Map<V, Double> calcule(final Graph<V, E> graph, 
             final Map<E, ? extends Number> edgeWeigth) {
 
+        if (graph == null) {
+            return new HashMap<>(1);
+        }
+
         Transformer<E, ? extends Number> edgeWeigthTransformer = new Transformer<E, Number>() {
             @Override
             public Number transform(E edge) {
@@ -57,7 +65,7 @@ public class BarycenterCalculator {
             }
         };
         
-        BarycenterScorer<V, E> bs = new BarycenterScorer(graph, edgeWeigthTransformer);
+        BarycenterScorer<V, E> bs = new BarycenterScorer<>(graph, edgeWeigthTransformer);
         
         Map<V, Double> result = new HashMap<>(graph.getVertexCount());
         for (V v : graph.getVertices()) {

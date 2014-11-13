@@ -9,6 +9,7 @@ import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.auxiliary.AuxUserFileFileUse
 import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.auxiliary.AuxUserFileFileUserIssueDirectional;
 import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.auxiliary.AuxUserUserDirectional;
 import br.edu.utfpr.cm.JGitMinerWeb.util.OutLog;
+import br.edu.utfpr.cm.JGitMinerWeb.util.PairUtils;
 import br.edu.utfpr.cm.JGitMinerWeb.util.Util;
 import br.edu.utfpr.cm.minerador.services.matrix.model.Commenter;
 import br.edu.utfpr.cm.minerador.services.matrix.model.FilePath;
@@ -147,24 +148,7 @@ public class BichoUserCommentedSamePairOfFileOnIssueInDateServices extends Abstr
             out.printLog("Issue comments" + commenters.size());
 
             Map<AuxUserUserDirectional, AuxUserUserDirectional> pairCommenter
-                    = new HashMap<>();
-
-            for (int k = 0; k < commenters.size(); k++) {
-                Commenter author1 = commenters.get(k);
-                for (int l = k - 1; l >= 0; l--) {
-                    Commenter author2 = commenters.get(l);
-                    AuxUserUserDirectional pair = new AuxUserUserDirectional(
-                            author1.getName(),
-                            author1.getEmail(),
-                            author2.getName(),
-                            author2.getEmail());
-                    if (pairCommenter.containsKey(pair)) {
-                        pairCommenter.get(pair).inc();
-                    } else {
-                        pairCommenter.put(pair, pair);
-                    }
-                }
-            }
+                    = PairUtils.pairCommenters(commenters);
             commenters.clear();
             out.printLog("Creating matrix of users (" + pairCommenter.size()
                     + ") and pair file (" + pairFiles.size() + ")");

@@ -25,7 +25,11 @@ public class EgoNetworkExtractor {
      * @return 
      */
     public static <V,E,G extends Graph<V,E>> Map<V, Graph<V, E>> extractEgoNetwork(G graph) {
-        
+
+        if (graph == null) {
+            return new HashMap<>(1);
+        }
+
         Map<V, Graph<V, E>> egoNetworks = new HashMap<>(graph.getVertexCount());
         for (V v : graph.getVertices()) {
             final Set<V> neighbors = new HashSet<>(graph.getNeighbors(v));

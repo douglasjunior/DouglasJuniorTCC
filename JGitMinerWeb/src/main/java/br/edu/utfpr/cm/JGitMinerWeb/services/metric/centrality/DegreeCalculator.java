@@ -24,7 +24,11 @@ public class DegreeCalculator {
      *      a POJO with result of metrics, named <code>BetweennessMeasure</code>.
      */
     public static <V, E> Map<V, Integer> calcule(final Graph<V, E> graph) {
-        
+
+        if (graph == null) {
+            return new HashMap<>(1);
+        }
+
         DegreeScorer<V> ds = new DegreeScorer<>(graph);
         
         Map<V, Integer> result = new HashMap<>(graph.getVertexCount());

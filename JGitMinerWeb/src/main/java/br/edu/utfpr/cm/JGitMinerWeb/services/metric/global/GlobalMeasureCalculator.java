@@ -21,10 +21,10 @@ public class GlobalMeasureCalculator {
      */
     public static <V, E> GlobalMeasure calcule(
             final Graph<V, E> graph) {
-        int size = graph.getVertexCount();
-        int ties = graph.getEdgeCount();
+        int size = graph == null ? 0 : graph.getVertexCount();
+        int ties = graph == null ? 0 : graph.getEdgeCount();
         // the true parameter specifies to use the max value, even some distance is null (see javadoc)
-        double diameter = DistanceStatistics.diameter(graph, new UnweightedShortestPath<>(graph), true);
+        double diameter = graph == null ? 0 : DistanceStatistics.diameter(graph, new UnweightedShortestPath<>(graph), true);
         return new GlobalMeasure(size, ties, diameter);
     }
 }

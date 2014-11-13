@@ -4,7 +4,9 @@ import br.edu.utfpr.cm.minerador.services.matrix.model.FilePath;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  *
@@ -15,11 +17,11 @@ public class BichoFileDAO {
     // filters
     private final String FILTER_BY_ISSUE;
 
-    private final String FILTER_BY_ISSUE_CREATION_DATE;
+    private final String FILTER_BY_ISSUE_FIX_DATE;
 
-    private final String FILTER_BY_BEFORE_ISSUE_CREATION_DATE;
+    private final String FILTER_BY_BEFORE_ISSUE_FIX_DATE;
 
-    private final String FILTER_BY_AFTER_ISSUE_CREATION_DATE;
+    private final String FILTER_BY_AFTER_ISSUE_FIX_DATE;
 
     private final String FILTER_BY_MAX_FILES_IN_COMMIT;
 
@@ -51,6 +53,8 @@ public class BichoFileDAO {
 
     private final String SELECT_FILES_PATH_BY_ISSUE;
 
+    private final String SELECT_COMMITTERS_OF_FILE;
+
     private final GenericBichoDAO dao;
 
     public BichoFileDAO(GenericBichoDAO dao, String repository, Integer maxFilePerCommit) {
@@ -59,14 +63,14 @@ public class BichoFileDAO {
         FILTER_BY_ISSUE
                 = " AND i.id = ? ";
 
-        FILTER_BY_ISSUE_CREATION_DATE
-                = " AND i.submitted_on BETWEEN ? AND ? ";
+        FILTER_BY_ISSUE_FIX_DATE
+                = " AND c.changed_on BETWEEN ? AND ?";
 
-        FILTER_BY_BEFORE_ISSUE_CREATION_DATE
-                = " AND i.submitted_on <= ? ";
+        FILTER_BY_BEFORE_ISSUE_FIX_DATE
+                = " AND c.changed_on <= ?";
 
-        FILTER_BY_AFTER_ISSUE_CREATION_DATE
-                = " AND i.submitted_on >= ? ";
+        FILTER_BY_AFTER_ISSUE_FIX_DATE
+                = " AND c.changed_on >= ?";
 
         FILTER_BY_MAX_FILES_IN_COMMIT
                 = QueryUtils.getQueryForDatabase(
@@ -85,10 +89,12 @@ public class BichoFileDAO {
                         " AND i.num_comments > 0", repository);
 
         FILTER_BY_USER_NAME
-                = " AND (p.name IS NOT NULL AND "
-                + "      p.name = ?)";
+                = " AND (p.name IS NOT NULL AND p.name = ?)";
 
-        FIXED_ISSUES_ONLY = " AND i.resolution = 'Fixed' ";
+        FIXED_ISSUES_ONLY
+                = " AND i.resolution = 'Fixed'"
+                + " AND c.field = 'Resolution'"
+                + " AND c.new_value = i.resolution";
 
         FILTER_BY_LIKE_FILE_NAME
                 = " AND fill.file_path LIKE ?";
@@ -106,6 +112,7 @@ public class BichoFileDAO {
                         + "  FROM {0}_vcs.scmlog s"
                         + "  JOIN {0}_issues.issues_scmlog i2s ON i2s.scmlog_id = s.id"
                         + "  JOIN {0}_issues.issues i ON i.id = i2s.issue_id"
+                        + "  JOIN {0}_issues.changes c ON c.id = i.id"
                         + "  JOIN {0}_vcs.actions a ON a.commit_id = s.id"
                         + "  JOIN {0}_vcs.files fil ON fil.id = a.file_id"
                         + "  JOIN {0}_vcs.file_links fill ON fill.file_id = fil.id"
@@ -120,6 +127,7 @@ public class BichoFileDAO {
                         + "  JOIN {0}_vcs.people p ON p.id = s.committer_id"
                         + "  JOIN {0}_issues.issues_scmlog i2s ON i2s.scmlog_id = a.commit_id"
                         + "  JOIN {0}_issues.issues i ON i.id = i2s.issue_id"
+                        + "  JOIN {0}_issues.changes c ON c.id = i.id"
                         + " WHERE fill.file_path = ?", repository);
 
         COUNT_COMMITS_BY_FILE_NAME
@@ -129,6 +137,9 @@ public class BichoFileDAO {
                         + "  JOIN {0}_vcs.actions a ON a.file_id = fil.id"
                         + "  JOIN {0}_vcs.scmlog s ON s.id = a.commit_id"
                         + "  JOIN {0}_vcs.people p ON p.id = s.committer_id"
+                        + "  JOIN {0}_issues.issues_scmlog i2s ON i2s.scmlog_id = a.commit_id"
+                        + "  JOIN {0}_issues.issues i ON i.id = i2s.issue_id"
+                        + "  JOIN {0}_issues.changes c ON c.id = i.id"
                         + " WHERE fill.file_path = ?", repository);
 
         SUM_CODE_CHURN_BY_FILE_NAME
@@ -139,6 +150,7 @@ public class BichoFileDAO {
                         + "  JOIN {0}_vcs.people p ON p.id = s.committer_id"
                         + "  JOIN {0}_issues.issues_scmlog i2s ON i2s.scmlog_id = s.id"
                         + "  JOIN {0}_issues.issues i ON i.id = i2s.issue_id"
+                        + "  JOIN {0}_issues.changes c ON c.id = i.id"
                         + "  JOIN {0}_vcs.actions a ON a.commit_id = s.id"
                         + "  JOIN {0}_vcs.files fil ON fil.id = a.file_id"
                         + "  JOIN {0}_vcs.file_links fill ON fill.file_id = fil.id"
@@ -170,6 +182,20 @@ public class BichoFileDAO {
                         + " WHERE s.id = ?", repository)
                 + FILTER_BY_MAX_FILES_IN_COMMIT
                 + FILTER_BY_JAVA_OR_XML_EXTENSION;
+
+        SELECT_COMMITTERS_OF_FILE
+                = QueryUtils.getQueryForDatabase(
+                        "SELECT DISTINCT(p.name)"
+                        + "  FROM {0}_issues.issues i"
+                        + "  JOIN {0}_issues.issues_scmlog i2s ON i2s.issue_id = i.id"
+                        + "  JOIN {0}_issues.changes c ON c.id = i.id"
+                        + "  JOIN {0}_vcs.scmlog s ON s.id = i2s.scmlog_id"
+                        + "  JOIN {0}_vcs.people p ON p.id = s.committer_id"
+                        + "  JOIN {0}_vcs.actions a ON a.commit_id = s.id"
+                        + "  JOIN {0}_vcs.files fil ON fil.id = a.file_id"
+                        + "  JOIN {0}_vcs.file_links fill ON fill.file_id = fil.id"
+                        + " WHERE fill.file_path = ?", repository)
+                + FILTER_BY_MAX_FILES_IN_COMMIT;
     }
 
     // Issues //////////////////////////////////////////////////////////////////
@@ -204,14 +230,14 @@ public class BichoFileDAO {
         selectParams.add(filename);
 
         if (beginDate != null && endDate != null) { // from begin to end
-            sql.append(FILTER_BY_ISSUE_CREATION_DATE);
+            sql.append(FILTER_BY_ISSUE_FIX_DATE);
             selectParams.add(beginDate);
             selectParams.add(endDate);
         } else if (beginDate != null) { // from begin
-            sql.append(FILTER_BY_AFTER_ISSUE_CREATION_DATE);
+            sql.append(FILTER_BY_AFTER_ISSUE_FIX_DATE);
             selectParams.add(beginDate);
         } else if (endDate != null) { // until end
-            sql.append(FILTER_BY_BEFORE_ISSUE_CREATION_DATE);
+            sql.append(FILTER_BY_BEFORE_ISSUE_FIX_DATE);
             selectParams.add(endDate);
         }
 
@@ -261,14 +287,14 @@ public class BichoFileDAO {
         selectParams.add(filename);
 
         if (beginDate != null && endDate != null) { // from begin to end
-            sql.append(FILTER_BY_ISSUE_CREATION_DATE);
+            sql.append(FILTER_BY_ISSUE_FIX_DATE);
             selectParams.add(beginDate);
             selectParams.add(endDate);
         } else if (beginDate != null) { // from begin
-            sql.append(FILTER_BY_AFTER_ISSUE_CREATION_DATE);
+            sql.append(FILTER_BY_AFTER_ISSUE_FIX_DATE);
             selectParams.add(beginDate);
         } else if (endDate != null) { // until end
-            sql.append(FILTER_BY_BEFORE_ISSUE_CREATION_DATE);
+            sql.append(FILTER_BY_BEFORE_ISSUE_FIX_DATE);
             selectParams.add(endDate);
         }
 
@@ -326,14 +352,14 @@ public class BichoFileDAO {
         selectParams.add(filename);
 
         if (beginDate != null && endDate != null) { // from begin to end
-            sql.append(FILTER_BY_ISSUE_CREATION_DATE);
+            sql.append(FILTER_BY_ISSUE_FIX_DATE);
             selectParams.add(beginDate);
             selectParams.add(endDate);
         } else if (beginDate != null) { // from begin
-            sql.append(FILTER_BY_AFTER_ISSUE_CREATION_DATE);
+            sql.append(FILTER_BY_AFTER_ISSUE_FIX_DATE);
             selectParams.add(beginDate);
         } else if (endDate != null) { // until end
-            sql.append(FILTER_BY_BEFORE_ISSUE_CREATION_DATE);
+            sql.append(FILTER_BY_BEFORE_ISSUE_FIX_DATE);
             selectParams.add(endDate);
         }
 
@@ -391,12 +417,12 @@ public class BichoFileDAO {
         selectParams.add(fileName);
 
         if (beginDate != null) {
-            sql.append(FILTER_BY_AFTER_ISSUE_CREATION_DATE);
+            sql.append(FILTER_BY_AFTER_ISSUE_FIX_DATE);
             selectParams.add(beginDate);
         }
 
         if (endDate != null) {
-            sql.append(FILTER_BY_BEFORE_ISSUE_CREATION_DATE);
+            sql.append(FILTER_BY_BEFORE_ISSUE_FIX_DATE);
             selectParams.add(endDate);
         }
 
@@ -468,5 +494,48 @@ public class BichoFileDAO {
         }
 
         return files;
+    }
+
+    public Set<AuxUser> selectCommitters(
+            String file, Date beginDate, Date endDate) {
+        return selectCommitters(file, beginDate, endDate, true);
+    }
+
+    public Set<AuxUser> selectCommitters(
+            String file, Date beginDate, Date endDate, boolean onlyFixed) {
+
+        List<Object> selectParams = new ArrayList<>();
+        if (file == null) {
+            throw new IllegalArgumentException("Pair file could not be null");
+        }
+
+        StringBuilder sql = new StringBuilder();
+        sql.append(SELECT_COMMITTERS_OF_FILE);
+
+        selectParams.add(file);
+
+        if (onlyFixed) {
+            sql.append(FIXED_ISSUES_ONLY);
+        }
+
+        if (beginDate != null) {
+            sql.append(FILTER_BY_AFTER_ISSUE_FIX_DATE);
+            selectParams.add(beginDate);
+        }
+
+        if (endDate != null) {
+            sql.append(FILTER_BY_BEFORE_ISSUE_FIX_DATE);
+            selectParams.add(endDate);
+        }
+
+        List<String> committers = dao.selectNativeWithParams(
+                sql.toString(), selectParams.toArray());
+
+        Set<AuxUser> commitersList = new HashSet<>(committers.size());
+        for (String name : committers) {
+            commitersList.add(new AuxUser(name));
+        }
+
+        return commitersList;
     }
 }

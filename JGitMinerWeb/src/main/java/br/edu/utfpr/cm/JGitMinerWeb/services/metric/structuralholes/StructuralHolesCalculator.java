@@ -32,6 +32,10 @@ public class StructuralHolesCalculator {
     public static <V, E> Map<V, StructuralHolesMeasure<V>> calcule(
             final Graph<V, E> graph, final Transformer<E, ? extends Number> edgeWeigthTransformer) {
 
+        if (graph == null) {
+            return new HashMap<>(1);
+        }
+
         StructuralHoles<V, E> structuralHoles
                 = new StructuralHoles<>(graph, edgeWeigthTransformer);
 
@@ -66,6 +70,10 @@ public class StructuralHolesCalculator {
      */
     public static <V, E> Map<V, StructuralHolesMeasure<V>> calcule(
             final Graph<V, E> graph, final Map<E, ? extends Number> edgeWeigth) {
+
+        if (graph == null) {
+            return new HashMap<>(1);
+        }
 
         Transformer<E, ? extends Number> edgeWeigthTransformer = new Transformer<E, Number>() {
             @Override

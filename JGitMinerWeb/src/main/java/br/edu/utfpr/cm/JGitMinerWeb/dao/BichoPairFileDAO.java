@@ -23,11 +23,11 @@ public class BichoPairFileDAO {
     // filters
     private final String FILTER_BY_MAX_FILES_IN_COMMIT;
 
-    private final String FILTER_BY_ISSUE_CREATION_DATE;
+    private final String FILTER_BY_ISSUE_FIX_DATE;
 
-    private final String FILTER_BY_BEFORE_ISSUE_CREATION_DATE;
+    private final String FILTER_BY_BEFORE_ISSUE_FIX_DATE;
 
-    private final String FILTER_BY_AFTER_ISSUE_CREATION_DATE;
+    private final String FILTER_BY_AFTER_ISSUE_FIX_DATE;
 
     private final String FIXED_ISSUES_ONLY;
 
@@ -42,7 +42,7 @@ public class BichoPairFileDAO {
 
     private final String LIST_COMMENTS_OF_FILE_PAIR_BY_DATE;
 
-    private final String SELECT_ISSUES_COMMENTS_OF_FILE_PAIR_BY_DATE;
+    private final String SELECT_ISSUES_OF_FILE_PAIR_BY_DATE;
 
     private final String COUNT_COMMENTS_OF_FILE_PAIR_BY_DATE;
 
@@ -50,7 +50,9 @@ public class BichoPairFileDAO {
 
     private final String SUM_ADD_DEL_LINES_OF_FILE_PAIR_BY_DATE;
 
-    private final String SELECT_COMMITTERS_OF_PAIR_FILE;
+    private final String SELECT_COMMITTERS_OF_PAIR_FILE_BY_ISSUE_CREATION_DATE;
+
+    private final String SELECT_COMMITTERS_OF_PAIR_FILE_BY_ISSUE_ID;
 
     private final String COUNT_PAIR_FILE_COMMITS;
 
@@ -79,17 +81,19 @@ public class BichoPairFileDAO {
                 = QueryUtils.getQueryForDatabase(
                         " AND s.num_files <= " + maxFilePerCommit + " AND s2.num_files <= " + maxFilePerCommit, repository);
 
-        FILTER_BY_ISSUE_CREATION_DATE
-                = " AND i.submitted_on BETWEEN ? AND ?";
+        FILTER_BY_ISSUE_FIX_DATE
+                = " AND c.changed_on BETWEEN ? AND ?";
 
-        FILTER_BY_BEFORE_ISSUE_CREATION_DATE
-                = " AND i.submitted_on <= ?";
+        FILTER_BY_BEFORE_ISSUE_FIX_DATE
+                = " AND c.changed_on <= ?";
 
-        FILTER_BY_AFTER_ISSUE_CREATION_DATE
-                = " AND i.submitted_on >= ?";
+        FILTER_BY_AFTER_ISSUE_FIX_DATE
+                = " AND c.changed_on >= ?";
 
         FIXED_ISSUES_ONLY
-                = " AND i.resolution = 'Fixed'";
+                = " AND i.resolution = 'Fixed'"
+                + " AND c.field = 'Resolution'"
+                + " AND c.new_value = i.resolution";
 
         FILTER_BY_ISSUES_THAT_HAS_AT_LEAST_ONE_COMMENT
                 = QueryUtils.getQueryForDatabase(
@@ -107,6 +111,7 @@ public class BichoPairFileDAO {
                 = QueryUtils.getQueryForDatabase(
                         "SELECT COUNT(DISTINCT(i.id))"
                         + "  FROM {0}_issues.issues i"
+                        + "  JOIN {0}_issues.changes c ON c.id = i.id"
                         + "  JOIN {0}_issues.issues_scmlog i2s ON i2s.issue_id = i.id"
                         + "  JOIN {0}_vcs.scmlog s ON s.id = i2s.scmlog_id"
                         + "  JOIN {0}_issues.issues_scmlog i2s2 ON i2s2.issue_id = i.id"
@@ -125,6 +130,7 @@ public class BichoPairFileDAO {
                 = QueryUtils.getQueryForDatabase(
                         "SELECT COUNT(DISTINCT(i.id))"
                         + "  FROM {0}_issues.issues i"
+                        + "  JOIN {0}_issues.changes c ON c.id = i.id"
                         + "  JOIN {0}_issues.issues_scmlog i2s ON i2s.issue_id = i.id"
                         + "  JOIN {0}_vcs.scmlog s ON s.id = i2s.scmlog_id"
                         + "  JOIN {0}_issues.issues_scmlog i2s2 ON i2s2.issue_id = i.id"
@@ -136,18 +142,20 @@ public class BichoPairFileDAO {
                         + "  JOIN {0}_vcs.files fil2 ON fil2.id = a2.file_id AND a.file_id <> a2.file_id"
                         + "  JOIN {0}_vcs.file_links fill2 ON fill2.file_id = fil2.id"
                         + " WHERE fill.file_path = ?"
-                        + "   AND fill2.file_path = ?", repository)
+                        + "   AND fill2.file_path = ? "
+                        + "   AND s.date > i.submitted_on"
+                        + "   AND s2.date > i.submitted_on", repository)
                 + FILTER_BY_MAX_FILES_IN_COMMIT;
 
         LIST_COMMENTS_OF_FILE_PAIR_BY_DATE
                 = QueryUtils.getQueryForDatabase(
-                        "SELECT c.text"
+                        "SELECT com.text"
                         + "  FROM {0}_issues.issues i"
                         + "  JOIN {0}_issues.issues_scmlog i2s ON i2s.issue_id = i.id"
                         + "  JOIN {0}_vcs.scmlog s ON s.id = i2s.scmlog_id"
                         + "  JOIN {0}_issues.issues_scmlog i2s2 ON i2s2.issue_id = i.id"
                         + "  JOIN {0}_vcs.scmlog s2 ON s2.id = i2s2.scmlog_id"
-                        + "  JOIN {0}_issues.comments c ON c.issue_id = i.id"
+                        + "  JOIN {0}_issues.comments com ON com.issue_id = i.id"
                         + "  JOIN {0}_vcs.actions a ON a.commit_id = s.id"
                         + "  JOIN {0}_vcs.files fil ON fil.id = a.file_id"
                         + "  JOIN {0}_vcs.file_links fill ON fill.file_id = fil.id"
@@ -155,13 +163,16 @@ public class BichoPairFileDAO {
                         + "  JOIN {0}_vcs.files fil2 ON fil2.id = a2.file_id AND a.file_id <> a2.file_id"
                         + "  JOIN {0}_vcs.file_links fill2 ON fill2.file_id = fil2.id"
                         + " WHERE fill.file_path = ?"
-                        + "   AND fill2.file_path = ?", repository)
+                        + "   AND fill2.file_path = ?"
+                        + "   AND s.date > i.submitted_on"
+                        + "   AND s2.date > i.submitted_on", repository)
                 + FILTER_BY_MAX_FILES_IN_COMMIT;
 
-        SELECT_ISSUES_COMMENTS_OF_FILE_PAIR_BY_DATE
+        SELECT_ISSUES_OF_FILE_PAIR_BY_DATE
                 = QueryUtils.getQueryForDatabase(
                         "SELECT DISTINCT i.id, i.issue, i.description"
                         + "  FROM {0}_issues.issues i"
+                        + "  JOIN {0}_issues.changes c ON c.id = i.id"
                         + "  JOIN {0}_issues.issues_scmlog i2s ON i2s.issue_id = i.id"
                         + "  JOIN {0}_vcs.scmlog s ON s.id = i2s.scmlog_id"
                         + "  JOIN {0}_issues.issues_scmlog i2s2 ON i2s2.issue_id = i.id"
@@ -173,19 +184,22 @@ public class BichoPairFileDAO {
                         + "  JOIN {0}_vcs.files fil2 ON fil2.id = a2.file_id AND a.file_id <> a2.file_id"
                         + "  JOIN {0}_vcs.file_links fill2 ON fill2.file_id = fil2.id"
                         + " WHERE fill.file_path = ?"
-                        + "   AND fill2.file_path = ?", repository)
+                        + "   AND fill2.file_path = ?"
+                        + "   AND s.date > i.submitted_on"
+                        + "   AND s2.date > i.submitted_on", repository)
                 + FILTER_BY_MAX_FILES_IN_COMMIT
-                + FILTER_BY_ISSUE_CREATION_DATE;
+                + FILTER_BY_ISSUE_FIX_DATE;
 
         COUNT_COMMENTS_OF_FILE_PAIR_BY_DATE
                 = QueryUtils.getQueryForDatabase(
-                        "SELECT COUNT(DISTINCT(c.id))"
+                        "SELECT COUNT(DISTINCT(com.id))"
                         + "  FROM {0}_issues.issues i"
+                        + "  JOIN {0}_issues.changes c ON c.id = i.id"
                         + "  JOIN {0}_issues.issues_scmlog i2s ON i2s.issue_id = i.id"
                         + "  JOIN {0}_vcs.scmlog s ON s.id = i2s.scmlog_id"
                         + "  JOIN {0}_issues.issues_scmlog i2s2 ON i2s2.issue_id = i.id"
                         + "  JOIN {0}_vcs.scmlog s2 ON s2.id = i2s2.scmlog_id"
-                        + "  JOIN {0}_issues.comments c ON c.issue_id = i.id"
+                        + "  JOIN {0}_issues.comments com ON com.issue_id = i.id"
                         + "  JOIN {0}_vcs.actions a ON a.commit_id = s.id"
                         + "  JOIN {0}_vcs.files fil ON fil.id = a.file_id"
                         + "  JOIN {0}_vcs.file_links fill ON fill.file_id = fil.id"
@@ -193,9 +207,11 @@ public class BichoPairFileDAO {
                         + "  JOIN {0}_vcs.files fil2 ON fil2.id = a2.file_id AND a.file_id <> a2.file_id"
                         + "  JOIN {0}_vcs.file_links fill2 ON fill2.file_id = fil2.id"
                         + " WHERE fill.file_path = ?"
-                    + "   AND fill2.file_path = ?", repository)
+                        + "   AND fill2.file_path = ?"
+                        + "   AND s.date > i.submitted_on"
+                        + "   AND s2.date > i.submitted_on", repository)
                 + FILTER_BY_MAX_FILES_IN_COMMIT
-                + FILTER_BY_ISSUE_CREATION_DATE;
+                + FILTER_BY_ISSUE_FIX_DATE;
 
         SUM_CHANGES_OF_FILE_PAIR_BY_DATE
                 = QueryUtils.getQueryForDatabase(
@@ -215,7 +231,9 @@ public class BichoPairFileDAO {
                         + "  JOIN {0}_vcs.commits_files_lines filcl ON filcl.commit = s.id AND filcl.path = fill.file_path"
                         + "  JOIN {0}_vcs.commits_files_lines filcl2 ON filcl2.commit = s.id AND filcl2.path = fill2.file_path"
                         + " WHERE fill.file_path = ?"
-                        + "   AND fill2.file_path = ?", repository)
+                        + "   AND fill2.file_path = ?"
+                        + "   AND s.date > i.submitted_on"
+                        + "   AND s2.date > i.submitted_on", repository)
                 + FILTER_BY_MAX_FILES_IN_COMMIT;
 
         SUM_ADD_DEL_LINES_OF_FILE_PAIR_BY_DATE
@@ -224,6 +242,7 @@ public class BichoPairFileDAO {
                         + "      COALESCE((SUM(filcl.removed) + SUM(filcl2.removed)), 0),"
                         + "      COALESCE((SUM(filcl.added) + SUM(filcl.removed) + SUM(filcl2.added) + SUM(filcl2.removed)), 0)"
                         + "  FROM {0}_issues.issues i"
+                        + "  JOIN {0}_issues.changes c ON c.id = i.id"
                         + "  JOIN {0}_issues.issues_scmlog i2s ON i2s.issue_id = i.id"
                         + "  JOIN {0}_vcs.scmlog s ON s.id = i2s.scmlog_id"
                         + "  JOIN {0}_issues.issues_scmlog i2s2 ON i2s2.issue_id = i.id"
@@ -237,14 +256,17 @@ public class BichoPairFileDAO {
                         + "  JOIN {0}_vcs.commits_files_lines filcl ON filcl.commit = s.id AND filcl.path = fill.file_path"
                         + "  JOIN {0}_vcs.commits_files_lines filcl2 ON filcl2.commit = s.id AND filcl2.path = fill2.file_path"
                         + " WHERE fill.file_path = ?"
-                        + "   AND fill2.file_path = ?", repository)
+                        + "   AND fill2.file_path = ?"
+                        + "   AND s.date > i.submitted_on"
+                        + "   AND s2.date > i.submitted_on", repository)
                 + FILTER_BY_MAX_FILES_IN_COMMIT
-                + FILTER_BY_ISSUE_CREATION_DATE;
+                + FILTER_BY_ISSUE_FIX_DATE;
 
-        SELECT_COMMITTERS_OF_PAIR_FILE
+        SELECT_COMMITTERS_OF_PAIR_FILE_BY_ISSUE_CREATION_DATE
                 = QueryUtils.getQueryForDatabase(
                         "SELECT DISTINCT(p.name)"
                         + "  FROM {0}_issues.issues i"
+                        + "  JOIN {0}_issues.changes c ON c.id = i.id"
                         + "  JOIN {0}_issues.issues_scmlog i2s ON i2s.issue_id = i.id"
                         + "  JOIN {0}_vcs.scmlog s ON s.id = i2s.scmlog_id"
                         + "  JOIN {0}_issues.issues_scmlog i2s2 ON i2s2.issue_id = i.id"
@@ -257,13 +279,39 @@ public class BichoPairFileDAO {
                         + "  JOIN {0}_vcs.files fil2 ON fil2.id = a2.file_id AND a2.file_id <> a.file_id"
                         + "  JOIN {0}_vcs.file_links fill2 ON fill2.file_id = fil2.id"
                         + " WHERE fill.file_path = ?"
-                        + "   AND fill2.file_path = ?", repository)
+                        + "   AND fill2.file_path = ?"
+                        + "   AND s.date > i.submitted_on"
+                        + "   AND s2.date > i.submitted_on", repository)
                 + FILTER_BY_MAX_FILES_IN_COMMIT;
+
+        SELECT_COMMITTERS_OF_PAIR_FILE_BY_ISSUE_ID
+                = QueryUtils.getQueryForDatabase(
+                        "SELECT DISTINCT(p.name)"
+                        + "  FROM {0}_issues.issues i"
+                        + "  JOIN {0}_issues.changes c ON c.id = i.id"
+                        + "  JOIN {0}_issues.issues_scmlog i2s ON i2s.issue_id = i.id"
+                        + "  JOIN {0}_vcs.scmlog s ON s.id = i2s.scmlog_id"
+                        + "  JOIN {0}_issues.issues_scmlog i2s2 ON i2s2.issue_id = i.id"
+                        + "  JOIN {0}_vcs.scmlog s2 ON s2.id = i2s2.scmlog_id"
+                        + "  JOIN {0}_vcs.people p ON p.id = s.committer_id"
+                        + "  JOIN {0}_vcs.actions a ON a.commit_id = s.id"
+                        + "  JOIN {0}_vcs.files fil ON fil.id = a.file_id"
+                        + "  JOIN {0}_vcs.file_links fill ON fill.file_id = fil.id"
+                        + "  JOIN {0}_vcs.actions a2 ON a2.commit_id = s2.id"
+                        + "  JOIN {0}_vcs.files fil2 ON fil2.id = a2.file_id AND a2.file_id <> a.file_id"
+                        + "  JOIN {0}_vcs.file_links fill2 ON fill2.file_id = fil2.id"
+                        + " WHERE fill.file_path = ?"
+                        + "   AND fill2.file_path = ?"
+                        + "   AND s.date > i.submitted_on"
+                        + "   AND s2.date > i.submitted_on", repository)
+                + FILTER_BY_ISSUE_ID
+                + FIXED_ISSUES_ONLY;
 
         COUNT_PAIR_FILE_COMMITS
                 = QueryUtils.getQueryForDatabase(
                         "SELECT COUNT(DISTINCT(s.id))"
                         + "  FROM {0}_issues.issues i"
+                        + "  JOIN {0}_issues.changes c ON c.id = i.id"
                         + "  JOIN {0}_issues.issues_scmlog i2s ON i2s.issue_id = i.id"
                         + "  JOIN {0}_vcs.scmlog s ON s.id = i2s.scmlog_id"
                         + "  JOIN {0}_issues.issues_scmlog i2s2 ON i2s2.issue_id = i.id"
@@ -276,13 +324,16 @@ public class BichoPairFileDAO {
                         + "  JOIN {0}_vcs.files fil2 ON fil2.id = a2.file_id AND a2.file_id <> a.file_id"
                         + "  JOIN {0}_vcs.file_links fill2 ON fill2.file_id = fil2.id"
                         + " WHERE fill.file_path = ?"
-                        + "   AND fill2.file_path = ?", repository)
+                        + "   AND fill2.file_path = ?"
+                        + "   AND s.date > i.submitted_on"
+                        + "   AND s2.date > i.submitted_on", repository)
                 + FILTER_BY_MAX_FILES_IN_COMMIT;
 
         COUNT_PAIR_FILE_COMMITTERS
                 = QueryUtils.getQueryForDatabase(
                         "SELECT COUNT(DISTINCT(p.name))"
                         + "  FROM {0}_issues.issues i"
+                        + "  JOIN {0}_issues.changes c ON c.id = i.id"
                         + "  JOIN {0}_issues.issues_scmlog i2s ON i2s.issue_id = i.id"
                         + "  JOIN {0}_vcs.scmlog s ON s.id = i2s.scmlog_id"
                         + "  JOIN {0}_issues.issues_scmlog i2s2 ON i2s2.issue_id = i.id"
@@ -295,14 +346,17 @@ public class BichoPairFileDAO {
                         + "  JOIN {0}_vcs.files fil2 ON fil2.id = a2.file_id AND a2.file_id <> a.file_id"
                         + "  JOIN {0}_vcs.file_links fill2 ON fill2.file_id = fil2.id"
                         + " WHERE fill.file_path = ?"
-                        + "   AND fill2.file_path = ?", repository)
+                        + "   AND fill2.file_path = ?"
+                        + "   AND s.date > i.submitted_on"
+                        + "   AND s2.date > i.submitted_on", repository)
                 + FILTER_BY_MAX_FILES_IN_COMMIT;
 
         COUNT_COMMENTERS_BY_ISSUE_ID
                 = QueryUtils.getQueryForDatabase(
                         "SELECT COUNT(DISTINCT(p.name))"
                         + "  FROM {0}_issues.issues i"
-                        + "  JOIN {0}_issues.comments c ON c.issue_id = i.id"
+                        + "  JOIN {0}_issues.changes c ON c.id = i.id"
+                        + "  JOIN {0}_issues.comments com ON com.issue_id = i.id"
                         + "  JOIN {0}_issues.people p ON p.id = c.submitted_by"
                         + " WHERE i.id = ?", repository);
 
@@ -310,6 +364,7 @@ public class BichoPairFileDAO {
                 = QueryUtils.getQueryForDatabase(
                         "SELECT MIN(s.date), MAX(s.date)"
                         + "  FROM {0}_issues.issues i"
+                        + "  JOIN {0}_issues.changes c ON c.id = i.id"
                         + "  JOIN {0}_issues.issues_scmlog i2s ON i2s.issue_id = i.id"
                         + "  JOIN {0}_vcs.scmlog s ON s.id = i2s.scmlog_id"
                         + "  JOIN {0}_issues.issues_scmlog i2s2 ON i2s2.issue_id = i.id"
@@ -321,11 +376,13 @@ public class BichoPairFileDAO {
                         + "  JOIN {0}_vcs.files fil2 ON fil2.id = a2.file_id AND a2.file_id <> a.file_id"
                         + "  JOIN {0}_vcs.file_links fill2 ON fill2.file_id = fil2.id"
                         + " WHERE fill.file_path = ?"
-                        + "   AND fill2.file_path = ?", repository)
+                        + "   AND fill2.file_path = ?"
+                        + "   AND s.date > i.submitted_on"
+                        + "   AND s2.date > i.submitted_on", repository)
                 + FILTER_BY_MAX_FILES_IN_COMMIT;
 
         SELECT_COMMENTS_BY_ISSUE_ID = QueryUtils.getQueryForDatabase(
-                "SELECT c.text FROM {0}_issues.comments c WHERE c.issue_id = ?", repository);
+                "SELECT com.text FROM {0}_issues.comments com WHERE com.issue_id = ?", repository);
     }
 
     public long calculeNumberOfIssues(Date beginDate, Date endDate, boolean onlyFixed) {
@@ -339,7 +396,7 @@ public class BichoPairFileDAO {
             sql.append(FIXED_ISSUES_ONLY);
         }
 
-        sql.append(FILTER_BY_ISSUE_CREATION_DATE);
+        sql.append(FILTER_BY_ISSUE_FIX_DATE);
         selectParams.add(beginDate);
         selectParams.add(endDate);
 
@@ -367,7 +424,7 @@ public class BichoPairFileDAO {
             sql.append(FIXED_ISSUES_ONLY);
         }
 
-        sql.append(FILTER_BY_ISSUE_CREATION_DATE);
+        sql.append(FILTER_BY_ISSUE_FIX_DATE);
         selectParams.add(beginDate);
         selectParams.add(endDate);
 
@@ -468,7 +525,7 @@ public class BichoPairFileDAO {
         }
 
         StringBuilder sql = new StringBuilder();
-        sql.append(SELECT_COMMITTERS_OF_PAIR_FILE);
+        sql.append(SELECT_COMMITTERS_OF_PAIR_FILE_BY_ISSUE_CREATION_DATE);
 
         selectParams.add(file);
         selectParams.add(file2);
@@ -478,17 +535,40 @@ public class BichoPairFileDAO {
         }
 
         if (beginDate != null) {
-            sql.append(FILTER_BY_AFTER_ISSUE_CREATION_DATE);
+            sql.append(FILTER_BY_AFTER_ISSUE_FIX_DATE);
             selectParams.add(beginDate);
         }
 
         if (endDate != null) {
-            sql.append(FILTER_BY_BEFORE_ISSUE_CREATION_DATE);
+            sql.append(FILTER_BY_BEFORE_ISSUE_FIX_DATE);
             selectParams.add(endDate);
         }
 
         List<String> committers = dao.selectNativeWithParams(
                 sql.toString(), selectParams.toArray());
+
+        Set<AuxUser> commitersList = new HashSet<>(committers.size());
+        for (String name : committers) {
+            commitersList.add(new AuxUser(name));
+        }
+
+        return commitersList;
+    }
+
+    public Set<AuxUser> selectCommitters(Integer issueId,
+            String file, String file2) {
+
+        List<Object> selectParams = new ArrayList<>();
+        if (file == null || file2 == null) {
+            throw new IllegalArgumentException("Pair file could not be null");
+        }
+
+        selectParams.add(file);
+        selectParams.add(file2);
+        selectParams.add(issueId);
+
+        List<String> committers = dao.selectNativeWithParams(
+                SELECT_COMMITTERS_OF_PAIR_FILE_BY_ISSUE_ID, selectParams.toArray());
 
         Set<AuxUser> commitersList = new HashSet<>(committers.size());
         for (String name : committers) {
@@ -533,7 +613,7 @@ public class BichoPairFileDAO {
         }
 
         if (beginDate != null && endDate != null) {
-            sql.append(FILTER_BY_ISSUE_CREATION_DATE);
+            sql.append(FILTER_BY_ISSUE_FIX_DATE);
             selectParams.add(beginDate);
             selectParams.add(endDate);
         }
@@ -577,12 +657,12 @@ public class BichoPairFileDAO {
         }
 
         if (beginDate != null) {
-            sql.append(FILTER_BY_AFTER_ISSUE_CREATION_DATE);
+            sql.append(FILTER_BY_AFTER_ISSUE_FIX_DATE);
             selectParams.add(beginDate);
         }
 
         if (endDate != null) {
-            sql.append(FILTER_BY_BEFORE_ISSUE_CREATION_DATE);
+            sql.append(FILTER_BY_BEFORE_ISSUE_FIX_DATE);
             selectParams.add(endDate);
         }
 
@@ -615,12 +695,12 @@ public class BichoPairFileDAO {
         }
 
         if (beginDate != null) {
-            sql.append(FILTER_BY_AFTER_ISSUE_CREATION_DATE);
+            sql.append(FILTER_BY_AFTER_ISSUE_FIX_DATE);
             selectParams.add(beginDate);
         }
 
         if (endDate != null) {
-            sql.append(FILTER_BY_BEFORE_ISSUE_CREATION_DATE);
+            sql.append(FILTER_BY_BEFORE_ISSUE_FIX_DATE);
             selectParams.add(endDate);
         }
 
@@ -633,7 +713,7 @@ public class BichoPairFileDAO {
         List<Object> selectParams = new ArrayList<>();
 
         StringBuilder sql = new StringBuilder();
-        sql.append(SELECT_ISSUES_COMMENTS_OF_FILE_PAIR_BY_DATE);
+        sql.append(SELECT_ISSUES_OF_FILE_PAIR_BY_DATE);
 
         if (onlyMergeds) {
             sql.append(FIXED_ISSUES_ONLY);
@@ -704,12 +784,12 @@ public class BichoPairFileDAO {
         selectParams.add(file2);
 
         if (beginDate != null) {
-            sql.append(FILTER_BY_AFTER_ISSUE_CREATION_DATE);
+            sql.append(FILTER_BY_AFTER_ISSUE_FIX_DATE);
             selectParams.add(beginDate);
         }
 
         if (endDate != null) {
-            sql.append(FILTER_BY_BEFORE_ISSUE_CREATION_DATE);
+            sql.append(FILTER_BY_BEFORE_ISSUE_FIX_DATE);
             selectParams.add(endDate);
         }
 
