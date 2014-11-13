@@ -13,7 +13,6 @@ import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.analysis.core.StopAnalyzer;
 import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
-import org.apache.lucene.util.Version;
 
 /**
  *
@@ -24,7 +23,7 @@ public final class LuceneUtil {
     //Remove os stopwords;
     public static List<String> tokenizeString(String linha) {
        
-        Analyzer analyzer = new StopAnalyzer(Version.LUCENE_4_9);
+        Analyzer analyzer = new StopAnalyzer();
 
         List<String> result = new ArrayList<>();
 
