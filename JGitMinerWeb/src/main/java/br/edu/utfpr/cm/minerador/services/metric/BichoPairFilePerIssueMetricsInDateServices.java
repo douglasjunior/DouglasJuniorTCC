@@ -11,7 +11,7 @@ import br.edu.utfpr.cm.JGitMinerWeb.model.matrix.EntityMatrixNode;
 import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.UserCommentedSamePairOfFileInAllDateServices;
 import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.auxiliary.AuxFileFilePull;
 import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.auxiliary.AuxUserUserDirectional;
-import br.edu.utfpr.cm.JGitMinerWeb.services.metric.auxiliary.AuxFileFileMetrics;
+import br.edu.utfpr.cm.JGitMinerWeb.services.metric.auxiliary.AuxFileFileIssueMetrics;
 import br.edu.utfpr.cm.JGitMinerWeb.services.metric.auxiliary.AuxWordiness;
 import br.edu.utfpr.cm.JGitMinerWeb.services.metric.centrality.BetweennessCalculator;
 import br.edu.utfpr.cm.JGitMinerWeb.services.metric.centrality.ClosenessCalculator;
@@ -284,7 +284,7 @@ public class BichoPairFilePerIssueMetricsInDateServices extends AbstractBichoMet
         out.printLog("Número de pares de arquivos distintos: " + pairFilesSet.size());
         out.printLog("Iniciando cálculo das métricas.");
 
-        Set<AuxFileFileMetrics> fileFileMetrics = new HashSet<>();
+        Set<AuxFileFileIssueMetrics> fileFileMetrics = new HashSet<>();
         
         out.printLog("Calculando metricas SNA...");
 
@@ -471,7 +471,7 @@ public class BichoPairFilePerIssueMetricsInDateServices extends AbstractBichoMet
 
             boolean samePackage = PathUtils.isSameFullPath(fileFile.getFileName(), fileFile.getFileName2());
 
-            AuxFileFileMetrics auxFileFileMetrics = new AuxFileFileMetrics(
+            AuxFileFileIssueMetrics auxFileFileMetrics = new AuxFileFileIssueMetrics(
                     fileFile.getFileName(), fileFile.getFileName2(),
                     fileFile.getPullNumber(),
                     BooleanUtils.toInteger(samePackage),
