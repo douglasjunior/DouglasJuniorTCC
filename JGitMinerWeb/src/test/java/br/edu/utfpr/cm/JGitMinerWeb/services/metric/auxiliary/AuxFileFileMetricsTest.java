@@ -1,6 +1,7 @@
 package br.edu.utfpr.cm.JGitMinerWeb.services.metric.auxiliary;
 
 import org.junit.After;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import org.junit.Before;
@@ -48,5 +49,10 @@ public class AuxFileFileMetricsTest {
         AuxFileFileMetrics notEqual = new AuxFileFileMetrics("FileB.java", "FileC.java");
         assertFalse(instance.equals(notEqual));
         assertFalse(instance.hashCode() == notEqual.hashCode());
+    }
+
+    @Test
+    public void testToString() {
+        assertEquals("FileA.java;FileB.java", instance.toString());
     }
 }

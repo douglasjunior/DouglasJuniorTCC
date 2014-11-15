@@ -55,4 +55,9 @@ public class AuxFileFileIssueMetricsTest {
         assertEquals(false, instance.equals(notEqual3));
         assertEquals(false, instance.hashCode() == notEqual3.hashCode());
     }
+
+    @Test
+    public void testToString() {
+        assertEquals("FileA.java;FileB.java;1", instance.toString());
+    }
 }
