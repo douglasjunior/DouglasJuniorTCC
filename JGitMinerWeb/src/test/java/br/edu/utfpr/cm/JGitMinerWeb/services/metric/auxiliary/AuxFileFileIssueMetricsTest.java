@@ -16,7 +16,7 @@ public class AuxFileFileIssueMetricsTest {
     
     @Before
     public void setup() {
-        instance = new AuxFileFileIssueMetrics("FileA.java", "FileB.java", 1);
+        instance = new AuxFileFileIssueMetrics("FileA.java", "FileB.java", 1, 1.0, 2.0, 3.0);
     }
     
     @After
@@ -30,8 +30,8 @@ public class AuxFileFileIssueMetricsTest {
      */
     @Test
     public void testEqualsTrue() {
-        AuxFileFileIssueMetrics equal1 = new AuxFileFileIssueMetrics("FileA.java", "FileB.java", 1);
-        AuxFileFileIssueMetrics equal2 = new AuxFileFileIssueMetrics("FileB.java", "FileA.java", 1);
+        AuxFileFileIssueMetrics equal1 = new AuxFileFileIssueMetrics("FileA.java", "FileB.java", 1, 3.0, 2.0, 1.0);
+        AuxFileFileIssueMetrics equal2 = new AuxFileFileIssueMetrics("FileB.java", "FileA.java", 1, 1.0, 2.0, 3.0);
         
         assertEquals(true, instance.equals(equal1));
         assertEquals(true, instance.hashCode() == equal1.hashCode());
@@ -45,9 +45,9 @@ public class AuxFileFileIssueMetricsTest {
      */
     @Test
     public void testEqualsFalse() {
-        AuxFileFileIssueMetrics notEqual = new AuxFileFileIssueMetrics("FileB.java", "FileC.java", 1);
-        AuxFileFileIssueMetrics notEqual2 = new AuxFileFileIssueMetrics("FileA.java", "FileB.java", 2);
-        AuxFileFileIssueMetrics notEqual3 = new AuxFileFileIssueMetrics("FileB.java", "FileA.java", 2);
+        AuxFileFileIssueMetrics notEqual = new AuxFileFileIssueMetrics("FileB.java", "FileC.java", 1, 1.0, 2.0, 3.0);
+        AuxFileFileIssueMetrics notEqual2 = new AuxFileFileIssueMetrics("FileA.java", "FileB.java", 2, 1.0, 2.0, 3.0);
+        AuxFileFileIssueMetrics notEqual3 = new AuxFileFileIssueMetrics("FileB.java", "FileA.java", 2, 1.0, 2.0, 3.0);
         assertEquals(false, instance.equals(notEqual));
         assertEquals(false, instance.hashCode() == notEqual.hashCode());
         assertEquals(false, instance.equals(notEqual2));
@@ -58,6 +58,6 @@ public class AuxFileFileIssueMetricsTest {
 
     @Test
     public void testToString() {
-        assertEquals("FileA.java;FileB.java;1", instance.toString());
+        assertEquals("FileA.java;FileB.java;1;1,0;2,0;3,0", instance.toString());
     }
 }

@@ -1,5 +1,6 @@
 package br.edu.utfpr.cm.JGitMinerWeb.services.metric.auxiliary;
 
+import br.edu.utfpr.cm.JGitMinerWeb.util.Util;
 import java.util.List;
 import java.util.Objects;
 
@@ -23,8 +24,12 @@ public class AuxFileFileIssueMetrics extends AuxFileFileMetrics {
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder(super.toString());
-        sb.append(";").append(issue);
+        StringBuilder sb = new StringBuilder(getFile());
+        sb.append(";").append(getFile2()).append(";").append(issue);
+        for (double m : getMetrics()) {
+            sb.append(";");
+            sb.append(Util.tratarDoubleParaString(m));
+        }
         return sb.toString();
     }
 

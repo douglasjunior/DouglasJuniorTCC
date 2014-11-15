@@ -17,7 +17,7 @@ public class AuxFileFileMetricsTest {
     
     @Before
     public void setup() {
-        instance = new AuxFileFileMetrics("FileA.java", "FileB.java");
+        instance = new AuxFileFileMetrics("FileA.java", "FileB.java", 1.0, 2.0, 3.0);
     }
     
     @After
@@ -31,8 +31,8 @@ public class AuxFileFileMetricsTest {
      */
     @Test
     public void testEqualsTrue() {
-        AuxFileFileMetrics equal1 = new AuxFileFileMetrics("FileA.java", "FileB.java");
-        AuxFileFileMetrics equal2 = new AuxFileFileMetrics("FileB.java", "FileA.java");
+        AuxFileFileMetrics equal1 = new AuxFileFileMetrics("FileA.java", "FileB.java", 3.0, 2.0, 1.0);
+        AuxFileFileMetrics equal2 = new AuxFileFileMetrics("FileB.java", "FileA.java", 1.0, 2.0, 3.0);
         
         assertTrue(instance.equals(equal1));
         assertTrue(instance.hashCode() == equal1.hashCode());
@@ -46,13 +46,13 @@ public class AuxFileFileMetricsTest {
      */
     @Test
     public void testEqualsFalse() {
-        AuxFileFileMetrics notEqual = new AuxFileFileMetrics("FileB.java", "FileC.java");
+        AuxFileFileMetrics notEqual = new AuxFileFileMetrics("FileB.java", "FileC.java", 1.0, 2.0, 3.0);
         assertFalse(instance.equals(notEqual));
         assertFalse(instance.hashCode() == notEqual.hashCode());
     }
 
     @Test
     public void testToString() {
-        assertEquals("FileA.java;FileB.java", instance.toString());
+        assertEquals("FileA.java;FileB.java;1,0;2,0;3,0", instance.toString());
     }
 }
