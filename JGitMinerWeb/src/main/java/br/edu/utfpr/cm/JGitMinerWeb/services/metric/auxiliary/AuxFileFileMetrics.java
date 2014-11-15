@@ -2,6 +2,7 @@ package br.edu.utfpr.cm.JGitMinerWeb.services.metric.auxiliary;
 
 import br.edu.utfpr.cm.JGitMinerWeb.util.Util;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
@@ -11,9 +12,9 @@ import java.util.Objects;
  */
 public class AuxFileFileMetrics {
 
-    private String file;
-    private String file2;
-    private List<Double> metrics = new ArrayList<>();
+    private final String file;
+    private final String file2;
+    private final List<Double> metrics;
 
     public AuxFileFileMetrics(String file, String file2, double... metrics) {
         this.file = file;
@@ -31,30 +32,17 @@ public class AuxFileFileMetrics {
     public String getFile() {
         return file;
     }
-
-    public void setFile(String file) {
-        this.file = file;
-    }
-
     public String getFile2() {
         return file2;
     }
 
-    public void setFile2(String file2) {
-        this.file2 = file2;
-    }
-
     public List<Double> getMetrics() {
-        return metrics;
-    }
-
-    public void setMetrics(List<Double> metrics) {
-        this.metrics = metrics;
+        return Collections.unmodifiableList(metrics);
     }
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder(file + ";" + file2);
+        StringBuilder sb = new StringBuilder(file).append(";").append(file2);
         for (double m : metrics) {
             sb.append(";");
             sb.append(Util.tratarDoubleParaString(m));
