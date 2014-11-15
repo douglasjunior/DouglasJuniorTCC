@@ -1,5 +1,6 @@
 package br.edu.utfpr.cm.JGitMinerWeb.dao;
 
+import static br.edu.utfpr.cm.JGitMinerWeb.dao.QueryUtils.filterByIssues;
 import br.edu.utfpr.cm.JGitMinerWeb.model.miner.EntityComment;
 import br.edu.utfpr.cm.JGitMinerWeb.services.metric.auxiliary.AuxWordiness;
 import java.math.BigDecimal;
@@ -53,6 +54,8 @@ public class BichoPairFileDAO {
     private final String SELECT_COMMITTERS_OF_PAIR_FILE_BY_ISSUE_CREATION_DATE;
 
     private final String SELECT_COMMITTERS_OF_PAIR_FILE_BY_ISSUE_ID;
+
+    private String SELECT_COMMITTERS_OF_PAIR_FILE;
 
     private final String COUNT_PAIR_FILE_COMMITS;
 
@@ -260,7 +263,8 @@ public class BichoPairFileDAO {
                         + "   AND s.date > i.submitted_on"
                         + "   AND s2.date > i.submitted_on", repository)
                 + FILTER_BY_MAX_FILES_IN_COMMIT
-                + FILTER_BY_ISSUE_FIX_DATE;
+                + FILTER_BY_ISSUE_FIX_DATE
+                + FIXED_ISSUES_ONLY;
 
         SELECT_COMMITTERS_OF_PAIR_FILE_BY_ISSUE_CREATION_DATE
                 = QueryUtils.getQueryForDatabase(
@@ -305,6 +309,28 @@ public class BichoPairFileDAO {
                         + "   AND s.date > i.submitted_on"
                         + "   AND s2.date > i.submitted_on", repository)
                 + FILTER_BY_ISSUE_ID
+                + FIXED_ISSUES_ONLY;
+
+        SELECT_COMMITTERS_OF_PAIR_FILE
+                = QueryUtils.getQueryForDatabase(
+                        "SELECT DISTINCT(p.name)"
+                        + "  FROM {0}_issues.issues i"
+                        + "  JOIN {0}_issues.changes c ON c.id = i.id"
+                        + "  JOIN {0}_issues.issues_scmlog i2s ON i2s.issue_id = i.id"
+                        + "  JOIN {0}_vcs.scmlog s ON s.id = i2s.scmlog_id"
+                        + "  JOIN {0}_issues.issues_scmlog i2s2 ON i2s2.issue_id = i.id"
+                        + "  JOIN {0}_vcs.scmlog s2 ON s2.id = i2s2.scmlog_id"
+                        + "  JOIN {0}_vcs.people p ON p.id = s.committer_id"
+                        + "  JOIN {0}_vcs.actions a ON a.commit_id = s.id"
+                        + "  JOIN {0}_vcs.files fil ON fil.id = a.file_id"
+                        + "  JOIN {0}_vcs.file_links fill ON fill.file_id = fil.id"
+                        + "  JOIN {0}_vcs.actions a2 ON a2.commit_id = s2.id"
+                        + "  JOIN {0}_vcs.files fil2 ON fil2.id = a2.file_id AND a2.file_id <> a.file_id"
+                        + "  JOIN {0}_vcs.file_links fill2 ON fill2.file_id = fil2.id"
+                        + " WHERE fill.file_path = ?"
+                        + "   AND fill2.file_path = ?"
+                        + "   AND s.date > i.submitted_on"
+                        + "   AND s2.date > i.submitted_on", repository)
                 + FIXED_ISSUES_ONLY;
 
         COUNT_PAIR_FILE_COMMITS
@@ -436,16 +462,27 @@ public class BichoPairFileDAO {
 
     public long calculeComments(
             String file, String file2, Date beginDate, Date endDate) {
-        return calculeComments(null, file, file2, beginDate, endDate, true);
+        return calculeComments(null, file, file2, beginDate, endDate, null, true);
     }
 
     public long calculeComments(
             String file, String file2, Date beginDate, Date endDate, boolean onlyFixed) {
-        return calculeComments(null, file, file2, beginDate, endDate, onlyFixed);
+        return calculeComments(null, file, file2, beginDate, endDate, null, onlyFixed);
+    }
+
+    public long calculeComments(
+            String file, String file2, Date beginDate, Date endDate, Collection<Integer> issues) {
+        return calculeComments(null, file, file2, beginDate, endDate, issues, true);
+    }
+
+    public long calculeComments(
+            String file, String file2, Date beginDate, Date endDate, Collection<Integer> issues, boolean onlyFixed) {
+        return calculeComments(null, file, file2, beginDate, endDate, issues, onlyFixed);
     }
 
     public long calculeComments(Integer issueId,
-            String file, String file2, Date beginDate, Date endDate, boolean onlyFixed) {
+            String file, String file2, Date beginDate, Date endDate,
+            Collection<Integer> issues, boolean onlyFixed) {
 
         if (file == null || file2 == null) {
             throw new IllegalArgumentException("The file and file2 parameters can not be null.");
@@ -470,6 +507,8 @@ public class BichoPairFileDAO {
             selectParams.add(issueId);
         }
 
+        filterByIssues(issues, sql);
+
         Long count = dao.selectNativeOneWithParams(sql.toString(), selectParams.toArray());
 
         return count != null ? count : 0l;
@@ -492,6 +531,11 @@ public class BichoPairFileDAO {
 
     public AuxCodeChurn calculeCodeChurnAddDelChange(
             String fileName, String fileName2, Date beginDate, Date endDate) {
+        return calculeCodeChurnAddDelChange(fileName, fileName2, beginDate, endDate, null);
+    }
+
+    public AuxCodeChurn calculeCodeChurnAddDelChange(
+            String fileName, String fileName2, Date beginDate, Date endDate, Collection<Integer> issues) {
 
         Object[] params = new Object[]{
             fileName,
@@ -500,8 +544,10 @@ public class BichoPairFileDAO {
             endDate
         };
 
-        List<Object[]> sum = dao.selectNativeWithParams(
-                SUM_ADD_DEL_LINES_OF_FILE_PAIR_BY_DATE, params);
+        StringBuilder sql = new StringBuilder(SUM_ADD_DEL_LINES_OF_FILE_PAIR_BY_DATE);
+        filterByIssues(issues, sql);
+
+        List<Object[]> sum = dao.selectNativeWithParams(sql.toString(), params);
 
         Long additions = sum.get(0)[0] == null ? 0l : ((BigDecimal) sum.get(0)[0]).longValue();
         Long deletions = sum.get(0)[1] == null ? 0l : ((BigDecimal) sum.get(0)[1]).longValue();
@@ -513,11 +559,17 @@ public class BichoPairFileDAO {
 
     public Set<AuxUser> selectCommitters(
             String file, String file2, Date beginDate, Date endDate) {
-        return selectCommitters(file, file2, beginDate, endDate, true);
+        return selectCommitters(file, file2, beginDate, endDate, null, true);
     }
 
     public Set<AuxUser> selectCommitters(
-            String file, String file2, Date beginDate, Date endDate, boolean onlyFixed) {
+            String file, String file2, Date beginDate, Date endDate, Collection<Integer> issues) {
+        return selectCommitters(file, file2, beginDate, endDate, issues, true);
+    }
+
+    public Set<AuxUser> selectCommitters(
+            String file, String file2, Date beginDate, Date endDate,
+            Collection<Integer> issues, boolean onlyFixed) {
 
         List<Object> selectParams = new ArrayList<>();
         if (file == null || file2 == null) {
@@ -543,6 +595,8 @@ public class BichoPairFileDAO {
             sql.append(FILTER_BY_BEFORE_ISSUE_FIX_DATE);
             selectParams.add(endDate);
         }
+
+        filterByIssues(issues, sql);
 
         List<String> committers = dao.selectNativeWithParams(
                 sql.toString(), selectParams.toArray());
@@ -578,24 +632,62 @@ public class BichoPairFileDAO {
         return commitersList;
     }
 
+    public Set<AuxUser> selectCommitters(Collection<Integer> issues,
+            String file, String file2) {
+
+        List<Object> selectParams = new ArrayList<>();
+        if (file == null || file2 == null) {
+            throw new IllegalArgumentException("Pair file could not be null");
+        }
+
+        selectParams.add(file);
+        selectParams.add(file2);
+
+        StringBuilder sql = new StringBuilder(SELECT_COMMITTERS_OF_PAIR_FILE);
+
+        filterByIssues(issues, sql);
+
+        List<String> committers = dao.selectNativeWithParams(
+                sql.toString(), selectParams.toArray());
+
+        Set<AuxUser> commitersList = new HashSet<>(committers.size());
+        for (String name : committers) {
+            commitersList.add(new AuxUser(name));
+        }
+
+        return commitersList;
+    }
+
     public long calculeCommits(String file, String file2) {
-        return calculeCommits(file, file2, null, null, null, true);
+        return calculeCommits(file, file2, null, null, null, null, true);
     }
 
     public long calculeCommits(String file, String file2, Date beginDate, Date endDate) {
-        return calculeCommits(file, file2, null, beginDate, endDate, true);
+        return calculeCommits(file, file2, null, beginDate, endDate, null, true);
     }
 
-    public long calculeCommits(String file, String file2, Date beginDate, Date endDate, boolean onlyFixed) {
-        return calculeCommits(file, file2, null, beginDate, endDate, onlyFixed);
+    public long calculeCommits(String file, String file2, Date beginDate, Date endDate,
+            Collection<Integer> issues) {
+        return calculeCommits(file, file2, null, beginDate, endDate, issues, true);
+    }
+
+    public long calculeCommits(String file, String file2, Date beginDate, Date endDate,
+            boolean onlyFixed) {
+        return calculeCommits(file, file2, null, beginDate, endDate, null, onlyFixed);
     }
 
     public long calculeCommits(String file, String file2, String user, Date beginDate, Date endDate) {
-        return calculeCommits(file, file2, user, beginDate, endDate, true);
+        return calculeCommits(file, file2, user, beginDate, endDate, null, true);
+    }
+
+    public long calculeCommits(String file, String file2, String user,
+            Date beginDate, Date endDate, Collection<Integer> issues) {
+        return calculeCommits(file, file2, user, beginDate, endDate, issues, true);
     }
 
     public long calculeCommits(
-            String file, String file2, String user, Date beginDate, Date endDate, boolean onlyFixed) {
+            String file, String file2, String user, Date beginDate, Date endDate,
+            Collection<Integer> issues, boolean onlyFixed) {
         List<Object> selectParams = new ArrayList<>();
 
         if (file == null || file2 == null) {
@@ -623,6 +715,8 @@ public class BichoPairFileDAO {
             selectParams.add(user);
         }
 
+        filterByIssues(issues, sql);
+
         Long count = dao.selectNativeOneWithParams(sql.toString(), selectParams.toArray());
 
         return count != null ? count : 0l;
@@ -630,16 +724,28 @@ public class BichoPairFileDAO {
 
     public long calculeCommitters(
             String file, String file2) {
-        return calculeCommitters(file, file2, null, null, true);
+        return calculeCommitters(file, file2, null, null, null, true);
     }
 
     public long calculeCommitters(
             String file, String file2, Date beginDate, Date endDate) {
-        return calculeCommitters(file, file2, beginDate, endDate, true);
+        return calculeCommitters(file, file2, beginDate, endDate, null, true);
     }
 
     public long calculeCommitters(
-            String file, String file2, Date beginDate, Date endDate, boolean onlyFixed) {
+            String file, String file2, Collection<Integer> issues) {
+        return calculeCommitters(file, file2, null, null, issues, true);
+    }
+
+    public long calculeCommitters(
+            String file, String file2, Date beginDate, Date endDate,
+            Collection<Integer> issues) {
+        return calculeCommitters(file, file2, beginDate, endDate, issues, true);
+    }
+
+    public long calculeCommitters(
+            String file, String file2, Date beginDate, Date endDate,
+            Collection<Integer> issues, boolean onlyFixed) {
         List<Object> selectParams = new ArrayList<>();
 
         if (file == null || file2 == null) {
@@ -665,6 +771,8 @@ public class BichoPairFileDAO {
             sql.append(FILTER_BY_BEFORE_ISSUE_FIX_DATE);
             selectParams.add(endDate);
         }
+
+        filterByIssues(issues, sql);
 
         Long count = dao.selectNativeOneWithParams(sql.toString(), selectParams.toArray());
 
@@ -709,7 +817,8 @@ public class BichoPairFileDAO {
         return count != null ? count : 0l;
     }
 
-    public Collection<AuxWordiness> listIssues(String file, String file2, Date beginDate, Date endDate, boolean onlyMergeds) {
+    public Collection<AuxWordiness> listIssues(String file, String file2,
+            Date beginDate, Date endDate, Collection<Integer> issues, boolean onlyMergeds) {
         List<Object> selectParams = new ArrayList<>();
 
         StringBuilder sql = new StringBuilder();
@@ -723,6 +832,8 @@ public class BichoPairFileDAO {
         selectParams.add(file2);
         selectParams.add(beginDate);
         selectParams.add(endDate);
+
+        filterByIssues(issues, sql);
 
         List<Object[]> rawIssues = dao.selectNativeWithParams(sql.toString(), selectParams.toArray());
 

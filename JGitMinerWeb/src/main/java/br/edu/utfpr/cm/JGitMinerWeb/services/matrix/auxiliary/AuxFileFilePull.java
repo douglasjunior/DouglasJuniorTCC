@@ -75,5 +75,9 @@ public class AuxFileFilePull {
         return hash;
     }
 
+    @Override
+    public String toString() {
+        return fileName + ";" + fileName2 + ";" + pullNumber;
+    }
 
 }

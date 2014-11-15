@@ -43,4 +43,10 @@ public class MathUtils {
         medianNumFilesPerCommit.setData(numFilesPrimitive);
         return Double.valueOf(medianNumFilesPerCommit.evaluate()).intValue();
     }
+
+    public static Double median(double[] numbers) {
+        Median medianNumFilesPerCommit = new Median();
+        medianNumFilesPerCommit.setData(numbers);
+        return medianNumFilesPerCommit.evaluate();
+    }
 }

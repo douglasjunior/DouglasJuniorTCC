@@ -1,7 +1,9 @@
 package br.edu.utfpr.cm.JGitMinerWeb.dao;
 
+import static br.edu.utfpr.cm.JGitMinerWeb.dao.QueryUtils.filterByIssues;
 import br.edu.utfpr.cm.minerador.services.matrix.model.Commenter;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -21,6 +23,7 @@ public class BichoDAO {
     private final String COUNT_FILES_PER_COMMITS;
     private final String SELECT_ISSUES_BY_FIXED_DATE;
     private final String SELECT_COMMENTERS_BY_ISSUE_ORDER_BY_SUBMIT;
+    private final String SELECT_COMMENTERS;
 
     private final GenericBichoDAO dao;
 
@@ -66,6 +69,13 @@ public class BichoDAO {
                         + "  JOIN {0}_issues.people p ON p.id = c.submitted_by"
                         + " WHERE c.issue_id = ?"
                         + " ORDER BY c.submitted_on ASC", repository);
+
+        SELECT_COMMENTERS
+                = QueryUtils.getQueryForDatabase("SELECT p.id, p.name, p.email"
+                        + "  FROM {0}_issues.comments c"
+                        + "  JOIN {0}_issues.issues i ON i.id = c.issue_id"
+                        + "  JOIN {0}_issues.people p ON p.id = c.submitted_by"
+                        + " WHERE 1 = 1", repository);
     }
 
     public Map<Integer, Integer> countFilesPerCommit(Date beginDate, Date endDate) {
@@ -122,6 +132,25 @@ public class BichoDAO {
         List<Object[]> rawFilesPath
                 = dao.selectNativeWithParams(SELECT_COMMENTERS_BY_ISSUE_ORDER_BY_SUBMIT,
                         new Object[]{issue});
+
+        List<Commenter> files = new ArrayList<>();
+        for (Object[] row : rawFilesPath) {
+            Commenter commenter = new Commenter((Integer) row[0], (String) row[1], (String) row[2]);
+            files.add(commenter);
+        }
+
+        return files;
+    }
+
+    public List<Commenter> selectCommentersByIssueId(Collection<Integer> issue) {
+        StringBuilder sql = new StringBuilder(SELECT_COMMENTERS);
+
+        filterByIssues(issue, sql);
+
+        sql.append(" ORDER BY c.submitted_on ASC");
+
+        List<Object[]> rawFilesPath
+                = dao.selectNativeWithParams(sql.toString(), new Object[0]);
 
         List<Commenter> files = new ArrayList<>();
         for (Object[] row : rawFilesPath) {

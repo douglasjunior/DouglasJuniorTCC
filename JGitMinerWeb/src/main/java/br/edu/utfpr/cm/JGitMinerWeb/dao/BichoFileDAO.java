@@ -1,8 +1,10 @@
 package br.edu.utfpr.cm.JGitMinerWeb.dao;
 
+import static br.edu.utfpr.cm.JGitMinerWeb.dao.QueryUtils.filterByIssues;
 import br.edu.utfpr.cm.minerador.services.matrix.model.FilePath;
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -48,8 +50,6 @@ public class BichoFileDAO {
     private final String COUNT_ISSUES;
 
     private final String SUM_CODE_CHURN_BY_FILE_NAME;
-
-    private final String SUM_CHANGES_OF_FILE;
 
     private final String SELECT_FILES_PATH_BY_ISSUE;
 
@@ -116,7 +116,8 @@ public class BichoFileDAO {
                         + "  JOIN {0}_vcs.actions a ON a.commit_id = s.id"
                         + "  JOIN {0}_vcs.files fil ON fil.id = a.file_id"
                         + "  JOIN {0}_vcs.file_links fill ON fill.file_id = fil.id"
-                        + " WHERE fill.file_path = ?", repository);
+                        + " WHERE fill.file_path = ?", repository)
+                + FILTER_BY_MAX_FILES_IN_COMMIT;
 
         COUNT_DISTINCT_COMMITERS_BY_FILE_NAME
                 = QueryUtils.getQueryForDatabase(
@@ -128,7 +129,8 @@ public class BichoFileDAO {
                         + "  JOIN {0}_issues.issues_scmlog i2s ON i2s.scmlog_id = a.commit_id"
                         + "  JOIN {0}_issues.issues i ON i.id = i2s.issue_id"
                         + "  JOIN {0}_issues.changes c ON c.id = i.id"
-                        + " WHERE fill.file_path = ?", repository);
+                        + " WHERE fill.file_path = ?", repository)
+                + FILTER_BY_MAX_FILES_IN_COMMIT;
 
         COUNT_COMMITS_BY_FILE_NAME
                 = QueryUtils.getQueryForDatabase(
@@ -140,7 +142,8 @@ public class BichoFileDAO {
                         + "  JOIN {0}_issues.issues_scmlog i2s ON i2s.scmlog_id = a.commit_id"
                         + "  JOIN {0}_issues.issues i ON i.id = i2s.issue_id"
                         + "  JOIN {0}_issues.changes c ON c.id = i.id"
-                        + " WHERE fill.file_path = ?", repository);
+                        + " WHERE fill.file_path = ?", repository)
+                + FILTER_BY_MAX_FILES_IN_COMMIT;
 
         SUM_CODE_CHURN_BY_FILE_NAME
                 = QueryUtils.getQueryForDatabase(
@@ -155,19 +158,8 @@ public class BichoFileDAO {
                         + "  JOIN {0}_vcs.files fil ON fil.id = a.file_id"
                         + "  JOIN {0}_vcs.file_links fill ON fill.file_id = fil.id"
                         + "  JOIN {0}_vcs.commits_files_lines filcl ON filcl.commit = s.id AND filcl.path = fill.file_path"
-                        + " WHERE fill.file_path = ?", repository);
-
-        SUM_CHANGES_OF_FILE
-                = QueryUtils.getQueryForDatabase(
-                        "SELECT COALESCE((SUM(filcl.added) + SUM(filcl.removed)), 0)"
-                        + "  FROM {0}_vcs.scmlog s"
-                        + "  JOIN {0}_issues.issues_scmlog i2s ON i2s.scmlog_id = s.id"
-                        + "  JOIN {0}_issues.issues i ON i.id = i2s.issue_id"
-                        + "  JOIN {0}_vcs.actions a ON a.commit_id = s.id"
-                        + "  JOIN {0}_vcs.files fil ON fil.id = a.file_id"
-                        + "  JOIN {0}_vcs.file_links fill ON fill.file_id = fil.id"
-                        + "  JOIN {0}_vcs.commits_files_lines filcl ON filcl.commit = s.id AND filcl.path = fill.file_path"
-                        + " WHERE fill.file_path = ?", repository);
+                        + " WHERE fill.file_path = ?", repository)
+                + FILTER_BY_MAX_FILES_IN_COMMIT;
 
         SELECT_FILES_PATH_BY_ISSUE
                 = QueryUtils.getQueryForDatabase("SELECT fill.file_id, fill.file_path"
@@ -202,27 +194,11 @@ public class BichoFileDAO {
     public long calculeNumberOfIssues(
             String filename, Date beginDate, Date endDate) {
         return calculeNumberOfIssues(filename,
-                beginDate, endDate, 0, 0, true);
+                beginDate, endDate, true);
     }
 
     public long calculeNumberOfIssues(
             String filename, Date beginDate, Date endDate, boolean onlyFixed) {
-        return calculeNumberOfIssues(filename,
-                beginDate, endDate, 0, 0, onlyFixed);
-    }
-
-    public long calculeNumberOfIssues(
-            String filename, Date beginDate, Date endDate,
-            int minFilesPerCommit, int maxFilesPerCommit) {
-        return calculeNumberOfIssues(filename,
-                beginDate, endDate,
-                minFilesPerCommit, maxFilesPerCommit,
-                true);
-    }
-
-    public long calculeNumberOfIssues(
-            String filename, Date beginDate, Date endDate,
-            int minFilesPerCommit, int maxFilesPerCommit, boolean onlyFixed) {
         List<Object> selectParams = new ArrayList<>();
 
         StringBuilder sql = new StringBuilder();
@@ -245,16 +221,6 @@ public class BichoFileDAO {
             sql.append(FIXED_ISSUES_ONLY);
         }
 
-        if (minFilesPerCommit > 0) {
-            sql.append(FILTER_BY_MIN_FILES_IN_COMMIT);
-            selectParams.add(minFilesPerCommit);
-        }
-
-        if (maxFilesPerCommit > 0) {
-            sql.append(FILTER_BY_MAX_FILES_IN_COMMIT);
-            selectParams.add(maxFilesPerCommit);
-        }
-
         Long count = (Long) dao.selectNativeOneWithParams(
                 sql.toString(),
                 selectParams.toArray());
@@ -266,24 +232,22 @@ public class BichoFileDAO {
     public long countDistinctCommittersByFilename(
             String filename, Date beginDate, Date endDate) {
         return countDistinctCommittersByFilename(filename, null,
-                beginDate, endDate, 0, 0, true);
+                beginDate, endDate, true);
     }
 
     public long countDistinctCommittersByFilename(
             String filename, String user, Date beginDate, Date endDate) {
         return countDistinctCommittersByFilename(filename, user,
-                beginDate, endDate, 0, 0, true);
+                beginDate, endDate, true);
     }
 
     public long countDistinctCommittersByFilename(
-            String filename, String user, Date beginDate, Date endDate,
-            int minFilesPerCommit, int maxFilesPerCommit, boolean onlyFixed) {
+            String filename, String user, Date beginDate, Date endDate, boolean onlyFixed) {
         List<Object> selectParams = new ArrayList<>();
 
         StringBuilder sql = new StringBuilder();
         sql.append(COUNT_DISTINCT_COMMITERS_BY_FILE_NAME);
 
-        selectParams.add(maxFilesPerCommit);
         selectParams.add(filename);
 
         if (beginDate != null && endDate != null) { // from begin to end
@@ -300,16 +264,6 @@ public class BichoFileDAO {
 
         if (onlyFixed) {
             sql.append(FIXED_ISSUES_ONLY);
-        }
-
-        if (minFilesPerCommit > 0) {
-            sql.append(FILTER_BY_MIN_FILES_IN_COMMIT);
-            selectParams.add(minFilesPerCommit);
-        }
-
-        if (maxFilesPerCommit > 0) {
-            sql.append(FILTER_BY_MAX_FILES_IN_COMMIT);
-            selectParams.add(maxFilesPerCommit);
         }
 
         if (user != null) {
@@ -390,25 +344,27 @@ public class BichoFileDAO {
     // CORE CHURN //////////////////////////////////////////////////////////////
     public AuxCodeChurn sumCodeChurnByFilename(
             String filename, Date beginDate, Date endDate) {
-        return sumCodeChurnByFilename(filename, null, beginDate, endDate, 0, 0, true);
+        return sumCodeChurnByFilename(filename, null, beginDate, endDate, null, true);
     }
 
     public AuxCodeChurn sumCodeChurnByFilename(
             String filename, String user, Date beginDate, Date endDate) {
-        return sumCodeChurnByFilename(filename, user, beginDate, endDate, 0, 0, true);
+        return sumCodeChurnByFilename(filename, user, beginDate, endDate, null, true);
     }
 
     public AuxCodeChurn sumCodeChurnByFilename(
-            String filename, String user, Date beginDate, Date endDate,
-            int minFilesPerCommit, int maxFilesPerCommit) {
-        return sumCodeChurnByFilename(filename, user,
-                beginDate, endDate,
-                minFilesPerCommit, maxFilesPerCommit, true);
+            String filename, Date beginDate, Date endDate, Collection<Integer> issues) {
+        return sumCodeChurnByFilename(filename, null, beginDate, endDate, issues, true);
+    }
+
+    public AuxCodeChurn sumCodeChurnByFilename(
+            String filename, String user, Date beginDate, Date endDate, Collection<Integer> issues) {
+        return sumCodeChurnByFilename(filename, user, beginDate, endDate, issues, true);
     }
 
     public AuxCodeChurn sumCodeChurnByFilename(
             String fileName, String user, Date beginDate, Date endDate,
-            int minFilesPerCommit, int maxFilesPerCommit, boolean onlyFixed) {
+            Collection<Integer> issues, boolean onlyFixed) {
         List<Object> selectParams = new ArrayList<>();
 
         StringBuilder sql = new StringBuilder();
@@ -430,38 +386,18 @@ public class BichoFileDAO {
             sql.append(FIXED_ISSUES_ONLY);
         }
 
-        if (minFilesPerCommit > 0) {
-            sql.append(FILTER_BY_MIN_FILES_IN_COMMIT);
-            selectParams.add(minFilesPerCommit);
-        }
-
-        if (maxFilesPerCommit > 0) {
-            sql.append(FILTER_BY_MAX_FILES_IN_COMMIT);
-            selectParams.add(maxFilesPerCommit);
-        }
-
         if (user != null) {
             sql.append(FILTER_BY_USER_NAME);
             selectParams.add(user);
         }
+
+        filterByIssues(issues, sql);
 
         List<Object[]> sum = dao.selectNativeWithParams(sql.toString(),
                 selectParams.toArray());
 
         return new AuxCodeChurn(fileName,
                 ((BigDecimal) sum.get(0)[0]).longValue(), ((BigDecimal) sum.get(0)[1]).longValue());
-    }
-
-    public long calculeCodeChurn(String fileName, Date beginDate, Date endDate) {
-        Object[] bdObjects = new Object[]{
-            fileName,
-            beginDate,
-            endDate
-        };
-
-        BigDecimal sum = dao.selectNativeOneWithParams(SUM_CHANGES_OF_FILE, bdObjects);
-
-        return sum.longValue();
     }
 
     public List<FilePath> selectFilesByCommitId(Integer commitId) {

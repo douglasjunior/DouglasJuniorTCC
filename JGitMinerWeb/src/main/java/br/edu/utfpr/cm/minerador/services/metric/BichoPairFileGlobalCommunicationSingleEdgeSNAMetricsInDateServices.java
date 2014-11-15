@@ -451,7 +451,7 @@ public class BichoPairFileGlobalCommunicationSingleEdgeSNAMetricsInDateServices 
 
             // list all issues and its comments
             Collection<AuxWordiness> issuesAndComments = bichoPairFileDAO.listIssues(
-                    fileFile.getFileName(), fileFile.getFileName2(), beginDate, endDate, true);
+                    fileFile.getFileName(), fileFile.getFileName2(), beginDate, endDate, null, true);
 
             long wordiness = 0;
             for (AuxWordiness auxWordiness : issuesAndComments) {
