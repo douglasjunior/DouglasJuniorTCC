@@ -36,7 +36,7 @@ public class AuxFileFileIssueMetrics extends AuxFileFileMetrics {
     @Override
     public int hashCode() {
         int hash = super.hashCode();
-        hash = 89 * hash + (Objects.hashCode(this.issue) + Objects.hashCode(this.issue));
+        hash = 89 * hash + Objects.hashCode(this.issue);
         return hash;
     }
 
