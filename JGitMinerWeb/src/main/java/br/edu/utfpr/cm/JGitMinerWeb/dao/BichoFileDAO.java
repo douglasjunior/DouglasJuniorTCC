@@ -305,8 +305,8 @@ public class BichoFileDAO {
 
     // COMMITS /////////////////////////////////////////////////////////////////
     public long countCommitsByFilename(
-            String filename, Date beginDate, Date endDate) {
-        return countCommitsByFilename(filename, null, beginDate, endDate, null);
+            String filename, Date beginDate, Date endDate, Collection<Integer> issues) {
+        return countCommitsByFilename(filename, null, beginDate, endDate, issues);
     }
 
     public long countCommitsByFilename(

@@ -47,7 +47,7 @@ import java.util.Set;
 import org.apache.commons.lang3.BooleanUtils;
 
 /**
- * 
+ *
  * @author Rodrigo T. Kuroda
  */
 public class BichoPairFilePerIssueMetricsInDateServices extends AbstractBichoMetricServices {
@@ -108,7 +108,7 @@ public class BichoPairFilePerIssueMetricsInDateServices extends AbstractBichoMet
 
         Date futureBeginDate = getFutureBeginDate();
         Date futureEndDate = getFutureEndDate();
-        
+
         Date beginDate = getBeginDate();
         Date endDate = getEndDate();
 
@@ -137,13 +137,13 @@ public class BichoPairFilePerIssueMetricsInDateServices extends AbstractBichoMet
         final Map<AuxFileFilePull, Set<Integer>> issuesPairFile = new HashMap<>();
         final Map<AuxFileFilePull, Set<Integer>> commitsPairFile = new HashMap<>();
         final Map<String, Integer> edgesWeigth = new HashMap<>();
-        
+
         // rede de comunicação global, com todos pares de arquivos
         DirectedSparseGraph<String, String> globalGraph = new DirectedSparseGraph<>();
-        
+
         // rede de comunicação de cada par de arquivo
         Map<AuxFileFilePull, DirectedSparseGraph<String, String>> pairFileNetwork = new HashMap<>();
-        
+
         int countIgnored = 0;
         final int maxFilePerCommit = 20;
         BichoDAO bichoDAO = new BichoDAO(dao, repository);
@@ -151,9 +151,9 @@ public class BichoPairFilePerIssueMetricsInDateServices extends AbstractBichoMet
         BichoPairFileDAO bichoPairFileDAO = new BichoPairFileDAO(dao, repository, maxFilePerCommit);
         Long issuesSize = bichoPairFileDAO
                 .calculeNumberOfIssues(futureBeginDate, futureEndDate, true);
-        
+
         System.out.println("Number of all pull requests: " + issuesSize);
-        
+
         // construindo a rede de comunicação para cada par de arquivo (desenvolvedores que comentaram)
         int nodesSize = getMatrix().getNodes().size();
         int count = 0;
@@ -296,9 +296,9 @@ public class BichoPairFilePerIssueMetricsInDateServices extends AbstractBichoMet
         SimpleDateFormat format = new SimpleDateFormat("dd.MM.yyyy");
         JungExport.exportToImage(globalGraph, "C:/Users/a562273/Desktop/networks/",
                 repository + " Single " + format.format(beginDate) + " a " + format.format(endDate));
-        
+
         out.printLog("Número de pares de arquivos ignoradoa: " + countIgnored);
-        
+
         out.printLog("Número de autores de comentários (commenters): " + globalGraph.getVertexCount());
         out.printLog("Número de pares de arquivos (committers): " + committersPairFile.size());
         out.printLog("Número de pares de arquivos (issues): " + issuesPairFile.size());
@@ -307,7 +307,7 @@ public class BichoPairFilePerIssueMetricsInDateServices extends AbstractBichoMet
         out.printLog("Iniciando cálculo das métricas.");
 
         Set<AuxFileFileIssueMetrics> fileFileMetrics = new HashSet<>();
-        
+
         out.printLog("Calculando metricas SNA...");
 
         GlobalMeasure global = GlobalMeasureCalculator.calcule(globalGraph);
@@ -387,7 +387,7 @@ public class BichoPairFilePerIssueMetricsInDateServices extends AbstractBichoMet
                 hierarchyStatistics.addValue(structuralHolesMetric.getHierarchy());
             }
             Integer distinctCommentersCount = devsCommentters.size();
-            
+
             // Commit-based metrics ////////////////////////////////////////////
             final Set<Integer> fileFileIssues = issuesPairFile.get(fileFile);
 
@@ -395,9 +395,9 @@ public class BichoPairFilePerIssueMetricsInDateServices extends AbstractBichoMet
                 out.printLog("Empty issues for " + fileFile.toString());
             }
 
-            final long changes = calculeFileCodeChurn(codeChurnRequestFileMap,
+            final long changes = Cacher.calculeFileCodeChurn(codeChurnRequestFileMap,
                     fileFile.getFileName(), bichoFileDAO, beginDate, endDate, null).getChanges();
-            final long changes2 = calculeFileCodeChurn(codeChurnRequestFileMap,
+            final long changes2 = Cacher.calculeFileCodeChurn(codeChurnRequestFileMap,
                     fileFile.getFileName2(), bichoFileDAO, beginDate, endDate, null).getChanges();
 
             Set<AuxUser> devsCommitters = bichoPairFileDAO.selectCommitters(
@@ -432,25 +432,25 @@ public class BichoPairFilePerIssueMetricsInDateServices extends AbstractBichoMet
                 }
 
                 // Calculing OEXP of each file
-                Double experience = calculeDevFileExperience(changes, fileUserCommitMap,
+                Double experience = Cacher.calculeDevFileExperience(changes, fileUserCommitMap,
                         fileFile.getFileName(), devCommitter.getUser(), bichoFileDAO, beginDate, endDate, fileFileIssues);
                 ownerExperience = Math.max(experience, ownerExperience);
 
-                Double experience2 = calculeDevFileExperience(changes2, fileUserCommitMap,
+                Double experience2 = Cacher.calculeDevFileExperience(changes2, fileUserCommitMap,
                         fileFile.getFileName2(), devCommitter.getUser(), bichoFileDAO, beginDate, endDate, fileFileIssues);
                 ownerExperience2 = Math.max(experience2, ownerExperience2);
 
                 // Calculing OWN
-                final long cummulativeChanges = calculeFileCodeChurn(cummulativeCodeChurnRequestFileMap,
+                final long cummulativeChanges = Cacher.calculeFileCodeChurn(cummulativeCodeChurnRequestFileMap,
                         fileFile.getFileName(), bichoFileDAO, null, endDate, fileFileIssues).getChanges();
-                final long cummulativeChanges2 = calculeFileCodeChurn(cummulativeCodeChurnRequestFileMap,
+                final long cummulativeChanges2 = Cacher.calculeFileCodeChurn(cummulativeCodeChurnRequestFileMap,
                         fileFile.getFileName2(), bichoFileDAO, null, endDate, fileFileIssues).getChanges();
 
-                Double cumulativeExperience = calculeDevFileExperience(cummulativeChanges, fileUserCommitMap,
+                Double cumulativeExperience = Cacher.calculeDevFileExperience(cummulativeChanges, fileUserCommitMap,
                         fileFile.getFileName(), devCommitter.getUser(), bichoFileDAO, null, endDate, fileFileIssues);
                 cummulativeOwnerExperience = Math.max(cummulativeOwnerExperience, cumulativeExperience);
 
-                Double cumulativeExperience2 = calculeDevFileExperience(cummulativeChanges2, fileUserCommitMap,
+                Double cumulativeExperience2 = Cacher.calculeDevFileExperience(cummulativeChanges2, fileUserCommitMap,
                         fileFile.getFileName2(), devCommitter.getUser(), bichoFileDAO, null, endDate, fileFileIssues);
                 cummulativeOwnerExperience2 = Math.max(cummulativeOwnerExperience2, cumulativeExperience2);
 
@@ -484,9 +484,9 @@ public class BichoPairFilePerIssueMetricsInDateServices extends AbstractBichoMet
                 commentsSum += auxWordiness.getComments().size();
             }
 
-            final long codeChurn = calculeFileCodeChurn(codeChurnRequestFileMap,
+            final long codeChurn = Cacher.calculeFileCodeChurn(codeChurnRequestFileMap,
                     fileFile.getFileName(), bichoFileDAO, beginDate, endDate, null).getChanges();
-            final long codeChurn2 = calculeFileCodeChurn(codeChurnRequestFileMap,
+            final long codeChurn2 = Cacher.calculeFileCodeChurn(codeChurnRequestFileMap,
                     fileFile.getFileName2(), bichoFileDAO, beginDate, endDate, null).getChanges();
 
             AuxCodeChurn pairFileCodeChurn = bichoPairFileDAO.calculeCodeChurnAddDelChange(
@@ -523,7 +523,7 @@ public class BichoPairFilePerIssueMetricsInDateServices extends AbstractBichoMet
                     constraintStatistics.getSum(), constraintStatistics.getMean(), constraintStatistics.getMedian(), constraintStatistics.getMax(),
                     hierarchyStatistics.getSum(), hierarchyStatistics.getMean(), hierarchyStatistics.getMedian(), hierarchyStatistics.getMax(),
                     pairFileGlobal.getSize(), pairFileGlobal.getTies(),
-                    pairFileGlobal.getDensity(), pairFileGlobal.getDiameter(), 
+                    pairFileGlobal.getDensity(), pairFileGlobal.getDiameter(),
                     devCommitsStatistics.getSum(), devCommitsStatistics.getMean(), devCommitsStatistics.getMedian(), devCommitsStatistics.getMax(),
                     ownershipStatistics.getSum(), ownershipStatistics.getMean(), ownershipStatistics.getMedian(), ownershipStatistics.getMax(),
                     majorContributors, minorContributors,
@@ -538,10 +538,10 @@ public class BichoPairFilePerIssueMetricsInDateServices extends AbstractBichoMet
 
             // apriori /////////////////////////////////////////////////////////
             Long file1FutureIssues
-                    = calculeNumberOfIssues(issueFileMap, auxFileFileMetrics.getFile(), bichoFileDAO, futureBeginDate, futureEndDate);
+                    = Cacher.calculeNumberOfIssues(issueFileMap, auxFileFileMetrics.getFile(), bichoFileDAO, futureBeginDate, futureEndDate);
 
             Long file2FutureIssues
-                    = calculeNumberOfIssues(issueFileMap, auxFileFileMetrics.getFile2(), bichoFileDAO, futureBeginDate, futureEndDate);
+                    = Cacher.calculeNumberOfIssues(issueFileMap, auxFileFileMetrics.getFile2(), bichoFileDAO, futureBeginDate, futureEndDate);
 
             auxFileFileMetrics.addMetrics(file1FutureIssues, file2FutureIssues, numberAllFutureIssues);
 
@@ -568,42 +568,6 @@ public class BichoPairFilePerIssueMetricsInDateServices extends AbstractBichoMet
         addToEntityMetricNodeList(fileFileMetrics);
     }
 
-    public Long calculeNumberOfIssues(Map<String, Long> issueFileMap, String fileName, BichoFileDAO fileDAO, Date futureBeginDate, Date futureEndDate) {
-        Long fileNumberOfPullrequestOfPairFuture;
-        if (issueFileMap.containsKey(fileName)) {
-            fileNumberOfPullrequestOfPairFuture = issueFileMap.get(fileName);
-        } else {
-            fileNumberOfPullrequestOfPairFuture = fileDAO.calculeNumberOfIssues(fileName, futureBeginDate, futureEndDate, true);
-            issueFileMap.put(fileName, fileNumberOfPullrequestOfPairFuture);
-        }
-        return fileNumberOfPullrequestOfPairFuture;
-    }
-
-    public AuxCodeChurn calculeFileCodeChurn(Map<String, AuxCodeChurn> codeChurnRequestFileMap,
-            String fileName, BichoFileDAO fileDAO, Date beginDate, Date endDate, Collection<Integer> issues) {
-        if (codeChurnRequestFileMap.containsKey(fileName)) { // cached
-            return codeChurnRequestFileMap.get(fileName);
-        } else {
-            AuxCodeChurn sumCodeChurnFile = fileDAO.sumCodeChurnByFilename(fileName, beginDate, endDate, issues);
-            codeChurnRequestFileMap.put(fileName, sumCodeChurnFile);
-            return sumCodeChurnFile;
-        }
-    }
-
-    public double calculeDevFileExperience(final Long changes, Map<String, AuxCodeChurn> fileUserCommitMap,
-            String fileName, String user, BichoFileDAO fileDAO, Date beginDate, Date endDate, Collection<Integer> issues) {
-        final long devChanges;
-        if (fileUserCommitMap.containsKey(fileName)) { // cached
-            AuxCodeChurn sumCodeChurnFile = fileUserCommitMap.get(fileName);
-            devChanges = sumCodeChurnFile.getChanges();
-        } else {
-            AuxCodeChurn sumCodeChurnFile = fileDAO.sumCodeChurnByFilename(fileName, user, beginDate, endDate, issues);
-            fileUserCommitMap.put(fileName, sumCodeChurnFile);
-            devChanges = sumCodeChurnFile.getChanges();
-        }
-
-        return changes == 0 ? 0.0d : (double) devChanges / (double) changes;
-    }
 
     @Override
     public String getHeadCSV() {

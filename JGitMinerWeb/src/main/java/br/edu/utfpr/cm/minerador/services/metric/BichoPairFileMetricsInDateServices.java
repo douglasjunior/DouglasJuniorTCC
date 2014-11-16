@@ -390,9 +390,9 @@ public class BichoPairFileMetricsInDateServices extends AbstractBichoMetricServi
                 out.printLog("Empty issues for " + fileFile.toString());
             }
 
-            final long changes = calculeFileCodeChurn(codeChurnRequestFileMap,
+            final long changes = Cacher.calculeFileCodeChurn(codeChurnRequestFileMap,
                     fileFile.getFileName(), bichoFileDAO, beginDate, endDate, null).getChanges();
-            final long changes2 = calculeFileCodeChurn(codeChurnRequestFileMap,
+            final long changes2 = Cacher.calculeFileCodeChurn(codeChurnRequestFileMap,
                     fileFile.getFileName2(), bichoFileDAO, beginDate, endDate, null).getChanges();
 
             Set<AuxUser> devsCommitters = bichoPairFileDAO.selectCommitters(
@@ -427,25 +427,25 @@ public class BichoPairFileMetricsInDateServices extends AbstractBichoMetricServi
                 }
 
                 // Calculing OEXP of each file
-                Double experience = calculeDevFileExperience(changes, fileUserCommitMap,
+                Double experience = Cacher.calculeDevFileExperience(changes, fileUserCommitMap,
                         fileFile.getFileName(), devCommitter.getUser(), bichoFileDAO, beginDate, endDate, fileFileIssues);
                 ownerExperience = Math.max(experience, ownerExperience);
 
-                Double experience2 = calculeDevFileExperience(changes2, fileUserCommitMap,
+                Double experience2 = Cacher.calculeDevFileExperience(changes2, fileUserCommitMap,
                         fileFile.getFileName2(), devCommitter.getUser(), bichoFileDAO, beginDate, endDate, fileFileIssues);
                 ownerExperience2 = Math.max(experience2, ownerExperience2);
 
                 // Calculing OWN
-                final long cummulativeChanges = calculeFileCodeChurn(cummulativeCodeChurnRequestFileMap,
+                final long cummulativeChanges = Cacher.calculeFileCodeChurn(cummulativeCodeChurnRequestFileMap,
                         fileFile.getFileName(), bichoFileDAO, null, endDate, fileFileIssues).getChanges();
-                final long cummulativeChanges2 = calculeFileCodeChurn(cummulativeCodeChurnRequestFileMap,
+                final long cummulativeChanges2 = Cacher.calculeFileCodeChurn(cummulativeCodeChurnRequestFileMap,
                         fileFile.getFileName2(), bichoFileDAO, null, endDate, fileFileIssues).getChanges();
 
-                Double cumulativeExperience = calculeDevFileExperience(cummulativeChanges, fileUserCommitMap,
+                Double cumulativeExperience = Cacher.calculeDevFileExperience(cummulativeChanges, fileUserCommitMap,
                         fileFile.getFileName(), devCommitter.getUser(), bichoFileDAO, null, endDate, fileFileIssues);
                 cummulativeOwnerExperience = Math.max(cummulativeOwnerExperience, cumulativeExperience);
 
-                Double cumulativeExperience2 = calculeDevFileExperience(cummulativeChanges2, fileUserCommitMap,
+                Double cumulativeExperience2 = Cacher.calculeDevFileExperience(cummulativeChanges2, fileUserCommitMap,
                         fileFile.getFileName2(), devCommitter.getUser(), bichoFileDAO, null, endDate, fileFileIssues);
                 cummulativeOwnerExperience2 = Math.max(cummulativeOwnerExperience2, cumulativeExperience2);
 
@@ -478,9 +478,9 @@ public class BichoPairFileMetricsInDateServices extends AbstractBichoMetricServi
                 commentsSum += auxWordiness.getComments().size();
             }
 
-            final long codeChurn = calculeFileCodeChurn(codeChurnRequestFileMap,
+            final long codeChurn = Cacher.calculeFileCodeChurn(codeChurnRequestFileMap,
                     fileFile.getFileName(), bichoFileDAO, beginDate, endDate, null).getChanges();
-            final long codeChurn2 = calculeFileCodeChurn(codeChurnRequestFileMap,
+            final long codeChurn2 = Cacher.calculeFileCodeChurn(codeChurnRequestFileMap,
                     fileFile.getFileName2(), bichoFileDAO, beginDate, endDate, null).getChanges();
 
             AuxCodeChurn pairFileCodeChurn = bichoPairFileDAO.calculeCodeChurnAddDelChange(
@@ -531,10 +531,12 @@ public class BichoPairFileMetricsInDateServices extends AbstractBichoMetricServi
 
             // apriori /////////////////////////////////////////////////////////
             Long file1FutureIssues
-                    = calculeNumberOfIssues(issueFileMap, auxFileFileMetrics.getFile(), bichoFileDAO, futureBeginDate, futureEndDate);
+                    = Cacher.calculeNumberOfIssues(issueFileMap, auxFileFileMetrics.getFile(),
+                            bichoFileDAO, futureBeginDate, futureEndDate);
 
             Long file2FutureIssues
-                    = calculeNumberOfIssues(issueFileMap, auxFileFileMetrics.getFile2(), bichoFileDAO, futureBeginDate, futureEndDate);
+                    = Cacher.calculeNumberOfIssues(issueFileMap, auxFileFileMetrics.getFile2(),
+                            bichoFileDAO, futureBeginDate, futureEndDate);
 
             auxFileFileMetrics.addMetrics(file1FutureIssues, file2FutureIssues, numberAllFutureIssues);
 
@@ -559,43 +561,6 @@ public class BichoPairFileMetricsInDateServices extends AbstractBichoMetricServi
 
         out.printLog("Número de pares de arquivos: " + fileFileMetrics.size());
         addToEntityMetricNodeList(fileFileMetrics);
-    }
-
-    public Long calculeNumberOfIssues(Map<String, Long> issueFileMap, String fileName, BichoFileDAO fileDAO, Date futureBeginDate, Date futureEndDate) {
-        Long fileNumberOfPullrequestOfPairFuture;
-        if (issueFileMap.containsKey(fileName)) {
-            fileNumberOfPullrequestOfPairFuture = issueFileMap.get(fileName);
-        } else {
-            fileNumberOfPullrequestOfPairFuture = fileDAO.calculeNumberOfIssues(fileName, futureBeginDate, futureEndDate, true);
-            issueFileMap.put(fileName, fileNumberOfPullrequestOfPairFuture);
-        }
-        return fileNumberOfPullrequestOfPairFuture;
-    }
-
-    public AuxCodeChurn calculeFileCodeChurn(Map<String, AuxCodeChurn> codeChurnRequestFileMap,
-            String fileName, BichoFileDAO fileDAO, Date beginDate, Date endDate, Collection<Integer> issues) {
-        if (codeChurnRequestFileMap.containsKey(fileName)) { // cached
-            return codeChurnRequestFileMap.get(fileName);
-        } else {
-            AuxCodeChurn sumCodeChurnFile = fileDAO.sumCodeChurnByFilename(fileName, beginDate, endDate, issues);
-            codeChurnRequestFileMap.put(fileName, sumCodeChurnFile);
-            return sumCodeChurnFile;
-        }
-    }
-
-    public double calculeDevFileExperience(final Long changes, Map<String, AuxCodeChurn> fileUserCommitMap,
-            String fileName, String user, BichoFileDAO fileDAO, Date beginDate, Date endDate, Collection<Integer> issues) {
-        final long devChanges;
-        if (fileUserCommitMap.containsKey(fileName)) { // cached
-            AuxCodeChurn sumCodeChurnFile = fileUserCommitMap.get(fileName);
-            devChanges = sumCodeChurnFile.getChanges();
-        } else {
-            AuxCodeChurn sumCodeChurnFile = fileDAO.sumCodeChurnByFilename(fileName, user, beginDate, endDate, issues);
-            fileUserCommitMap.put(fileName, sumCodeChurnFile);
-            devChanges = sumCodeChurnFile.getChanges();
-        }
-
-        return changes == 0 ? 0.0d : (double) devChanges / (double) changes;
     }
 
     @Override
