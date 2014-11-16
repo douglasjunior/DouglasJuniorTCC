@@ -24,11 +24,13 @@ public class PairUtils {
             Commenter author1 = commenters.get(i);
             for (int j = i - 1; j >= 0; j--) {
                 Commenter author2 = commenters.get(j);
-                AuxUserUserDirectional pair = new AuxUserUserDirectional(author1.getName(), author1.getEmail(), author2.getName(), author2.getEmail());
-                if (pairCommenter.containsKey(pair)) {
-                    pairCommenter.get(pair).inc();
-                } else {
-                    pairCommenter.put(pair, pair);
+                if (!author1.equals(author2)) {
+                    AuxUserUserDirectional pair = new AuxUserUserDirectional(author1.getName(), author1.getEmail(), author2.getName(), author2.getEmail());
+                    if (pairCommenter.containsKey(pair)) {
+                        pairCommenter.get(pair).inc();
+                    } else {
+                        pairCommenter.put(pair, pair);
+                    }
                 }
             }
         }
