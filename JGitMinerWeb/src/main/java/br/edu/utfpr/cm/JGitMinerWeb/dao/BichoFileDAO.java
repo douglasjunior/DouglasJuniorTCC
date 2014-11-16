@@ -112,10 +112,14 @@ public class BichoFileDAO {
                         + "  FROM {0}_vcs.scmlog s"
                         + "  JOIN {0}_issues.issues_scmlog i2s ON i2s.scmlog_id = s.id"
                         + "  JOIN {0}_issues.issues i ON i.id = i2s.issue_id"
-                        + "  JOIN {0}_issues.changes c ON c.id = i.id"
+                        + "  JOIN {0}_issues.changes c ON c.issue_id = i.id"
                         + "  JOIN {0}_vcs.actions a ON a.commit_id = s.id"
                         + "  JOIN {0}_vcs.files fil ON fil.id = a.file_id"
-                        + "  JOIN {0}_vcs.file_links fill ON fill.file_id = fil.id"
+                        + "  JOIN {0}_vcs.file_links fill ON fill.file_id = fil.id AND fill.commit_id = "
+                        + "       (SELECT MAX(afill.commit_id) " // last commit where file has introduced, because it can have more than one
+                        + "          FROM aries_vcs.file_links afill "
+                        + "         WHERE afill.commit_id <= s.id "
+                        + "           AND afill.file_id = fil.id)"
                         + " WHERE fill.file_path = ?"
                         + "   AND s.date > i.submitted_on", repository)
                 + FILTER_BY_MAX_FILES_IN_COMMIT;
@@ -127,9 +131,14 @@ public class BichoFileDAO {
                         + "  JOIN {0}_vcs.actions a ON a.file_id = fil.id"
                         + "  JOIN {0}_vcs.scmlog s ON s.id = a.commit_id"
                         + "  JOIN {0}_vcs.people p ON p.id = s.committer_id"
+                        + "  JOIN {0}_vcs.file_links fill ON fill.file_id = fil.id AND fill.commit_id = "
+                        + "       (SELECT MAX(afill.commit_id) " // last commit where file has introduced, because it can have more than one
+                        + "          FROM aries_vcs.file_links afill "
+                        + "         WHERE afill.commit_id <= s.id "
+                        + "           AND afill.file_id = fil.id)"
                         + "  JOIN {0}_issues.issues_scmlog i2s ON i2s.scmlog_id = a.commit_id"
                         + "  JOIN {0}_issues.issues i ON i.id = i2s.issue_id"
-                        + "  JOIN {0}_issues.changes c ON c.id = i.id"
+                        + "  JOIN {0}_issues.changes c ON c.issue_id = i.id"
                         + " WHERE fill.file_path = ?"
                         + "   AND s.date > i.submitted_on", repository)
                 + FILTER_BY_MAX_FILES_IN_COMMIT;
@@ -141,9 +150,14 @@ public class BichoFileDAO {
                         + "  JOIN {0}_vcs.actions a ON a.file_id = fil.id"
                         + "  JOIN {0}_vcs.scmlog s ON s.id = a.commit_id"
                         + "  JOIN {0}_vcs.people p ON p.id = s.committer_id"
+                        + "  JOIN {0}_vcs.file_links fill ON fill.file_id = fil.id AND fill.commit_id = "
+                        + "       (SELECT MAX(afill.commit_id) " // last commit where file has introduced, because it can have more than one
+                        + "          FROM aries_vcs.file_links afill "
+                        + "         WHERE afill.commit_id <= s.id "
+                        + "           AND afill.file_id = fil.id)"
                         + "  JOIN {0}_issues.issues_scmlog i2s ON i2s.scmlog_id = a.commit_id"
                         + "  JOIN {0}_issues.issues i ON i.id = i2s.issue_id"
-                        + "  JOIN {0}_issues.changes c ON c.id = i.id"
+                        + "  JOIN {0}_issues.changes c ON c.issue_id = i.id"
                         + " WHERE fill.file_path = ?"
                         + "   AND s.date > i.submitted_on", repository)
                 + FILTER_BY_MAX_FILES_IN_COMMIT;
@@ -156,10 +170,14 @@ public class BichoFileDAO {
                         + "  JOIN {0}_vcs.people p ON p.id = s.committer_id"
                         + "  JOIN {0}_issues.issues_scmlog i2s ON i2s.scmlog_id = s.id"
                         + "  JOIN {0}_issues.issues i ON i.id = i2s.issue_id"
-                        + "  JOIN {0}_issues.changes c ON c.id = i.id"
+                        + "  JOIN {0}_issues.changes c ON c.issue_id = i.id"
                         + "  JOIN {0}_vcs.actions a ON a.commit_id = s.id"
                         + "  JOIN {0}_vcs.files fil ON fil.id = a.file_id"
-                        + "  JOIN {0}_vcs.file_links fill ON fill.file_id = fil.id"
+                        + "  JOIN {0}_vcs.file_links fill ON fill.file_id = fil.id AND fill.commit_id = "
+                        + "       (SELECT MAX(afill.commit_id) " // last commit where file has introduced, because it can have more than one
+                        + "          FROM aries_vcs.file_links afill "
+                        + "         WHERE afill.commit_id <= s.id "
+                        + "           AND afill.file_id = fil.id)"
                         + "  JOIN {0}_vcs.commits_files_lines filcl ON filcl.commit = s.id AND filcl.path = fill.file_path"
                         + " WHERE fill.file_path = ?"
                         + "   AND s.date > i.submitted_on", repository)
@@ -184,12 +202,16 @@ public class BichoFileDAO {
                         "SELECT DISTINCT(p.name)"
                         + "  FROM {0}_issues.issues i"
                         + "  JOIN {0}_issues.issues_scmlog i2s ON i2s.issue_id = i.id"
-                        + "  JOIN {0}_issues.changes c ON c.id = i.id"
+                        + "  JOIN {0}_issues.changes c ON c.issue_id = i.id"
                         + "  JOIN {0}_vcs.scmlog s ON s.id = i2s.scmlog_id"
                         + "  JOIN {0}_vcs.people p ON p.id = s.committer_id"
                         + "  JOIN {0}_vcs.actions a ON a.commit_id = s.id"
                         + "  JOIN {0}_vcs.files fil ON fil.id = a.file_id"
-                        + "  JOIN {0}_vcs.file_links fill ON fill.file_id = fil.id"
+                        + "  JOIN {0}_vcs.file_links fill ON fill.file_id = fil.id AND fill.commit_id = "
+                        + "       (SELECT MAX(afill.commit_id) " // last commit where file has introduced, because it can have more than one
+                        + "          FROM aries_vcs.file_links afill "
+                        + "         WHERE afill.commit_id <= s.id "
+                        + "           AND afill.file_id = fil.id)"
                         + " WHERE fill.file_path = ?", repository)
                 + FILTER_BY_MAX_FILES_IN_COMMIT;
     }

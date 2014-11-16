@@ -47,7 +47,7 @@ public class BichoDAO {
         COUNT_FILES_PER_COMMITS = QueryUtils.getQueryForDatabase("SELECT s.id, s.num_files"
                 + "  FROM {0}_issues.issues_scmlog i2s"
                 + "  JOIN {0}_issues.issues i ON i.id = i2s.issue_id"
-                + "  JOIN {0}_issues.changes c ON c.id = i.id"
+                + "  JOIN {0}_issues.changes c ON c.issue_id = i.id"
                 + "  JOIN {0}_vcs.scmlog s ON s.id = i2s.scmlog_id"
                 + "   AND s.num_files > 0", repository)
                 + FIXED_ISSUES_ONLY;
@@ -56,7 +56,7 @@ public class BichoDAO {
                 = QueryUtils.getQueryForDatabase("SELECT i.id, s.id"
                         + "  FROM {0}_issues.issues_scmlog i2s"
                         + "  JOIN {0}_issues.issues i ON i.id = i2s.issue_id"
-                        + "  JOIN {0}_issues.changes c ON c.id = i.id"
+                        + "  JOIN {0}_issues.changes c ON c.issue_id = i.id"
                         + "  JOIN {0}_vcs.scmlog s ON s.id = i2s.scmlog_id"
                         + " WHERE c.changed_on BETWEEN ? AND ?"
                         + "   AND s.date > i.submitted_on"
@@ -96,7 +96,7 @@ public class BichoDAO {
         return numFilesPerCommit;
     }
 
-    public Map<Integer, List<Integer>> selectIssues(Date beginDate, Date endDate, Integer maxFilesPerCommit, boolean onlyFixed) {
+    public Map<Integer, List<Integer>> selectIssues(Date beginDate, Date endDate, Integer maxFilesPerCommit) {
         List<Object> selectParams = new ArrayList<>();
 
         StringBuilder sql = new StringBuilder();
