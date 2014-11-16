@@ -81,8 +81,7 @@ public class BichoPairFileDAO {
 
         // filters
         FILTER_BY_MAX_FILES_IN_COMMIT
-                = QueryUtils.getQueryForDatabase(
-                        " AND s.num_files <= " + maxFilePerCommit + " AND s2.num_files <= " + maxFilePerCommit, repository);
+                = " AND s.num_files <= " + maxFilePerCommit + " AND s2.num_files <= " + maxFilePerCommit;
 
         FILTER_BY_ISSUE_FIX_DATE
                 = " AND c.changed_on BETWEEN ? AND ?";
@@ -99,8 +98,7 @@ public class BichoPairFileDAO {
                 + " AND c.new_value = i.resolution";
 
         FILTER_BY_ISSUES_THAT_HAS_AT_LEAST_ONE_COMMENT
-                = QueryUtils.getQueryForDatabase(
-                        "AND i.num_comments > 0", repository);
+                = "AND i.num_comments > 0";
 
         FILTER_BY_USER_NAME
                 = " AND (p.name IS NOT NULL AND "
@@ -241,28 +239,20 @@ public class BichoPairFileDAO {
 
         SUM_ADD_DEL_LINES_OF_FILE_PAIR_BY_DATE
                 = QueryUtils.getQueryForDatabase(
-                        "SELECT COALESCE((SUM(filcl.added) + SUM(filcl.added)), 0), "
-                        + "      COALESCE((SUM(filcl.removed) + SUM(filcl2.removed)), 0),"
-                        + "      COALESCE((SUM(filcl.added) + SUM(filcl.removed) + SUM(filcl2.added) + SUM(filcl2.removed)), 0)"
+                        "SELECT COALESCE(SUM(filcl.added), 0), "
+                        + "      COALESCE(SUM(filcl.removed), 0)"
                         + "  FROM {0}_issues.issues i"
                         + "  JOIN {0}_issues.changes c ON c.id = i.id"
                         + "  JOIN {0}_issues.issues_scmlog i2s ON i2s.issue_id = i.id"
                         + "  JOIN {0}_vcs.scmlog s ON s.id = i2s.scmlog_id"
-                        + "  JOIN {0}_issues.issues_scmlog i2s2 ON i2s2.issue_id = i.id"
-                        + "  JOIN {0}_vcs.scmlog s2 ON s2.id = i2s2.scmlog_id"
                         + "  JOIN {0}_vcs.actions a ON a.commit_id = s.id"
                         + "  JOIN {0}_vcs.files fil ON fil.id = a.file_id"
                         + "  JOIN {0}_vcs.file_links fill ON fill.file_id = fil.id"
-                        + "  JOIN {0}_vcs.actions a2 ON a2.commit_id = s2.id"
-                        + "  JOIN {0}_vcs.files fil2 ON fil2.id = a2.file_id AND a2.file_id <> a.file_id"
-                        + "  JOIN {0}_vcs.file_links fill2 ON fill2.file_id = fil2.id"
                         + "  JOIN {0}_vcs.commits_files_lines filcl ON filcl.commit = s.id AND filcl.path = fill.file_path"
-                        + "  JOIN {0}_vcs.commits_files_lines filcl2 ON filcl2.commit = s.id AND filcl2.path = fill2.file_path"
-                        + " WHERE fill.file_path = ?"
-                        + "   AND fill2.file_path = ?"
-                        + "   AND s.date > i.submitted_on"
-                        + "   AND s2.date > i.submitted_on", repository)
-                + FILTER_BY_MAX_FILES_IN_COMMIT
+                        + " WHERE (fill.file_path = ?"
+                        + "   OR fill.file_path = ?)"
+                        + "   AND s.date > i.submitted_on", repository)
+                + " AND s.num_files <= " + maxFilePerCommit
                 + FILTER_BY_ISSUE_FIX_DATE
                 + FIXED_ISSUES_ONLY;
 
@@ -401,8 +391,11 @@ public class BichoPairFileDAO {
                         + "  JOIN {0}_vcs.actions a2 ON a2.commit_id = s.id"
                         + "  JOIN {0}_vcs.files fil2 ON fil2.id = a2.file_id AND a2.file_id <> a.file_id"
                         + "  JOIN {0}_vcs.file_links fill2 ON fill2.file_id = fil2.id"
-                        + " WHERE fill.file_path = ?"
-                        + "   AND fill2.file_path = ?"
+                        + " WHERE fill.file_id IN"
+                        // considera todos os arquivos, inclusive quando renomeados
+                        + " (SELECT afill.file_id FROM aries_vcs.file_links afill WHERE afill.file_path = ?)"
+                        + "   AND fill2.file_id IN"
+                        + " (SELECT afill.file_id FROM aries_vcs.file_links afill WHERE afill.file_path = ?)"
                         + "   AND s.date > i.submitted_on"
                         + "   AND s2.date > i.submitted_on", repository)
                 + FILTER_BY_MAX_FILES_IN_COMMIT;
@@ -551,10 +544,9 @@ public class BichoPairFileDAO {
 
         Long additions = sum.get(0)[0] == null ? 0l : ((BigDecimal) sum.get(0)[0]).longValue();
         Long deletions = sum.get(0)[1] == null ? 0l : ((BigDecimal) sum.get(0)[1]).longValue();
-        Long changes = sum.get(0)[2] == null ? 0l : ((BigDecimal) sum.get(0)[2]).longValue();
 
         return new AuxCodeChurn(fileName, fileName2,
-                additions, deletions, changes);
+                additions, deletions);
     }
 
     public Set<AuxUser> selectCommitters(
