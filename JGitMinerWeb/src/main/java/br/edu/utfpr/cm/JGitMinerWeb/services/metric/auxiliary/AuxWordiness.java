@@ -1,7 +1,9 @@
 package br.edu.utfpr.cm.JGitMinerWeb.services.metric.auxiliary;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 /**
  *
@@ -18,7 +20,11 @@ public class AuxWordiness {
         this.issueNumber = issueNumber;
         this.url = url;
         this.issueBody = issueBody;
-        this.comments = comments;
+        if (comments != null) {
+            this.comments = comments;
+        } else {
+            this.comments = new ArrayList<>();
+        }
     }
 
     public Integer getIssueNumber() {
@@ -44,6 +50,28 @@ public class AuxWordiness {
     @Override
     public String toString() {
         return issueNumber + ";" + url;
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 5;
+        hash = 29 * hash + Objects.hashCode(this.issueNumber);
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final AuxWordiness other = (AuxWordiness) obj;
+        if (!Objects.equals(this.issueNumber, other.issueNumber)) {
+            return false;
+        }
+        return true;
     }
 
 }
