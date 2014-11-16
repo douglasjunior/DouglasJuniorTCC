@@ -89,7 +89,7 @@ public class BichoFileDAO {
                         " AND i.num_comments > 0", repository);
 
         FILTER_BY_USER_NAME
-                = " AND (p.name IS NOT NULL AND p.name = ?)";
+                = " AND p.name = ?";
 
         FIXED_ISSUES_ONLY
                 = " AND i.resolution = 'Fixed'"

@@ -101,8 +101,7 @@ public class BichoPairFileDAO {
                 = "AND i.num_comments > 0";
 
         FILTER_BY_USER_NAME
-                = " AND (p.name IS NOT NULL AND "
-                + "      p.name = ?)";
+                = " AND p.name = ?";
 
         FILTER_BY_ISSUE_ID
                 = " AND i.id = ?";
@@ -463,7 +462,7 @@ public class BichoPairFileDAO {
 
         COUNT_COMMENTERS_BY_ISSUE_ID
                 = QueryUtils.getQueryForDatabase(
-                        "SELECT COUNT(DISTINCT(p.name))"
+                        "SELECT COUNT(DISTINCT(p.user_id))"
                         + "  FROM {0}_issues.issues i"
                         + "  JOIN {0}_issues.changes c ON c.issue_id = i.id"
                         + "  JOIN {0}_issues.comments com ON com.issue_id = i.id"

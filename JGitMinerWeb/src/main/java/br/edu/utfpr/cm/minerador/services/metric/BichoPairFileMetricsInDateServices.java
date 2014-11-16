@@ -229,6 +229,14 @@ public class BichoPairFileMetricsInDateServices extends AbstractBichoMetricServi
                 Map<AuxUserUserDirectional, AuxUserUserDirectional> pairCommenters
                         = PairUtils.pairCommenters(commenters);
 
+                if (pairCommenters.isEmpty()) {
+                    DirectedSparseGraph<String, String> graphMulti
+                            = new DirectedSparseGraph<>();
+                    graphMulti.addVertex(commenters.get(0).getName());
+                    pairFileNetwork.put(pairFile, graphMulti);
+                    continue;
+                }
+
                 for (AuxUserUserDirectional pairUser : pairCommenters.keySet()) {
 
                     // adiciona conforme o peso
