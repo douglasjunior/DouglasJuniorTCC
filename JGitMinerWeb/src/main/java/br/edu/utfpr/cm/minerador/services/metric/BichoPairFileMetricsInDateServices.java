@@ -368,8 +368,10 @@ public class BichoPairFileMetricsInDateServices extends AbstractBichoMetricServi
                 out.printLog("Empty issues for " + fileFile.toString());
             }
 
-            final long changes = calculeFileCodeChurn(codeChurnRequestFileMap, fileFile.getFileName(), bichoFileDAO, beginDate, endDate, fileFileIssues);
-            final long changes2 = calculeFileCodeChurn(codeChurnRequestFileMap, fileFile.getFileName2(), bichoFileDAO, beginDate, endDate, fileFileIssues);
+            final long changes = calculeFileCodeChurn(codeChurnRequestFileMap,
+                    fileFile.getFileName(), bichoFileDAO, beginDate, endDate, null).getChanges();
+            final long changes2 = calculeFileCodeChurn(codeChurnRequestFileMap,
+                    fileFile.getFileName2(), bichoFileDAO, beginDate, endDate, null).getChanges();
 
             Set<AuxUser> devsCommitters = bichoPairFileDAO.selectCommitters(
                     fileFile.getFileName(), fileFile.getFileName2(), beginDate, endDate, fileFileIssues);
@@ -377,7 +379,8 @@ public class BichoPairFileMetricsInDateServices extends AbstractBichoMetricServi
             DescriptiveStatisticsHelper devCommitsStatistics = new DescriptiveStatisticsHelper();
             DescriptiveStatisticsHelper ownershipStatistics = new DescriptiveStatisticsHelper();
             Long minorContributors = 0l, majorContributors = 0l;
-            Double ownerExperience = 0.0d, ownerExperience2 = 0.0d, cummulativeOwnerExperience = 0.0d, cummulativeOwnerExperience2 = 0.0d;
+            Double ownerExperience = 0.0d, ownerExperience2 = 0.0d,
+                    cummulativeOwnerExperience = 0.0d, cummulativeOwnerExperience2 = 0.0d;
 
             long committers = devsCommitters.size();
             long distinctCommitters = bichoPairFileDAO.calculeCommitters(
@@ -401,20 +404,26 @@ public class BichoPairFileMetricsInDateServices extends AbstractBichoMetricServi
                 }
 
                 // Calculing OEXP of each file
-                Double experience = calculeDevFileExperience(changes, fileUserCommitMap, fileFile.getFileName(), devCommitter.getUser(), bichoFileDAO, beginDate, endDate, fileFileIssues);
+                Double experience = calculeDevFileExperience(changes, fileUserCommitMap,
+                        fileFile.getFileName(), devCommitter.getUser(), bichoFileDAO, beginDate, endDate, fileFileIssues);
                 ownerExperience = Math.max(experience, ownerExperience);
 
-                Double experience2 = calculeDevFileExperience(changes2, fileUserCommitMap, fileFile.getFileName2(), devCommitter.getUser(), bichoFileDAO, beginDate, endDate, fileFileIssues);
+                Double experience2 = calculeDevFileExperience(changes2, fileUserCommitMap,
+                        fileFile.getFileName2(), devCommitter.getUser(), bichoFileDAO, beginDate, endDate, fileFileIssues);
                 ownerExperience2 = Math.max(experience2, ownerExperience2);
 
                 // Calculing OWN
-                final long cummulativeChanges = calculeFileCodeChurn(cummulativeCodeChurnRequestFileMap, fileFile.getFileName(), bichoFileDAO, null, endDate, fileFileIssues);
-                final long cummulativeChanges2 = calculeFileCodeChurn(cummulativeCodeChurnRequestFileMap, fileFile.getFileName2(), bichoFileDAO, null, endDate, fileFileIssues);
+                final long cummulativeChanges = calculeFileCodeChurn(cummulativeCodeChurnRequestFileMap,
+                        fileFile.getFileName(), bichoFileDAO, null, endDate, fileFileIssues).getChanges();
+                final long cummulativeChanges2 = calculeFileCodeChurn(cummulativeCodeChurnRequestFileMap,
+                        fileFile.getFileName2(), bichoFileDAO, null, endDate, fileFileIssues).getChanges();
 
-                Double cumulativeExperience = calculeDevFileExperience(cummulativeChanges, fileUserCommitMap, fileFile.getFileName(), devCommitter.getUser(), bichoFileDAO, null, endDate, fileFileIssues);
+                Double cumulativeExperience = calculeDevFileExperience(cummulativeChanges, fileUserCommitMap,
+                        fileFile.getFileName(), devCommitter.getUser(), bichoFileDAO, null, endDate, fileFileIssues);
                 cummulativeOwnerExperience = Math.max(cummulativeOwnerExperience, cumulativeExperience);
 
-                Double cumulativeExperience2 = calculeDevFileExperience(cummulativeChanges2, fileUserCommitMap, fileFile.getFileName2(), devCommitter.getUser(), bichoFileDAO, null, endDate, fileFileIssues);
+                Double cumulativeExperience2 = calculeDevFileExperience(cummulativeChanges2, fileUserCommitMap,
+                        fileFile.getFileName2(), devCommitter.getUser(), bichoFileDAO, null, endDate, fileFileIssues);
                 cummulativeOwnerExperience2 = Math.max(cummulativeOwnerExperience2, cumulativeExperience2);
 
             }
@@ -448,8 +457,10 @@ public class BichoPairFileMetricsInDateServices extends AbstractBichoMetricServi
                     fileFile.getFileName(), fileFile.getFileName2(),
                     beginDate, endDate, fileFileIssues, true);
 
-            final long codeChurn = calculeFileCodeChurn(codeChurnRequestFileMap, fileFile.getFileName(), bichoFileDAO, beginDate, endDate, fileFileIssues);
-            final long codeChurn2 = calculeFileCodeChurn(codeChurnRequestFileMap, fileFile.getFileName2(), bichoFileDAO, beginDate, endDate, fileFileIssues);
+            final long codeChurn = calculeFileCodeChurn(codeChurnRequestFileMap,
+                    fileFile.getFileName(), bichoFileDAO, beginDate, endDate, null).getChanges();
+            final long codeChurn2 = calculeFileCodeChurn(codeChurnRequestFileMap,
+                    fileFile.getFileName2(), bichoFileDAO, beginDate, endDate, null).getChanges();
 
             AuxCodeChurn pairFileCodeChurn = bichoPairFileDAO.calculeCodeChurnAddDelChange(
                     fileFile.getFileName2(), fileFile.getFileName(),
@@ -540,18 +551,15 @@ public class BichoPairFileMetricsInDateServices extends AbstractBichoMetricServi
         return fileNumberOfPullrequestOfPairFuture;
     }
 
-    public long calculeFileCodeChurn(Map<String, AuxCodeChurn> codeChurnRequestFileMap,
+    public AuxCodeChurn calculeFileCodeChurn(Map<String, AuxCodeChurn> codeChurnRequestFileMap,
             String fileName, BichoFileDAO fileDAO, Date beginDate, Date endDate, Collection<Integer> issues) {
-        final long changes;
         if (codeChurnRequestFileMap.containsKey(fileName)) { // cached
-            AuxCodeChurn sumCodeChurnFile = codeChurnRequestFileMap.get(fileName);
-            changes = sumCodeChurnFile.getChanges();
+            return codeChurnRequestFileMap.get(fileName);
         } else {
             AuxCodeChurn sumCodeChurnFile = fileDAO.sumCodeChurnByFilename(fileName, beginDate, endDate, issues);
             codeChurnRequestFileMap.put(fileName, sumCodeChurnFile);
-            changes = sumCodeChurnFile.getChanges();
+            return sumCodeChurnFile;
         }
-        return changes;
     }
 
     public double calculeDevFileExperience(final Long changes, Map<String, AuxCodeChurn> fileUserCommitMap,
@@ -571,7 +579,8 @@ public class BichoPairFileMetricsInDateServices extends AbstractBichoMetricServi
 
     @Override
     public String getHeadCSV() {
-        return "file;file2;samePackage;"
+        return "file;file2;"
+                + "samePackage;" // arquivos do par são do mesmo pacote = 1, caso contrário 0
                 // + "brcAvg;brcSum;brcMax;"
                 + "btwSum;btwAvg;btwMdn;btwMax;"
                 + "clsSum;clsAvg;clsMdn;clsMax;"
@@ -592,7 +601,9 @@ public class BichoPairFileMetricsInDateServices extends AbstractBichoMetricServi
                 + "majorContributors;minorContributors;"
                 + "oexp;oexp2;"
                 + "own;own2;"
-                + "adev;ddev;commits;"
+                + "adev;" // committers na relese
+                + "ddev;" // committers desde o começo até a data final da relese
+                + "commits;" // commits do par de arquivos
                 + "commenters;comments;wordiness;"
                 + "codeChurn;codeChurn2;codeChurnAvg;"
                 + "add;del;changes;"
