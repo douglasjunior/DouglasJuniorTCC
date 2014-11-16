@@ -18,9 +18,9 @@ public class PairUtilsTest {
     @Test
     public void testPairCommenters() {
         List<Commenter> commenters = new ArrayList<>();
-        Commenter commenterA = new Commenter(1, "A", "A");
-        Commenter commenterB = new Commenter(2, "B", "B");
-        Commenter commenterC = new Commenter(3, "C", "C");
+        Commenter commenterA = new Commenter(1, "A", "A", true);
+        Commenter commenterB = new Commenter(2, "B", "B", true);
+        Commenter commenterC = new Commenter(3, "C", "C", false);
 
         commenters.add(commenterA);
         commenters.add(commenterB);

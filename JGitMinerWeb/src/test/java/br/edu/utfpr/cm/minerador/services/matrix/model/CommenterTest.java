@@ -16,10 +16,12 @@ public class CommenterTest {
     private static final String NAME = "Tester";
     private static final String EMAIL = "tester@test.com";
     private static final Integer COMMENTER_ID = 10;
+    private static final boolean IS_DEV = true;
+    private static final boolean IS_NOT_DEV = false;
 
     @BeforeClass
     public static void setUp() {
-        instance = new Commenter(COMMENTER_ID, NAME, EMAIL);
+        instance = new Commenter(COMMENTER_ID, NAME, EMAIL, IS_DEV);
     }
 
     @AfterClass
@@ -28,26 +30,8 @@ public class CommenterTest {
     }
 
     @Test
-    public void testGetId() {
-        Integer result = instance.getId();
-        assertEquals(COMMENTER_ID, result);
-    }
-
-    @Test
-    public void testGetName() {
-        String result = instance.getName();
-        assertEquals(NAME, result);
-    }
-
-    @Test
-    public void testGetEmail() {
-        String result = instance.getEmail();
-        assertEquals(EMAIL, result);
-    }
-
-    @Test
     public void testEquals() {
-        Commenter equal = new Commenter(COMMENTER_ID, "Tester Jr", "testerjr@test.com");
+        Commenter equal = new Commenter(COMMENTER_ID, "Tester Jr", "testerjr@test.com", IS_DEV);
         boolean result = instance.equals(equal);
         assertEquals(true, result);
         assertEquals(instance.hashCode(), equal.hashCode());
@@ -55,7 +39,7 @@ public class CommenterTest {
 
     @Test
     public void testNotEquals1() {
-        Commenter notEqual = new Commenter(1, NAME, EMAIL);
+        Commenter notEqual = new Commenter(1, NAME, EMAIL, IS_DEV);
 
         boolean result1 = instance.equals(notEqual);
         assertEquals(false, result1);

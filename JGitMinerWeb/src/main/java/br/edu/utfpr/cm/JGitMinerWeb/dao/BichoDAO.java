@@ -64,14 +64,14 @@ public class BichoDAO {
                 + FIXED_ISSUES_ONLY;
 
         SELECT_COMMENTERS_BY_ISSUE_ORDER_BY_SUBMIT
-                = QueryUtils.getQueryForDatabase("SELECT p.id, p.user_id, p.email"
+                = QueryUtils.getQueryForDatabase("SELECT p.id, p.user_id, p.email, p.is_dev"
                         + "  FROM {0}_issues.comments c"
                         + "  JOIN {0}_issues.people p ON p.id = c.submitted_by"
                         + " WHERE c.issue_id = ?"
                         + " ORDER BY c.submitted_on ASC", repository);
 
         SELECT_COMMENTERS
-                = QueryUtils.getQueryForDatabase("SELECT p.id, p.user_id, p.email"
+                = QueryUtils.getQueryForDatabase("SELECT p.id, p.user_id, p.email, p.is_dev"
                         + "  FROM {0}_issues.comments c"
                         + "  JOIN {0}_issues.issues i ON i.id = c.issue_id"
                         + "  JOIN {0}_issues.people p ON p.id = c.submitted_by"
@@ -135,7 +135,11 @@ public class BichoDAO {
 
         List<Commenter> files = new ArrayList<>();
         for (Object[] row : rawFilesPath) {
-            Commenter commenter = new Commenter((Integer) row[0], (String) row[1], (String) row[2]);
+            Integer id = (Integer) row[0];
+            String userId = (String) row[1];
+            String email = (String) row[2];
+            boolean isDev = ((Integer) row[3]) == 1;
+            Commenter commenter = new Commenter(id, userId, email, isDev);
             files.add(commenter);
         }
 
@@ -154,7 +158,11 @@ public class BichoDAO {
 
         List<Commenter> files = new ArrayList<>();
         for (Object[] row : rawFilesPath) {
-            Commenter commenter = new Commenter((Integer) row[0], (String) row[1], (String) row[2]);
+            Integer id = (Integer) row[0];
+            String userId = (String) row[1];
+            String email = (String) row[2];
+            boolean isDev = ((Integer) row[3]) == 1;
+            Commenter commenter = new Commenter(id, userId, email, isDev);
             files.add(commenter);
         }
 

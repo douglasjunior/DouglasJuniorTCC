@@ -13,11 +13,13 @@ public class Commenter {
     private final Integer id;
     private final String name;
     private final String email;
+    private final boolean dev;
 
-    public Commenter(Integer id, String name, String email) {
+    public Commenter(Integer id, String name, String email, boolean dev) {
         this.id = id;
         this.name = name;
         this.email = email;
+        this.dev = dev;
     }
 
     public Integer getId() {
@@ -30,6 +32,10 @@ public class Commenter {
 
     public String getEmail() {
         return email;
+    }
+
+    public boolean isDev() {
+        return dev;
     }
 
     @Override
