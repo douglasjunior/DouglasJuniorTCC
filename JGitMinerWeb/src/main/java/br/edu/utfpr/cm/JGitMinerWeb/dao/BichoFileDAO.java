@@ -160,7 +160,8 @@ public class BichoFileDAO {
                         + "  JOIN {0}_issues.changes c ON c.issue_id = i.id"
                         + " WHERE fill.file_path = ?"
                         + "   AND s.date > i.submitted_on", repository)
-                + FILTER_BY_MAX_FILES_IN_COMMIT;
+                + FILTER_BY_MAX_FILES_IN_COMMIT
+                + FIXED_ISSUES_ONLY;
 
         SUM_CODE_CHURN_BY_FILE_NAME
                 = QueryUtils.getQueryForDatabase(
@@ -305,25 +306,11 @@ public class BichoFileDAO {
     // COMMITS /////////////////////////////////////////////////////////////////
     public long countCommitsByFilename(
             String filename, Date beginDate, Date endDate) {
-        return countCommitsByFilename(filename, null, beginDate, endDate, 0, 0, true);
+        return countCommitsByFilename(filename, null, beginDate, endDate, null);
     }
 
     public long countCommitsByFilename(
-            String filename, String user, Date beginDate, Date endDate) {
-        return countCommitsByFilename(filename, user, beginDate, endDate, 0, 0, true);
-    }
-
-    public long countCommitsByFilename(
-            String filename, String user, Date beginDate, Date endDate,
-            int minFilesPerCommit, int maxFilesPerCommit) {
-        return countCommitsByFilename(filename, user,
-                beginDate, endDate,
-                minFilesPerCommit, maxFilesPerCommit, true);
-    }
-
-    public long countCommitsByFilename(
-            String filename, String user, Date beginDate, Date endDate,
-            int minFilesPerCommit, int maxFilesPerCommit, boolean onlyFixed) {
+            String filename, String user, Date beginDate, Date endDate, Collection<Integer> issues) {
         List<Object> selectParams = new ArrayList<>();
 
         StringBuilder sql = new StringBuilder();
@@ -343,24 +330,12 @@ public class BichoFileDAO {
             selectParams.add(endDate);
         }
 
-        if (onlyFixed) {
-            sql.append(FIXED_ISSUES_ONLY);
-        }
-
-        if (minFilesPerCommit > 0) {
-            sql.append(FILTER_BY_MIN_FILES_IN_COMMIT);
-            selectParams.add(minFilesPerCommit);
-        }
-
-        if (maxFilesPerCommit > 0) {
-            sql.append(FILTER_BY_MAX_FILES_IN_COMMIT);
-            selectParams.add(maxFilesPerCommit);
-        }
-
         if (user != null) {
             sql.append(FILTER_BY_USER_NAME);
             selectParams.add(user);
         }
+
+        filterByIssues(issues, sql);
 
         Long count = (Long) dao.selectNativeOneWithParams(sql.toString(), selectParams.toArray());
 

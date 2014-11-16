@@ -133,6 +133,7 @@ public class BichoPairFileMetricsInDateServices extends AbstractBichoMetricServi
 
         final Map<AuxFileFile, Set<AuxUser>> committersPairFile = new HashMap<>();
         final Map<AuxFileFile, Set<Commenter>> commentersPairFile = new HashMap<>();
+        final Map<AuxFileFile, Set<Commenter>> devCommentersPairFile = new HashMap<>();
         final Map<AuxFileFile, Set<Integer>> issuesPairFile = new HashMap<>();
         final Map<AuxFileFile, Set<Integer>> commitsPairFile = new HashMap<>();
         final Map<String, Integer> edgesWeigth = new HashMap<>();
@@ -218,6 +219,19 @@ public class BichoPairFileMetricsInDateServices extends AbstractBichoMetricServi
                 commentersPairFile.put(pairFile, new HashSet<>(commenters));
             }
 
+            // Commenters that are developer too (have same name)
+            Set<Commenter> devCommenters = new HashSet<>();
+            for (Commenter commenter : commenters) {
+                if (commenter.isDev()) {
+                    devCommenters.add(commenter);
+                }
+            }
+            if (devCommentersPairFile.containsKey(pairFile)) {
+                devCommentersPairFile.get(pairFile).addAll(devCommenters);
+            } else {
+                devCommentersPairFile.put(pairFile, devCommenters);
+            }
+
             if (commenters.isEmpty()) {
                 out.printLog("No commenters for issues " + Arrays.toString(issues.toArray()) + " pair file " + filename1 + ";" + filename2);
             } else if (commenters.size() == 1) {
@@ -295,7 +309,7 @@ public class BichoPairFileMetricsInDateServices extends AbstractBichoMetricServi
         out.printLog("Global measures: " + global.toString());
 
         // number of pull requests in date interval
-        Long numberOfAllPullrequestFuture = issuesSize;
+        Long numberAllFutureIssues = issuesSize;
         // cache for optimization number of pull requests where file is in,
         // reducing access to database
         Map<String, Long> issueFileMap = new HashMap<>();
@@ -391,6 +405,7 @@ public class BichoPairFileMetricsInDateServices extends AbstractBichoMetricServi
                     cummulativeOwnerExperience = 0.0d, cummulativeOwnerExperience2 = 0.0d;
 
             long committers = devsCommitters.size();
+            long devCommenters = devCommentersPairFile.get(fileFile).size();
             long distinctCommitters = bichoPairFileDAO.calculeCommitters(
                     fileFile.getFileName(), fileFile.getFileName2(), null, endDate, fileFileIssues);
 
@@ -507,7 +522,7 @@ public class BichoPairFileMetricsInDateServices extends AbstractBichoMetricServi
                     majorContributors, minorContributors,
                     ownerExperience, ownerExperience2,
                     cummulativeOwnerExperience, cummulativeOwnerExperience2,
-                    committers, distinctCommitters, commits,
+                    committers, distinctCommitters, commits, devCommenters,
                     distinctCommentersCount, commentsSum, wordiness,
                     codeChurn, codeChurn2, codeChurnAvg,
                     pairFileCodeChurn.getAdditionsNormalized(), pairFileCodeChurn.getDeletionsNormalized(), pairFileCodeChurn.getChanges(),
@@ -515,17 +530,17 @@ public class BichoPairFileMetricsInDateServices extends AbstractBichoMetricServi
             );
 
             // apriori /////////////////////////////////////////////////////////
-            Long fileNumberOfPullrequestOfPairFuture
+            Long file1FutureIssues
                     = calculeNumberOfIssues(issueFileMap, auxFileFileMetrics.getFile(), bichoFileDAO, futureBeginDate, futureEndDate);
 
-            Long file2NumberOfPullrequestOfPairFuture
+            Long file2FutureIssues
                     = calculeNumberOfIssues(issueFileMap, auxFileFileMetrics.getFile2(), bichoFileDAO, futureBeginDate, futureEndDate);
 
-            auxFileFileMetrics.addMetrics(fileNumberOfPullrequestOfPairFuture, file2NumberOfPullrequestOfPairFuture, numberOfAllPullrequestFuture);
+            auxFileFileMetrics.addMetrics(file1FutureIssues, file2FutureIssues, numberAllFutureIssues);
 
-            Double supportFile = fileNumberOfPullrequestOfPairFuture.doubleValue() / numberOfAllPullrequestFuture.doubleValue();
-            Double supportFile2 = file2NumberOfPullrequestOfPairFuture.doubleValue() / numberOfAllPullrequestFuture.doubleValue();
-            Double supportPairFile = futureUpdates.doubleValue() / numberOfAllPullrequestFuture.doubleValue();
+            Double supportFile = file1FutureIssues.doubleValue() / numberAllFutureIssues.doubleValue();
+            Double supportFile2 = file2FutureIssues.doubleValue() / numberAllFutureIssues.doubleValue();
+            Double supportPairFile = futureUpdates.doubleValue() / numberAllFutureIssues.doubleValue();
             Double confidence = supportFile == 0 ? 0d : supportPairFile / supportFile;
             Double confidence2 = supportFile2 == 0 ? 0d : supportPairFile / supportFile2;
             Double lift = supportFile * supportFile2 == 0 ? 0d : supportPairFile / (supportFile * supportFile2);
@@ -607,15 +622,16 @@ public class BichoPairFileMetricsInDateServices extends AbstractBichoMetricServi
                 + "majorContributors;minorContributors;"
                 + "oexp;oexp2;"
                 + "own;own2;"
-                + "adev;" // committers na relese
+                + "adev;" // committers na release
                 + "ddev;" // committers desde o começo até a data final da relese
                 + "commits;" // commits do par de arquivos
+                + "devCommenters;" // número de autores de comentários que são desenvolvedores
                 + "commenters;comments;wordiness;"
                 + "codeChurn;codeChurn2;codeChurnAvg;"
                 + "add;del;changes;"
                 + "ageRelease;ageTotal;"
                 + "updates;futureUpdates;"
-                + "fileChangeFuture;file2ChangeFuture;allPullrequestFuture;"
+                + "fileFutureIssues;file2FutureIssues;allFutureIssues;"
                 + "supportFile;supportFile2;supportPairFile;confidence;confidence2;lift;conviction;conviction2";
     }
 
