@@ -120,15 +120,17 @@ public class BichoPairOfFileInDateServices extends AbstractBichoMatrixServices {
                 FilePath file1 = commitedFiles.get(i);
                 for (int j = i + 1; j < commitedFiles.size(); j++) {
                     FilePath file2 = commitedFiles.get(j);
-                    AuxFileFile fileFile = new AuxFileFile(file1.getFilePath(),
-                            file2.getFilePath());
-                    if (pairFiles.containsKey(fileFile)) {
-                        pairFiles.get(fileFile).addIssueId(issue);
-                    } else {
-                        fileFile.addIssueId(issue);
-                        fileFile.addCommitId(file1.commitId);
-                        fileFile.addCommitId(file2.commitId);
-                        pairFiles.put(fileFile, fileFile);
+                    if (!file1.getFilePath().equals(file2.getFilePath())) {
+                        AuxFileFile fileFile = new AuxFileFile(file1.getFilePath(),
+                                file2.getFilePath());
+                        if (pairFiles.containsKey(fileFile)) {
+                            pairFiles.get(fileFile).addIssueId(issue);
+                        } else {
+                            fileFile.addIssueId(issue);
+                            fileFile.addCommitId(file1.getCommitId());
+                            fileFile.addCommitId(file2.getCommitId());
+                            pairFiles.put(fileFile, fileFile);
+                        }
                     }
                 }
             }

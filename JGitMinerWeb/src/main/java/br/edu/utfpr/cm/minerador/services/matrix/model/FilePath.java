@@ -11,9 +11,9 @@ import java.util.Objects;
  */
 public class FilePath {
 
-    public final Integer commitId;
-    public final Integer fileId;
-    public final String filePath;
+    private final Integer commitId;
+    private final Integer fileId;
+    private final String filePath;
 
     public FilePath(Integer commitId, Integer fileId, String filePath) {
         this.commitId = commitId;
