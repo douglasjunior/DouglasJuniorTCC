@@ -241,7 +241,7 @@ public class BichoPairFileDAO {
                         + "          FROM {0}_vcs.file_links afill "
                         + "         WHERE afill.commit_id <= s.id "
                         + "           AND afill.file_id = fil.id)"
-                        + "  JOIN {0}_vcs.actions a2 ON a2.commit_id = s.id"
+                        + "  JOIN {0}_vcs.actions a2 ON a2.commit_id = s2.id"
                         + "  JOIN {0}_vcs.files fil2 ON fil2.id = a2.file_id AND a.file_id <> a2.file_id"
                         + "  JOIN {0}_vcs.file_links fill2 ON fill2.file_id = fil2.id AND fill2.commit_id = "
                         + "       (SELECT MAX(afill2.commit_id) " // last commit where file has introduced, because it can have more than one
@@ -253,7 +253,8 @@ public class BichoPairFileDAO {
                         + "   AND s.date > i.submitted_on"
                         + "   AND s2.date > i.submitted_on", repository)
                 + FILTER_BY_MAX_FILES_IN_COMMIT
-                + FILTER_BY_ISSUE_FIX_DATE;
+                + FILTER_BY_ISSUE_FIX_DATE
+                + FIXED_ISSUES_ONLY;
 
         SUM_CHANGES_OF_FILE_PAIR_BY_DATE
                 = QueryUtils.getQueryForDatabase(
@@ -485,8 +486,8 @@ public class BichoPairFileDAO {
                         + "          FROM {0}_vcs.file_links afill "
                         + "         WHERE afill.commit_id <= s.id "
                         + "           AND afill.file_id = fil.id)"
-                        + "  JOIN {0}_vcs.actions a2 ON a2.commit_id = s.id"
-                        + "  JOIN {0}_vcs.files fil2 ON fil2.id = a2.file_id AND a2.file_id <> a.file_id"
+                        + "  JOIN {0}_vcs.actions a2 ON a2.commit_id = s2.id"
+                        + "  JOIN {0}_vcs.files fil2 ON fil2.id = a2.file_id AND a.file_id <> a2.file_id"
                         + "  JOIN {0}_vcs.file_links fill2 ON fill2.file_id = fil2.id AND fill2.commit_id = "
                         + "       (SELECT MAX(afill2.commit_id) " // last commit where file has introduced, because it can have more than one
                         + "          FROM {0}_vcs.file_links afill2 "
@@ -556,27 +557,22 @@ public class BichoPairFileDAO {
 
     public long calculeComments(
             String file, String file2, Date beginDate, Date endDate) {
-        return calculeComments(null, file, file2, beginDate, endDate, null, true);
+        return calculeComments(null, file, file2, beginDate, endDate, null);
     }
 
     public long calculeComments(
             String file, String file2, Date beginDate, Date endDate, boolean onlyFixed) {
-        return calculeComments(null, file, file2, beginDate, endDate, null, onlyFixed);
+        return calculeComments(null, file, file2, beginDate, endDate, null);
     }
 
     public long calculeComments(
             String file, String file2, Date beginDate, Date endDate, Collection<Integer> issues) {
-        return calculeComments(null, file, file2, beginDate, endDate, issues, true);
-    }
-
-    public long calculeComments(
-            String file, String file2, Date beginDate, Date endDate, Collection<Integer> issues, boolean onlyFixed) {
-        return calculeComments(null, file, file2, beginDate, endDate, issues, onlyFixed);
+        return calculeComments(null, file, file2, beginDate, endDate, issues);
     }
 
     public long calculeComments(Integer issueId,
             String file, String file2, Date beginDate, Date endDate,
-            Collection<Integer> issues, boolean onlyFixed) {
+            Collection<Integer> issues) {
 
         if (file == null || file2 == null) {
             throw new IllegalArgumentException("The file and file2 parameters can not be null.");
@@ -586,10 +582,6 @@ public class BichoPairFileDAO {
 
         StringBuilder sql = new StringBuilder();
         sql.append(COUNT_COMMENTS_OF_FILE_PAIR_BY_DATE);
-
-        if (onlyFixed) {
-            sql.append(FIXED_ISSUES_ONLY);
-        }
 
         selectParams.add(file);
         selectParams.add(file2);

@@ -455,13 +455,11 @@ public class BichoPairFilePerIssueMetricsInDateServices extends AbstractBichoMet
                     = bichoPairFileDAO.listIssues(fileFile.getFileName(), fileFile.getFileName2(), beginDate, endDate, fileFileIssues);
 
             long wordiness = 0;
+            long commentsSum = 0;
             for (AuxWordiness auxWordiness : issuesAndComments) {
                 wordiness += WordinessCalculator.calcule(auxWordiness);
+                commentsSum += auxWordiness.getComments().size();
             }
-
-            Long commentsSum = bichoPairFileDAO.calculeComments(
-                    fileFile.getFileName(), fileFile.getFileName2(), 
-                    beginDate, endDate, fileFileIssues, true);
 
             final long codeChurn = calculeFileCodeChurn(codeChurnRequestFileMap,
                     fileFile.getFileName(), bichoFileDAO, beginDate, endDate, null).getChanges();
