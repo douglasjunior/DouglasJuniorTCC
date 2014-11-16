@@ -452,7 +452,7 @@ public class BichoPairFilePerIssueMetricsInDateServices extends AbstractBichoMet
 
             // list all issues and its comments
             Collection<AuxWordiness> issuesAndComments
-                    = bichoPairFileDAO.listIssues(fileFile.getFileName(), fileFile.getFileName2(), beginDate, endDate, fileFileIssues, true);
+                    = bichoPairFileDAO.listIssues(fileFile.getFileName(), fileFile.getFileName2(), beginDate, endDate, fileFileIssues);
 
             long wordiness = 0;
             for (AuxWordiness auxWordiness : issuesAndComments) {

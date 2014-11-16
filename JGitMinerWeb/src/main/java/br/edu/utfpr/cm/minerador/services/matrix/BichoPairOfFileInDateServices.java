@@ -86,7 +86,7 @@ public class BichoPairOfFileInDateServices extends AbstractBichoMatrixServices {
 
         // select a issue/pullrequest commenters
         Map<Integer, List<Integer>> issuesCommits = bichoDAO.selectIssues(
-                beginDate, endDate, getMaxFilesPerCommit(), isOnlyFixed());
+                beginDate, endDate, getMaxFilesPerCommit());
         
         out.printLog("Issues (filtered): " + issuesCommits.size());
 

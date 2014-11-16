@@ -221,7 +221,8 @@ public class BichoPairFileDAO {
                         + "   AND s.date > i.submitted_on"
                         + "   AND s2.date > i.submitted_on", repository)
                 + FILTER_BY_MAX_FILES_IN_COMMIT
-                + FILTER_BY_ISSUE_FIX_DATE;
+                + FILTER_BY_ISSUE_FIX_DATE
+                + FIXED_ISSUES_ONLY;
 
         COUNT_COMMENTS_OF_FILE_PAIR_BY_DATE
                 = QueryUtils.getQueryForDatabase(
@@ -910,15 +911,11 @@ public class BichoPairFileDAO {
     }
 
     public Collection<AuxWordiness> listIssues(String file, String file2,
-            Date beginDate, Date endDate, Collection<Integer> issues, boolean onlyMergeds) {
+            Date beginDate, Date endDate, Collection<Integer> issues) {
         List<Object> selectParams = new ArrayList<>();
 
         StringBuilder sql = new StringBuilder();
         sql.append(SELECT_ISSUES_OF_FILE_PAIR_BY_DATE);
-
-        if (onlyMergeds) {
-            sql.append(FIXED_ISSUES_ONLY);
-        }
 
         selectParams.add(file);
         selectParams.add(file2);
