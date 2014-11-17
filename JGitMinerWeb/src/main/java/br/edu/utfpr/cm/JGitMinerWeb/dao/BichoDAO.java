@@ -25,7 +25,8 @@ public class BichoDAO {
     private final String SELECT_ISSUES_BY_FIXED_DATE;
     private final String SELECT_COMMENTERS_BY_ISSUE_ORDER_BY_SUBMIT;
     private final String SELECT_COMMENTERS;
-    private final String COUNT_ISSUES_TYPES;
+    private final String COUNT_ISSUES_TYPES_BEGIN;
+    private final String COUNT_ISSUES_TYPES_END;
 
     private final GenericBichoDAO dao;
 
@@ -79,10 +80,17 @@ public class BichoDAO {
                         + "  JOIN {0}_issues.people p ON p.id = c.submitted_by"
                         + " WHERE 1 = 1", repository);
 
-        COUNT_ISSUES_TYPES
-                = QueryUtils.getQueryForDatabase("SELECT i.type, count(1)"
-                        + "  FROM {0}_issues.issues i "
-                        + " WHERE 1 = 1", repository);
+        COUNT_ISSUES_TYPES_BEGIN
+                = QueryUtils.getQueryForDatabase("SELECT"
+                        + "     (SELECT COALESCE(COUNT(1), 0)"
+                        + "         FROM {0}_issues.issues i"
+                        + "         WHERE i.type = i2.type ", repository);
+        COUNT_ISSUES_TYPES_END
+                = QueryUtils.getQueryForDatabase(") AS count,"
+                        + "     i2.type"
+                        + "  FROM {0}_issues.issues i2"
+                        + " GROUP BY i2.type", repository);
+
     }
 
     public Map<Integer, Integer> countFilesPerCommit(Date beginDate, Date endDate) {
@@ -177,17 +185,18 @@ public class BichoDAO {
     }
 
     public Map<String, Long> countIssuesTypes(Set<Integer> fileFileIssues) {
-        StringBuilder sql = new StringBuilder(COUNT_ISSUES_TYPES);
+        StringBuilder sql = new StringBuilder(COUNT_ISSUES_TYPES_BEGIN);
 
         filterByIssues(fileFileIssues, sql);
 
+        sql.append(COUNT_ISSUES_TYPES_END);
         List<Object[]> rawFilesPath
                 = dao.selectNativeWithParams(sql.toString(), new Object[0]);
 
         Map<String, Long> result = new HashMap<>(rawFilesPath.size());
         for (Object[] row : rawFilesPath) {
-            String type = (String) row[0];
-            Long count = (Long) row[1];
+            Long count = (Long) row[0];
+            String type = (String) row[1];
             result.put(type, count);
         }
         return result;
