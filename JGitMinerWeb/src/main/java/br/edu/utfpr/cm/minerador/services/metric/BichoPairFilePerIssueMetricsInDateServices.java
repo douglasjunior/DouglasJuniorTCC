@@ -16,6 +16,8 @@ import br.edu.utfpr.cm.JGitMinerWeb.services.metric.auxiliary.AuxWordiness;
 import br.edu.utfpr.cm.JGitMinerWeb.services.metric.centrality.BetweennessCalculator;
 import br.edu.utfpr.cm.JGitMinerWeb.services.metric.centrality.ClosenessCalculator;
 import br.edu.utfpr.cm.JGitMinerWeb.services.metric.centrality.DegreeCalculator;
+import br.edu.utfpr.cm.JGitMinerWeb.services.metric.commit.FragilityCalculator;
+import br.edu.utfpr.cm.JGitMinerWeb.services.metric.commit.RigidityCalculator;
 import br.edu.utfpr.cm.JGitMinerWeb.services.metric.discussion.WordinessCalculator;
 import br.edu.utfpr.cm.JGitMinerWeb.services.metric.ego.EgoMeasure;
 import br.edu.utfpr.cm.JGitMinerWeb.services.metric.ego.EgoMeasureCalculator;
@@ -137,6 +139,7 @@ public class BichoPairFilePerIssueMetricsInDateServices extends AbstractBichoMet
         final Map<AuxFileFilePull, Set<Integer>> issuesPairFile = new HashMap<>();
         final Map<AuxFileFilePull, Set<Integer>> commitsPairFile = new HashMap<>();
         final Map<String, Integer> edgesWeigth = new HashMap<>();
+        final Set<String> files = new HashSet<>();
 
         // rede de comunicação global, com todos pares de arquivos
         DirectedSparseGraph<String, String> globalGraph = new DirectedSparseGraph<>();
@@ -177,6 +180,10 @@ public class BichoPairFilePerIssueMetricsInDateServices extends AbstractBichoMet
             if (issues.isEmpty()) {
                 out.printLog("No issues for pair file " + filename1 + ";" + filename2);
             }
+
+            files.add(filename1);
+            files.add(filename2);
+
             // Group pair files by issue
             for (Integer issue : issues) {
                 AuxFileFilePull pairFile = new AuxFileFilePull(filename1, filename2, issue);
@@ -325,6 +332,8 @@ public class BichoPairFilePerIssueMetricsInDateServices extends AbstractBichoMet
         // cache for optimization file commits made by user,
         // reducing access to database
         Map<String, AuxCodeChurn> fileUserCommitMap = new HashMap<>();
+        Map<String, Long> commitsFileMap = new HashMap<>();
+        FragilityCalculator fragilityCalculator = new FragilityCalculator(files, true);
 
         out.printLog("Calculando somas, máximas, médias, updates, code churn e apriori para cada par de arquivos...");
         count = 0;
@@ -390,6 +399,8 @@ public class BichoPairFilePerIssueMetricsInDateServices extends AbstractBichoMet
 
             // Commit-based metrics ////////////////////////////////////////////
             final Set<Integer> fileFileIssues = issuesPairFile.get(fileFile);
+
+            final Map<String, Long> issuesTypesCount = bichoDAO.countIssuesTypes(fileFileIssues);
 
             if (fileFileIssues == null || fileFileIssues.isEmpty()) {
                 out.printLog("Empty issues for " + fileFile.toString());
@@ -503,6 +514,16 @@ public class BichoPairFilePerIssueMetricsInDateServices extends AbstractBichoMet
 
             boolean samePackage = PathUtils.isSameFullPath(fileFile.getFileName(), fileFile.getFileName2());
 
+//            double fragility = fragilityCalculator.calcule(fileFile);
+            // computing rigidity
+            long file1Commits = Cacher.calculeFileCommits(commitsFileMap, fileFile.getFileName(), bichoFileDAO, beginDate, endDate, fileFileIssues);
+            long file2Commits = Cacher.calculeFileCommits(commitsFileMap, fileFile.getFileName2(), bichoFileDAO, beginDate, endDate, fileFileIssues);
+
+            RigidityCalculator rigidityCalculator = new RigidityCalculator(commits);
+            double rigidityPairFile = rigidityCalculator.calcule(file1Commits, file2Commits);
+            double rigidityFile1 = rigidityCalculator.calcule(file1Commits);
+            double rigidityFile2 = rigidityCalculator.calcule(file2Commits);
+
             AuxFileFileIssueMetrics auxFileFileMetrics = new AuxFileFileIssueMetrics(
                     fileFile.getFileName(), fileFile.getFileName2(),
                     fileFile.getPullNumber(),
@@ -533,6 +554,8 @@ public class BichoPairFilePerIssueMetricsInDateServices extends AbstractBichoMet
                     distinctCommentersCount, commentsSum, wordiness,
                     codeChurn, codeChurn2, codeChurnAvg,
                     pairFileCodeChurn.getAdditionsNormalized(), pairFileCodeChurn.getDeletionsNormalized(), pairFileCodeChurn.getChanges(),
+                    // rigidityFile1, rigidityFile2, rigidityPairFile,
+                    issuesTypesCount.get("Improvement"), issuesTypesCount.get("Bug"),
                     ageRelease, ageTotal, updates, futureUpdates
             );
 
@@ -601,6 +624,8 @@ public class BichoPairFilePerIssueMetricsInDateServices extends AbstractBichoMet
                 + "commenters;comments;wordiness;"
                 + "codeChurn;codeChurn2;codeChurnAvg;"
                 + "add;del;changes;"
+                // + "rigidityFile1;rigidityFile2;rigidityPairFile;"
+                + "taskImprovement;taskDefect;"
                 + "ageRelease;ageTotal;"
                 + "updates;futureUpdates;"
                 + "fileFutureIssues;file2FutureIssues;allFutureIssues;"

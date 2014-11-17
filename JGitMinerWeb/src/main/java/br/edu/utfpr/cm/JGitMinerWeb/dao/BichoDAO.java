@@ -8,6 +8,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  *
@@ -24,6 +25,7 @@ public class BichoDAO {
     private final String SELECT_ISSUES_BY_FIXED_DATE;
     private final String SELECT_COMMENTERS_BY_ISSUE_ORDER_BY_SUBMIT;
     private final String SELECT_COMMENTERS;
+    private final String COUNT_ISSUES_TYPES;
 
     private final GenericBichoDAO dao;
 
@@ -75,6 +77,11 @@ public class BichoDAO {
                         + "  FROM {0}_issues.comments c"
                         + "  JOIN {0}_issues.issues i ON i.id = c.issue_id"
                         + "  JOIN {0}_issues.people p ON p.id = c.submitted_by"
+                        + " WHERE 1 = 1", repository);
+
+        COUNT_ISSUES_TYPES
+                = QueryUtils.getQueryForDatabase("SELECT i.type, count(1)"
+                        + "  FROM {0}_issues.issues i "
                         + " WHERE 1 = 1", repository);
     }
 
@@ -167,5 +174,22 @@ public class BichoDAO {
         }
 
         return files;
+    }
+
+    public Map<String, Long> countIssuesTypes(Set<Integer> fileFileIssues) {
+        StringBuilder sql = new StringBuilder(COUNT_ISSUES_TYPES);
+
+        filterByIssues(fileFileIssues, sql);
+
+        List<Object[]> rawFilesPath
+                = dao.selectNativeWithParams(sql.toString(), new Object[0]);
+
+        Map<String, Long> result = new HashMap<>(rawFilesPath.size());
+        for (Object[] row : rawFilesPath) {
+            String type = (String) row[0];
+            Long count = (Long) row[1];
+            result.put(type, count);
+        }
+        return result;
     }
 }

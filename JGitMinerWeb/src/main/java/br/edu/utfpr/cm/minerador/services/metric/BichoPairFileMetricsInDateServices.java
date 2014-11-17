@@ -386,6 +386,8 @@ public class BichoPairFileMetricsInDateServices extends AbstractBichoMetricServi
             // Commit-based metrics ////////////////////////////////////////////
             final Set<Integer> fileFileIssues = issuesPairFile.get(fileFile);
 
+            final Map<String, Long> issuesTypesCount = bichoDAO.countIssuesTypes(fileFileIssues);
+
             if (fileFileIssues == null || fileFileIssues.isEmpty()) {
                 out.printLog("Empty issues for " + fileFile.toString());
             }
@@ -526,6 +528,8 @@ public class BichoPairFileMetricsInDateServices extends AbstractBichoMetricServi
                     distinctCommentersCount, commentsSum, wordiness,
                     codeChurn, codeChurn2, codeChurnAvg,
                     pairFileCodeChurn.getAdditionsNormalized(), pairFileCodeChurn.getDeletionsNormalized(), pairFileCodeChurn.getChanges(),
+                    // rigidityFile1, rigidityFile2, rigidityPairFile,
+                    issuesTypesCount.get("Improvement"), issuesTypesCount.get("Bug"),
                     ageRelease, ageTotal, updates, futureUpdates
             );
 
@@ -594,6 +598,8 @@ public class BichoPairFileMetricsInDateServices extends AbstractBichoMetricServi
                 + "commenters;comments;wordiness;"
                 + "codeChurn;codeChurn2;codeChurnAvg;"
                 + "add;del;changes;"
+                //                + "rigidityFile1;rigidityFile2;rigidityPairFile;"
+                + "taskImprovement;taskDefect;"
                 + "ageRelease;ageTotal;"
                 + "updates;futureUpdates;"
                 + "fileFutureIssues;file2FutureIssues;allFutureIssues;"
