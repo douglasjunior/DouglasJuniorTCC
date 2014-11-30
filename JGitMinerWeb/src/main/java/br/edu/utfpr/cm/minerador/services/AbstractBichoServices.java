@@ -2,7 +2,6 @@ package br.edu.utfpr.cm.minerador.services;
 
 import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericBichoDAO;
 import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericDao;
-import br.edu.utfpr.cm.JGitMinerWeb.model.EntityNode;
 import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.nodes.NodeGeneric;
 import br.edu.utfpr.cm.JGitMinerWeb.util.OutLog;
 import br.edu.utfpr.cm.JGitMinerWeb.util.Util;
@@ -19,7 +18,6 @@ import java.util.Map;
 public abstract class AbstractBichoServices implements Runnable, Serializable {
 
     protected final GenericBichoDAO dao;
-    protected List<EntityNode> nodes;
     protected Map params;
     protected OutLog out;
 
@@ -37,25 +35,9 @@ public abstract class AbstractBichoServices implements Runnable, Serializable {
         this.params = params;
     }
 
-    public List<EntityNode> getNodes() {
-        return nodes;
-    }
-
-    public void setNodes(List<EntityNode> nodes) {
-        this.nodes = nodes;
-    }
 
     @Override
     public abstract void run();
-
-    public String convertToCSV() {
-        StringBuilder sb = new StringBuilder(getHeadCSV());
-        sb.append("\n");
-        for (EntityNode node : nodes) {
-            sb.append(node.getLine()).append("\n");
-        }
-        return sb.toString();
-    }
 
     public static <T> T createInstance(GenericDao dao, OutLog out, String className) {
         try {

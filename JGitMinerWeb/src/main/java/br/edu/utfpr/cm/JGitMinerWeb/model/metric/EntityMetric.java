@@ -48,7 +48,7 @@ public class EntityMetric implements InterfaceEntity, Startable {
     @Lob
     @Basic(fetch = FetchType.LAZY)
     private String log;
-    private Map params;
+    private Map<Object, Object> params;
     @OneToMany(mappedBy = "metric", orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<EntityMetricNode> nodes;
     private String classServicesName;
@@ -139,11 +139,11 @@ public class EntityMetric implements InterfaceEntity, Startable {
         this.classServicesName = classServices;
     }
 
-    public Map getParams() {
+    public Map<Object, Object> getParams() {
         return params;
     }
 
-    public void setParams(Map params) {
+    public void setParams(Map<Object, Object> params) {
         this.params = params;
     }
 

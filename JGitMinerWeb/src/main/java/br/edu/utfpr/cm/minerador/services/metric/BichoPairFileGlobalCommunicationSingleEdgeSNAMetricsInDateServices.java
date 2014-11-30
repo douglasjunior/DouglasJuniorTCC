@@ -7,6 +7,7 @@ import br.edu.utfpr.cm.JGitMinerWeb.dao.BichoPairFileDAO;
 import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericBichoDAO;
 import br.edu.utfpr.cm.JGitMinerWeb.model.matrix.EntityMatrix;
 import br.edu.utfpr.cm.JGitMinerWeb.model.matrix.EntityMatrixNode;
+import br.edu.utfpr.cm.JGitMinerWeb.model.metric.EntityMetric;
 import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.UserCommentedSamePairOfFileInAllDateServices;
 import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.auxiliary.AuxFileFile;
 import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.auxiliary.AuxUserUser;
@@ -29,6 +30,7 @@ import br.edu.utfpr.cm.JGitMinerWeb.util.MathUtils;
 import br.edu.utfpr.cm.JGitMinerWeb.util.OutLog;
 import br.edu.utfpr.cm.JGitMinerWeb.util.PathUtils;
 import br.edu.utfpr.cm.minerador.services.matrix.BichoUserCommentedSamePairOfFileInDateServices;
+import static br.edu.utfpr.cm.minerador.services.metric.AbstractBichoMetricServices.objectsToNodes;
 import edu.uci.ics.jung.graph.DirectedSparseGraph;
 import edu.uci.ics.jung.graph.util.EdgeType;
 import java.text.SimpleDateFormat;
@@ -59,8 +61,8 @@ public class BichoPairFileGlobalCommunicationSingleEdgeSNAMetricsInDateServices 
         super(dao, out);
     }
 
-    public BichoPairFileGlobalCommunicationSingleEdgeSNAMetricsInDateServices(GenericBichoDAO dao, EntityMatrix matrix, Map params, OutLog out) {
-        super(dao, matrix, params, out);
+    public BichoPairFileGlobalCommunicationSingleEdgeSNAMetricsInDateServices(GenericBichoDAO dao, EntityMatrix matrix, Map params, OutLog out, List<EntityMetric> metricsToSave) {
+        super(dao, matrix, params, out, metricsToSave);
     }
 
     private Integer getIntervalOfMonths() {
@@ -547,7 +549,10 @@ public class BichoPairFileGlobalCommunicationSingleEdgeSNAMetricsInDateServices 
         }
 
         out.printLog("Número de pares de arquivos: " + fileFileMetrics.size());
-        addToEntityMetricNodeList(fileFileMetrics);
+
+        EntityMetric metrics = new EntityMetric();
+        metrics.setNodes(objectsToNodes(fileFileMetrics));
+        metricsToSave.add(metrics);
     }
 
     public Long calculeNumberOfIssues(Map<String, Long> issueFileMap, String fileName, BichoFileDAO fileDAO, Date futureBeginDate, Date futureEndDate) {

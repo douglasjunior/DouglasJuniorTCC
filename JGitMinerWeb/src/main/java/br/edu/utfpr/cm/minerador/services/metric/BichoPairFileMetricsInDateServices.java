@@ -8,6 +8,7 @@ import br.edu.utfpr.cm.JGitMinerWeb.dao.BichoPairFileDAO;
 import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericBichoDAO;
 import br.edu.utfpr.cm.JGitMinerWeb.model.matrix.EntityMatrix;
 import br.edu.utfpr.cm.JGitMinerWeb.model.matrix.EntityMatrixNode;
+import br.edu.utfpr.cm.JGitMinerWeb.model.metric.EntityMetric;
 import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.UserCommentedSamePairOfFileInAllDateServices;
 import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.auxiliary.AuxFileFile;
 import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.auxiliary.AuxUserUserDirectional;
@@ -32,6 +33,7 @@ import br.edu.utfpr.cm.JGitMinerWeb.util.PathUtils;
 import br.edu.utfpr.cm.minerador.services.matrix.BichoPairOfFileInDateServices;
 import br.edu.utfpr.cm.minerador.services.matrix.BichoUserCommentedSamePairOfFileOnIssueInDateServices;
 import br.edu.utfpr.cm.minerador.services.matrix.model.Commenter;
+import static br.edu.utfpr.cm.minerador.services.metric.AbstractBichoMetricServices.objectsToNodes;
 import edu.uci.ics.jung.graph.DirectedSparseGraph;
 import edu.uci.ics.jung.graph.util.EdgeType;
 import java.text.SimpleDateFormat;
@@ -62,8 +64,8 @@ public class BichoPairFileMetricsInDateServices extends AbstractBichoMetricServi
         super(dao, out);
     }
 
-    public BichoPairFileMetricsInDateServices(GenericBichoDAO dao, EntityMatrix matrix, Map params, OutLog out) {
-        super(dao, matrix, params, out);
+    public BichoPairFileMetricsInDateServices(GenericBichoDAO dao, EntityMatrix matrix, Map params, OutLog out, List<EntityMetric> metricsToSave) {
+        super(dao, matrix, params, out, metricsToSave);
     }
 
     private Integer getIntervalOfMonths() {
@@ -564,7 +566,10 @@ public class BichoPairFileMetricsInDateServices extends AbstractBichoMetricServi
         }
 
         out.printLog("Número de pares de arquivos: " + fileFileMetrics.size());
-        addToEntityMetricNodeList(fileFileMetrics);
+
+        EntityMetric metrics = new EntityMetric();
+        metrics.setNodes(objectsToNodes(fileFileMetrics));
+        metricsToSave.add(metrics);
     }
 
     @Override

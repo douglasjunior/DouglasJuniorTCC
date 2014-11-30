@@ -2,6 +2,7 @@ package br.edu.utfpr.cm.minerador.services.metric;
 
 import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericBichoDAO;
 import br.edu.utfpr.cm.JGitMinerWeb.model.matrix.EntityMatrix;
+import br.edu.utfpr.cm.JGitMinerWeb.model.metric.EntityMetric;
 import br.edu.utfpr.cm.JGitMinerWeb.model.metric.EntityMetricNode;
 import br.edu.utfpr.cm.JGitMinerWeb.util.OutLog;
 import br.edu.utfpr.cm.minerador.services.AbstractBichoServices;
@@ -16,20 +17,24 @@ import java.util.Map;
  */
 public abstract class AbstractBichoMetricServices extends AbstractBichoServices {
 
-    private final EntityMatrix matrix;
+    protected final EntityMatrix matrix;
+    protected final List<EntityMetric> metricsToSave;
 
     public AbstractBichoMetricServices() {
         matrix = null;
+        metricsToSave = null;
     }
 
     public AbstractBichoMetricServices(GenericBichoDAO dao, OutLog out) {
         super(dao, out);
         this.matrix = null;
+        metricsToSave = null;
     }
 
-    public AbstractBichoMetricServices(GenericBichoDAO dao, EntityMatrix matrix, Map params, OutLog out) {
+    public AbstractBichoMetricServices(GenericBichoDAO dao, EntityMatrix matrix, Map<?, ?> params, OutLog out, List<EntityMetric> metricsToSave) {
         super(dao, params, out);
         this.matrix = matrix;
+        this.metricsToSave = metricsToSave;
     }
 
     public EntityMatrix getMatrix() {
@@ -47,17 +52,12 @@ public abstract class AbstractBichoMetricServices extends AbstractBichoServices 
     @Override
     public abstract String getHeadCSV();
 
-    protected void addToEntityMetricNodeList(Collection list) {
-        if (nodes == null) {
-            nodes = new ArrayList<>();
-        }
+    protected static List<EntityMetricNode> objectsToNodes(Collection list) {
+        List<EntityMetricNode> nodes = new ArrayList<>();
         for (Object obj : list) {
             nodes.add(new EntityMetricNode(obj));
         }
-    }
-
-    public List<EntityMetricNode> getMetricNodes() {
-        return (List) super.getNodes();
+        return nodes;
     }
 
     /**

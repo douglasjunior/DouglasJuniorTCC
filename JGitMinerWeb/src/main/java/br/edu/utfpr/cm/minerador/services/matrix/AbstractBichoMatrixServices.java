@@ -46,7 +46,7 @@ public abstract class AbstractBichoMatrixServices extends AbstractBichoServices 
     @Override
     public abstract String getHeadCSV();
 
-    protected List<EntityMatrixNode> objectsToNodes(Collection list) {
+    protected static List<EntityMatrixNode> objectsToNodes(Collection list) {
         List<EntityMatrixNode> nodes = new ArrayList<>();
         for (Object obj : list) {
             nodes.add(new EntityMatrixNode(obj));

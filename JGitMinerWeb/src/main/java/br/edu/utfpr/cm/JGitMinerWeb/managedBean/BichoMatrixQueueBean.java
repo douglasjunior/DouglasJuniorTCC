@@ -8,7 +8,9 @@ import br.edu.utfpr.cm.JGitMinerWeb.model.matrix.EntityMatrixNode;
 import br.edu.utfpr.cm.JGitMinerWeb.util.JsfUtil;
 import br.edu.utfpr.cm.JGitMinerWeb.util.OutLog;
 import br.edu.utfpr.cm.minerador.services.matrix.AbstractBichoMatrixServices;
+import java.io.PrintWriter;
 import java.io.Serializable;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -160,6 +162,10 @@ public class BichoMatrixQueueBean implements Serializable {
                 out.resetLog();
                 final List<EntityMatrix> matricesToSave = new ArrayList<>();
 
+                out.printLog("");
+                out.printLog("Params: " + params);
+                out.printLog("");
+
                 final AbstractBichoMatrixServices netServices = createMatrixServiceInstance(matricesToSave, params);
 
                 Thread process = new Thread(netServices) {
@@ -168,57 +174,52 @@ public class BichoMatrixQueueBean implements Serializable {
                     public void run() {
                         Date started = new Date();
                         try {
-                            if (!canceled) {
-                                out.setCurrentProcess("Iniciando coleta dos dados para geração da matriz.");
+                            out.setCurrentProcess("Iniciando coleta dos dados para geração da matriz.");
 
-                                super.run();
-                            }
-                            progress += fraction / 2;
+                            super.run();
+
                             out.printLog("");
-                            if (!canceled) {
-                                out.setCurrentProcess("Iniciando salvamento dos dados gerados.");
-                                genericDao.clearCache(false);
-                                for (EntityMatrix entityMatrix : matricesToSave) {
-                                    out.printLog("Salvando matriz com " + entityMatrix.getNodes().size() + " registros. Parametros: " + entityMatrix.getParams());
-                                    entityMatrix.setStarted(started);
-                                    entityMatrix.getParams().putAll(params);
-                                    entityMatrix.setRepository(repositoryId);
-                                    entityMatrix.setClassServicesName(serviceClass.getName());
-                                    entityMatrix.setLog(out.getLog().toString());
-                                    for (EntityMatrixNode node : entityMatrix.getNodes()) {
-                                        node.setMatrix(entityMatrix);
-                                    }
-                                    entityMatrix.setStoped(new Date());
-                                    entityMatrix.setComplete(true);
-                                    // saving in jgitminer database
-                                    genericDao.insert(entityMatrix);
-                                    out.printLog("");
-                                    genericDao.clearCache(true);
+
+                            out.setCurrentProcess("Iniciando salvamento dos dados gerados.");
+
+                            for (EntityMatrix entityMatrix : matricesToSave) {
+                                out.printLog("Salvando matriz com " + entityMatrix.getNodes().size() + " registros. Parametros: " + entityMatrix.getParams());
+                                entityMatrix.setStarted(started);
+                                entityMatrix.getParams().putAll(params);
+                                entityMatrix.setRepository(repositoryId);
+                                entityMatrix.setClassServicesName(serviceClass.getName());
+                                entityMatrix.setLog(out.getLog().toString());
+                                for (EntityMatrixNode node : entityMatrix.getNodes()) {
+                                    node.setMatrix(entityMatrix);
                                 }
-                                out.printLog("Salvamento dos dados concluído!");
+                                entityMatrix.setStoped(new Date());
+                                entityMatrix.setComplete(true);
+                                // saving in jgitminer database
+                                genericDao.insert(entityMatrix);
+                                out.printLog("");
+                                genericDao.clearCache(true);
                             }
+                            out.printLog("Salvamento dos dados concluído!");
+
                             message = "Geração da matriz finalizada.";
                         } catch (Exception ex) {
                             ex.printStackTrace();
-                            message = "Geração da rede abortada, erro: " + ex.toString();
+                            StringWriter errors = new StringWriter();
+                            ex.printStackTrace(new PrintWriter(errors));
+                            message = "Geração da rede abortada, erro: " + errors.toString();
+                            out.printLog(errors.toString());
                             fail = true;
                         } finally {
                             out.printLog("");
-                            if (canceled) {
-                                out.setCurrentProcess("Geração da matriz abortada pelo usuário.");
-                            } else {
-                                out.setCurrentProcess(message);
-                            }
-                            progress += fraction / 2;
+                            out.setCurrentProcess(message);
                             initialized = false;
-                            System.gc();
+                            progress += fraction;
                         }
                     }
                 };
 
                 threadPool.submit(process);
             }
-            progress = 100;
         }
     }
 

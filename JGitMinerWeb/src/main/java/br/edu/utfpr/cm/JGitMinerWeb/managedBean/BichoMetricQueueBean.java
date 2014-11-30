@@ -148,7 +148,10 @@ public class BichoMetricQueueBean implements Serializable {
         progress = 0;
 
         out.printLog("Geração da rede iniciada!");
+        out.printLog("");
+        out.printLog("Params queue: " + paramsQueue);
         out.printLog("Class Service: " + serviceClass);
+        out.printLog("");
 
         if (matrix == null || serviceClass == null) {
             message = "Erro: Escolha a Matriz e o Service desejado.";
@@ -159,47 +162,53 @@ public class BichoMetricQueueBean implements Serializable {
         } else {
             initialized = true;
             progress = 1;
+            out.printLog("Queue size: " + paramsQueue.size());
             final int fraction = 100 / paramsQueue.size();
             for (final Map<Object, Object> params : paramsQueue) {
                 final EntityMatrix matrix = (EntityMatrix) params.get("matrix");
                 params.putAll(matrix.getParams());
+
                 out.resetLog();
+                final List<EntityMetric> metricsToSave = new ArrayList<>();
 
                 out.printLog("");
                 out.printLog("Params: " + params);
                 out.printLog("");
 
-                final EntityMetric entityMetric = new EntityMetric();
-                dao.insert(entityMetric);
-                entityMetric.setParams(params);
-                entityMetric.setMatrix(matrix + "");
-                entityMetric.setLog(out.getLog().toString());
-                entityMetric.setClassServicesName(serviceClass.getName());
-                dao.edit(entityMetric);
-
-                final AbstractBichoMetricServices services = createMetricServiceInstance(params, matrix);
+                final AbstractBichoMetricServices services = createMetricServiceInstance(metricsToSave, matrix, params);
 
                 Thread process = new Thread(services) {
+
                     @Override
                     public void run() {
+                        Date started = new Date();
                         try {
-                            if (!canceled) {
-                                out.setCurrentProcess("Iniciando coleta dos dados para geração da metrica.");
-                                super.run();
-                                out.printLog(services.getNodes().size() + " Registros coletados!");
-                            }
-                            progress += fraction / 2;
+                            out.setCurrentProcess("Iniciando coleta dos dados para cálculo das métricas.");
+
+                            super.run();
+
                             out.printLog("");
-                            if (!canceled) {
-                                out.setCurrentProcess("Iniciando salvamento dos dados gerados.");
-                                entityMetric.setNodes(services.getMetricNodes());
-                                for (EntityMetricNode node : services.getMetricNodes()) {
+
+                            out.setCurrentProcess("Iniciando salvamento dos dados gerados.");
+                            for (EntityMetric entityMetric : metricsToSave) {
+                                out.printLog("Salvando métricas com " + entityMetric.getNodes().size() + " registros. Parametros: " + entityMetric.getParams());
+                                entityMetric.setStarted(started);
+                                entityMetric.getParams().putAll(params);
+                                entityMetric.setMatrix(matrix.toString());
+                                entityMetric.setClassServicesName(serviceClass.getName());
+                                entityMetric.setLog(out.getLog().toString());
+                                for (EntityMetricNode node : entityMetric.getNodes()) {
                                     node.setMetric(entityMetric);
                                 }
+                                entityMetric.setStoped(new Date());
                                 entityMetric.setComplete(true);
-                                dao.edit(entityMetric);
-                                out.printLog("Salvamento dos dados concluído!");
+                                // saving in jgitminer database
+                                dao.insert(entityMetric);
+                                out.printLog("");
+                                dao.clearCache(true);
                             }
+                            out.printLog("Salvamento dos dados concluído!");
+
                             message = "Geração da matriz finalizada.";
                         } catch (Exception ex) {
                             ex.printStackTrace();
@@ -210,25 +219,15 @@ public class BichoMetricQueueBean implements Serializable {
                             fail = true;
                         } finally {
                             out.printLog("");
-                            if (canceled) {
-                                out.setCurrentProcess("Geração da matriz abortada pelo usuário.");
-                            } else {
-                                out.setCurrentProcess(message);
-                            }
-                            progress += fraction / 2;
+                            out.setCurrentProcess(message);
                             initialized = false;
-                            entityMetric.setLog(out.getLog().toString());
-                            entityMetric.setStoped(new Date());
-                            dao.edit(entityMetric);
-                            params.clear();
-                            System.gc();
+                            progress += fraction;
                         }
                     }
                 };
 
                 threadPool.submit(process);
             }
-            progress = 100;
         }
     }
 
@@ -295,12 +294,15 @@ public class BichoMetricQueueBean implements Serializable {
         return metricsServices;
     }
 
-    private AbstractBichoMetricServices createMetricServiceInstance(Map<Object, Object> params, EntityMatrix matrix) {
+    private AbstractBichoMetricServices createMetricServiceInstance(List<EntityMetric> metricsToSave, EntityMatrix matrix, Map<Object, Object> params) {
         try {
-            return (AbstractBichoMetricServices) serviceClass.getConstructor(GenericBichoDAO.class, EntityMatrix.class, Map.class, OutLog.class).newInstance(bichoDao, matrix, params, out);
+            return (AbstractBichoMetricServices) serviceClass
+                    .getConstructor(GenericBichoDAO.class, EntityMatrix.class, Map.class, OutLog.class, List.class)
+                    .newInstance(bichoDao, matrix, params, out, metricsToSave);
         } catch (Exception ex) {
-            throw new RuntimeException(ex);
+            ex.printStackTrace();
         }
+        return null;
     }
 
     public ClassConverter getConverterClass() {
