@@ -480,23 +480,26 @@ public class BichoPairFileDAO {
                         + "  JOIN {0}_vcs.scmlog s2 ON s2.id = i2s2.scmlog_id"
                         + "  JOIN {0}_vcs.actions a ON a.commit_id = s.id"
                         + "  JOIN {0}_vcs.files fil ON fil.id = a.file_id"
-                        + "  JOIN {0}_vcs.file_links fill ON fill.file_id = fil.id AND fill.commit_id = "
-                        + "       (SELECT MAX(afill.commit_id) " // last commit where file has introduced, because it can have more than one
-                        + "          FROM {0}_vcs.file_links afill "
-                        + "         WHERE afill.commit_id <= s.id "
-                        + "           AND afill.file_id = fil.id)"
+                        + "  JOIN {0}_vcs.file_links fill ON fill.file_id = fil.id"
+                        // neste caso não é necessário
+                        // temos que considerar todos os arquivos, inclusive quando renomeados
+                        //                        + " AND fill.commit_id = "
+                        //                        + "       (SELECT MAX(afill.commit_id) " // last commit where file has introduced, because it can have more than one
+                        //                        + "          FROM {0}_vcs.file_links afill "
+                        //                        + "         WHERE afill.commit_id <= s.id "
+                        //                        + "           AND afill.file_id = fil.id)"
                         + "  JOIN {0}_vcs.actions a2 ON a2.commit_id = s2.id"
                         + "  JOIN {0}_vcs.files fil2 ON fil2.id = a2.file_id AND a.file_id <> a2.file_id"
-                        + "  JOIN {0}_vcs.file_links fill2 ON fill2.file_id = fil2.id AND fill2.commit_id = "
-                        + "       (SELECT MAX(afill2.commit_id) " // last commit where file has introduced, because it can have more than one
-                        + "          FROM {0}_vcs.file_links afill2 "
-                        + "         WHERE afill2.commit_id <= s2.id "
-                        + "           AND afill2.file_id = fil2.id)"
-                        + " WHERE fill.file_id IN"
-                        // considera todos os arquivos, inclusive quando renomeados
-                        + " (SELECT afill.file_id FROM {0}_vcs.file_links afill WHERE afill.file_path = ?)"
-                        + "   AND fill2.file_id IN"
-                        + " (SELECT afill.file_id FROM {0}_vcs.file_links afill WHERE afill.file_path = ?)"
+                        + "  JOIN {0}_vcs.file_links fill2 ON fill2.file_id = fil2.id"
+                        // neste caso não é necessário
+                        // temos que considerar todos os arquivos, inclusive quando renomeados
+                        //                        + " AND fill2.commit_id = "
+                        //                        + "       (SELECT MAX(afill2.commit_id) " // last commit where file has introduced, because it can have more than one
+                        //                        + "          FROM {0}_vcs.file_links afill2 "
+                        //                        + "         WHERE afill2.commit_id <= s2.id "
+                        //                        + "           AND afill2.file_id = fil2.id)"
+                        + " WHERE fill.file_path = ?"
+                        + "   AND fill2.file_path = ?"
                         + "   AND s.date > i.submitted_on"
                         + "   AND s2.date > i.submitted_on", repository)
                 + FILTER_BY_MAX_FILES_IN_COMMIT;
