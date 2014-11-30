@@ -117,7 +117,7 @@ public class BichoFileDAO {
                         + "  JOIN {0}_vcs.files fil ON fil.id = a.file_id"
                         + "  JOIN {0}_vcs.file_links fill ON fill.file_id = fil.id AND fill.commit_id = "
                         + "       (SELECT MAX(afill.commit_id) " // last commit where file has introduced, because it can have more than one
-                        + "          FROM aries_vcs.file_links afill "
+                        + "          FROM {0}_vcs.file_links afill "
                         + "         WHERE afill.commit_id <= s.id "
                         + "           AND afill.file_id = fil.id)"
                         + " WHERE fill.file_path = ?"
@@ -133,7 +133,7 @@ public class BichoFileDAO {
                         + "  JOIN {0}_vcs.people p ON p.id = s.committer_id"
                         + "  JOIN {0}_vcs.file_links fill ON fill.file_id = fil.id AND fill.commit_id = "
                         + "       (SELECT MAX(afill.commit_id) " // last commit where file has introduced, because it can have more than one
-                        + "          FROM aries_vcs.file_links afill "
+                        + "          FROM {0}_vcs.file_links afill "
                         + "         WHERE afill.commit_id <= s.id "
                         + "           AND afill.file_id = fil.id)"
                         + "  JOIN {0}_issues.issues_scmlog i2s ON i2s.scmlog_id = a.commit_id"
@@ -152,7 +152,7 @@ public class BichoFileDAO {
                         + "  JOIN {0}_vcs.people p ON p.id = s.committer_id"
                         + "  JOIN {0}_vcs.file_links fill ON fill.file_id = fil.id AND fill.commit_id = "
                         + "       (SELECT MAX(afill.commit_id) " // last commit where file has introduced, because it can have more than one
-                        + "          FROM aries_vcs.file_links afill "
+                        + "          FROM {0}_vcs.file_links afill "
                         + "         WHERE afill.commit_id <= s.id "
                         + "           AND afill.file_id = fil.id)"
                         + "  JOIN {0}_issues.issues_scmlog i2s ON i2s.scmlog_id = a.commit_id"
@@ -176,7 +176,7 @@ public class BichoFileDAO {
                         + "  JOIN {0}_vcs.files fil ON fil.id = a.file_id"
                         + "  JOIN {0}_vcs.file_links fill ON fill.file_id = fil.id AND fill.commit_id = "
                         + "       (SELECT MAX(afill.commit_id) " // last commit where file has introduced, because it can have more than one
-                        + "          FROM aries_vcs.file_links afill "
+                        + "          FROM {0}_vcs.file_links afill "
                         + "         WHERE afill.commit_id <= s.id "
                         + "           AND afill.file_id = fil.id)"
                         + "  JOIN {0}_vcs.commits_files_lines filcl ON filcl.commit = s.id AND filcl.path = fill.file_path"
@@ -191,7 +191,7 @@ public class BichoFileDAO {
                         + "  JOIN {0}_vcs.scmlog s ON s.id = a.commit_id"
                         + "  JOIN {0}_vcs.file_links fill ON fill.file_id = fil.id AND fill.commit_id = "
                         + "       (SELECT MAX(afill.commit_id) " // last commit where file has introduced, because it can have more than one
-                        + "          FROM aries_vcs.file_links afill "
+                        + "          FROM {0}_vcs.file_links afill "
                         + "         WHERE afill.commit_id <= s.id "
                         + "           AND afill.file_id = fil.id)"
                         + " WHERE s.id = ?", repository)
@@ -210,7 +210,7 @@ public class BichoFileDAO {
                         + "  JOIN {0}_vcs.files fil ON fil.id = a.file_id"
                         + "  JOIN {0}_vcs.file_links fill ON fill.file_id = fil.id AND fill.commit_id = "
                         + "       (SELECT MAX(afill.commit_id) " // last commit where file has introduced, because it can have more than one
-                        + "          FROM aries_vcs.file_links afill "
+                        + "          FROM {0}_vcs.file_links afill "
                         + "         WHERE afill.commit_id <= s.id "
                         + "           AND afill.file_id = fil.id)"
                         + " WHERE fill.file_path = ?", repository)
