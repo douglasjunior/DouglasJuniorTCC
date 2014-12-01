@@ -64,7 +64,10 @@
             </div>
             <br />
 
-            <p:poll id="textAreaUpdater" widgetVar="textAreaUpdaterVar" async="true" interval="4" update="logTextArea,loadingImage" autoStart="#{bichoMatrixQueueBean.initialized}" />
+            <p:poll id="textAreaUpdater" widgetVar="textAreaUpdaterVar" async="true" interval="4" 
+                    update="logTextArea,loadingImage,progress"
+                    stop="#{!bichoMatrixQueueBean.initialized}"
+                    autoStart="#{bichoMatrixQueueBean.initialized}" />
 
             <h3>Log:</h3>
             <br />

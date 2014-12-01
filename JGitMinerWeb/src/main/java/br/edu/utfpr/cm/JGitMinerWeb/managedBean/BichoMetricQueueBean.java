@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicInteger;
 import javax.ejb.EJB;
 import javax.enterprise.context.SessionScoped;
 import javax.inject.Named;
@@ -45,7 +46,7 @@ public class BichoMetricQueueBean implements Serializable {
     private String matrixId;
     private Class<?> serviceClass;
     private String message;
-    private Integer progress;
+    private AtomicInteger progress;
     private boolean initialized;
     private boolean fail;
     private boolean canceled;
@@ -99,18 +100,14 @@ public class BichoMetricQueueBean implements Serializable {
 
     public Integer getProgress() {
         if (fail) {
-            progress = 100;
+            progress = new AtomicInteger(100);
         } else if (progress == null) {
-            progress = 0;
-        } else if (progress > 100) {
-            progress = 100;
+            progress = new AtomicInteger(0);
+        } else if (progress.intValue() > 100) {
+            progress.set(100);
         }
-        System.out.println("progress: " + progress);
-        return progress;
-    }
 
-    public void setProgress(Integer progress) {
-        this.progress = progress;
+        return progress.intValue();
     }
 
     public void queue() {
@@ -145,7 +142,7 @@ public class BichoMetricQueueBean implements Serializable {
         initialized = false;
         canceled = false;
         fail = false;
-        progress = 0;
+        progress = new AtomicInteger(0);
 
         out.printLog("Geração da rede iniciada!");
         out.printLog("");
@@ -156,12 +153,12 @@ public class BichoMetricQueueBean implements Serializable {
         if (matrix == null || serviceClass == null) {
             message = "Erro: Escolha a Matriz e o Service desejado.";
             out.printLog(message);
-            progress = 0;
+            progress = new AtomicInteger(0);
             initialized = false;
             fail = true;
         } else {
             initialized = true;
-            progress = 1;
+            progress = new AtomicInteger(1);
             out.printLog("Queue size: " + paramsQueue.size());
             final int fraction = 100 / paramsQueue.size();
             for (final Map<Object, Object> params : paramsQueue) {
@@ -220,8 +217,10 @@ public class BichoMetricQueueBean implements Serializable {
                         } finally {
                             out.printLog("");
                             out.setCurrentProcess(message);
-                            initialized = false;
-                            progress += fraction;
+                            progress.addAndGet(fraction);
+                            if (progress.intValue() >= 100) {
+                                initialized = false;
+                            }
                         }
                     }
                 };
@@ -246,7 +245,7 @@ public class BichoMetricQueueBean implements Serializable {
     public void onComplete() {
         out.printLog("onComplete" + '\n');
         initialized = false;
-        progress = 0;
+        progress = new AtomicInteger(0);
         if (fail) {
             JsfUtil.addErrorMessage(message);
         } else {
