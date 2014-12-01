@@ -604,32 +604,34 @@ public class BichoPairFilePerIssueMetricsInDateServices extends AbstractBichoMet
             fileFileMetrics.add(auxFileFileMetrics);
         }
 
-        List<AuxFileFileIssueMetrics> ordered = new ArrayList<>(fileFileMetrics);
-        Collections.sort(ordered, new Comparator<AuxFileFileIssueMetrics>() {
+        out.printLog("Número de pares de arquivos: " + fileFileMetrics.size());
 
-            @Override
-            public int compare(AuxFileFileIssueMetrics left, AuxFileFileIssueMetrics right) {
-                double allUpdatesLeft
-                        = left.getMetrics().get(86);
-                double allUpdatesRight
-                        = right.getMetrics().get(86);
-
-                if (allUpdatesLeft > allUpdatesRight) {
-                    return -1;
-                } else if (allUpdatesLeft < allUpdatesRight) {
-                    return 1;
-                }
-                return 0;
-            }
-        });
-
-        out.printLog("Número de pares de arquivos: " + ordered.size());
-//        addToEntityMetricNodeList(fileFileMetrics);
-        EntityMetric metrics = new EntityMetric();
-        metrics.setNodes(objectsToNodes(ordered));
-        metricsToSave.add(metrics);
 
         try {
+            List<AuxFileFileIssueMetrics> ordered = new ArrayList<>(fileFileMetrics);
+            // order by allUpdates desc
+            Collections.sort(ordered, new Comparator<AuxFileFileIssueMetrics>() {
+
+                @Override
+                public int compare(AuxFileFileIssueMetrics left, AuxFileFileIssueMetrics right) {
+                    double allUpdatesLeft
+                            = left.getMetrics().get(82);
+                    double allUpdatesRight
+                            = right.getMetrics().get(82);
+
+                    if (allUpdatesLeft > allUpdatesRight) {
+                        return -1;
+                    } else if (allUpdatesLeft < allUpdatesRight) {
+                        return 1;
+                    }
+                    return 0;
+                }
+            });
+
+            EntityMetric metrics = new EntityMetric();
+            metrics.setNodes(objectsToNodes(fileFileMetrics));
+            metricsToSave.add(metrics);
+
             EntityMetric metrics25percentMostUpdated = new EntityMetric();
             metrics25percentMostUpdated.setNodes(objectsToNodes(ListUtils.getFirst25PercentElements(ordered)));
             metricsToSave.add(metrics25percentMostUpdated);
