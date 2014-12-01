@@ -22,15 +22,15 @@ public class ListUtilsTest {
             @Override
             public int compare(Integer leftValue, Integer rightValue) {
                 if (leftValue > rightValue) {
-                    return 1;
-                } else if (leftValue < rightValue) {
                     return -1;
+                } else if (leftValue < rightValue) {
+                    return 1;
                 }
                 return 0;
             }
         });
 
-        assertEquals(Arrays.asList(0, 5, 10, 15), ordered25percent);
+        assertEquals(Arrays.asList(100, 90, 70, 60), ordered25percent);
     }
 
 }
