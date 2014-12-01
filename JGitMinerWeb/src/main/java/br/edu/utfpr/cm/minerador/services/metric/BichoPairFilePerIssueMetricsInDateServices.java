@@ -609,27 +609,24 @@ public class BichoPairFilePerIssueMetricsInDateServices extends AbstractBichoMet
 
             @Override
             public int compare(AuxFileFileIssueMetrics left, AuxFileFileIssueMetrics right) {
-                Long allUpdatesLeft
-                        = (long) issuesPairFile
-                        .get(new AuxFileFile(left.getFile(), left.getFile2()))
-                        .size();
-                Long allUpdatesRight
-                        = (long) issuesPairFile
-                        .get(new AuxFileFile(right.getFile(), right.getFile2()))
-                        .size();
+                double allUpdatesLeft
+                        = left.getMetrics().get(86);
+                double allUpdatesRight
+                        = right.getMetrics().get(86);
+
                 if (allUpdatesLeft > allUpdatesRight) {
-                    return 1;
-                } else if (allUpdatesLeft < allUpdatesRight) {
                     return -1;
+                } else if (allUpdatesLeft < allUpdatesRight) {
+                    return 1;
                 }
                 return 0;
             }
         });
 
-        out.printLog("Número de pares de arquivos: " + fileFileMetrics.size());
+        out.printLog("Número de pares de arquivos: " + ordered.size());
 //        addToEntityMetricNodeList(fileFileMetrics);
         EntityMetric metrics = new EntityMetric();
-        metrics.setNodes(objectsToNodes(fileFileMetrics));
+        metrics.setNodes(objectsToNodes(ordered));
         metricsToSave.add(metrics);
 
         try {
