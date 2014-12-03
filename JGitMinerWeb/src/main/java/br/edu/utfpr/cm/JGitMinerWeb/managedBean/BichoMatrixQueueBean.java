@@ -212,7 +212,9 @@ public class BichoMatrixQueueBean implements Serializable {
                         } finally {
                             out.printLog("");
                             out.setCurrentProcess(message);
-                            initialized = false;
+                            if (progress >= 100) {
+                                initialized = false;
+                            }
                             progress += fraction;
                         }
                     }
