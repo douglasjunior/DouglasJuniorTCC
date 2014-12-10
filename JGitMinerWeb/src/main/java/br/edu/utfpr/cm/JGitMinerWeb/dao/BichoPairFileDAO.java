@@ -69,6 +69,8 @@ public class BichoPairFileDAO {
 
     private final String SELECT_COMMENTS_BY_ISSUE_ID;
 
+    private final String FILTER_BY_ISSUE_TYPE;
+
     private final GenericBichoDAO dao;
 
     public BichoPairFileDAO(GenericBichoDAO dao, String repository, Integer maxFilePerCommit) {
@@ -96,6 +98,8 @@ public class BichoPairFileDAO {
                 = " AND i.resolution = 'Fixed'"
                 + " AND c.field = 'Resolution'"
                 + " AND c.new_value = i.resolution";
+        FILTER_BY_ISSUE_TYPE
+                = " AND i.type = ?";
 
         FILTER_BY_ISSUES_THAT_HAS_AT_LEAST_ONE_COMMENT
                 = "AND i.num_comments > 0";
@@ -531,6 +535,11 @@ public class BichoPairFileDAO {
 
     public long calculeNumberOfIssues(
             String file, String file2, Date beginDate, Date endDate, boolean onlyFixed) {
+        return calculeNumberOfIssues(file, file2, beginDate, endDate, null, onlyFixed);
+    }
+
+    public long calculeNumberOfIssues(
+            String file, String file2, Date beginDate, Date endDate, String type, boolean onlyFixed) {
 
         if (file == null || file2 == null) {
             throw new IllegalArgumentException("The file and file2 parameters can not be null.");
@@ -545,6 +554,11 @@ public class BichoPairFileDAO {
 
         if (onlyFixed) {
             sql.append(FIXED_ISSUES_ONLY);
+        }
+
+        if (type != null) {
+            sql.append(FILTER_BY_ISSUE_TYPE);
+            selectParams.add(type);
         }
 
         sql.append(FILTER_BY_ISSUE_FIX_DATE);

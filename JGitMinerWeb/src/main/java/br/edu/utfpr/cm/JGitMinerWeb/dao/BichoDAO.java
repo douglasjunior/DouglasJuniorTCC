@@ -2,6 +2,7 @@ package br.edu.utfpr.cm.JGitMinerWeb.dao;
 
 import static br.edu.utfpr.cm.JGitMinerWeb.dao.QueryUtils.filterByIssues;
 import br.edu.utfpr.cm.minerador.services.matrix.model.Commenter;
+import br.edu.utfpr.cm.minerador.services.matrix.model.Issue;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -23,6 +24,7 @@ public class BichoDAO {
     // queries
     private final String COUNT_FILES_PER_COMMITS;
     private final String SELECT_ISSUES_BY_FIXED_DATE;
+    private final String SELECT_ISSUES_AND_TYPE_BY_FIXED_DATE;
     private final String SELECT_COMMENTERS_BY_ISSUE_ORDER_BY_SUBMIT;
     private final String SELECT_COMMENTERS;
     private final String COUNT_ISSUES_TYPES_BEGIN;
@@ -57,6 +59,17 @@ public class BichoDAO {
 
         SELECT_ISSUES_BY_FIXED_DATE
                 = QueryUtils.getQueryForDatabase("SELECT i.id, s.id"
+                        + "  FROM {0}_issues.issues_scmlog i2s"
+                        + "  JOIN {0}_issues.issues i ON i.id = i2s.issue_id"
+                        + "  JOIN {0}_issues.changes c ON c.issue_id = i.id"
+                        + "  JOIN {0}_vcs.scmlog s ON s.id = i2s.scmlog_id"
+                        + " WHERE c.changed_on BETWEEN ? AND ?"
+                        + "   AND s.date > i.submitted_on"
+                        + "   AND s.num_files > 0", repository)
+                + FIXED_ISSUES_ONLY;
+
+        SELECT_ISSUES_AND_TYPE_BY_FIXED_DATE
+                = QueryUtils.getQueryForDatabase("SELECT i.id, i.type, s.id"
                         + "  FROM {0}_issues.issues_scmlog i2s"
                         + "  JOIN {0}_issues.issues i ON i.id = i2s.issue_id"
                         + "  JOIN {0}_issues.changes c ON c.issue_id = i.id"
@@ -132,6 +145,40 @@ public class BichoDAO {
             Integer issue = (Integer) issueCommit[0];
             Integer commit = (Integer) issueCommit[1];
 
+            if (issuesCommits.containsKey(issue)) {
+                issuesCommits.get(issue).add(commit);
+            } else {
+                List<Integer> commits = new ArrayList<>();
+                commits.add(commit);
+                issuesCommits.put(issue, commits);
+            }
+        }
+        return issuesCommits;
+    }
+
+    public Map<Issue, List<Integer>> selectIssuesAndType(Date beginDate, Date endDate, Integer maxFilesPerCommit) {
+        List<Object> selectParams = new ArrayList<>();
+
+        StringBuilder sql = new StringBuilder();
+        sql.append(SELECT_ISSUES_AND_TYPE_BY_FIXED_DATE);
+
+        selectParams.add(beginDate);
+        selectParams.add(endDate);
+
+        if (maxFilesPerCommit > 0) {
+            sql.append(FILTER_BY_MAX_FILES_IN_COMMIT);
+            selectParams.add(maxFilesPerCommit);
+        }
+
+        List<Object[]> rawIssues = dao.selectNativeWithParams(sql.toString(), selectParams.toArray());
+
+        Map<Issue, List<Integer>> issuesCommits = new HashMap<>();
+        for (Object[] issueCommit : rawIssues) {
+            Integer issueId = (Integer) issueCommit[0];
+            String issueType = (String) issueCommit[1];
+            Integer commit = (Integer) issueCommit[2];
+
+            Issue issue = new Issue(issueId, issueType);
             if (issuesCommits.containsKey(issue)) {
                 issuesCommits.get(issue).add(commit);
             } else {
