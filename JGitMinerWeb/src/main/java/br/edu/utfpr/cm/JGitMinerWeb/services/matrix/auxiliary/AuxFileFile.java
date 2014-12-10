@@ -16,23 +16,19 @@ public class AuxFileFile {
     private final String fileName2;
     private final Set<Integer> issuesId;
     private final Set<Integer> commitsId;
+    private final Set<Integer> defectIssuesId;
     private int issuesWeight = 0;
     private int commitsWeight = 0;
+    private int defectsWeight = 0;
+    private long futureDefects = 0;
+    private double support = 0;
 
     public AuxFileFile(String fileName, String fileName2) {
         this.fileName = fileName;
         this.fileName2 = fileName2;
         this.issuesId = new HashSet<>();
         this.commitsId = new HashSet<>();
-    }
-
-    public AuxFileFile(String fileName, String fileName2, Set<Integer> issuesId,
-            Set<Integer> commitsId) {
-        
-        this.fileName = fileName;
-        this.fileName2 = fileName2;
-        this.issuesId = issuesId;
-        this.commitsId = commitsId;
+        this.defectIssuesId = new HashSet<>();
     }
 
     public String getFileName() {
@@ -47,9 +43,30 @@ public class AuxFileFile {
         return Collections.unmodifiableSet(issuesId);
     }
 
+    public Set<Integer> getCommitsId() {
+        return commitsId;
+    }
+
+    public Set<Integer> getDefectIssuesId() {
+        return defectIssuesId;
+    }
+
     public void addIssueId(Integer issueId) {
         issuesWeight++;
         issuesId.add(issueId);
+    }
+
+    public void addDefectIssueId(Integer issueId) {
+        defectsWeight++;
+        defectIssuesId.add(issueId);
+    }
+
+    public double getSupport() {
+        return support;
+    }
+
+    public void setSupport(double support) {
+        this.support = support;
     }
 
     public void addCommitId(Integer issueId) {
@@ -63,6 +80,18 @@ public class AuxFileFile {
 
     public int getCommitsWeight() {
         return commitsWeight;
+    }
+
+    public int getDefectsWeight() {
+        return defectsWeight;
+    }
+
+    public void setFutureDefects(long futureDefects) {
+        this.futureDefects = futureDefects;
+    }
+
+    public long getFutureDefects() {
+        return futureDefects;
     }
 
     /**
@@ -113,13 +142,21 @@ public class AuxFileFile {
         appendInteger(toString, commitsWeight);
         appendSetInteger(toString, commitsId);
 
+        if (defectsWeight > 0) {
+            appendInteger(toString, defectsWeight);
+            appendSetInteger(toString, defectIssuesId);
+        }
+
+        if (support > 0) {
+            toString.append(support);
+            toString.append(";");
+        }
+        toString.append(futureDefects);
         return toString.toString();
     }
 
     private void appendInteger(StringBuilder toString, Integer integer) {
-        if (integer > 0) {
-            toString.append(integer).append(";");
-        }
+        toString.append(integer).append(";");
     }
 
     private void appendSetInteger(StringBuilder toString, Set<Integer> set) {
@@ -131,8 +168,6 @@ public class AuxFileFile {
             toString.append(integer);
             appendComma = true;
         }
-        if (set != null && !set.isEmpty()) {
-            toString.append(";");
-        }
+        toString.append(";");
     }
 }

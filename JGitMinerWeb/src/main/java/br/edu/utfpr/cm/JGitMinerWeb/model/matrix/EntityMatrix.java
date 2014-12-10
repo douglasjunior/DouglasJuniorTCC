@@ -2,7 +2,6 @@ package br.edu.utfpr.cm.JGitMinerWeb.model.matrix;
 
 import br.edu.utfpr.cm.JGitMinerWeb.model.InterfaceEntity;
 import br.edu.utfpr.cm.JGitMinerWeb.model.Startable;
-import br.edu.utfpr.cm.JGitMinerWeb.util.Util;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -21,6 +20,8 @@ import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.time.DateFormatUtils;
 
 /**
  *
@@ -161,7 +162,16 @@ public class EntityMatrix implements InterfaceEntity, Startable {
 
     @Override
     public String toString() {
-        return "(" + id + ") " + repository + " - " + getClassServicesSingleName() + " - " + Util.dateDataToString(started, "dd/MM/yyyy HH:mm:ss");
+        final Object filename = params.get("filename");
+        final Object beginDate = params.get("beginDate");
+        final Object endDate = params.get("endDate");
+        if (filename != null && beginDate != null && endDate != null) {
+            String initialDate = DateFormatUtils.format((Date) beginDate, "dd/MM/yyyy HH:mm:ss");
+            String finalDate = DateFormatUtils.format((Date) endDate, "dd/MM/yyyy HH:mm:ss");
+            return StringUtils.capitalize(repository) + " " + filename + " " + initialDate + " - " + finalDate;
+        } else {
+            return "(" + id + ") " + repository + " - " + getClassServicesSingleName();
+        }
     }
 
     @Override

@@ -144,6 +144,7 @@ public class BichoPairFilePerIssueMetricsInDateServices extends AbstractBichoMet
         final Map<AuxFileFilePull, Set<Integer>> issuesPairFilePerIssue = new HashMap<>();
         final Map<AuxFileFile, Set<Integer>> issuesPairFile = new HashMap<>();
         final Map<AuxFileFilePull, Set<Integer>> commitsPairFilePerIssue = new HashMap<>();
+        final Map<AuxFileFilePull, Integer> futureDefectsPairFile = new HashMap<>();
         final Map<AuxFileFile, Set<Integer>> commitsPairFile = new HashMap<>();
         final Map<String, Integer> edgesWeigth = new HashMap<>();
         final Set<String> files = new HashSet<>();
@@ -183,6 +184,7 @@ public class BichoPairFilePerIssueMetricsInDateServices extends AbstractBichoMet
 
             final Integer commitWeight = Integer.valueOf(columns[4]);
             final Set<Integer> commits = toIntegerList(columns[5]);
+            final Integer futureDefects = Integer.valueOf(columns[6]);
 
             if (issues.isEmpty()) {
                 out.printLog("No issues for pair file " + filename1 + ";" + filename2);
@@ -220,6 +222,8 @@ public class BichoPairFilePerIssueMetricsInDateServices extends AbstractBichoMet
                     issuesSet.add(issue);
                     issuesPairFile.put(pairFile, issuesSet);
                 }
+
+                futureDefectsPairFile.put(pairFileIssue, futureDefects);
 
                 // TODO optimize querying at matrix generation
                 // Find the pair files committers
@@ -572,7 +576,7 @@ public class BichoPairFilePerIssueMetricsInDateServices extends AbstractBichoMet
                     codeChurn, codeChurn2, codeChurnAvg,
                     pairFileCodeChurn.getAdditionsNormalized(), pairFileCodeChurn.getDeletionsNormalized(), pairFileCodeChurn.getChanges(),
                     // rigidityFile1, rigidityFile2, rigidityPairFile,
-                    issuesTypesCount.get("Improvement"), issuesTypesCount.get("Bug"),
+                    issuesTypesCount.get("Improvement"), issuesTypesCount.get("Bug"), futureDefectsPairFile.get(fileFile),
                     ageRelease, ageTotal, updates, futureUpdates, allUpdates
             );
 
@@ -674,7 +678,7 @@ public class BichoPairFilePerIssueMetricsInDateServices extends AbstractBichoMet
                 + "codeChurn;codeChurn2;codeChurnAvg;"
                 + "add;del;changes;"
                 // + "rigidityFile1;rigidityFile2;rigidityPairFile;"
-                + "taskImprovement;taskDefect;"
+                + "taskImprovement;taskDefect;futureDefects;"
                 + "ageRelease;ageTotal;"
                 + "updates;futureUpdates;allUpdates;"
                 + "fileFutureIssues;file2FutureIssues;allFutureIssues;"

@@ -2,16 +2,19 @@
      xmlns:h="http://java.sun.com/jsf/html" 
      xmlns:p="http://primefaces.org/ui">
 
-    <h2>Usuarios que comentaram no mesmo arquivo em todo o projeto a cada X meses</h2>
-
-    <br />
-
     <h:panelGrid columns="2" cellspacing="10" cellpadding="0">
         <h:outputLabel value="Date: " for="beginDate" />
         <h:panelGrid columns="3" cellspacing="0" cellpadding="0">
             <p:calendar value="#{bean.paramValue['beginDate']}" id="beginDate" pattern="dd/MM/yyyy HH:mm:ss" navigator="true" size="20" autocomplete="true" showOn="button"/>
             <h:outputLabel value=" to " for="endDate" style="margin: 0 10px;" />
             <p:calendar value="#{bean.paramValue['endDate']}" id="endDate" pattern="dd/MM/yyyy HH:mm:ss" navigator="true" size="20" autocomplete="true" showOn="button" />
+        </h:panelGrid>
+
+        <h:outputLabel value="Future Date: " for="futureBeginDate" title="for count issues" />
+        <h:panelGrid columns="3" cellspacing="0" cellpadding="0">
+            <p:calendar value="#{bean.paramValue['futureBeginDate']}" id="futureBeginDate" pattern="dd/MM/yyyy HH:mm:ss" navigator="true" size="20" autocomplete="true" showOn="button"/>
+            <h:outputLabel value=" to " for="futureEndDate" style="margin: 0 10px;" />
+            <p:calendar value="#{bean.paramValue['futureEndDate']}" id="futureEndDate" pattern="dd/MM/yyyy HH:mm:ss" navigator="true" size="20" autocomplete="true" showOn="button" />
         </h:panelGrid>
 
         <h:outputText value="Minimum files per commit: " />
@@ -22,6 +25,9 @@
 
         <h:outputLabel value="Considers only merged pull request?" for="mergedOnly" />  
         <p:selectBooleanCheckbox value="#{bean.paramValue['mergedOnly']}" id="mergedOnly" />
+
+        <h:outputLabel value="Filename" for="filename" />
+        <p:inputText value="#{bean.paramValue['filename']}" id="filename" size="20" />
 
     </h:panelGrid>
 

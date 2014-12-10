@@ -2,6 +2,7 @@ package br.edu.utfpr.cm.minerador.services.matrix;
 
 import br.edu.utfpr.cm.JGitMinerWeb.dao.BichoDAO;
 import br.edu.utfpr.cm.JGitMinerWeb.dao.BichoFileDAO;
+import br.edu.utfpr.cm.JGitMinerWeb.dao.BichoPairFileDAO;
 import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericBichoDAO;
 import br.edu.utfpr.cm.JGitMinerWeb.model.matrix.EntityMatrix;
 import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.auxiliary.AuxFileFile;
@@ -60,6 +61,14 @@ public class BichoPairOfFileInDateServices extends AbstractBichoMatrixServices {
         return getDateParam("endDate");
     }
 
+    public Date getFutureBeginDate() {
+        return getDateParam("futureBeginDate");
+    }
+
+    public Date getFutureEndDate() {
+        return getDateParam("futureEndDate");
+    }
+
     @Override
     public void run() {
         System.out.println(params);
@@ -71,6 +80,9 @@ public class BichoPairOfFileInDateServices extends AbstractBichoMatrixServices {
         Date beginDate = getBeginDate();
         Date endDate = getEndDate();
 
+        Date futureBeginDate = getFutureBeginDate();
+        Date futureEndDate = getFutureEndDate();
+
         Map<AuxFileFile, AuxFileFile> pairFiles = new HashMap<>();
 
 //        Pattern fileToConsiders = null;
@@ -80,6 +92,7 @@ public class BichoPairOfFileInDateServices extends AbstractBichoMatrixServices {
 
         BichoDAO bichoDAO = new BichoDAO(dao, getRepository());
         BichoFileDAO bichoFileDAO = new BichoFileDAO(dao, getRepository(), getMaxFilesPerCommit());
+        BichoPairFileDAO bichoParFileDAO = new BichoPairFileDAO(dao, getRepository(), getMaxFilesPerCommit());
 
         out.printLog("Maximum files per commit: " + getMaxFilesPerCommit());
         out.printLog("Minimum files per commit: " + getMinFilesPerCommit());
@@ -134,6 +147,17 @@ public class BichoPairOfFileInDateServices extends AbstractBichoMatrixServices {
                     }
                 }
             }
+
+            if (futureBeginDate != null
+                    && futureEndDate != null) {
+                for (AuxFileFile fileFile : pairFiles.keySet()) {
+                    long futureDefectIssues = bichoParFileDAO.calculeNumberOfIssues(
+                            fileFile.getFileName(), fileFile.getFileName2(),
+                            futureBeginDate, futureEndDate, "Bug",
+                            true);
+                    fileFile.setFutureDefects(futureDefectIssues);
+                }
+            }
             numberFilePairs += numberPairFilesInIssue;
             out.printLog("Issue pairs files: " + numberPairFilesInIssue);
 
@@ -148,6 +172,6 @@ public class BichoPairOfFileInDateServices extends AbstractBichoMatrixServices {
 
     @Override
     public String getHeadCSV() {
-        return "file;file2;issueWeigth;issues;commitsWeight;commmits";
+        return "file;file2;issueWeigth;issues;commitsWeight;commmits;futureDefects";
     }
 }
