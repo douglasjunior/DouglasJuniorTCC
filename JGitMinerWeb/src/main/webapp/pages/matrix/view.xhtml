@@ -13,7 +13,7 @@
             <p:dataTable var="matrix" value="#{gitMatrixViewBean.matrices}" id="list" rows="10" lazy="false"
                          emptyMessage="No matrices generated found." paginator="true" paginatorPosition="bottom"
                          paginatorTemplate="{CurrentPageReport}  {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
-                         rowsPerPageTemplate="5,10,15">
+                         rowsPerPageTemplate="10,25,50,100" >
                 <p:column headerText="ID">
                     <h:outputText value="#{matrix.id}" />
                 </p:column>
@@ -46,7 +46,7 @@
                     <p:commandButton onclick="PrimeFaces.monitorDownload(start, stop)" ajax="false" value="Log">
                         <p:fileDownload value="#{gitMatrixViewBean.downloadLOG(matrix)}" />  
                     </p:commandButton> 
-                    <p:commandButton onclick="PrimeFaces.monitorDownload(start, stop)" ajax="false" value="CSV">
+                    <p:commandButton onclick="PrimeFaces.monitorDownload(start, stop)" ajax="false" value="CSV" title="#{matrix}">
                         <p:fileDownload value="#{gitMatrixViewBean.downloadCSV(matrix)}" />  
                     </p:commandButton> 
                     <p:commandButton onclick="PrimeFaces.monitorDownload(start, stop)"  ajax="false" value="Params">

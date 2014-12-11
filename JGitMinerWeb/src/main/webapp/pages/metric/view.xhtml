@@ -13,7 +13,7 @@
             <p:dataTable var="metric" value="#{gitMetricViewBean.metrics}" id="list" rows="10" lazy="false"
                          emptyMessage="No calculated metrics found." paginator="true" paginatorPosition="bottom"
                          paginatorTemplate="{CurrentPageReport}  {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
-                         rowsPerPageTemplate="5,10,15" style="width: 100%">
+                         rowsPerPageTemplate="10,25,50,100" style="width: 100%">
 
                 <p:column headerText="ID">
                     <h:outputText value="#{metric.id}" />
@@ -47,7 +47,7 @@
                     <p:commandButton onclick="PrimeFaces.monitorDownload(start, stop)" ajax="false" value="Log">
                         <p:fileDownload value="#{gitMetricViewBean.downloadLOG(metric)}" />  
                     </p:commandButton> 
-                    <p:commandButton onclick="PrimeFaces.monitorDownload(start, stop)" ajax="false" value="CSV">
+                    <p:commandButton onclick="PrimeFaces.monitorDownload(start, stop)" ajax="false" value="CSV" title="#{metric}">
                         <p:fileDownload value="#{gitMetricViewBean.downloadCSV(metric)}" />  
                     </p:commandButton> 
                     <p:commandButton onclick="PrimeFaces.monitorDownload(start, stop)"  ajax="false" value="Params">
