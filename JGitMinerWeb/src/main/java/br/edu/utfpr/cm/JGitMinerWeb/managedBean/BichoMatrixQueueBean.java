@@ -103,7 +103,6 @@ public class BichoMatrixQueueBean implements Serializable {
         } else if (progress > 100) {
             progress = 100;
         }
-        System.out.println("progress: " + progress);
         return progress;
     }
 
