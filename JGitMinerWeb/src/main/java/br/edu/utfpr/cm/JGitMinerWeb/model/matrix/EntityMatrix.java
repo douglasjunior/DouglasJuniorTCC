@@ -166,9 +166,9 @@ public class EntityMatrix implements InterfaceEntity, Startable {
         final Object beginDate = params.get("beginDate");
         final Object endDate = params.get("endDate");
         if (filename != null && beginDate != null && endDate != null) {
-            String initialDate = DateFormatUtils.format((Date) beginDate, "dd/MM/yyyy HH:mm:ss");
-            String finalDate = DateFormatUtils.format((Date) endDate, "dd/MM/yyyy HH:mm:ss");
-            return StringUtils.capitalize(repository) + " " + filename + " " + initialDate + " - " + finalDate;
+            String initialDate = DateFormatUtils.format((Date) beginDate, "dd/MM/yyyy");
+            String finalDate = DateFormatUtils.format((Date) endDate, "dd/MM/yyyy");
+            return StringUtils.capitalize(repository) + " - " + filename + " - " + initialDate + " - " + finalDate;
         } else {
             return "(" + id + ") " + repository + " - " + getClassServicesSingleName();
         }

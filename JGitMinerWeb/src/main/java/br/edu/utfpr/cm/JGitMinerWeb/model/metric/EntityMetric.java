@@ -168,7 +168,12 @@ public class EntityMetric implements InterfaceEntity, Startable {
 
     @Override
     public String toString() {
-        return "br.edu.utfpr.cm.JGitMinerWeb.pojo.metric.EntityMetric[ id=" + id + " ]";
+        final Object filename = params.get("filename");
+        if (filename != null) {
+            return matrix + " - metrics " + filename;
+        } else {
+            return matrix + " - metrics";
+        }
     }
 
     @Override
