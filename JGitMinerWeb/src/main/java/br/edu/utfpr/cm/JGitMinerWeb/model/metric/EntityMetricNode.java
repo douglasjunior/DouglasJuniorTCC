@@ -1,7 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package br.edu.utfpr.cm.JGitMinerWeb.model.metric;
 
 import br.edu.utfpr.cm.JGitMinerWeb.model.EntityNode;
@@ -20,7 +16,7 @@ import javax.persistence.ManyToOne;
 public class EntityMetricNode extends EntityNode {
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "metric_id")
+    @JoinColumn(name = "metric_id", referencedColumnName = "id")
     private EntityMetric metric;
 
     public EntityMetricNode() {
