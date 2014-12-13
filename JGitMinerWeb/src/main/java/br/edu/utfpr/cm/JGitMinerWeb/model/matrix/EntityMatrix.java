@@ -21,7 +21,6 @@ import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.time.DateFormatUtils;
 
 /**
  *
@@ -163,12 +162,8 @@ public class EntityMatrix implements InterfaceEntity, Startable {
     @Override
     public String toString() {
         final Object filename = params.get("filename");
-        final Object beginDate = params.get("beginDate");
-        final Object endDate = params.get("endDate");
-        if (filename != null && beginDate != null && endDate != null) {
-            String initialDate = DateFormatUtils.format((Date) beginDate, "dd/MM/yyyy");
-            String finalDate = DateFormatUtils.format((Date) endDate, "dd/MM/yyyy");
-            return StringUtils.capitalize(repository) + " - " + filename + " - " + initialDate + " - " + finalDate;
+        if (filename != null) {
+            return StringUtils.capitalize(repository) + " " + filename;
         } else {
             return "(" + id + ") " + repository + " - " + getClassServicesSingleName();
         }
@@ -176,7 +171,12 @@ public class EntityMatrix implements InterfaceEntity, Startable {
 
     @Override
     public String getDownloadFileName() {
-        return this.repository + "-" + this.started;
+        final Object filename = params.get("filename");
+        if (filename != null) {
+            return StringUtils.capitalize(repository) + " " + filename;
+        } else {
+            return this.repository + "-" + this.started;
+        }
     }
 
     public void addAllParams(Map<Object, Object> params) {
