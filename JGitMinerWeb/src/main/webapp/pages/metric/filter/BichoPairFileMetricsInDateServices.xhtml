@@ -10,6 +10,9 @@
             <p:calendar value="#{bean.paramValue['futureEndDate']}" id="futureEndDate" pattern="dd/MM/yyyy HH:mm:ss" navigator="true" size="20" autocomplete="true" showOn="button" />
             <i>(Used for count modifications)</i>
         </h:panelGroup>
+
+        <h:outputLabel value="Filename" for="filename" />
+        <p:inputText value="#{bean.paramValue['filename']}" id="filename" size="20" />
     </h:panelGrid>
     
 </div>
