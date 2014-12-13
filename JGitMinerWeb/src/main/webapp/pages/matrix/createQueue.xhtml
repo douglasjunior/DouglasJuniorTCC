@@ -53,7 +53,7 @@
             <br />
 
             <p:progressBar id="progress" widgetVar="progressVar" ajax="true" value="#{gitMatrixQueueBean.progress}" labelTemplate="{value}%" styleClass="animated" interval="3000" >
-                <p:ajax event="complete" listener="#{gitMatrixQueueBean.onComplete()}" update="messages,loadingImage,logTextArea" oncomplete="startButtonVar.enable();textAreaUpdaterVar.stop();"/>
+                <p:ajax event="complete" listener="#{gitMatrixQueueBean.onComplete()}" update="@this,messages,loadingImage,logTextArea" oncomplete="startButtonVar.enable();textAreaUpdaterVar.stop();"/>
             </p:progressBar>
 
             <br />
@@ -64,7 +64,7 @@
             </div>
             <br />
 
-            <p:poll id="textAreaUpdater" widgetVar="textAreaUpdaterVar" async="true" interval="4" update="logTextArea,loadingImage" autoStart="#{gitMatrixQueueBean.initialized}" />
+            <p:poll id="textAreaUpdater" widgetVar="textAreaUpdaterVar" async="true" interval="4" update="logTextArea,loadingImage" autoStart="#{gitMatrixQueueBean.initialized}" stop="#{gitMatrixQueueBean.initialized}" />
 
             <h3>Log:</h3>
             <br />
