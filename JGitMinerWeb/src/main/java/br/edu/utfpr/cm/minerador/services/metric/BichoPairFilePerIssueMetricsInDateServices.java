@@ -36,6 +36,7 @@ import br.edu.utfpr.cm.JGitMinerWeb.util.PathUtils;
 import br.edu.utfpr.cm.minerador.services.matrix.BichoPairOfFileInDateServices;
 import br.edu.utfpr.cm.minerador.services.matrix.BichoUserCommentedSamePairOfFileOnIssueInDateServices;
 import br.edu.utfpr.cm.minerador.services.matrix.model.Commenter;
+import br.edu.utfpr.cm.minerador.services.matrix.model.FilePairApriori;
 import edu.uci.ics.jung.graph.DirectedSparseGraph;
 import edu.uci.ics.jung.graph.util.EdgeType;
 import java.text.SimpleDateFormat;
@@ -566,20 +567,13 @@ public class BichoPairFilePerIssueMetricsInDateServices extends AbstractBichoMet
 
             auxFileFileMetrics.addMetrics(file1FutureIssues, file2FutureIssues, numberAllFutureIssues);
 
-            Double supportFile = file1FutureIssues.doubleValue() / numberAllFutureIssues.doubleValue();
-            Double supportFile2 = file2FutureIssues.doubleValue() / numberAllFutureIssues.doubleValue();
-            Double supportPairFile = futureUpdates.doubleValue() / numberAllFutureIssues.doubleValue();
-            Double confidence = supportFile == 0 ? 0d : supportPairFile / supportFile;
-            Double confidence2 = supportFile2 == 0 ? 0d : supportPairFile / supportFile2;
-            Double lift = supportFile * supportFile2 == 0 ? 0d : supportPairFile / (supportFile * supportFile2);
-            Double conviction = 1 - confidence == 0 ? 0d : (1 - supportFile) / (1 - confidence);
-            Double conviction2 = 1 - confidence2 == 0 ? 0d : (1 - supportFile2) / (1 - confidence2);
+            FilePairApriori apriori = new FilePairApriori(file1FutureIssues, file2FutureIssues, futureUpdates, numberAllFutureIssues);
 
             auxFileFileMetrics.addMetrics(
-                    supportFile, supportFile2, supportPairFile,
-                    confidence, confidence2,
-                    lift,
-                    conviction, conviction2
+                    apriori.getSupportFile(), apriori.getSupportFile2(), apriori.getSupportFilePair(),
+                    apriori.getConfidence(), apriori.getConfidence2(),
+                    apriori.getLift(),
+                    apriori.getConviction(), apriori.getConviction2()
             );
 
             fileFileMetrics.add(auxFileFileMetrics);
