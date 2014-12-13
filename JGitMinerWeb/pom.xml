@@ -87,7 +87,7 @@
         <dependency>
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
-            <version>5.1.33</version>
+            <version>5.1.34</version>
         </dependency>
         
         <!-- JUNG Java Universal Network/Graph framework -->
@@ -199,7 +199,7 @@
                 <dependency>
                     <groupId>org.glassfish.main.extras</groupId>
                     <artifactId>glassfish-embedded-all</artifactId>
-                    <version>4.0</version>
+                    <version>4.1</version>
                     <scope>provided</scope>
                 </dependency>
                 <dependency>
