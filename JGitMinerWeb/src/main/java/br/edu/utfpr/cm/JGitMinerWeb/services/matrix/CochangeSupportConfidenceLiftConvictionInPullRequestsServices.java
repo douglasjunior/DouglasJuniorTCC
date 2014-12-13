@@ -178,7 +178,7 @@ public class CochangeSupportConfidenceLiftConvictionInPullRequestsServices exten
                 Double confidence = supportFile == 0 ? 0d : supportPairFile / supportFile;
                 Double confidence2 = supportFile2 == 0 ? 0d : supportPairFile / supportFile2;
                 Double lift = supportFile * supportFile2 == 0 ? 0d : supportPairFile / (supportFile * supportFile2);
-                Double conviction = 1 - confidence == 0 ? 0d : (1 - supportFile2) / (1 - confidence);
+                Double conviction = 1 - confidence == 0 ? 0d : (1 - supportFile) / (1 - confidence);
                 Double conviction2 = 1 - confidence2 == 0 ? 0d : (1 - supportFile2) / (1 - confidence2);
 
                 pairFile.addMetrics(supportFile, supportFile2, supportPairFile, confidence, confidence2, lift, conviction, conviction2);
