@@ -3,6 +3,13 @@
      xmlns:p="http://primefaces.org/ui">
     
     <h:panelGrid columns="2" cellpadding="5" columnClasses="col">
+        <h:outputLabel value="Date: " for="beginDate" />
+        <h:panelGrid columns="3" cellspacing="0" cellpadding="0">
+            <p:calendar value="#{bean.paramValue['beginDate']}" id="beginDate" pattern="dd/MM/yyyy HH:mm:ss" navigator="true" size="20" autocomplete="true" showOn="button"/>
+            <h:outputLabel value=" to " for="endDate" style="margin: 0 10px;" />
+            <p:calendar value="#{bean.paramValue['endDate']}" id="endDate" pattern="dd/MM/yyyy HH:mm:ss" navigator="true" size="20" autocomplete="true" showOn="button" />
+        </h:panelGrid>
+
         <h:outputLabel value="Future Date: " for="futureBeginDate" />  
         <h:panelGroup>
             <p:calendar value="#{bean.paramValue['futureBeginDate']}" id="futureBeginDate" pattern="dd/MM/yyyy HH:mm:ss" navigator="true" size="20" autocomplete="true" showOn="button" />

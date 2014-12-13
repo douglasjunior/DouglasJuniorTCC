@@ -256,6 +256,8 @@ public class BichoMetricQueueBean implements Serializable {
     public String getMatrixParamsToString() {
         matrix = getMatrixSelected();
         if (matrix != null) {
+            params.put("beginDate", matrix.getParams().get("beginDate"));
+            params.put("endDate", matrix.getParams().get("endDate"));
             params.put("futureBeginDate", matrix.getParams().get("beginDate"));
             params.put("futureEndDate", matrix.getParams().get("endDate"));
             return matrix.getParams() + "";
