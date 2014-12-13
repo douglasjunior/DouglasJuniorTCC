@@ -108,9 +108,6 @@ public class BichoPairFileMetricsInDateServices extends AbstractBichoMetricServi
             throw new IllegalArgumentException("Não foi possível encontrar o repositório utilizado nesta matriz.");
         }
 
-        Date futureBeginDate = getFutureBeginDate();
-        Date futureEndDate = getFutureEndDate();
-
         Date beginDate = getBeginDate();
         Date endDate = getEndDate();
 
@@ -139,7 +136,7 @@ public class BichoPairFileMetricsInDateServices extends AbstractBichoMetricServi
         BichoFileDAO bichoFileDAO = new BichoFileDAO(dao, repository, maxFilePerCommit);
         BichoPairFileDAO bichoPairFileDAO = new BichoPairFileDAO(dao, repository, maxFilePerCommit);
         Long issuesSize = bichoPairFileDAO
-                .calculeNumberOfIssues(futureBeginDate, futureEndDate, true);
+                .calculeNumberOfIssues(beginDate, endDate, true);
 
         System.out.println("Number of all pull requests: " + issuesSize);
 
@@ -521,15 +518,15 @@ public class BichoPairFileMetricsInDateServices extends AbstractBichoMetricServi
             // apriori /////////////////////////////////////////////////////////
             Long file1FutureIssues
                     = Cacher.calculeNumberOfIssues(issueFileMap, auxFileFileMetrics.getFile(),
-                            bichoFileDAO, futureBeginDate, futureEndDate);
+                            bichoFileDAO, beginDate, endDate);
 
             Long file2FutureIssues
                     = Cacher.calculeNumberOfIssues(issueFileMap, auxFileFileMetrics.getFile2(),
-                            bichoFileDAO, futureBeginDate, futureEndDate);
+                            bichoFileDAO, beginDate, endDate);
 
             auxFileFileMetrics.addMetrics(file1FutureIssues, file2FutureIssues, numberAllFutureIssues);
 
-            FilePairApriori apriori = new FilePairApriori(file1FutureIssues, file2FutureIssues, futureUpdates, numberAllFutureIssues);
+            FilePairApriori apriori = new FilePairApriori(file1FutureIssues, file2FutureIssues, updates, numberAllFutureIssues);
 
             auxFileFileMetrics.addMetrics(
                     apriori.getSupportFile(), apriori.getSupportFile2(), apriori.getSupportFilePair(),
