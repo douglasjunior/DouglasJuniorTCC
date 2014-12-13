@@ -52,10 +52,10 @@ public abstract class AbstractBichoMetricServices extends AbstractBichoServices 
     @Override
     public abstract String getHeadCSV();
 
-    protected static List<EntityMetricNode> objectsToNodes(Collection list) {
+    protected static List<EntityMetricNode> objectsToNodes(Collection<?> list) {
         List<EntityMetricNode> nodes = new ArrayList<>();
-        for (Object obj : list) {
-            nodes.add(new EntityMetricNode(obj));
+        for (Object value : list) {
+            nodes.add(new EntityMetricNode(value.toString()));
         }
         return nodes;
     }

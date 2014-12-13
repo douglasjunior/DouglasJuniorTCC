@@ -23,7 +23,7 @@ public class EntityMetricNode extends EntityNode {
         super();
     }
 
-    public EntityMetricNode(Object line) {
+    public EntityMetricNode(String line) {
         super(line);
     }
 

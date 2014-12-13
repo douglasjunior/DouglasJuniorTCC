@@ -42,8 +42,8 @@ public abstract class EntityNode implements InterfaceEntity, Serializable {
     public EntityNode() {
     }
 
-    public EntityNode(Object line) {
-        this.line = line + "";
+    public EntityNode(String line) {
+        this.line = line;
     }
 
     @Override

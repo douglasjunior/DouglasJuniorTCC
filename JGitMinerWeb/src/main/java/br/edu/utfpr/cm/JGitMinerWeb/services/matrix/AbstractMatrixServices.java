@@ -53,8 +53,8 @@ public abstract class AbstractMatrixServices extends AbstractServices {
 
     protected List<EntityMatrixNode> objectsToNodes(Collection list) {
         List<EntityMatrixNode> nodes = new ArrayList<>();
-        for (Object obj : list) {
-            nodes.add(new EntityMatrixNode(obj));
+        for (Object value : list) {
+            nodes.add(new EntityMatrixNode(value.toString()));
         }
         return nodes;
     }

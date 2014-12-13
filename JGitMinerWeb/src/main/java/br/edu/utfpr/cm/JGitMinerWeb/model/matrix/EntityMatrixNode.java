@@ -23,7 +23,7 @@ public class EntityMatrixNode extends EntityNode {
         super();
     }
 
-    public EntityMatrixNode(Object line) {
+    public EntityMatrixNode(String line) {
         super(line);
     }
 

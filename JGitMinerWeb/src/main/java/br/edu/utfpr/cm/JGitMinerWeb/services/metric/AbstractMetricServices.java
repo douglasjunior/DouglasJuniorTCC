@@ -51,8 +51,8 @@ public abstract class AbstractMetricServices extends AbstractServices {
         if (nodes == null) {
             nodes = new ArrayList<>();
         }
-        for (Object obj : list) {
-            nodes.add(new EntityMetricNode(obj));
+        for (Object value : list) {
+            nodes.add(new EntityMetricNode(value.toString()));
         }
     }
 
