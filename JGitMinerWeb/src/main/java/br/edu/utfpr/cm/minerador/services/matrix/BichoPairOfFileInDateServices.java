@@ -5,10 +5,13 @@ import br.edu.utfpr.cm.JGitMinerWeb.dao.BichoFileDAO;
 import br.edu.utfpr.cm.JGitMinerWeb.dao.BichoPairFileDAO;
 import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericBichoDAO;
 import br.edu.utfpr.cm.JGitMinerWeb.model.matrix.EntityMatrix;
-import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.auxiliary.AuxFileFile;
 import br.edu.utfpr.cm.JGitMinerWeb.util.OutLog;
 import br.edu.utfpr.cm.JGitMinerWeb.util.Util;
+import br.edu.utfpr.cm.minerador.services.matrix.model.FilePair;
+import br.edu.utfpr.cm.minerador.services.matrix.model.FilePairApriori;
+import br.edu.utfpr.cm.minerador.services.matrix.model.FilePairOutput;
 import br.edu.utfpr.cm.minerador.services.matrix.model.FilePath;
+import br.edu.utfpr.cm.minerador.services.metric.Cacher;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -29,7 +32,7 @@ public class BichoPairOfFileInDateServices extends AbstractBichoMatrixServices {
         super(dao, out);
     }
 
-    public BichoPairOfFileInDateServices(GenericBichoDAO dao, String repository, List<EntityMatrix> matricesToSave, Map params, OutLog out) {
+    public BichoPairOfFileInDateServices(GenericBichoDAO dao, String repository, List<EntityMatrix> matricesToSave, Map<?, ?> params, OutLog out) {
         super(dao, repository, matricesToSave, params, out);
     }
 
@@ -83,7 +86,7 @@ public class BichoPairOfFileInDateServices extends AbstractBichoMatrixServices {
         Date futureBeginDate = getFutureBeginDate();
         Date futureEndDate = getFutureEndDate();
 
-        Map<AuxFileFile, AuxFileFile> pairFiles = new HashMap<>();
+        Map<FilePair, FilePairOutput> pairFiles = new HashMap<>();
 
 //        Pattern fileToConsiders = null;
 //        if (getFilesToConsiders() != null && !getFilesToConsiders().isEmpty()) {
@@ -105,6 +108,7 @@ public class BichoPairOfFileInDateServices extends AbstractBichoMatrixServices {
 
         int count = 1;
         int numberFilePairs = 0;
+        Map<String, Long> issueFileMap = new HashMap<>();
 
         // combina em pares todos os arquivos commitados em uma issue
         for (Map.Entry<Integer, List<Integer>> entrySet : issuesCommits.entrySet()) {
@@ -134,15 +138,15 @@ public class BichoPairOfFileInDateServices extends AbstractBichoMatrixServices {
                 for (int j = i + 1; j < commitedFiles.size(); j++) {
                     FilePath file2 = commitedFiles.get(j);
                     if (!file1.getFilePath().equals(file2.getFilePath())) {
-                        AuxFileFile fileFile = new AuxFileFile(file1.getFilePath(),
-                                file2.getFilePath());
-                        if (pairFiles.containsKey(fileFile)) {
-                            pairFiles.get(fileFile).addIssueId(issue);
+                        FilePair filePair = new FilePair(file1.getFilePath(), file2.getFilePath());
+                        FilePairOutput filePairOutput = new FilePairOutput(filePair);
+                        if (pairFiles.containsKey(filePair)) {
+                            pairFiles.get(filePair).addIssueId(issue);
                         } else {
-                            fileFile.addIssueId(issue);
-                            fileFile.addCommitId(file1.getCommitId());
-                            fileFile.addCommitId(file2.getCommitId());
-                            pairFiles.put(fileFile, fileFile);
+                            filePairOutput.addIssueId(issue);
+                            filePairOutput.addCommitId(file1.getCommitId());
+                            filePairOutput.addCommitId(file2.getCommitId());
+                            pairFiles.put(filePair, filePairOutput);
                         }
                     }
                 }
@@ -150,12 +154,12 @@ public class BichoPairOfFileInDateServices extends AbstractBichoMatrixServices {
 
             if (futureBeginDate != null
                     && futureEndDate != null) {
-                for (AuxFileFile fileFile : pairFiles.keySet()) {
-                    long futureDefectIssues = bichoParFileDAO.calculeNumberOfIssues(
-                            fileFile.getFileName(), fileFile.getFileName2(),
+                for (FilePair fileFile : pairFiles.keySet()) {
+                    List<Integer> futureDefectIssues = bichoParFileDAO.selectIssues(
+                            fileFile.getFile1(), fileFile.getFile2(),
                             futureBeginDate, futureEndDate, "Bug",
                             true);
-                    fileFile.setFutureDefects(futureDefectIssues);
+                    pairFiles.get(fileFile).addFutureDefectIssuesId(futureDefectIssues);
                 }
             }
             numberFilePairs += numberPairFilesInIssue;
@@ -165,6 +169,43 @@ public class BichoPairOfFileInDateServices extends AbstractBichoMatrixServices {
         out.printLog("Number of pairs files: " + numberFilePairs);
         out.printLog("Result: " + pairFiles.size());
 
+        // calculando o apriori
+        out.printLog("Computing apriori...");
+
+        BichoPairFileDAO bichoPairFileDAO = new BichoPairFileDAO(dao, getRepository(), getMaxFilesPerCommit());
+        Long allIssuesInPeriod = bichoPairFileDAO
+                .calculeNumberOfIssues(beginDate, endDate, true);
+        out.printLog("Issues between period: " + allIssuesInPeriod);
+        int totalApriori = pairFiles.size();
+        int countApriori = 0;
+
+        final List<FilePairOutput> pairFileList = new ArrayList<>();
+
+        for (FilePair fileFile : pairFiles.keySet()) {
+            if (countApriori++ % 100 == 0) {
+                System.out.println(countApriori + "/" + totalApriori);
+            }
+
+            Long file1Issues
+                    = Cacher.calculeNumberOfIssues(
+                            issueFileMap, fileFile.getFile1(),
+                            bichoFileDAO, beginDate, endDate);
+
+            Long file2Issues
+                    = Cacher.calculeNumberOfIssues(
+                            issueFileMap, fileFile.getFile2(),
+                            bichoFileDAO, beginDate, endDate);
+
+            FilePairOutput filePairOutput = pairFiles.get(fileFile);
+
+            FilePairApriori apriori = new FilePairApriori(file1Issues, file2Issues,
+                    filePairOutput.getIssuesIdWeight(), allIssuesInPeriod);
+
+            filePairOutput.setFilePairApriori(apriori);
+
+            pairFileList.add(filePairOutput);
+        }
+
         EntityMatrix matrix = new EntityMatrix();
         matrix.setNodes(objectsToNodes(pairFiles.values()));
         matricesToSave.add(matrix);
@@ -172,6 +213,6 @@ public class BichoPairOfFileInDateServices extends AbstractBichoMatrixServices {
 
     @Override
     public String getHeadCSV() {
-        return "file;file2;issueWeigth;issues;commitsWeight;commmits;futureDefects";
+        return FilePairOutput.getToStringHeader();
     }
 }

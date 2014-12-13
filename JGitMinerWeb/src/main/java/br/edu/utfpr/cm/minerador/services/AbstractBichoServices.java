@@ -18,7 +18,7 @@ import java.util.Map;
 public abstract class AbstractBichoServices implements Runnable, Serializable {
 
     protected final GenericBichoDAO dao;
-    protected Map params;
+    protected Map<?, ?> params;
     protected OutLog out;
 
     public AbstractBichoServices() {
@@ -30,7 +30,7 @@ public abstract class AbstractBichoServices implements Runnable, Serializable {
         this.out = out;
     }
 
-    public AbstractBichoServices(GenericBichoDAO dao, Map params, OutLog out) {
+    public AbstractBichoServices(GenericBichoDAO dao, Map<?, ?> params, OutLog out) {
         this(dao, out);
         this.params = params;
     }

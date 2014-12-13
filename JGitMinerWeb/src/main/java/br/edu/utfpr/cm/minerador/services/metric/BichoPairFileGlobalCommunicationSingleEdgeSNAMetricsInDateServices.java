@@ -35,7 +35,6 @@ import edu.uci.ics.jung.graph.DirectedSparseGraph;
 import edu.uci.ics.jung.graph.util.EdgeType;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
-import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
@@ -61,7 +60,7 @@ public class BichoPairFileGlobalCommunicationSingleEdgeSNAMetricsInDateServices 
         super(dao, out);
     }
 
-    public BichoPairFileGlobalCommunicationSingleEdgeSNAMetricsInDateServices(GenericBichoDAO dao, EntityMatrix matrix, Map params, OutLog out, List<EntityMetric> metricsToSave) {
+    public BichoPairFileGlobalCommunicationSingleEdgeSNAMetricsInDateServices(GenericBichoDAO dao, EntityMatrix matrix, Map<?, ?> params, OutLog out, List<EntityMetric> metricsToSave) {
         super(dao, matrix, params, out, metricsToSave);
     }
 
@@ -110,20 +109,6 @@ public class BichoPairFileGlobalCommunicationSingleEdgeSNAMetricsInDateServices 
         
         Date beginDate = getBeginDate();
         Date endDate = getEndDate();
-
-        if (futureBeginDate == null && futureEndDate == null) {
-            if (getIntervalOfMonths() == null || getIntervalOfMonths() == 0) {
-                throw new IllegalArgumentException("A matriz selecionada não possui parâmetro de Interval Of Months, informe Future Begin Date e Future End Date.");
-            }
-            futureBeginDate = (Date) getEndDate().clone();
-            Calendar cal = Calendar.getInstance();
-            cal.setTime((Date) futureBeginDate.clone());
-            cal.add(Calendar.MONTH, getIntervalOfMonths());
-            futureEndDate = cal.getTime();
-        }
-
-        params.put("futureBeginDate", futureBeginDate);
-        params.put("futureEndDate", futureEndDate);
 
         // user | file | file2 | user2 | weigth
         out.printLog("Iniciado cálculo da métrica de matriz com " + getMatrix().getNodes().size() + " nodes. Parametros: " + params);
