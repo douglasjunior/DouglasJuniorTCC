@@ -15,6 +15,7 @@ public class FilePairOutput {
     private final FilePair filePair;
     private final Set<Integer> issuesId;
     private final Set<Integer> commitsId;
+    private final Set<Integer> defectIssuesId;
     private final Set<Integer> futureDefectIssuesId;
     private FilePairApriori filePairApriori;
     private String risky = "NORISKY";
@@ -23,6 +24,7 @@ public class FilePairOutput {
         this.filePair = filePair;
         this.issuesId = new HashSet<>();
         this.commitsId = new HashSet<>();
+        this.defectIssuesId = new HashSet<>();
         this.futureDefectIssuesId = new HashSet<>();
     }
 
@@ -70,6 +72,14 @@ public class FilePairOutput {
         commitsId.add(commitId);
     }
 
+    public void addDefectIssueId(Integer defectId) {
+        defectIssuesId.add(defectId);
+    }
+
+    public void addDefectIssuesId(Collection<Integer> defectId) {
+        futureDefectIssuesId.addAll(defectId);
+    }
+
     public void addFutureDefectIssuesId(Integer futureDefectId) {
         futureDefectIssuesId.add(futureDefectId);
     }
@@ -77,7 +87,6 @@ public class FilePairOutput {
     public void addFutureDefectIssuesId(Collection<Integer> futureDefectId) {
         futureDefectIssuesId.addAll(futureDefectId);
     }
-
 
     public String getRisky() {
         return risky;

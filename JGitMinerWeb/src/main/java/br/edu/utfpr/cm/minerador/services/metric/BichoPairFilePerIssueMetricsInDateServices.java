@@ -479,15 +479,7 @@ public class BichoPairFilePerIssueMetricsInDateServices extends AbstractBichoMet
 //                    fileFile.getFileName(), fileFile.getFileName2(),
 //                    beginDate, endDate, true);
 
-            Long futureUpdates;
-//            if (beginDate.equals(futureBeginDate) && endDate.equals(futureEndDate)) {
-                futureUpdates = updates;
-//            } else {
-//                futureUpdates = bichoPairFileDAO.calculeNumberOfIssues(
-//                        fileFile.getFileName(), fileFile.getFileName2(),
-//                        futureBeginDate, futureEndDate, true);
-//            }
-
+            Long futureUpdates = updates;
             // list all issues and its comments
             Collection<AuxWordiness> issuesAndComments
                     = bichoPairFileDAO.listIssues(fileFile.getFileName(), fileFile.getFileName2(), beginDate, endDate, fileFileIssuesPerIssue);

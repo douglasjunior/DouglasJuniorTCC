@@ -207,7 +207,7 @@ public class BichoPairOfFileInDateServices extends AbstractBichoMatrixServices {
         }
 
         EntityMatrix matrix = new EntityMatrix();
-        matrix.setNodes(objectsToNodes(pairFiles.values()));
+        matrix.setNodes(objectsToNodes(pairFileList));
         matricesToSave.add(matrix);
     }
 

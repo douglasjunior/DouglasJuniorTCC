@@ -27,8 +27,8 @@ public class FilePairApriori {
         this.issues = filePairIssues;
         this.allIssues = allIssues;
 
-        supportFile = fileIssues / (double) filePairIssues;
-        supportFile2 = file2Issues / (double) filePairIssues;
+        supportFile = fileIssues / (double) allIssues;
+        supportFile2 = file2Issues / (double) allIssues;
         supportFilePair = filePairIssues / (double) allIssues;
         confidence = supportFile == 0 ? 0d : supportFilePair / supportFile;
         confidence2 = supportFile2 == 0 ? 0d : supportFilePair / supportFile2;
