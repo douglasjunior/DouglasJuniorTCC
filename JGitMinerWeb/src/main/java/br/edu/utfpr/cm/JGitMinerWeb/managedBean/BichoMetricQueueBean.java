@@ -9,6 +9,7 @@ import br.edu.utfpr.cm.JGitMinerWeb.model.metric.EntityMetricNode;
 import br.edu.utfpr.cm.JGitMinerWeb.util.JsfUtil;
 import br.edu.utfpr.cm.JGitMinerWeb.util.OutLog;
 import br.edu.utfpr.cm.minerador.services.metric.AbstractBichoMetricServices;
+import com.google.common.util.concurrent.AtomicDouble;
 import java.io.PrintWriter;
 import java.io.Serializable;
 import java.io.StringWriter;
@@ -21,7 +22,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicInteger;
 import javax.ejb.EJB;
 import javax.enterprise.context.SessionScoped;
 import javax.inject.Named;
@@ -46,7 +46,7 @@ public class BichoMetricQueueBean implements Serializable {
     private String matrixId;
     private Class<?> serviceClass;
     private String message;
-    private AtomicInteger progress;
+    private AtomicDouble progress;
     private boolean initialized;
     private boolean fail;
     private boolean canceled;
@@ -100,11 +100,11 @@ public class BichoMetricQueueBean implements Serializable {
 
     public Integer getProgress() {
         if (fail) {
-            progress = new AtomicInteger(100);
+            progress = new AtomicDouble(100d);
         } else if (progress == null) {
-            progress = new AtomicInteger(0);
+            progress = new AtomicDouble(0d);
         } else if (progress.intValue() > 100) {
-            progress.set(100);
+            progress.set(100d);
         }
 
         return progress.intValue();
@@ -142,7 +142,7 @@ public class BichoMetricQueueBean implements Serializable {
         initialized = false;
         canceled = false;
         fail = false;
-        progress = new AtomicInteger(0);
+        progress = new AtomicDouble(0);
 
         out.printLog("Geração da rede iniciada!");
         out.printLog("");
@@ -153,14 +153,14 @@ public class BichoMetricQueueBean implements Serializable {
         if (matrix == null || serviceClass == null) {
             message = "Erro: Escolha a Matriz e o Service desejado.";
             out.printLog(message);
-            progress = new AtomicInteger(0);
+            progress = new AtomicDouble(0);
             initialized = false;
             fail = true;
         } else {
             initialized = true;
-            progress = new AtomicInteger(1);
+            progress = new AtomicDouble(1);
             out.printLog("Queue size: " + paramsQueue.size());
-            final int fraction = 100 / paramsQueue.size();
+            final double fraction = 99.0d / paramsQueue.size();
             for (final Map<Object, Object> params : paramsQueue) {
                 final EntityMatrix matrix = (EntityMatrix) params.get("matrix");
                 params.putAll(matrix.getParams());
@@ -245,7 +245,7 @@ public class BichoMetricQueueBean implements Serializable {
     public void onComplete() {
         out.printLog("onComplete" + '\n');
         initialized = false;
-        progress = new AtomicInteger(0);
+        progress = new AtomicDouble(0);
         if (fail) {
             JsfUtil.addErrorMessage(message);
         } else {
