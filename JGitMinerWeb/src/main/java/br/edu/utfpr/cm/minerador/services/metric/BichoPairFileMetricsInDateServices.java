@@ -123,6 +123,7 @@ public class BichoPairFileMetricsInDateServices extends AbstractBichoMetricServi
         final Map<AuxFileFile, Set<Integer>> commitsPairFile = new HashMap<>();
         final Map<AuxFileFile, Integer> futureDefectsPairFile = new HashMap<>();
         final Map<String, Integer> edgesWeigth = new HashMap<>();
+        final Set<Integer> noCommenters = new HashSet<>();
 
         // rede de comunicação global, com todos pares de arquivos
         DirectedSparseGraph<String, String> globalGraph = new DirectedSparseGraph<>();
@@ -223,6 +224,7 @@ public class BichoPairFileMetricsInDateServices extends AbstractBichoMetricServi
 
             if (commenters.isEmpty()) {
                 out.printLog("No commenters for issues " + Arrays.toString(issues.toArray()) + " pair file " + filename1 + ";" + filename2);
+                noCommenters.addAll(issues);
             } else if (commenters.size() == 1) {
                 DirectedSparseGraph<String, String> graphMulti
                         = new DirectedSparseGraph<>();
@@ -277,6 +279,8 @@ public class BichoPairFileMetricsInDateServices extends AbstractBichoMetricServi
                 }
             }
         }
+        out.printLog("No commenters for issues " + Arrays.toString(noCommenters.toArray()));
+
         SimpleDateFormat format = new SimpleDateFormat("dd.MM.yyyy");
         JungExport.exportToImage(globalGraph, "C:/Users/a562273/Desktop/networks/",
                 repository + " Single " + format.format(beginDate) + " a " + format.format(endDate));
