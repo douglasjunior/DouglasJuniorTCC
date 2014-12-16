@@ -166,7 +166,12 @@ public class BichoPairFilePerIssueMetricsInDateServices extends AbstractBichoMet
 
             final Integer commitWeight = Integer.valueOf(columns[4]);
             final Set<Integer> commits = toIntegerList(columns[5]);
-            final Integer futureDefects = Integer.valueOf(columns[6]);
+
+            final Integer defectsWeight = Integer.valueOf(columns[6]);
+            final Set<Integer> defects = toIntegerList(columns[7]);
+
+            final Integer futureDefectsWeight = Integer.valueOf(columns[8]);
+            final Set<Integer> futureDefects = toIntegerList(columns[9]);
 
             files.add(filename1);
             files.add(filename2);
@@ -191,7 +196,7 @@ public class BichoPairFilePerIssueMetricsInDateServices extends AbstractBichoMet
                 issuesPairFile.put(pairFile, issuesSet);
             }
 
-            futureDefectsPairFile.put(pairFile, futureDefects);
+            futureDefectsPairFile.put(pairFile, futureDefectsWeight);
 
             // Group pair files by issue
             for (Integer issue : issues) {
@@ -239,7 +244,7 @@ public class BichoPairFilePerIssueMetricsInDateServices extends AbstractBichoMet
 
                 if (commenters.isEmpty()) {
                     out.printLog("No commenters for issue " + issue + " pair file " + filename1 + ";" + filename2);
-                    noCommenters.addAll(issues);
+                    noCommenters.add(issue);
                 } else if (commenters.size() == 1) {
                     DirectedSparseGraph<String, String> graphMulti
                             = new DirectedSparseGraph<>();
@@ -507,7 +512,6 @@ public class BichoPairFilePerIssueMetricsInDateServices extends AbstractBichoMet
 //            double rigidityPairFile = rigidityCalculator.calcule(file1Commits, file2Commits);
 //            double rigidityFile1 = rigidityCalculator.calcule(file1Commits);
 //            double rigidityFile2 = rigidityCalculator.calcule(file2Commits);
-            final int allUpdates = issuesPairFile.get(fileFile).size();
 
             AuxFileFileIssueMetrics auxFileFileMetrics = new AuxFileFileIssueMetrics(
                     fileFilePull.getFileName(), fileFilePull.getFileName2(),
@@ -541,7 +545,7 @@ public class BichoPairFilePerIssueMetricsInDateServices extends AbstractBichoMet
                     pairFileCodeChurn.getAdditionsNormalized(), pairFileCodeChurn.getDeletionsNormalized(), pairFileCodeChurn.getChanges(),
                     // rigidityFile1, rigidityFile2, rigidityPairFile,
                     issuesTypesCount.get("Improvement"), issuesTypesCount.get("Bug"), futureDefectsPairFile.get(fileFile),
-                    ageRelease, ageTotal, updates, futureUpdates, allUpdates
+                    ageRelease, ageTotal, updates, futureUpdates
             );
 
             // apriori /////////////////////////////////////////////////////////
@@ -641,7 +645,7 @@ public class BichoPairFilePerIssueMetricsInDateServices extends AbstractBichoMet
                 // + "rigidityFile1;rigidityFile2;rigidityPairFile;"
                 + "taskImprovement;taskDefect;futureDefects;"
                 + "ageRelease;ageTotal;"
-                + "updates;futureUpdates;allUpdates;"
+                + "updates;futureUpdates;"
                 + "fileFutureIssues;file2FutureIssues;allFutureIssues;"
                 + "supportFile;supportFile2;supportPairFile;confidence;confidence2;lift;conviction;conviction2";
     }

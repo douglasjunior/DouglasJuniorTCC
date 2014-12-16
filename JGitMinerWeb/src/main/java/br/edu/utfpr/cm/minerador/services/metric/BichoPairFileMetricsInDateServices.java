@@ -160,7 +160,13 @@ public class BichoPairFileMetricsInDateServices extends AbstractBichoMetricServi
 
             final Integer commitWeight = Integer.valueOf(columns[4]);
             final Set<Integer> commits = toIntegerList(columns[5]);
-            final Integer futureDefects = Integer.valueOf(columns[6]);
+
+            final Integer defectsWeight = Integer.valueOf(columns[6]);
+            final Set<Integer> defects = toIntegerList(columns[7]);
+
+            final Integer futureDefectsWeight = Integer.valueOf(columns[8]);
+            final Set<Integer> futureDefects = toIntegerList(columns[9]);
+
 
             if (issues.isEmpty()) {
                 out.printLog("No issues for pair file " + filename1 + ";" + filename2);
@@ -181,7 +187,7 @@ public class BichoPairFileMetricsInDateServices extends AbstractBichoMetricServi
                 issuesPairFile.put(pairFile, issues);
             }
 
-            futureDefectsPairFile.put(pairFile, futureDefects);
+            futureDefectsPairFile.put(pairFile, futureDefectsWeight);
 
             // TODO optimize querying at matrix generation
             // Find the pair files committers

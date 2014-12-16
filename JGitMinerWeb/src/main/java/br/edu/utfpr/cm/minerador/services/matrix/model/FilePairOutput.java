@@ -132,6 +132,9 @@ public class FilePairOutput {
         appendInteger(toString, commitsId.size());
         appendSetInteger(toString, commitsId);
 
+        appendInteger(toString, defectIssuesId.size());
+        appendSetInteger(toString, defectIssuesId);
+
         appendInteger(toString, futureDefectIssuesId.size());
         appendSetInteger(toString, futureDefectIssuesId);
 
@@ -142,7 +145,9 @@ public class FilePairOutput {
 
     public static String getToStringHeader() {
         return FilePair.getToStringHeader()
-                + "issues;issuesId;commits;commitsId;defectIssuesId;defectIssues;"
+                + "issues;issuesId;commits;commitsId;"
+                + "defectIssues;defectIssuesId;"
+                + "futureDefectIssuesId;futureDefectIssues;"
                 + FilePairApriori.getToStringHeader()
                 + "risk;";
     }
