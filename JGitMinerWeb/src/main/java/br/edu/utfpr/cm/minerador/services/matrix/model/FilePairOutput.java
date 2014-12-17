@@ -145,9 +145,10 @@ public class FilePairOutput {
 
     public static String getToStringHeader() {
         return FilePair.getToStringHeader()
-                + "issues;issuesId;commits;commitsId;"
+                + "issues;issuesId;"
+                + "commits;commitsId;"
                 + "defectIssues;defectIssuesId;"
-                + "futureDefectIssuesId;futureDefectIssues;"
+                + "futureDefectIssues;futureDefectIssuesId;"
                 + FilePairApriori.getToStringHeader()
                 + "risk;";
     }
