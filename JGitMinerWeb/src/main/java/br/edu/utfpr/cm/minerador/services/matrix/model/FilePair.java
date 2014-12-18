@@ -8,8 +8,8 @@ import java.util.Objects;
  */
 public class FilePair {
 
-    private final String file1;
-    private final String file2;
+    private String file1;
+    private String file2;
 
     public FilePair(String file1, String file2) {
         this.file1 = file1;
@@ -23,6 +23,15 @@ public class FilePair {
         } else {
             this.file1 = file1;
             this.file2 = file2;
+        }
+    }
+
+    public void orderFilePairByConfidence(FilePairApriori apriori) {
+        if (apriori.getConfidence2() > apriori.getConfidence()) {
+            String file1 = this.file1;
+            String file2 = this.file2;
+            this.file1 = file2;
+            this.file2 = file1;
         }
     }
 

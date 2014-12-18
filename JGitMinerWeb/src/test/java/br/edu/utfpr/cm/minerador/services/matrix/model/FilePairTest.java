@@ -80,4 +80,22 @@ public class FilePairTest {
         assertTrue(apriori.getConfidence() >= apriori.getConfidence2());
         assertEquals("A;B;", filePairBA.toString());
     }
+
+    @Test
+    public void testOrderAprioriBasedBA() {
+        FilePairApriori apriori = new FilePairApriori(2, 1, 1, 3);
+        FilePair filePairAB = new FilePair("A", "B");
+        filePairAB.orderFilePairByConfidence(apriori);
+        assertTrue(apriori.getConfidence() < apriori.getConfidence2());
+        assertEquals("B;A;", filePairAB.toString());
+    }
+
+    @Test
+    public void testOrderAprioriBasedAB() {
+        FilePairApriori apriori = new FilePairApriori(1, 2, 1, 3);
+        FilePair filePairBA = new FilePair("A", "B", apriori);
+        filePairBA.orderFilePairByConfidence(apriori);
+        assertTrue(apriori.getConfidence() >= apriori.getConfidence2());
+        assertEquals("A;B;", filePairBA.toString());
+    }
 }
