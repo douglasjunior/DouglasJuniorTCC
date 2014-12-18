@@ -16,6 +16,16 @@ public class FilePair {
         this.file2 = file2;
     }
 
+    public FilePair(String file1, String file2, FilePairApriori apriori) {
+        if (apriori.getConfidence2() > apriori.getConfidence()) {
+            this.file1 = file2;
+            this.file2 = file1;
+        } else {
+            this.file1 = file1;
+            this.file2 = file2;
+        }
+    }
+
     public String getFile1() {
         return file1;
     }

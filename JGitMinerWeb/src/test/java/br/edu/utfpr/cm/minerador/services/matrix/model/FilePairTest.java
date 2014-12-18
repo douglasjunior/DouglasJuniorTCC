@@ -54,14 +54,30 @@ public class FilePairTest {
     }
 
     @Test
-    public void testToStringAprioriBasedAB() {
+    public void testToStringAprioriBasedBA() {
         FilePairApriori filePairApriori = new FilePairApriori(2, 1, 1, 3);
         assertEquals("B;A;", instance.toString(filePairApriori));
     }
 
     @Test
-    public void testToStringAprioriBasedBA() {
+    public void testToStringAprioriBasedAB() {
         FilePairApriori filePairApriori = new FilePairApriori(1, 2, 1, 3);
         assertEquals("A;B;", instance.toString(filePairApriori));
+    }
+
+    @Test
+    public void testConstructorAprioriBasedBA() {
+        FilePairApriori apriori = new FilePairApriori(2, 1, 1, 3);
+        FilePair filePairAB = new FilePair("A", "B", apriori);
+        assertTrue(apriori.getConfidence() < apriori.getConfidence2());
+        assertEquals("B;A;", filePairAB.toString());
+    }
+
+    @Test
+    public void testConstructorAprioriBasedAB() {
+        FilePairApriori apriori = new FilePairApriori(1, 2, 1, 3);
+        FilePair filePairBA = new FilePair("A", "B", apriori);
+        assertTrue(apriori.getConfidence() >= apriori.getConfidence2());
+        assertEquals("A;B;", filePairBA.toString());
     }
 }
