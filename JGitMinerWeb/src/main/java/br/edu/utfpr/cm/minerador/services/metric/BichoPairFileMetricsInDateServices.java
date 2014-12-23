@@ -31,6 +31,7 @@ import br.edu.utfpr.cm.JGitMinerWeb.util.OutLog;
 import br.edu.utfpr.cm.JGitMinerWeb.util.PairUtils;
 import br.edu.utfpr.cm.JGitMinerWeb.util.PathUtils;
 import br.edu.utfpr.cm.minerador.services.matrix.BichoPairOfFileInDateServices;
+import br.edu.utfpr.cm.minerador.services.matrix.BichoPairOfFileTop10InDateServices;
 import br.edu.utfpr.cm.minerador.services.matrix.BichoUserCommentedSamePairOfFileOnIssueInDateServices;
 import br.edu.utfpr.cm.minerador.services.matrix.model.Commenter;
 import br.edu.utfpr.cm.minerador.services.matrix.model.FilePairApriori;
@@ -597,7 +598,8 @@ public class BichoPairFileMetricsInDateServices extends AbstractBichoMetricServi
     @Override
     public List<String> getAvailableMatricesPermitted() {
         return Arrays.asList(BichoUserCommentedSamePairOfFileOnIssueInDateServices.class.getName(),
-                BichoPairOfFileInDateServices.class.getName());
+                BichoPairOfFileInDateServices.class.getName(),
+                BichoPairOfFileTop10InDateServices.class.getName());
     }
 
     private String getRepository() {
@@ -608,7 +610,9 @@ public class BichoPairFileMetricsInDateServices extends AbstractBichoMetricServi
         String values[] = value.split(",");
         Set<Integer> list = new HashSet<>(values.length);
         for (String integerValue : values) {
-            list.add(Integer.valueOf(integerValue));
+            if (!integerValue.isEmpty()) {
+                list.add(Integer.valueOf(integerValue));
+            }
         }
         return list;
     }
