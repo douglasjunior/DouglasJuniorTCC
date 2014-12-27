@@ -4,14 +4,19 @@ import br.edu.utfpr.cm.JGitMinerWeb.model.EntityNode;
 import javax.persistence.DiscriminatorValue;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
+import javax.persistence.Index;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.Table;
 
 /**
  *
  * @author douglas
  */
 @Entity
+@Table(name = "matrix_node", indexes = {
+    @Index(columnList = "matrix_id")
+})
 @DiscriminatorValue(value = "EntityMatrixNode")
 public class EntityMatrixNode extends EntityNode {
 

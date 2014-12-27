@@ -18,8 +18,10 @@ import javax.persistence.Lob;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
+import javax.persistence.OrderColumn;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
+import javax.persistence.Transient;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -48,8 +50,11 @@ public class EntityMatrix implements InterfaceEntity, Startable {
     private Map<Object, Object> params;
     private String classServicesName;
     private String repository;
+    @OrderColumn(name = "index")
     @OneToMany(mappedBy = "matrix", orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<EntityMatrixNode> nodes;
+    @Transient
+    private String additionalFilename;
 
     public EntityMatrix() {
         started = new Date();
@@ -132,6 +137,14 @@ public class EntityMatrix implements InterfaceEntity, Startable {
         this.classServicesName = classServices;
     }
 
+    public String getAdditionalFilename() {
+        return additionalFilename;
+    }
+
+    public void setAdditionalFilename(String additionalFilename) {
+        this.additionalFilename = additionalFilename;
+    }
+
     public String getRepository() {
         return repository;
     }
@@ -163,6 +176,10 @@ public class EntityMatrix implements InterfaceEntity, Startable {
     public String toString() {
         final Object filename = params.get("filename");
         if (filename != null) {
+            final Object additionalFilename = params.get("additionalFilename");
+            if (additionalFilename != null) {
+                return StringUtils.capitalize(repository) + " " + filename + additionalFilename;
+            }
             return StringUtils.capitalize(repository) + " " + filename;
         } else {
             return "(" + id + ") " + repository + " - " + getClassServicesSingleName();
@@ -173,6 +190,11 @@ public class EntityMatrix implements InterfaceEntity, Startable {
     public String getDownloadFileName() {
         final Object filename = params.get("filename");
         if (filename != null) {
+
+            final Object additionalFilename = params.get("additionalFilename");
+            if (additionalFilename != null) {
+                return StringUtils.capitalize(repository) + " " + filename + additionalFilename;
+            }
             return StringUtils.capitalize(repository) + " " + filename;
         } else {
             return this.repository + "-" + this.started;

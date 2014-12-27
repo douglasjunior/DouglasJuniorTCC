@@ -5,16 +5,13 @@
 package br.edu.utfpr.cm.JGitMinerWeb.model;
 
 import java.io.Serializable;
-import javax.persistence.DiscriminatorColumn;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.Index;
 import javax.persistence.Inheritance;
 import javax.persistence.InheritanceType;
 import javax.persistence.Lob;
-import javax.persistence.Table;
 
 
 /**
@@ -22,14 +19,7 @@ import javax.persistence.Table;
  * @author douglas
  */
 @Entity
-@Table(name = "node", indexes = {
-    @Index(columnList = "matrix_id"),
-    @Index(columnList = "matrix_id,dtype"),
-    @Index(columnList = "metric_id"),
-    @Index(columnList = "metric_id,dtype")
-})
-@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
-@DiscriminatorColumn(name = "dtype")
+@Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
 public abstract class EntityNode implements InterfaceEntity, Serializable {
 
     private static final long serialVersionUID = 1L;

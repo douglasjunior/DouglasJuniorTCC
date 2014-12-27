@@ -22,6 +22,7 @@ import javax.persistence.Lob;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
+import javax.persistence.OrderColumn;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 
@@ -49,6 +50,7 @@ public class EntityMetric implements InterfaceEntity, Startable {
     @Basic(fetch = FetchType.LAZY)
     private String log;
     private Map<Object, Object> params;
+    @OrderColumn(name = "index")
     @OneToMany(mappedBy = "metric", orphanRemoval = true, cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<EntityMetricNode> nodes;
     private String classServicesName;
