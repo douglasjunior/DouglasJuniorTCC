@@ -39,8 +39,11 @@ import static br.edu.utfpr.cm.minerador.services.metric.AbstractBichoMetricServi
 import edu.uci.ics.jung.graph.DirectedSparseGraph;
 import edu.uci.ics.jung.graph.util.EdgeType;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -97,25 +100,13 @@ public class BichoPairFileMetricsInDateServices extends AbstractBichoMetricServi
 
     @Override
     public void run() {
-
-        if (getMatrix() == null
-                || !getAvailableMatricesPermitted().contains(getMatrix().getClassServicesName())) {
-            throw new IllegalArgumentException("Selecione uma matriz gerada pelo Services: " + getAvailableMatricesPermitted());
-        }
-
         repository = getRepository();
-
-        if (repository == null) {
-            throw new IllegalArgumentException("Não foi possível encontrar o repositório utilizado nesta matriz.");
-        }
 
         Date beginDate = getBeginDate();
         Date endDate = getEndDate();
 
         // file; file2; issueWeigth; issues; commitsWeight; commmits
         out.printLog("Iniciado cálculo da métrica de matriz com " + getMatrix().getNodes().size() + " nodes. Parametros: " + params);
-
-        out.printLog("Iniciando construção da rede.");
 
         final Map<AuxFileFile, Set<AuxUser>> committersPairFile = new HashMap<>();
         final Map<AuxFileFile, Set<Commenter>> commentersPairFile = new HashMap<>();
@@ -312,14 +303,7 @@ public class BichoPairFileMetricsInDateServices extends AbstractBichoMetricServi
         Long numberAllFutureIssues = issuesSize;
         // cache for optimization number of pull requests where file is in,
         // reducing access to database
-        Map<String, Long> issueFileMap = new HashMap<>();
-        // cache for optimization file code churn (add, del, change),
-        // reducing access to database
-        Map<String, AuxCodeChurn> codeChurnRequestFileMap = new HashMap<>();
-        Map<String, AuxCodeChurn> cummulativeCodeChurnRequestFileMap = new HashMap<>();
-        // cache for optimization file commits made by user,
-        // reducing access to database
-        Map<String, AuxCodeChurn> fileUserCommitMap = new HashMap<>();
+        Cacher cacher = new Cacher(bichoFileDAO);
 
         out.printLog("Calculando somas, máximas, médias, updates, code churn e apriori para cada par de arquivos...");
         count = 0;
@@ -392,10 +376,10 @@ public class BichoPairFileMetricsInDateServices extends AbstractBichoMetricServi
                 out.printLog("Empty issues for " + fileFile.toString());
             }
 
-            final long changes = Cacher.calculeFileCodeChurn(codeChurnRequestFileMap,
-                    fileFile.getFileName(), bichoFileDAO, beginDate, endDate, null).getChanges();
-            final long changes2 = Cacher.calculeFileCodeChurn(codeChurnRequestFileMap,
-                    fileFile.getFileName2(), bichoFileDAO, beginDate, endDate, null).getChanges();
+            final long changes = cacher.calculeFileCodeChurn(
+                    fileFile.getFileName(), beginDate, endDate).getChanges();
+            final long changes2 = cacher.calculeFileCodeChurn(
+                    fileFile.getFileName2(), beginDate, endDate).getChanges();
 
             Set<AuxUser> devsCommitters = bichoPairFileDAO.selectCommitters(
                     fileFile.getFileName(), fileFile.getFileName2(), beginDate, endDate, fileFileIssues);
@@ -429,26 +413,26 @@ public class BichoPairFileMetricsInDateServices extends AbstractBichoMetricServi
                 }
 
                 // Calculing OEXP of each file
-                Double experience = Cacher.calculeDevFileExperience(changes, fileUserCommitMap,
-                        fileFile.getFileName(), devCommitter.getUser(), bichoFileDAO, beginDate, endDate, fileFileIssues);
+                Double experience = cacher.calculeDevFileExperience(changes,
+                        fileFile.getFileName(), devCommitter.getUser(), beginDate, endDate, fileFileIssues);
                 ownerExperience = Math.max(experience, ownerExperience);
 
-                Double experience2 = Cacher.calculeDevFileExperience(changes2, fileUserCommitMap,
-                        fileFile.getFileName2(), devCommitter.getUser(), bichoFileDAO, beginDate, endDate, fileFileIssues);
+                Double experience2 = cacher.calculeDevFileExperience(changes2,
+                        fileFile.getFileName2(), devCommitter.getUser(), beginDate, endDate, fileFileIssues);
                 ownerExperience2 = Math.max(experience2, ownerExperience2);
 
                 // Calculing OWN
-                final long cummulativeChanges = Cacher.calculeFileCodeChurn(cummulativeCodeChurnRequestFileMap,
-                        fileFile.getFileName(), bichoFileDAO, null, endDate, fileFileIssues).getChanges();
-                final long cummulativeChanges2 = Cacher.calculeFileCodeChurn(cummulativeCodeChurnRequestFileMap,
-                        fileFile.getFileName2(), bichoFileDAO, null, endDate, fileFileIssues).getChanges();
+                final long cummulativeChanges = cacher.calculeFileCummulativeCodeChurn(
+                        fileFile.getFileName(), endDate, fileFileIssues).getChanges();
+                final long cummulativeChanges2 = cacher.calculeFileCummulativeCodeChurn(
+                        fileFile.getFileName2(), endDate, fileFileIssues).getChanges();
 
-                Double cumulativeExperience = Cacher.calculeDevFileExperience(cummulativeChanges, fileUserCommitMap,
-                        fileFile.getFileName(), devCommitter.getUser(), bichoFileDAO, null, endDate, fileFileIssues);
+                Double cumulativeExperience = cacher.calculeCummulativeDevFileExperience(cummulativeChanges,
+                        fileFile.getFileName(), devCommitter.getUser(), endDate, fileFileIssues);
                 cummulativeOwnerExperience = Math.max(cummulativeOwnerExperience, cumulativeExperience);
 
-                Double cumulativeExperience2 = Cacher.calculeDevFileExperience(cummulativeChanges2, fileUserCommitMap,
-                        fileFile.getFileName2(), devCommitter.getUser(), bichoFileDAO, null, endDate, fileFileIssues);
+                Double cumulativeExperience2 = cacher.calculeCummulativeDevFileExperience(cummulativeChanges2,
+                        fileFile.getFileName2(), devCommitter.getUser(), endDate, fileFileIssues);
                 cummulativeOwnerExperience2 = Math.max(cummulativeOwnerExperience2, cumulativeExperience2);
 
             }
@@ -473,10 +457,10 @@ public class BichoPairFileMetricsInDateServices extends AbstractBichoMetricServi
                 commentsSum += auxWordiness.getComments().size();
             }
 
-            final long codeChurn = Cacher.calculeFileCodeChurn(codeChurnRequestFileMap,
-                    fileFile.getFileName(), bichoFileDAO, beginDate, endDate, null).getChanges();
-            final long codeChurn2 = Cacher.calculeFileCodeChurn(codeChurnRequestFileMap,
-                    fileFile.getFileName2(), bichoFileDAO, beginDate, endDate, null).getChanges();
+            final long codeChurn = cacher.calculeFileCodeChurn(
+                    fileFile.getFileName(), beginDate, endDate).getChanges();
+            final long codeChurn2 = cacher.calculeFileCodeChurn(
+                    fileFile.getFileName2(), beginDate, endDate).getChanges();
 
             AuxCodeChurn pairFileCodeChurn = bichoPairFileDAO.calculeCodeChurnAddDelChange(
                     fileFile.getFileName2(), fileFile.getFileName(),
@@ -488,7 +472,7 @@ public class BichoPairFileMetricsInDateServices extends AbstractBichoMetricServi
             int ageRelease = bichoPairFileDAO.calculePairFileDaysAge(fileFile.getFileName(), fileFile.getFileName2(), beginDate, endDate, true);
 
             // pair file age in total until final date (days)
-            int ageTotal = bichoPairFileDAO.calculePairFileDaysAge(fileFile.getFileName(), fileFile.getFileName2(), null, endDate, true);
+            int ageTotal = bichoPairFileDAO.calculeTotalPairFileDaysAge(fileFile.getFileName(), fileFile.getFileName2(), endDate, true);
 
             boolean samePackage = PathUtils.isSameFullPath(fileFile.getFileName(), fileFile.getFileName2());
 
@@ -528,17 +512,17 @@ public class BichoPairFileMetricsInDateServices extends AbstractBichoMetricServi
 
             // apriori /////////////////////////////////////////////////////////
             Long file1FutureIssues
-                    = Cacher.calculeNumberOfIssues(issueFileMap, auxFileFileMetrics.getFile(),
+                    = cacher.calculeNumberOfIssues(auxFileFileMetrics.getFile(),
                             bichoFileDAO, beginDate, endDate);
 
             Long file2FutureIssues
-                    = Cacher.calculeNumberOfIssues(issueFileMap, auxFileFileMetrics.getFile2(),
+                    = cacher.calculeNumberOfIssues(auxFileFileMetrics.getFile2(),
                             bichoFileDAO, beginDate, endDate);
 
             auxFileFileMetrics.addMetrics(file1FutureIssues, file2FutureIssues, numberAllFutureIssues);
 
             FilePairApriori apriori = new FilePairApriori(file1FutureIssues, file2FutureIssues, updates, numberAllFutureIssues);
-
+            auxFileFileMetrics.setFilePairApriori(apriori);
             auxFileFileMetrics.addMetrics(
                     apriori.getSupportFile(), apriori.getSupportFile2(), apriori.getSupportFilePair(),
                     apriori.getConfidence(), apriori.getConfidence2(),
@@ -554,6 +538,79 @@ public class BichoPairFileMetricsInDateServices extends AbstractBichoMetricServi
         EntityMetric metrics = new EntityMetric();
         metrics.setNodes(objectsToNodes(fileFileMetrics));
         metricsToSave.add(metrics);
+
+        List<AuxFileFileMetrics> metricsList = new ArrayList<>(fileFileMetrics);
+        // salvando a matriz com o top 10 par de arquivos
+        EntityMetric metrics2 = new EntityMetric();
+        List<AuxFileFileMetrics> top10 = getTop10(metricsList);
+        metrics2.setNodes(objectsToNodes(top10));
+        metrics2.setAdditionalFilename(" top 10");
+        metricsToSave.add(metrics2);
+
+        // separa o top 10 em A + qualquerarquivo
+        int rank = 0;
+        for (AuxFileFileMetrics filePairTop : top10) {
+            List<AuxFileFileMetrics> changedWithA = new ArrayList<>();
+            for (AuxFileFileMetrics filePair : metricsList) {
+                if (filePair.getFile()
+                        .equals(filePairTop.getFile())
+                        && !filePair.equals(filePairTop)) {
+                    changedWithA.add(filePair);
+                }
+            }
+            filePairTop.changeToRisky();
+            changedWithA.add(0, filePairTop);
+            EntityMetric metrics3 = new EntityMetric();
+            metrics3.setNodes(objectsToNodes(changedWithA));
+            rank++;
+            metrics3.setAdditionalFilename(" " + rank + " file changed with " + filePairTop.getFile());
+            metricsToSave.add(metrics3);
+        }
+    }
+
+    private List<AuxFileFileMetrics> getTop10(final List<AuxFileFileMetrics> pairFileList) {
+        // order by number of defects (lower priority)
+        orderByNumberOfDefects(pairFileList);
+        // order by support (higher priority)
+        orderByFilePairSupport(pairFileList);
+
+        int lastIndex = pairFileList.size() > 10 ? 10 : pairFileList.size();
+        final List<AuxFileFileMetrics> top10 = pairFileList.subList(0, lastIndex);
+        return top10;
+    }
+
+    private void orderByFilePairSupport(final List<AuxFileFileMetrics> pairFileList) {
+        Collections.sort(pairFileList, new Comparator<AuxFileFileMetrics>() {
+
+            @Override
+            public int compare(AuxFileFileMetrics o1, AuxFileFileMetrics o2) {
+                FilePairApriori apriori1 = o1.getFilePairApriori();
+                FilePairApriori apriori2 = o2.getFilePairApriori();
+                if (apriori1.getSupportFilePair() > apriori2.getSupportFilePair()) {
+                    return -1;
+                } else if (apriori1.getSupportFilePair() < apriori2.getSupportFilePair()) {
+                    return 1;
+                }
+                return 0;
+            }
+        });
+    }
+
+    private void orderByNumberOfDefects(final List<AuxFileFileMetrics> pairFileList) {
+        Collections.sort(pairFileList, new Comparator<AuxFileFileMetrics>() {
+
+            @Override
+            public int compare(AuxFileFileMetrics o1, AuxFileFileMetrics o2) {
+                final int defectIssuesIdWeight1 = o1.getFutureDefectIssuesIdWeight();
+                final int defectIssuesIdWeight2 = o2.getFutureDefectIssuesIdWeight();
+                if (defectIssuesIdWeight1 > defectIssuesIdWeight2) {
+                    return -1;
+                } else if (defectIssuesIdWeight1 < defectIssuesIdWeight2) {
+                    return 1;
+                }
+                return 0;
+            }
+        });
     }
 
     @Override
@@ -592,7 +649,7 @@ public class BichoPairFileMetricsInDateServices extends AbstractBichoMetricServi
                 + "ageRelease;ageTotal;"
                 + "updates;futureUpdates;"
                 + "fileFutureIssues;file2FutureIssues;allFutureIssues;"
-                + "supportFile;supportFile2;supportPairFile;confidence;confidence2;lift;conviction;conviction2";
+                + "supportFile;supportFile2;supportPairFile;confidence;confidence2;lift;conviction;conviction2;risk";
     }
 
     @Override

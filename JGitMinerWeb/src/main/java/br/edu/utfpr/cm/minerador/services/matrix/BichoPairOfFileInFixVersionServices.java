@@ -192,15 +192,8 @@ public class BichoPairOfFileInFixVersionServices extends AbstractBichoMatrixServ
                 System.out.println(countApriori + "/" + totalApriori);
             }
 
-            Long file1Issues
-                    = cacher.calculeNumberOfIssues(
-                            fileFile.getFile1(),
-                            bichoFileDAO, version);
-
-            Long file2Issues
-                    = cacher.calculeNumberOfIssues(
-                            fileFile.getFile2(),
-                            bichoFileDAO, version);
+            Long file1Issues = cacher.calculeNumberOfIssues(fileFile.getFile1(), version);
+            Long file2Issues = cacher.calculeNumberOfIssues(fileFile.getFile2(), version);
 
             FilePairOutput filePairOutput = pairFiles.get(fileFile);
 

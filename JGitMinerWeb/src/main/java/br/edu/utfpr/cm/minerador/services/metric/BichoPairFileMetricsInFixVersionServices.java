@@ -492,13 +492,8 @@ public class BichoPairFileMetricsInFixVersionServices extends AbstractBichoMetri
             );
 
             // apriori /////////////////////////////////////////////////////////
-            Long file1FutureIssues
-                    = cacher.calculeNumberOfIssues(auxFileFileMetrics.getFile(),
-                            bichoFileDAO, fixVersion);
-
-            Long file2FutureIssues
-                    = cacher.calculeNumberOfIssues(auxFileFileMetrics.getFile2(),
-                            bichoFileDAO, fixVersion);
+            Long file1FutureIssues = cacher.calculeNumberOfIssues(auxFileFileMetrics.getFile(), fixVersion);
+            Long file2FutureIssues = cacher.calculeNumberOfIssues(auxFileFileMetrics.getFile2(), fixVersion);
 
             auxFileFileMetrics.addMetrics(file1FutureIssues, file2FutureIssues, numberAllFutureIssues);
 

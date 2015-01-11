@@ -71,7 +71,7 @@ public class Cacher {
         return fileNumberOfPullrequestOfPairFuture;
     }
 
-    public Long calculeNumberOfIssues(String fileName, BichoFileDAO fileDAO, String fixVersion) {
+    public Long calculeNumberOfIssues(String fileName, String fixVersion) {
         Long fileNumberOfPullrequestOfPairFuture;
         if (issueFileMap.containsKey(fileName)) {
             fileNumberOfPullrequestOfPairFuture = issueFileMap.get(fileName);
