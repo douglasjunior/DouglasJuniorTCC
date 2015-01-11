@@ -31,7 +31,7 @@ import org.apache.commons.lang3.StringUtils;
 @Entity
 @Table(name = "matrix")
 @NamedQueries({
-    @NamedQuery(name = "Matrix.findAllTheLatest", query = "SELECT m FROM EntityMatrix m ORDER BY m.started DESC")
+    @NamedQuery(name = "Matrix.findAllTheLatest", query = "SELECT m FROM EntityMatrix m ORDER BY m.id DESC")
 })
 public class EntityMatrix implements InterfaceEntity, Startable {
 

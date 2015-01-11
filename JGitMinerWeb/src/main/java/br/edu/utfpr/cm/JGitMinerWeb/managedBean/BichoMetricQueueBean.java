@@ -16,8 +16,8 @@ import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -57,7 +57,7 @@ public class BichoMetricQueueBean implements Serializable {
      */
     public BichoMetricQueueBean() {
         out = new OutLog();
-        params = new HashMap<>();
+        params = new LinkedHashMap<>();
         paramsQueue = new ArrayList<>();
         threadPool = Executors.newSingleThreadExecutor();
     }
@@ -122,7 +122,7 @@ public class BichoMetricQueueBean implements Serializable {
         params.put("matrix", matrix);
         out.printLog("Queued params: " + params);
         paramsQueue.add(params);
-        params = new HashMap<>();
+        params = new LinkedHashMap<>();
     }
 
     public void showQueue() {
@@ -187,9 +187,11 @@ public class BichoMetricQueueBean implements Serializable {
                             out.printLog("");
 
                             out.setCurrentProcess("Iniciando salvamento dos dados gerados.");
+
                             for (EntityMetric entityMetric : metricsToSave) {
                                 out.printLog("Salvando métricas com " + entityMetric.getNodes().size() + " registros. Parametros: " + entityMetric.getParams());
                                 entityMetric.setStarted(started);
+                                params.put("additionalFilename", entityMetric.getAdditionalFilename());
                                 entityMetric.getParams().putAll(params);
                                 entityMetric.setMatrix(matrix.toString());
                                 entityMetric.setClassServicesName(serviceClass.getName());
@@ -260,6 +262,8 @@ public class BichoMetricQueueBean implements Serializable {
             params.put("endDate", matrix.getParams().get("endDate"));
             params.put("futureBeginDate", matrix.getParams().get("beginDate"));
             params.put("futureEndDate", matrix.getParams().get("endDate"));
+            params.put("version", matrix.getParams().get("version"));
+            params.put("futureVersion", matrix.getParams().get("futureVersion"));
             return matrix.getParams() + "";
         }
         return "";

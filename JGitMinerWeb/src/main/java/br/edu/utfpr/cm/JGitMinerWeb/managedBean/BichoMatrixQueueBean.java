@@ -1,6 +1,7 @@
 package br.edu.utfpr.cm.JGitMinerWeb.managedBean;
 
 import br.edu.utfpr.cm.JGitMinerWeb.converter.ClassConverter;
+import br.edu.utfpr.cm.JGitMinerWeb.dao.BichoDAO;
 import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericBichoDAO;
 import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericDao;
 import br.edu.utfpr.cm.JGitMinerWeb.model.matrix.EntityMatrix;
@@ -15,7 +16,7 @@ import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -55,7 +56,7 @@ public class BichoMatrixQueueBean implements Serializable {
      */
     public BichoMatrixQueueBean() {
         out = new OutLog();
-        params = new HashMap<>();
+        params = new LinkedHashMap<>();
         paramsQueue = new ArrayList<>();
         threadPool = Executors.newSingleThreadExecutor();
     }
@@ -114,7 +115,34 @@ public class BichoMatrixQueueBean implements Serializable {
         }
         out.printLog("Queued params: " + params);
         paramsQueue.add(params);
-        params = new HashMap<>();
+        params = new LinkedHashMap<>();
+    }
+
+    public void queueAllVersions() {
+        if (params.isEmpty()) {
+            out.printLog("Params is empty.");
+            return;
+        }
+        if (params.containsKey("version")) {
+            params.remove("version");
+        }
+        if (params.containsKey("futureVersion")) {
+            params.remove("futureVersion");
+        }
+        if (params.containsKey("filename")) {
+            params.remove("filename");
+        }
+        List<String> versions = new BichoDAO(dao, repositoryId).selectFixVersionOrdered();
+        for (int i = 0; i < versions.size() - 1; i++) {
+            Map<Object, Object> params = new LinkedHashMap<>();
+            params.putAll(this.params);
+            params.put("version", versions.get(i));
+            params.put("filename", versions.get(i));
+            params.put("futureVersion", versions.get(i + 1));
+            paramsQueue.add(params);
+            out.printLog("Queued params: " + params);
+        }
+        params = new LinkedHashMap<>();
     }
 
     public void showQueue() {

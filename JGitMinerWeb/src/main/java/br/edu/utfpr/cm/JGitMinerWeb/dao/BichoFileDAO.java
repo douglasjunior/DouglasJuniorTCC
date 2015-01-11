@@ -19,20 +19,19 @@ public class BichoFileDAO {
     // filters
     private final String FILTER_BY_ISSUE;
 
+    private final String FILTER_BY_ISSUE_FIX_MAJOR_VERSION;
+    private final String FILTER_BY_BEFORE_ISSUE_FIX_MAJOR_VERSION;
+
     private final String FILTER_BY_ISSUE_FIX_DATE;
-
     private final String FILTER_BY_BEFORE_ISSUE_FIX_DATE;
-
     private final String FILTER_BY_AFTER_ISSUE_FIX_DATE;
 
     private final String FILTER_BY_MAX_FILES_IN_COMMIT;
-
     private final String FILTER_BY_MIN_FILES_IN_COMMIT;
 
     private final String FILTER_BY_MIN_ISSUE_COMMENTS;
 
     private final String FILTER_BY_USER_NAME;
-
     private final String FIXED_ISSUES_ONLY;
 
     private final String FILTER_BY_ISSUES_THAT_HAS_AT_LEAST_ONE_COMMENT;
@@ -41,13 +40,14 @@ public class BichoFileDAO {
     private final String FILTER_BY_JAVA_EXTENSION;
     private final String FILTER_BY_XML_EXTENSION;
     private final String FILTER_BY_JAVA_OR_XML_EXTENSION;
+    private final String FILTER_BY_JAVA_OR_XML_EXTENSION_AND_IS_NOT_TEST;
 
     // queries
     private final String COUNT_DISTINCT_COMMITERS_BY_FILE_NAME;
 
     private final String COUNT_COMMITS_BY_FILE_NAME;
 
-    private final String COUNT_ISSUES;
+    private final String COUNT_ISSUES_BY_FILENAME;
 
     private final String SUM_CODE_CHURN_BY_FILE_NAME;
 
@@ -65,6 +65,23 @@ public class BichoFileDAO {
 
         FILTER_BY_ISSUE_FIX_DATE
                 = " AND c.changed_on BETWEEN ? AND ?";
+
+        FILTER_BY_ISSUE_FIX_MAJOR_VERSION
+                = QueryUtils.getQueryForDatabase(
+                        " AND i.id IN ("
+                        + " SELECT ifv.issue_id "
+                        + "   FROM {0}_issues.issues_fix_version ifv "
+                        + "  WHERE ifv.major_fix_version = ?)", repository);
+
+        FILTER_BY_BEFORE_ISSUE_FIX_MAJOR_VERSION
+                = QueryUtils.getQueryForDatabase(
+                        " AND i.id IN ("
+                        + "SELECT ifv.issue_id"
+                        + "  FROM {0}_issues.issues_fix_version_order ifvo"
+                        + " WHERE ifvo.version_order <= "
+                        + "(SELECT ifvo2.version_order"
+                        + "   FROM {0}_issues.issues_fix_version_order ifvo2"
+                        + "  WHERE ifvo2.major_fix_version = ?))", repository);
 
         FILTER_BY_BEFORE_ISSUE_FIX_DATE
                 = " AND c.changed_on <= ?";
@@ -105,8 +122,12 @@ public class BichoFileDAO {
         FILTER_BY_JAVA_OR_XML_EXTENSION
                 = " AND (fill.file_path LIKE '%.java'"
                 + " OR fill.file_path LIKE '%.xml')";
+        FILTER_BY_JAVA_OR_XML_EXTENSION_AND_IS_NOT_TEST
+                = " AND (fill.file_path LIKE '%.java'"
+                + " OR fill.file_path LIKE '%.xml')"
+                + " AND fill.file_path NOT LIKE '%Test.java'";
 
-        COUNT_ISSUES
+        COUNT_ISSUES_BY_FILENAME
                 = QueryUtils.getQueryForDatabase(
                         "SELECT COUNT(DISTINCT(i.id))"
                         + "  FROM {0}_vcs.scmlog s"
@@ -196,7 +217,7 @@ public class BichoFileDAO {
                         + "           AND afill.file_id = fil.id)"
                         + " WHERE s.id = ?", repository)
                 + FILTER_BY_MAX_FILES_IN_COMMIT
-                + FILTER_BY_JAVA_OR_XML_EXTENSION;
+                + FILTER_BY_JAVA_OR_XML_EXTENSION_AND_IS_NOT_TEST;
 
         SELECT_COMMITTERS_OF_FILE
                 = QueryUtils.getQueryForDatabase(
@@ -229,7 +250,7 @@ public class BichoFileDAO {
         List<Object> selectParams = new ArrayList<>();
 
         StringBuilder sql = new StringBuilder();
-        sql.append(COUNT_ISSUES);
+        sql.append(COUNT_ISSUES_BY_FILENAME);
         selectParams.add(filename);
 
         if (beginDate != null && endDate != null) { // from begin to end
@@ -247,6 +268,28 @@ public class BichoFileDAO {
         if (onlyFixed) {
             sql.append(FIXED_ISSUES_ONLY);
         }
+
+        Long count = (Long) dao.selectNativeOneWithParams(
+                sql.toString(),
+                selectParams.toArray());
+
+        return count != null ? count : 0l;
+    }
+
+    public long calculeNumberOfIssues(
+            String filename, String version) {
+        List<Object> selectParams = new ArrayList<>();
+
+        StringBuilder sql = new StringBuilder();
+        sql.append(COUNT_ISSUES_BY_FILENAME);
+        selectParams.add(filename);
+
+        if (version != null) { // from begin to end
+            sql.append(FILTER_BY_ISSUE_FIX_MAJOR_VERSION);
+            selectParams.add(version);
+        }
+
+        sql.append(FIXED_ISSUES_ONLY);
 
         Long count = (Long) dao.selectNativeOneWithParams(
                 sql.toString(),
@@ -382,6 +425,98 @@ public class BichoFileDAO {
             sql.append(FILTER_BY_BEFORE_ISSUE_FIX_DATE);
             selectParams.add(endDate);
         }
+
+        if (onlyFixed) {
+            sql.append(FIXED_ISSUES_ONLY);
+        }
+
+        if (user != null) {
+            sql.append(FILTER_BY_USER_NAME);
+            selectParams.add(user);
+        }
+
+        filterByIssues(issues, sql);
+
+        List<Object[]> sum = dao.selectNativeWithParams(sql.toString(),
+                selectParams.toArray());
+
+        return new AuxCodeChurn(fileName,
+                ((BigDecimal) sum.get(0)[0]).longValue(), ((BigDecimal) sum.get(0)[1]).longValue());
+    }
+
+    public AuxCodeChurn sumCodeChurnByFilename(
+            String filename, String version) {
+        return sumCodeChurnByFilename(filename, null, version, null, true);
+    }
+
+    public AuxCodeChurn sumCodeChurnByFilename(
+            String filename, String user, String version) {
+        return sumCodeChurnByFilename(filename, user, version, null, true);
+    }
+
+    public AuxCodeChurn sumCodeChurnByFilename(
+            String filename, String version, Collection<Integer> issues) {
+        return sumCodeChurnByFilename(filename, null, version, issues, true);
+    }
+
+    public AuxCodeChurn sumCodeChurnByFilename(
+            String filename, String user, String version, Collection<Integer> issues) {
+        return sumCodeChurnByFilename(filename, user, version, issues, true);
+    }
+
+    public AuxCodeChurn sumCodeChurnByFilename(
+            String fileName, String user, String version,
+            Collection<Integer> issues, boolean onlyFixed) {
+        List<Object> selectParams = new ArrayList<>();
+
+        StringBuilder sql = new StringBuilder();
+        sql.append(SUM_CODE_CHURN_BY_FILE_NAME);
+
+        selectParams.add(fileName);
+
+        sql.append(FILTER_BY_ISSUE_FIX_MAJOR_VERSION);
+        selectParams.add(version);
+
+        if (onlyFixed) {
+            sql.append(FIXED_ISSUES_ONLY);
+        }
+
+        if (user != null) {
+            sql.append(FILTER_BY_USER_NAME);
+            selectParams.add(user);
+        }
+
+        filterByIssues(issues, sql);
+
+        List<Object[]> sum = dao.selectNativeWithParams(sql.toString(),
+                selectParams.toArray());
+
+        return new AuxCodeChurn(fileName,
+                ((BigDecimal) sum.get(0)[0]).longValue(), ((BigDecimal) sum.get(0)[1]).longValue());
+    }
+
+    public AuxCodeChurn sumCummulativeCodeChurnByFilename(
+            String filename, String version, Collection<Integer> issues) {
+        return sumCodeChurnByFilename(filename, null, version, issues, true);
+    }
+
+    public AuxCodeChurn sumCummulativeCodeChurnByFilename(
+            String filename, String user, String version, Collection<Integer> issues) {
+        return sumCodeChurnByFilename(filename, user, version, issues, true);
+    }
+
+    public AuxCodeChurn sumCummulativeCodeChurnByFilename(
+            String fileName, String user, String version,
+            Collection<Integer> issues, boolean onlyFixed) {
+        List<Object> selectParams = new ArrayList<>();
+
+        StringBuilder sql = new StringBuilder();
+        sql.append(SUM_CODE_CHURN_BY_FILE_NAME);
+
+        selectParams.add(fileName);
+
+        sql.append(FILTER_BY_BEFORE_ISSUE_FIX_MAJOR_VERSION);
+        selectParams.add(version);
 
         if (onlyFixed) {
             sql.append(FIXED_ISSUES_ONLY);

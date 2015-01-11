@@ -111,7 +111,7 @@ public class BichoPairOfFileTop10InDateServices extends AbstractBichoMatrixServi
 
         int count = 1;
         int numberFilePairs = 0;
-        Map<String, Long> issueFileMap = new HashMap<>();
+        Cacher cacher = new Cacher(bichoFileDAO);
 
         // combina em pares todos os arquivos commitados em uma issue
         for (Map.Entry<Issue, List<Integer>> entrySet : issuesCommits.entrySet()) {
@@ -164,8 +164,7 @@ public class BichoPairOfFileTop10InDateServices extends AbstractBichoMatrixServi
                 for (FilePair fileFile : pairFiles.keySet()) {
                     List<Integer> futureDefectIssues = bichoPairFileDAO.selectIssues(
                             fileFile.getFile1(), fileFile.getFile2(),
-                            futureBeginDate, futureEndDate, "Bug",
-                            true);
+                            futureBeginDate, futureEndDate, "Bug");
                     pairFiles.get(fileFile).addFutureDefectIssuesId(futureDefectIssues);
                 }
             }
@@ -192,13 +191,13 @@ public class BichoPairOfFileTop10InDateServices extends AbstractBichoMatrixServi
             }
 
             Long file1Issues
-                    = Cacher.calculeNumberOfIssues(
-                            issueFileMap, fileFile.getFile1(),
+                    = cacher.calculeNumberOfIssues(
+                            fileFile.getFile1(),
                             bichoFileDAO, beginDate, endDate);
 
             Long file2Issues
-                    = Cacher.calculeNumberOfIssues(
-                            issueFileMap, fileFile.getFile2(),
+                    = cacher.calculeNumberOfIssues(
+                            fileFile.getFile2(),
                             bichoFileDAO, beginDate, endDate);
 
             FilePairOutput filePairOutput = pairFiles.get(fileFile);
@@ -212,45 +211,13 @@ public class BichoPairOfFileTop10InDateServices extends AbstractBichoMatrixServi
             pairFileList.add(filePairOutput);
         }
 
-        out.printLog("Ordering...");
-        // order by number of defects (lower priority)
-        Collections.sort(pairFileList, new Comparator<FilePairOutput>() {
-
-            @Override
-            public int compare(FilePairOutput o1, FilePairOutput o2) {
-                final int defectIssuesIdWeight1 = o1.getFutureDefectIssuesIdWeight();
-                final int defectIssuesIdWeight2 = o2.getFutureDefectIssuesIdWeight();
-                if (defectIssuesIdWeight1 > defectIssuesIdWeight2) {
-                    return -1;
-                } else if (defectIssuesIdWeight1 < defectIssuesIdWeight2) {
-                    return 1;
-                }
-                return 0;
-            }
-        });
-        // order by support (higher priority)
-        Collections.sort(pairFileList, new Comparator<FilePairOutput>() {
-
-            @Override
-            public int compare(FilePairOutput o1, FilePairOutput o2) {
-                FilePairApriori apriori1 = o1.getFilePairApriori();
-                FilePairApriori apriori2 = o2.getFilePairApriori();
-                if (apriori1.getSupportFilePair() > apriori2.getSupportFilePair()) {
-                    return -1;
-                } else if (apriori1.getSupportFilePair() < apriori2.getSupportFilePair()) {
-                    return 1;
-                }
-                return 0;
-            }
-        });
-
         EntityMatrix matrix = new EntityMatrix();
         matrix.setNodes(objectsToNodes(pairFileList));
         matricesToSave.add(matrix);
 
         // salvando a matriz com o top 10 par de arquivos
-        final List<FilePairOutput> top10 = pairFileList.subList(0, 10);
         EntityMatrix matrix2 = new EntityMatrix();
+        List<FilePairOutput> top10 = getTop10(pairFileList);
         matrix2.setNodes(objectsToNodes(top10));
         matrix2.setAdditionalFilename(" top 10");
         matricesToSave.add(matrix2);
@@ -266,7 +233,6 @@ public class BichoPairOfFileTop10InDateServices extends AbstractBichoMatrixServi
                     changedWithA.add(filePair);
                 }
             }
-            filePairTop.changeToRisky();
             changedWithA.add(0, filePairTop);
             EntityMatrix matrix3 = new EntityMatrix();
             matrix3.setNodes(objectsToNodes(changedWithA));
@@ -274,6 +240,51 @@ public class BichoPairOfFileTop10InDateServices extends AbstractBichoMatrixServi
             matrix3.setAdditionalFilename(" " + rank + " file changed with " + filePairTop.getFilePair().getFile1());
             matricesToSave.add(matrix3);
         }
+    }
+
+    private List<FilePairOutput> getTop10(final List<FilePairOutput> pairFileList) {
+        // order by number of defects (lower priority)
+        orderByNumberOfDefects(pairFileList);
+        // order by support (higher priority)
+        orderByFilePairSupport(pairFileList);
+
+        int lastIndex = pairFileList.size() > 10 ? 10 : pairFileList.size();
+        final List<FilePairOutput> top10 = pairFileList.subList(0, lastIndex);
+        return top10;
+    }
+
+    private void orderByFilePairSupport(final List<FilePairOutput> pairFileList) {
+        Collections.sort(pairFileList, new Comparator<FilePairOutput>() {
+
+            @Override
+            public int compare(FilePairOutput o1, FilePairOutput o2) {
+                FilePairApriori apriori1 = o1.getFilePairApriori();
+                FilePairApriori apriori2 = o2.getFilePairApriori();
+                if (apriori1.getSupportFilePair() > apriori2.getSupportFilePair()) {
+                    return -1;
+                } else if (apriori1.getSupportFilePair() < apriori2.getSupportFilePair()) {
+                    return 1;
+                }
+                return 0;
+            }
+        });
+    }
+
+    private void orderByNumberOfDefects(final List<FilePairOutput> pairFileList) {
+        Collections.sort(pairFileList, new Comparator<FilePairOutput>() {
+
+            @Override
+            public int compare(FilePairOutput o1, FilePairOutput o2) {
+                final int defectIssuesIdWeight1 = o1.getFutureDefectIssuesIdWeight();
+                final int defectIssuesIdWeight2 = o2.getFutureDefectIssuesIdWeight();
+                if (defectIssuesIdWeight1 > defectIssuesIdWeight2) {
+                    return -1;
+                } else if (defectIssuesIdWeight1 < defectIssuesIdWeight2) {
+                    return 1;
+                }
+                return 0;
+            }
+        });
     }
 
     @Override

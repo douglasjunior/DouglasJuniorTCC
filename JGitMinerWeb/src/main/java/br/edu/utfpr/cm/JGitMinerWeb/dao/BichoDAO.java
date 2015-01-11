@@ -24,9 +24,11 @@ public class BichoDAO {
     // queries
     private final String COUNT_FILES_PER_COMMITS;
     private final String SELECT_ISSUES_BY_FIXED_DATE;
+    private final String SELECT_ISSUES_AND_TYPE_BY_FIXED_MAJOR_VERSION;
     private final String SELECT_ISSUES_AND_TYPE_BY_FIXED_DATE;
     private final String SELECT_COMMENTERS_BY_ISSUE_ORDER_BY_SUBMIT;
     private final String SELECT_COMMENTERS;
+    private final String SELECT_FIX_VERSION_ORDERED;
     private final String COUNT_ISSUES_TYPES_BEGIN;
     private final String COUNT_ISSUES_TYPES_END;
 
@@ -79,6 +81,18 @@ public class BichoDAO {
                         + "   AND s.num_files > 0", repository)
                 + FIXED_ISSUES_ONLY;
 
+        SELECT_ISSUES_AND_TYPE_BY_FIXED_MAJOR_VERSION
+                = QueryUtils.getQueryForDatabase("SELECT i.id, i.type, s.id"
+                        + "  FROM {0}_issues.issues_scmlog i2s"
+                        + "  JOIN {0}_issues.issues i ON i.id = i2s.issue_id"
+                        + "  JOIN {0}_issues.issues_fix_version ifv ON ifv.issue_id = i2s.issue_id"
+                        + "  JOIN {0}_issues.changes c ON c.issue_id = i.id"
+                        + "  JOIN {0}_vcs.scmlog s ON s.id = i2s.scmlog_id"
+                        + " WHERE ifv.major_fix_version = ?"
+                        + "   AND s.date > i.submitted_on"
+                        + "   AND s.num_files > 0", repository)
+                + FIXED_ISSUES_ONLY;
+
         SELECT_COMMENTERS_BY_ISSUE_ORDER_BY_SUBMIT
                 = QueryUtils.getQueryForDatabase("SELECT p.id, p.user_id, p.email, p.is_dev"
                         + "  FROM {0}_issues.comments c"
@@ -92,6 +106,12 @@ public class BichoDAO {
                         + "  JOIN {0}_issues.issues i ON i.id = c.issue_id"
                         + "  JOIN {0}_issues.people p ON p.id = c.submitted_by"
                         + " WHERE 1 = 1", repository);
+
+        SELECT_FIX_VERSION_ORDERED
+                = QueryUtils.getQueryForDatabase(
+                        "SELECT ifvo.major_fix_version"
+                        + " FROM {0}_issues.issues_fix_version_order ifvo"
+                        + " ORDER BY ifvo.version_order", repository);
 
         COUNT_ISSUES_TYPES_BEGIN
                 = QueryUtils.getQueryForDatabase("SELECT"
@@ -145,6 +165,39 @@ public class BichoDAO {
             Integer issue = (Integer) issueCommit[0];
             Integer commit = (Integer) issueCommit[1];
 
+            if (issuesCommits.containsKey(issue)) {
+                issuesCommits.get(issue).add(commit);
+            } else {
+                List<Integer> commits = new ArrayList<>();
+                commits.add(commit);
+                issuesCommits.put(issue, commits);
+            }
+        }
+        return issuesCommits;
+    }
+
+    public Map<Issue, List<Integer>> selectIssuesAndType(String version, Integer maxFilesPerCommit) {
+        List<Object> selectParams = new ArrayList<>();
+
+        StringBuilder sql = new StringBuilder();
+        sql.append(SELECT_ISSUES_AND_TYPE_BY_FIXED_MAJOR_VERSION);
+
+        selectParams.add(version);
+
+        if (maxFilesPerCommit > 0) {
+            sql.append(FILTER_BY_MAX_FILES_IN_COMMIT);
+            selectParams.add(maxFilesPerCommit);
+        }
+
+        List<Object[]> rawIssues = dao.selectNativeWithParams(sql.toString(), selectParams.toArray());
+
+        Map<Issue, List<Integer>> issuesCommits = new HashMap<>();
+        for (Object[] issueCommit : rawIssues) {
+            Integer issueId = (Integer) issueCommit[0];
+            String issueType = (String) issueCommit[1];
+            Integer commit = (Integer) issueCommit[2];
+
+            Issue issue = new Issue(issueId, issueType);
             if (issuesCommits.containsKey(issue)) {
                 issuesCommits.get(issue).add(commit);
             } else {
@@ -229,6 +282,13 @@ public class BichoDAO {
         }
 
         return files;
+    }
+
+    public List<String> selectFixVersionOrdered() {
+        List<String> versionsOrdered
+                = dao.selectNativeWithParams(SELECT_FIX_VERSION_ORDERED, new Object[0]);
+
+        return versionsOrdered;
     }
 
     public Map<String, Long> countIssuesTypes(Set<Integer> fileFileIssues) {

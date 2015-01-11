@@ -31,7 +31,23 @@
         <properties>
             <property name="eclipselink.ddl-generation" value="create-tables"/>
             <property name="javax.persistence.schema-generation.database.action" value="create"/>
-            <property name="eclipselink.cache.shared.default" value="false"/>
+
+            <!--  Optimization #9 - statement caching -->
+            <property name="eclipselink.jdbc.cache-statements" value="true" />
+            <!--  Optimization #10 - batch writing -->
+            <property name="eclipselink.jdbc.batch-writing" value="JDBC" />
+            <property name="eclipselink.jdbc.batch-writing.size" value="1000" />
+            <!--  Optimization #11 - disable caching for batch insert (caching only improves reads, so only adds overhead for inserts) -->
+            <property name="eclipselink.cache.shared.default" value="false" />
+            <!--  Optimization #12 - turn logging off -->
+            <!-- property name="eclipselink.logging.level" value="FINE" /-->
+            <property name="eclipselink.logging.level" value="off" />
+            <!--  Optimization #13 - close EntityManager on commit, to avoid cost of resume >
+            <property name="eclipselink.persistence-context.close-on-commit" value="true" /-->
+            <!--  Optimization #14 - avoid auto flush cost on query execution -->
+            <property name="eclipselink.persistence-context.flush-mode" value="commit" />
+            <!--  Optimization #15 - avoid cost of persist on commit >
+            <property name="eclipselink.persistence-context.persist-on-commit" value="false" /-->
         </properties>
     </persistence-unit>
     <persistence-unit name="mysql" transaction-type="JTA">
@@ -59,8 +75,26 @@
         <class>br.edu.utfpr.cm.minerador.model.svn.TagRevision</class>
         <exclude-unlisted-classes>true</exclude-unlisted-classes>
         <properties>
-            <!--property name="eclipselink.logging.level.sql" value="FINE"/>
-            <property name="eclipselink.logging.parameters" value="true"/-->
+            
+            <property name="eclipselink.read-only" value="true"/><!--  Optimization #9 - statement caching -->
+
+            <!--  Optimization #5 - Read Only -->
+            <property name="eclipselink.jdbc.cache-statements" value="true" />
+
+            <!--  Optimization #10 - batch writing >
+            <property name="eclipselink.jdbc.batch-writing" value="JDBC" />
+            <property name="eclipselink.jdbc.batch-writing.size" value="1000" /-->
+            <!--  Optimization #11 - disable caching for batch insert (caching only improves reads, so only adds overhead for inserts) -->
+            <property name="eclipselink.cache.shared.default" value="false" />
+            <!--  Optimization #12 - turn logging off -->
+            <!-- property name="eclipselink.logging.level" value="FINE" /-->
+            <property name="eclipselink.logging.level" value="off" />
+            <!--  Optimization #13 - close EntityManager on commit, to avoid cost of resume >
+            <property name="eclipselink.persistence-context.close-on-commit" value="true" /-->
+            <!--  Optimization #14 - avoid auto flush cost on query execution -->
+            <property name="eclipselink.persistence-context.flush-mode" value="commit" />
+            <!--  Optimization #15 - avoid cost of persist on commit >
+            <property name="eclipselink.persistence-context.persist-on-commit" value="false" /-->
         </properties>
   </persistence-unit>
 </persistence>

@@ -4,7 +4,9 @@ import br.edu.utfpr.cm.JGitMinerWeb.dao.AuxCodeChurn;
 import br.edu.utfpr.cm.JGitMinerWeb.dao.BichoFileDAO;
 import java.util.Collection;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 /**
  *
@@ -12,48 +14,153 @@ import java.util.Map;
  */
 public class Cacher {
 
-    public static AuxCodeChurn calculeFileCodeChurn(Map<String, AuxCodeChurn> codeChurnRequestFileMap, String fileName, BichoFileDAO fileDAO, Date beginDate, Date endDate, Collection<Integer> issues) {
-        if (codeChurnRequestFileMap.containsKey(fileName)) {
-            return codeChurnRequestFileMap.get(fileName);
+    // cache for optimization number of pull requests where file is in,
+    // reducing access to database
+    private final Map<String, Long> issueFileMap = new HashMap<>();
+
+    // cache for optimization file code churn (add, del, change),
+    // reducing access to database
+    private final Map<String, AuxCodeChurn> fileCodeChurnMap = new HashMap<>();
+    private final Map<String, AuxCodeChurn> fileCodeChurnByIssueMap = new HashMap<>();
+    // cummulative (i.e. until a date)
+    private final Map<String, AuxCodeChurn> cummulativeCodeChurnRequestFileMap = new HashMap<>();
+
+    // cache for optimization file commits made by user,
+    // reducing access to database
+    private final Map<String, AuxCodeChurn> fileUserCodeChurnMap = new HashMap<>();
+    private final Map<String, AuxCodeChurn> fileUserCummulativeCodeChurnMap = new HashMap<>();
+
+    private final BichoFileDAO fileDAO;
+
+    public Cacher(BichoFileDAO fileDAO) {
+        this.fileDAO = fileDAO;
+    }
+
+    // Internal method with Map (cacher) parameter
+    private AuxCodeChurn calculeFileCodeChurn(Map<String, AuxCodeChurn> codeChurnCacher,
+            String fileName, Date beginDate, Date endDate, Collection<Integer> issues) {
+        if (codeChurnCacher.containsKey(fileName)) {
+            return codeChurnCacher.get(fileName);
         } else {
             AuxCodeChurn sumCodeChurnFile = fileDAO.sumCodeChurnByFilename(fileName, beginDate, endDate, issues);
-            codeChurnRequestFileMap.put(fileName, sumCodeChurnFile);
+            codeChurnCacher.put(fileName, sumCodeChurnFile);
             return sumCodeChurnFile;
         }
     }
 
-    public static Long calculeNumberOfIssues(Map<String, Long> issueFileMap, String fileName, BichoFileDAO fileDAO, Date futureBeginDate, Date futureEndDate) {
+    // Internal method with Map (cacher) parameter
+    private AuxCodeChurn calculeFileCodeChurn(Map<String, AuxCodeChurn> codeChurnCacher,
+            String fileName, String fixVersion, Collection<Integer> issues) {
+        if (codeChurnCacher.containsKey(fileName)) {
+            return codeChurnCacher.get(fileName);
+        } else {
+            AuxCodeChurn sumCodeChurnFile = fileDAO.sumCodeChurnByFilename(fileName, fixVersion, issues);
+            codeChurnCacher.put(fileName, sumCodeChurnFile);
+            return sumCodeChurnFile;
+        }
+    }
+
+    public Long calculeNumberOfIssues(String fileName, BichoFileDAO fileDAO, Date futureBeginDate, Date futureEndDate) {
         Long fileNumberOfPullrequestOfPairFuture;
         if (issueFileMap.containsKey(fileName)) {
             fileNumberOfPullrequestOfPairFuture = issueFileMap.get(fileName);
         } else {
-            fileNumberOfPullrequestOfPairFuture = fileDAO.calculeNumberOfIssues(fileName, futureBeginDate, futureEndDate, true);
+            fileNumberOfPullrequestOfPairFuture = fileDAO.calculeNumberOfIssues(fileName, futureBeginDate, futureEndDate);
             issueFileMap.put(fileName, fileNumberOfPullrequestOfPairFuture);
         }
         return fileNumberOfPullrequestOfPairFuture;
     }
 
-    public static double calculeDevFileExperience(final Long changes, Map<String, AuxCodeChurn> fileUserCommitMap, String fileName, String user, BichoFileDAO fileDAO, Date beginDate, Date endDate, Collection<Integer> issues) {
+    public Long calculeNumberOfIssues(String fileName, BichoFileDAO fileDAO, String fixVersion) {
+        Long fileNumberOfPullrequestOfPairFuture;
+        if (issueFileMap.containsKey(fileName)) {
+            fileNumberOfPullrequestOfPairFuture = issueFileMap.get(fileName);
+        } else {
+            fileNumberOfPullrequestOfPairFuture = fileDAO.calculeNumberOfIssues(fileName, fixVersion);
+            issueFileMap.put(fileName, fileNumberOfPullrequestOfPairFuture);
+        }
+        return fileNumberOfPullrequestOfPairFuture;
+    }
+
+    public double calculeDevFileExperience(final Long changes, String fileName, String user, Date beginDate, Date endDate, Collection<Integer> issues) {
         final long devChanges;
-        if (fileUserCommitMap.containsKey(fileName)) {
-            AuxCodeChurn sumCodeChurnFile = fileUserCommitMap.get(fileName);
+        if (fileUserCodeChurnMap.containsKey(fileName)) {
+            AuxCodeChurn sumCodeChurnFile = fileUserCodeChurnMap.get(fileName);
             devChanges = sumCodeChurnFile.getChanges();
         } else {
             AuxCodeChurn sumCodeChurnFile = fileDAO.sumCodeChurnByFilename(fileName, user, beginDate, endDate, issues);
-            fileUserCommitMap.put(fileName, sumCodeChurnFile);
+            fileUserCodeChurnMap.put(fileName, sumCodeChurnFile);
             devChanges = sumCodeChurnFile.getChanges();
         }
         return changes == 0 ? 0.0 : (double) devChanges / (double) changes;
     }
 
-    public static long calculeFileCommits(Map<String, Long> fileCommitsFileMap, String fileName, BichoFileDAO fileDAO, Date beginDate, Date endDate, Collection<Integer> issues) {
-        if (fileCommitsFileMap.containsKey(fileName)) {
-            return fileCommitsFileMap.get(fileName);
+    public double calculeCummulativeDevFileExperience(final Long changes, String fileName, String user, Date endDate, Collection<Integer> issues) {
+        final long devChanges;
+        if (fileUserCummulativeCodeChurnMap.containsKey(fileName)) {
+            AuxCodeChurn sumCodeChurnFile = fileUserCummulativeCodeChurnMap.get(fileName);
+            devChanges = sumCodeChurnFile.getChanges();
         } else {
-            long commits = fileDAO.countCommitsByFilename(fileName, beginDate, endDate, issues);
-            fileCommitsFileMap.put(fileName, commits);
-            return commits;
+            AuxCodeChurn sumCodeChurnFile = fileDAO.sumCodeChurnByFilename(fileName, user, null, endDate, issues);
+            fileUserCummulativeCodeChurnMap.put(fileName, sumCodeChurnFile);
+            devChanges = sumCodeChurnFile.getChanges();
+        }
+        return changes == 0 ? 0.0 : (double) devChanges / (double) changes;
+    }
+
+    public double calculeCummulativeDevFileExperience(final Long changes, String fileName, String user, String fixVersion, Collection<Integer> issues) {
+        final long devChanges;
+        if (fileUserCummulativeCodeChurnMap.containsKey(fileName)) {
+            AuxCodeChurn sumCodeChurnFile = fileUserCummulativeCodeChurnMap.get(fileName);
+            devChanges = sumCodeChurnFile.getChanges();
+        } else {
+            AuxCodeChurn sumCodeChurnFile = fileDAO.sumCummulativeCodeChurnByFilename(fileName, user, fixVersion, issues);
+            fileUserCummulativeCodeChurnMap.put(fileName, sumCodeChurnFile);
+            devChanges = sumCodeChurnFile.getChanges();
+        }
+        return changes == 0 ? 0.0 : (double) devChanges / (double) changes;
+    }
+
+    public double calculeDevFileExperience(final Long changes, String fileName, String user, String fixVersion, Collection<Integer> issues) {
+        final long devChanges;
+        if (fileUserCodeChurnMap.containsKey(fileName)) {
+            AuxCodeChurn sumCodeChurnFile = fileUserCodeChurnMap.get(fileName);
+            devChanges = sumCodeChurnFile.getChanges();
+        } else {
+            AuxCodeChurn sumCodeChurnFile = fileDAO.sumCodeChurnByFilename(fileName, user, fixVersion, issues);
+            fileUserCodeChurnMap.put(fileName, sumCodeChurnFile);
+            devChanges = sumCodeChurnFile.getChanges();
+        }
+        return changes == 0 ? 0.0 : (double) devChanges / (double) changes;
+    }
+
+    public AuxCodeChurn calculeFileCummulativeCodeChurn(String fileName, Date endDate, Set<Integer> issues) {
+        return calculeFileCodeChurn(cummulativeCodeChurnRequestFileMap, fileName, null, endDate, issues);
+    }
+
+    public AuxCodeChurn calculeFileCummulativeCodeChurn(String fileName, String fixVersion, Set<Integer> issues) {
+        if (cummulativeCodeChurnRequestFileMap.containsKey(fileName)) {
+            return cummulativeCodeChurnRequestFileMap.get(fileName);
+        } else {
+            AuxCodeChurn sumCodeChurnFile = fileDAO.sumCummulativeCodeChurnByFilename(fileName, fixVersion, issues);
+            cummulativeCodeChurnRequestFileMap.put(fileName, sumCodeChurnFile);
+            return sumCodeChurnFile;
         }
     }
 
+    public AuxCodeChurn calculeFileCodeChurnByIssues(String fileName, Date beginDate, Date endDate, Set<Integer> issues) {
+        return calculeFileCodeChurn(fileCodeChurnByIssueMap, fileName, beginDate, endDate, issues);
+    }
+
+    public AuxCodeChurn calculeFileCodeChurnByIssues(String fileName, String fixVersion, Set<Integer> issues) {
+        return calculeFileCodeChurn(fileCodeChurnByIssueMap, fileName, fixVersion, issues);
+    }
+
+    public AuxCodeChurn calculeFileCodeChurn(String fileName, Date beginDate, Date endDate) {
+        return calculeFileCodeChurn(fileCodeChurnMap, fileName, beginDate, endDate, null);
+    }
+
+    public AuxCodeChurn calculeFileCodeChurn(String fileName, String fixVersion) {
+        return calculeFileCodeChurn(fileCodeChurnMap, fileName, fixVersion, null);
+    }
 }

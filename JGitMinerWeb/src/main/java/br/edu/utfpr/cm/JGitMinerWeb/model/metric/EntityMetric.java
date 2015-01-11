@@ -25,6 +25,7 @@ import javax.persistence.OneToMany;
 import javax.persistence.OrderColumn;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
+import javax.persistence.Transient;
 
 /**
  *
@@ -33,7 +34,7 @@ import javax.persistence.Temporal;
 @Entity
 @Table(name = "metric")
 @NamedQueries({
-    @NamedQuery(name = "Metric.findAllTheLatest", query = "SELECT m FROM EntityMetric m ORDER BY m.started DESC")
+    @NamedQuery(name = "Metric.findAllTheLatest", query = "SELECT m FROM EntityMetric m ORDER BY m.id DESC")
 })
 public class EntityMetric implements InterfaceEntity, Startable {
 
@@ -55,6 +56,8 @@ public class EntityMetric implements InterfaceEntity, Startable {
     private List<EntityMetricNode> nodes;
     private String classServicesName;
     private String matrix;
+    @Transient
+    private String additionalFilename;
 
     public EntityMetric() {
         started = new Date();
@@ -141,6 +144,14 @@ public class EntityMetric implements InterfaceEntity, Startable {
         this.classServicesName = classServices;
     }
 
+    public String getAdditionalFilename() {
+        return additionalFilename;
+    }
+
+    public void setAdditionalFilename(String additionalFilename) {
+        this.additionalFilename = additionalFilename;
+    }
+
     public Map<Object, Object> getParams() {
         return params;
     }
@@ -172,9 +183,13 @@ public class EntityMetric implements InterfaceEntity, Startable {
     public String toString() {
         final Object filename = params.get("filename");
         if (filename != null) {
-            return matrix + " - metrics " + filename;
+            final Object additionalFilename = params.get("additionalFilename");
+            if (additionalFilename != null) {
+                return matrix + " metrics " + filename + additionalFilename;
+            }
+            return matrix + " metrics " + filename;
         } else {
-            return matrix + " - metrics";
+            return matrix + " metrics";
         }
     }
 

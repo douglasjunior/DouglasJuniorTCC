@@ -53,6 +53,6 @@ public class AuxFileFileMetricsTest {
 
     @Test
     public void testToString() {
-        assertEquals("FileA.java;FileB.java;1,0;2,0;3,0", instance.toString());
+        assertEquals("FileA.java;FileB.java;1,0;2,0;3,0;0", instance.toString());
     }
 }

@@ -18,7 +18,6 @@ public class FilePairOutput {
     private final Set<Integer> defectIssuesId;
     private final Set<Integer> futureDefectIssuesId;
     private FilePairApriori filePairApriori;
-    private String risky = "NORISKY";
 
     public FilePairOutput(FilePair filePair) {
         this.filePair = filePair;
@@ -88,14 +87,6 @@ public class FilePairOutput {
         futureDefectIssuesId.addAll(futureDefectId);
     }
 
-    public String getRisky() {
-        return risky;
-    }
-
-    public void changeToRisky() {
-        risky = "RISKY";
-    }
-
     @Override
     public int hashCode() {
         int hash = 5;
@@ -140,7 +131,7 @@ public class FilePairOutput {
 
         toString.append(filePairApriori.toString());
 
-        return toString.append(risky).append(';').toString();
+        return toString.toString();
     }
 
     public static String getToStringHeader() {
@@ -149,8 +140,7 @@ public class FilePairOutput {
                 + "commits;commitsId;"
                 + "defectIssues;defectIssuesId;"
                 + "futureDefectIssues;futureDefectIssuesId;"
-                + FilePairApriori.getToStringHeader()
-                + "risk;";
+                + FilePairApriori.getToStringHeader();
     }
 
     private void appendInteger(StringBuilder toString, Integer integer) {
