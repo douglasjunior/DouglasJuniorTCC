@@ -63,10 +63,8 @@ public class BichoPairFileDAO {
     private String SELECT_COMMITTERS_OF_PAIR_FILE;
 
     private final String COUNT_PAIR_FILE_COMMITS;
-    private final String COUNT_PAIR_FILE_COMMITS_BY_FIX_VERSION;
 
     private final String COUNT_PAIR_FILE_COMMITTERS;
-    private final String COUNT_PAIR_FILE_COMMITTERS_BY_FIX_VERSION;
 
     private final String COUNT_COMMENTERS_BY_ISSUE_ID;
 
@@ -290,7 +288,6 @@ public class BichoPairFileDAO {
                 = QueryUtils.getQueryForDatabase(
                         "SELECT DISTINCT i.id, i.issue, i.description"
                         + "  FROM {0}_issues.issues i"
-                        + "  JOIN {0}_issues.issues_fix_version ifv ON ifv.issue_id = i.id"
                         + "  JOIN {0}_issues.changes c ON c.issue_id = i.id"
                         + "  JOIN {0}_issues.issues_scmlog i2s ON i2s.issue_id = i.id"
                         + "  JOIN {0}_vcs.scmlog s ON s.id = i2s.scmlog_id"
@@ -549,72 +546,10 @@ public class BichoPairFileDAO {
                         + "   AND s2.date > i.submitted_on", repository)
                 + FILTER_BY_MAX_FILES_IN_COMMIT;
 
-        COUNT_PAIR_FILE_COMMITS_BY_FIX_VERSION
-                = QueryUtils.getQueryForDatabase(
-                        "SELECT COUNT(DISTINCT(s.id))"
-                        + "  FROM {0}_issues.issues i"
-                        + "  JOIN {0}_issues.issues_fix_version ifv ON ifv.issue_id = i.id"
-                        + "  JOIN {0}_issues.changes c ON c.issue_id = i.id"
-                        + "  JOIN {0}_issues.issues_scmlog i2s ON i2s.issue_id = i.id"
-                        + "  JOIN {0}_vcs.scmlog s ON s.id = i2s.scmlog_id"
-                        + "  JOIN {0}_issues.issues_scmlog i2s2 ON i2s2.issue_id = i.id"
-                        + "  JOIN {0}_vcs.scmlog s2 ON s2.id = i2s2.scmlog_id"
-                        + "  JOIN {0}_vcs.people p ON p.id = s.committer_id"
-                        + "  JOIN {0}_vcs.actions a ON a.commit_id = s.id"
-                        + "  JOIN {0}_vcs.files fil ON fil.id = a.file_id"
-                        + "  JOIN {0}_vcs.file_links fill ON fill.file_id = fil.id AND fill.commit_id = "
-                        + "       (SELECT MAX(afill.commit_id) " // last commit where file has introduced, because it can have more than one
-                        + "          FROM {0}_vcs.file_links afill "
-                        + "         WHERE afill.commit_id <= s.id "
-                        + "           AND afill.file_id = fil.id)"
-                        + "  JOIN {0}_vcs.actions a2 ON a2.commit_id = s2.id"
-                        + "  JOIN {0}_vcs.files fil2 ON fil2.id = a2.file_id AND a2.file_id <> a.file_id"
-                        + "  JOIN {0}_vcs.file_links fill2 ON fill2.file_id = fil2.id AND fill2.commit_id = "
-                        + "       (SELECT MAX(afill2.commit_id) " // last commit where file has introduced, because it can have more than one
-                        + "          FROM {0}_vcs.file_links afill2 "
-                        + "         WHERE afill2.commit_id <= s2.id "
-                        + "           AND afill2.file_id = fil2.id)"
-                        + " WHERE fill.file_path = ?"
-                        + "   AND fill2.file_path = ?"
-                        + "   AND s.date > i.submitted_on"
-                        + "   AND s2.date > i.submitted_on", repository)
-                + FILTER_BY_MAX_FILES_IN_COMMIT;
-
         COUNT_PAIR_FILE_COMMITTERS
                 = QueryUtils.getQueryForDatabase(
                         "SELECT COUNT(DISTINCT(p.name))"
                         + "  FROM {0}_issues.issues i"
-                        + "  JOIN {0}_issues.changes c ON c.issue_id = i.id"
-                        + "  JOIN {0}_issues.issues_scmlog i2s ON i2s.issue_id = i.id"
-                        + "  JOIN {0}_vcs.scmlog s ON s.id = i2s.scmlog_id"
-                        + "  JOIN {0}_issues.issues_scmlog i2s2 ON i2s2.issue_id = i.id"
-                        + "  JOIN {0}_vcs.scmlog s2 ON s2.id = i2s2.scmlog_id"
-                        + "  JOIN {0}_vcs.people p ON p.id = s.committer_id"
-                        + "  JOIN {0}_vcs.actions a ON a.commit_id = s.id"
-                        + "  JOIN {0}_vcs.files fil ON fil.id = a.file_id"
-                        + "  JOIN {0}_vcs.file_links fill ON fill.file_id = fil.id AND fill.commit_id = "
-                        + "       (SELECT MAX(afill.commit_id) " // last commit where file has introduced, because it can have more than one
-                        + "          FROM {0}_vcs.file_links afill "
-                        + "         WHERE afill.commit_id <= s.id "
-                        + "           AND afill.file_id = fil.id)"
-                        + "  JOIN {0}_vcs.actions a2 ON a2.commit_id = s2.id"
-                        + "  JOIN {0}_vcs.files fil2 ON fil2.id = a2.file_id AND a2.file_id <> a.file_id"
-                        + "  JOIN {0}_vcs.file_links fill2 ON fill2.file_id = fil2.id AND fill2.commit_id = "
-                        + "       (SELECT MAX(afill2.commit_id) " // last commit where file has introduced, because it can have more than one
-                        + "          FROM {0}_vcs.file_links afill2 "
-                        + "         WHERE afill2.commit_id <= s2.id "
-                        + "           AND afill2.file_id = fil2.id)"
-                        + " WHERE fill.file_path = ?"
-                        + "   AND fill2.file_path = ?"
-                        + "   AND s.date > i.submitted_on"
-                        + "   AND s2.date > i.submitted_on", repository)
-                + FILTER_BY_MAX_FILES_IN_COMMIT;
-
-        COUNT_PAIR_FILE_COMMITTERS_BY_FIX_VERSION
-                = QueryUtils.getQueryForDatabase(
-                        "SELECT COUNT(DISTINCT(p.name))"
-                        + "  FROM {0}_issues.issues i"
-                        + "  JOIN {0}_issues.issues_fix_version ifv ON ifv.issue_id = i.id"
                         + "  JOIN {0}_issues.changes c ON c.issue_id = i.id"
                         + "  JOIN {0}_issues.issues_scmlog i2s ON i2s.issue_id = i.id"
                         + "  JOIN {0}_vcs.scmlog s ON s.id = i2s.scmlog_id"
@@ -689,7 +624,6 @@ public class BichoPairFileDAO {
                 = QueryUtils.getQueryForDatabase(
                         "SELECT MIN(s.date), MAX(s.date)"
                         + "  FROM {0}_issues.issues i"
-                        + "  JOIN {0}_issues.issues_fix_version ifv ON ifv.issue_id = i.id"
                         + "  JOIN {0}_issues.changes c ON c.issue_id = i.id"
                         + "  JOIN {0}_issues.issues_scmlog i2s ON i2s.issue_id = i.id"
                         + "  JOIN {0}_vcs.scmlog s ON s.id = i2s.scmlog_id"
@@ -952,7 +886,7 @@ public class BichoPairFileDAO {
             fixVersion
         };
 
-        StringBuilder sql = new StringBuilder(SUM_ADD_DEL_LINES_OF_FILE_PAIR_BY_DATE_AND_FIX_VERSION);
+        StringBuilder sql = new StringBuilder(SUM_ADD_DEL_LINES_OF_FILE_PAIR_BY_DATE);
         filterByIssues(issues, sql);
 
         List<Object[]> sum = dao.selectNativeWithParams(sql.toString(), params);
@@ -1207,7 +1141,7 @@ public class BichoPairFileDAO {
         }
 
         StringBuilder sql = new StringBuilder();
-        sql.append(COUNT_PAIR_FILE_COMMITS_BY_FIX_VERSION);
+        sql.append(COUNT_PAIR_FILE_COMMITS);
 
         selectParams.add(file);
         selectParams.add(file2);
@@ -1298,7 +1232,7 @@ public class BichoPairFileDAO {
         }
 
         StringBuilder sql = new StringBuilder();
-        sql.append(COUNT_PAIR_FILE_COMMITTERS_BY_FIX_VERSION);
+        sql.append(COUNT_PAIR_FILE_COMMITTERS);
 
         selectParams.add(file);
         selectParams.add(file2);
@@ -1333,7 +1267,7 @@ public class BichoPairFileDAO {
         }
 
         StringBuilder sql = new StringBuilder();
-        sql.append(COUNT_PAIR_FILE_COMMITTERS_BY_FIX_VERSION);
+        sql.append(COUNT_PAIR_FILE_COMMITTERS);
 
         selectParams.add(file);
         selectParams.add(file2);
