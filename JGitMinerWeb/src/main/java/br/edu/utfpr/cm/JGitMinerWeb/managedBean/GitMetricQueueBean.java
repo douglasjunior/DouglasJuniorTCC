@@ -158,7 +158,7 @@ public class GitMetricQueueBean implements Serializable {
             progress = 1;
             final int fraction = 100 / paramsQueue.size();
             for (final Map<Object, Object> params : paramsQueue) {
-                final EntityMatrix matrix = (EntityMatrix) params.get("matrix");
+                final EntityMatrix matrix = (EntityMatrix) params.remove("matrix");
                 params.putAll(matrix.getParams());
                 out.resetLog();
 
