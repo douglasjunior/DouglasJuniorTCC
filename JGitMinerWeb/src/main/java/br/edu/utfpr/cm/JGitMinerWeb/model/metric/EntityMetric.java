@@ -181,13 +181,9 @@ public class EntityMetric implements InterfaceEntity, Startable {
 
     @Override
     public String toString() {
-        final Object filename = params.get("filename");
-        if (filename != null) {
-            final Object additionalFilename = params.get("additionalFilename");
-            if (additionalFilename != null) {
-                return matrix + " metrics " + filename + additionalFilename;
-            }
-            return matrix + " metrics " + filename;
+        final Object additionalFilename = params.get("additionalFilename");
+        if (additionalFilename != null) {
+            return matrix + " metrics " + additionalFilename;
         } else {
             return matrix + " metrics";
         }
