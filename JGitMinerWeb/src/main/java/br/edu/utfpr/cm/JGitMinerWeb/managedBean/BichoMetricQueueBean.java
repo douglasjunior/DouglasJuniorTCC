@@ -243,7 +243,7 @@ public class BichoMetricQueueBean implements Serializable {
             out.printLog("Queue size: " + paramsQueue.size());
             final double fraction = 99.0d / paramsQueue.size();
             for (final Map<Object, Object> params : paramsQueue) {
-                final EntityMatrix matrix = (EntityMatrix) params.get("matrix");
+                final EntityMatrix matrix = (EntityMatrix) params.remove("matrix");
                 params.putAll(matrix.getParams());
 
                 out.resetLog();
