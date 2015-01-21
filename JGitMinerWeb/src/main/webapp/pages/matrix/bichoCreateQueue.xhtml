@@ -40,7 +40,16 @@
             <p:commandButton widgetVar="queueButtonVar" actionListener="#{bichoMatrixQueueBean.queue()}" value="Queue"
                              update="logTextArea" />
 
+            <p:commandButton widgetVar="queueAllVersionsButtonVar" actionListener="#{bichoMatrixQueueBean.queueAllVersions()}" value="Queue All"
+                             update="logTextArea" />
+
             <p:commandButton widgetVar="showQueueButtonVar" actionListener="#{bichoMatrixQueueBean.showQueue()}" value="Show Queue"
+                             update="logTextArea" />
+
+            <p:commandButton widgetVar="removeLastFromQueueButtonVar" actionListener="#{bichoMatrixQueueBean.removeLastFromQueue()}" value="Remove Last"
+                             update="logTextArea" />
+
+            <p:commandButton widgetVar="removeLastFromQueueButtonVar" actionListener="#{bichoMatrixQueueBean.removeFirstFromQueue()}" value="Remove First"
                              update="logTextArea" />
 
             <p:commandButton widgetVar="clearQueueButtonVar" actionListener="#{bichoMatrixQueueBean.clearQueue()}" value="Clear Queue"

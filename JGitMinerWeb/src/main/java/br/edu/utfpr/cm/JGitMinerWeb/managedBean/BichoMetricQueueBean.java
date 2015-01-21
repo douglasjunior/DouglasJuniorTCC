@@ -15,6 +15,8 @@ import java.io.Serializable;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -33,6 +35,8 @@ import javax.inject.Named;
 @Named
 @SessionScoped
 public class BichoMetricQueueBean implements Serializable {
+
+    private final String LIST = "listMatrices";
 
     private final OutLog out;
     private final List<Map<Object, Object>> paramsQueue;
@@ -125,11 +129,88 @@ public class BichoMetricQueueBean implements Serializable {
         params = new LinkedHashMap<>();
     }
 
+    public void queueAll() {
+        List<EntityMatrix> matrices = (List<EntityMatrix>) JsfUtil.getObjectFromSession(LIST);
+        Collections.sort(matrices, new Comparator<EntityMatrix>() {
+
+            @Override
+            public int compare(EntityMatrix o1, EntityMatrix o2) {
+
+                String[] version1 = o1.toString().split(" ")[1].split("[.]");
+                String[] version2 = o2.toString().split(" ")[1].split("[.]");
+
+                int length = version1.length;
+                if (version2.length > version1.length) {
+                    length = version2.length;
+                }
+
+                for (int i = 0; i < length; i++) {
+                    String s0 = null;
+                    if (i < version1.length) {
+                        s0 = version1[i].split("[-]")[0];
+                    }
+
+                    Integer i0;
+                    try {
+                        i0 = (s0 == null) ? 0 : Integer.parseInt(s0);
+                    } catch (java.lang.NumberFormatException ex) {
+                        i0 = 9999;
+                    }
+
+                    String s1 = null;
+                    if (i < version2.length) {
+                        s1 = version2[i].split("[-]")[0];
+                    }
+                    Integer i1;
+                    try {
+                        i1 = (s1 == null) ? 0 : Integer.parseInt(s1);
+                    } catch (java.lang.NumberFormatException ex) {
+                        i1 = 9999;
+                    }
+
+                    if (version1[i].contains("-")
+                            && version2[i].contains("-")) {
+                        if (version1[i].compareTo(version2[i]) < 0) {
+                            return -1;
+                        } else if (version2[i].compareTo(version1[i]) < 0) {
+                            return 1;
+                        }
+                    } else {
+                        if (i0.compareTo(i1) < 0) {
+                            return -1;
+                        } else if (i1.compareTo(i0) < 0) {
+                            return 1;
+                        }
+                    }
+                }
+
+                return 0;
+            }
+        });
+        for (EntityMatrix matrix : matrices) {
+            Map<Object, Object> params = new LinkedHashMap<>();
+            params.put("matrix", matrix);
+            params.put("version", matrix.getParams().get("version"));
+            params.put("futureVersion", matrix.getParams().get("futureVersion"));
+            out.printLog("Queued params: " + params);
+            paramsQueue.add(params);
+        }
+        params = new LinkedHashMap<>();
+    }
+
     public void showQueue() {
         out.printLog("Queued params: ");
         for (Map<Object, Object> queuedParams : paramsQueue) {
             out.printLog(queuedParams.toString());
         }
+    }
+
+    public void removeLastFromQueue() {
+        out.printLog("Params removed: " + paramsQueue.remove(paramsQueue.size() - 1));
+    }
+
+    public void removeFirstFromQueue() {
+        out.printLog("Params removed: " + paramsQueue.remove(0));
     }
 
     public void clearQueue() {

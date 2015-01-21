@@ -39,6 +39,15 @@
             <p:commandButton widgetVar="queueButtonVar" actionListener="#{bichoMetricQueueBean.queue()}" value="Queue"
                              update="logTextArea" />
 
+            <p:commandButton widgetVar="queueAllButtonVar" actionListener="#{bichoMetricQueueBean.queueAll()}" value="Queue All"
+                             update="logTextArea" />
+
+            <p:commandButton widgetVar="removeLastFromQueueButtonVar" actionListener="#{bichoMetricQueueBean.removeLastFromQueue()}" value="Remove Last"
+                             update="logTextArea" />
+
+            <p:commandButton widgetVar="removeLastFromQueueButtonVar" actionListener="#{bichoMetricQueueBean.removeFirstFromQueue()}" value="Remove First"
+                             update="logTextArea" />
+
             <p:commandButton widgetVar="showQueueButtonVar" actionListener="#{bichoMetricQueueBean.showQueue()}" value="Show Queue"
                              update="logTextArea" />
 

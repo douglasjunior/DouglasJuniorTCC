@@ -66,6 +66,7 @@ public class BichoFileDAO {
         FILTER_BY_ISSUE_FIX_DATE
                 = " AND c.changed_on BETWEEN ? AND ?";
 
+        // avoid join, because has poor performance in this case
         FILTER_BY_ISSUE_FIX_MAJOR_VERSION
                 = QueryUtils.getQueryForDatabase(
                         " AND i.id IN ("
@@ -73,10 +74,14 @@ public class BichoFileDAO {
                         + "   FROM {0}_issues.issues_fix_version ifv "
                         + "  WHERE ifv.major_fix_version = ?)", repository);
 
+        // avoid join, because has poor performance in this case
         FILTER_BY_BEFORE_ISSUE_FIX_MAJOR_VERSION
                 = QueryUtils.getQueryForDatabase(
                         " AND i.id IN ("
-                        + "SELECT ifvo.issue_id"
+                        + " SELECT ifv.issue_id "
+                        + "   FROM {0}_issues.issues_fix_version ifv "
+                        + "  WHERE ifv.major_fix_version IN ("
+                        + "SELECT ifvo.major_fix_version"
                         + "  FROM {0}_issues.issues_fix_version_order ifvo"
                         + " WHERE ifvo.version_order <= "
                         + "(SELECT ifvo2.version_order"

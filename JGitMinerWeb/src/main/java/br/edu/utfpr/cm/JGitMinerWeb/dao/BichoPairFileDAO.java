@@ -108,12 +108,15 @@ public class BichoPairFileDAO {
         FILTER_BY_BEFORE_ISSUE_FIX_MAJOR_VERSION
                 = QueryUtils.getQueryForDatabase(
                         " AND i.id IN ("
-                        + "SELECT ifvo.issue_id"
+                        + " SELECT ifv.issue_id "
+                        + "   FROM {0}_issues.issues_fix_version ifv "
+                        + "  WHERE ifv.major_fix_version IN ("
+                        + "SELECT ifvo.major_fix_version"
                         + "  FROM {0}_issues.issues_fix_version_order ifvo"
                         + " WHERE ifvo.version_order <= "
                         + "(SELECT ifvo2.version_order"
                         + "   FROM {0}_issues.issues_fix_version_order ifvo2"
-                        + "  WHERE ifvo2.major_fix_version = ?))", repository);
+                        + "  WHERE ifvo2.major_fix_version = ?)))", repository);
 
         FILTER_BY_BEFORE_ISSUE_FIX_DATE
                 = " AND c.changed_on <= ?";
@@ -707,11 +710,6 @@ public class BichoPairFileDAO {
 
     public long calculeNumberOfIssues(
             String file, String file2, Date beginDate, Date endDate, String type, boolean onlyFixed) {
-
-        if (file == null || file2 == null) {
-            throw new IllegalArgumentException("The file and file2 parameters can not be null.");
-        }
-
         List<Object> selectParams = new ArrayList<>();
 
         StringBuilder sql = new StringBuilder();
@@ -731,6 +729,36 @@ public class BichoPairFileDAO {
         sql.append(FILTER_BY_ISSUE_FIX_DATE);
         selectParams.add(beginDate);
         selectParams.add(endDate);
+
+        Long count = (Long) dao.selectNativeOneWithParams(sql.toString(),
+                selectParams.toArray());
+
+        return count != null ? count : 0l;
+    }
+
+    public long calculeNumberOfIssues(
+            String file, String file2, String fixVersion) {
+        return calculeNumberOfIssues(file, file2, fixVersion, null);
+    }
+
+    public long calculeNumberOfIssues(
+            String file, String file2, String fixVersion, String type) {
+
+        List<Object> selectParams = new ArrayList<>();
+
+        StringBuilder sql = new StringBuilder();
+        sql.append(COUNT_ISSUES_BY_FILE_NAME);
+        selectParams.add(file);
+        selectParams.add(file2);
+        sql.append(FIXED_ISSUES_ONLY);
+
+        if (type != null) {
+            sql.append(FILTER_BY_ISSUE_TYPE);
+            selectParams.add(type);
+        }
+
+        sql.append(FILTER_BY_ISSUE_FIX_MAJOR_VERSION);
+        selectParams.add(fixVersion);
 
         Long count = (Long) dao.selectNativeOneWithParams(sql.toString(),
                 selectParams.toArray());

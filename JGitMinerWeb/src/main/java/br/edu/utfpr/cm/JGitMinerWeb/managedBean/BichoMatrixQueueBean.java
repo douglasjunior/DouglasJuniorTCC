@@ -152,6 +152,14 @@ public class BichoMatrixQueueBean implements Serializable {
         }
     }
 
+    public void removeLastFromQueue() {
+        out.printLog("Params removed: " + paramsQueue.remove(paramsQueue.size() - 1));
+    }
+
+    public void removeFirstFromQueue() {
+        out.printLog("Params removed: " + paramsQueue.remove(0));
+    }
+
     public void clearQueue() {
         paramsQueue.clear();
         out.printLog("Params queue cleared!");

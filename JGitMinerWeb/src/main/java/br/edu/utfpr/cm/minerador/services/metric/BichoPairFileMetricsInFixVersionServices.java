@@ -85,6 +85,7 @@ public class BichoPairFileMetricsInFixVersionServices extends AbstractBichoMetri
         repository = getRepository();
 
         String fixVersion = getVersion();
+        String futureVersion = getFutureVersion();
 
         // file; file2; issueWeigth; issues; commitsWeight; commmits
         out.printLog("Iniciado cálculo da métrica de matriz com " + getMatrix().getNodes().size() + " nodes. Parametros: " + params);
@@ -425,7 +426,9 @@ public class BichoPairFileMetricsInFixVersionServices extends AbstractBichoMetri
 //                    fileFile.getFileName(), fileFile.getFileName2(),
 //                    beginDate, endDate, true);
 
-            Long futureUpdates = updates;
+            Long futureUpdates = bichoPairFileDAO.calculeNumberOfIssues(
+                    fileFile.getFileName(), fileFile.getFileName2(),
+                    futureVersion);
 
             // list all issues and its comments
             Collection<AuxWordiness> issuesAndComments
