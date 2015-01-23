@@ -10,6 +10,9 @@
 
         <h:form prependId="false" >
             <p:growl globalOnly="true" id="messages" />
+            <p:commandButton onclick="PrimeFaces.monitorDownload(start, stop)" ajax="false" value="Download all CSV">
+                <p:fileDownload value="#{gitMetricViewBean.downloadAllCSV()}" />
+            </p:commandButton>
             <p:dataTable var="metric" value="#{gitMetricViewBean.metrics}" id="list" rows="10" lazy="false"
                          emptyMessage="No calculated metrics found." paginator="true" paginatorPosition="bottom"
                          paginatorTemplate="{CurrentPageReport}  {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"

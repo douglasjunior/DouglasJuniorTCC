@@ -3,13 +3,14 @@ package br.edu.utfpr.cm.JGitMinerWeb.managedBean;
 import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericDao;
 import br.edu.utfpr.cm.JGitMinerWeb.model.metric.EntityMetric;
 import br.edu.utfpr.cm.JGitMinerWeb.model.metric.EntityMetricNode;
-import br.edu.utfpr.cm.JGitMinerWeb.services.metric.AbstractMetricServices;
 import br.edu.utfpr.cm.JGitMinerWeb.util.JsfUtil;
-import br.edu.utfpr.cm.JGitMinerWeb.util.OutLog;
+import br.edu.utfpr.cm.minerador.services.metric.AbstractBichoMetricServices;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintWriter;
 import java.io.Serializable;
 import java.util.List;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 import javax.ejb.EJB;
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Named;
@@ -70,11 +71,54 @@ public class GitMetricViewBean implements Serializable {
         return metrics;
     }
 
+    public StreamedContent downloadAllCSV() {
+        StreamedContent file = null;
+
+        try {
+            ByteArrayOutputStream zipBytes = new ByteArrayOutputStream();
+            ZipOutputStream zos = new ZipOutputStream(zipBytes);
+            zos.setLevel(9);
+
+            for (EntityMetric metric : getMetrics()) {
+                System.out.println("Metric tem nodes: " + metric.getNodes().size());
+
+                String fileName = generateFileName(metric) + ".csv";
+
+                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                PrintWriter pw = new PrintWriter(baos);
+
+                AbstractBichoMetricServices services = AbstractBichoMetricServices.createInstance(metric.getClassServicesName());
+
+                pw.println(services.getHeadCSV());
+
+                for (EntityMetricNode node : metric.getNodes()) {
+                    pw.println(node + "");
+                }
+
+                pw.flush();
+                pw.close();
+
+                ZipEntry ze = new ZipEntry(fileName.replaceAll("/", "-"));
+                zos.putNextEntry(ze);
+                zos.write(baos.toByteArray());
+                zos.closeEntry();
+
+                baos.close();
+            }
+
+            zos.close();
+            file = JsfUtil.downloadFile("All.zip", zipBytes.toByteArray());
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            JsfUtil.addErrorMessage(ex.toString());
+        }
+
+        return file;
+    }
+
     public StreamedContent downloadCSV(EntityMetric metric) {
         StreamedContent file = null;
         try {
-            OutLog out = new OutLog();
-
             System.out.println("Metric tem nodes: " + metric.getNodes().size());
 
             String fileName = generateFileName(metric) + ".csv";
@@ -82,7 +126,7 @@ public class GitMetricViewBean implements Serializable {
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             PrintWriter pw = new PrintWriter(baos);
 
-            AbstractMetricServices services = AbstractMetricServices.createInstance(dao, out, metric.getClassServicesName());
+            AbstractBichoMetricServices services = AbstractBichoMetricServices.createInstance(metric.getClassServicesName());
 
             pw.println(services.getHeadCSV());
 
@@ -156,6 +200,6 @@ public class GitMetricViewBean implements Serializable {
     }
 
     private String generateFileName(EntityMetric metric) {
-        return metric.getClassServicesSingleName() + " of matrix (" + metric.getMatrix() + ") - " + metric.getStarted();
+        return metric.toString();
     }
 }
