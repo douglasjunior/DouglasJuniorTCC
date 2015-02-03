@@ -11,18 +11,11 @@ import br.edu.utfpr.cm.JGitMinerWeb.model.matrix.EntityMatrixNode;
 import br.edu.utfpr.cm.JGitMinerWeb.model.metric.EntityMetric;
 import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.auxiliary.AuxFileFilePull;
 import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.auxiliary.AuxUserUserDirectional;
-import br.edu.utfpr.cm.JGitMinerWeb.services.metric.auxiliary.AuxFileFileMetrics;
+import br.edu.utfpr.cm.JGitMinerWeb.services.metric.auxiliary.AuxFileFileIssueMetrics;
 import br.edu.utfpr.cm.JGitMinerWeb.services.metric.auxiliary.AuxWordiness;
-import br.edu.utfpr.cm.JGitMinerWeb.services.metric.centrality.BetweennessCalculator;
-import br.edu.utfpr.cm.JGitMinerWeb.services.metric.centrality.ClosenessCalculator;
-import br.edu.utfpr.cm.JGitMinerWeb.services.metric.centrality.DegreeCalculator;
 import br.edu.utfpr.cm.JGitMinerWeb.services.metric.discussion.WordinessCalculator;
-import br.edu.utfpr.cm.JGitMinerWeb.services.metric.ego.EgoMeasure;
-import br.edu.utfpr.cm.JGitMinerWeb.services.metric.ego.EgoMeasureCalculator;
 import br.edu.utfpr.cm.JGitMinerWeb.services.metric.global.GlobalMeasure;
 import br.edu.utfpr.cm.JGitMinerWeb.services.metric.global.GlobalMeasureCalculator;
-import br.edu.utfpr.cm.JGitMinerWeb.services.metric.structuralholes.StructuralHolesCalculator;
-import br.edu.utfpr.cm.JGitMinerWeb.services.metric.structuralholes.StructuralHolesMeasure;
 import br.edu.utfpr.cm.JGitMinerWeb.util.DescriptiveStatisticsHelper;
 import br.edu.utfpr.cm.JGitMinerWeb.util.JsfUtil;
 import br.edu.utfpr.cm.JGitMinerWeb.util.JungExport;
@@ -35,7 +28,6 @@ import br.edu.utfpr.cm.minerador.services.matrix.model.FilePairApriori;
 import static br.edu.utfpr.cm.minerador.services.metric.AbstractBichoMetricServices.objectsToNodes;
 import edu.uci.ics.jung.graph.DirectedSparseGraph;
 import edu.uci.ics.jung.graph.util.EdgeType;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -84,41 +76,43 @@ public class BichoPairFilePerIssueMetricsInFixVersionServices extends AbstractBi
     public void run() {
         repository = getRepository();
 
-        String fixVersion = getVersion();
-        String futureVersion = getFutureVersion();
+        final String fixVersion = getVersion();
+        final String futureVersion = getFutureVersion();
 
         // file; file2; issueWeigth; issues; commitsWeight; commmits
         out.printLog("Iniciado cálculo da métrica de matriz com " + getMatrix().getNodes().size() + " nodes. Parametros: " + params);
 
         final Map<AuxFileFilePull, Set<AuxUser>> committersPairFile = new HashMap<>();
-        final Map<AuxFileFilePull, Set<Commenter>> commentersPairFile = new HashMap<>();
-        final Map<AuxFileFilePull, Set<Commenter>> devCommentersPairFile = new HashMap<>();
+        final Map<Integer, Set<Commenter>> commentersPairFile = new HashMap<>();
+        final Map<Integer, Set<Commenter>> devCommentersPairFile = new HashMap<>();
         final Map<AuxFileFilePull, Set<Integer>> issuesPairFile = new HashMap<>();
         final Map<AuxFileFilePull, Set<Integer>> commitsPairFile = new HashMap<>();
         final Map<AuxFileFilePull, Integer> futureDefectsPairFile = new HashMap<>();
         final Map<String, Integer> edgesWeigth = new HashMap<>();
         final Set<Integer> noCommenters = new HashSet<>();
+        final Set<String> allDistinctFiles = new HashSet<>();
+        final Set<Integer> allDistinctIssues = new HashSet<>();
 
         // rede de comunicação global, com todos pares de arquivos
         DirectedSparseGraph<String, String> globalGraph = new DirectedSparseGraph<>();
 
         // rede de comunicação de cada par de arquivo
-        Map<AuxFileFilePull, DirectedSparseGraph<String, String>> pairFileNetwork = new HashMap<>();
+        final Map<Integer, DirectedSparseGraph<String, String>> pairFileNetwork = new HashMap<>();
 
         int countIgnored = 0;
         final int maxFilePerCommit = 20;
-        BichoDAO bichoDAO = new BichoDAO(dao, repository);
-        BichoFileDAO bichoFileDAO = new BichoFileDAO(dao, repository, maxFilePerCommit);
-        BichoPairFileDAO bichoPairFileDAO = new BichoPairFileDAO(dao, repository, maxFilePerCommit);
-        Long issuesSize = bichoPairFileDAO
+        final BichoDAO bichoDAO = new BichoDAO(dao, repository);
+        final BichoFileDAO bichoFileDAO = new BichoFileDAO(dao, repository, maxFilePerCommit);
+        final BichoPairFileDAO bichoPairFileDAO = new BichoPairFileDAO(dao, repository, maxFilePerCommit);
+        final Long issuesSize = bichoPairFileDAO
                 .calculeNumberOfIssues(fixVersion, true);
 
         System.out.println("Number of all pull requests: " + issuesSize);
 
         // construindo a rede de comunicação para cada par de arquivo (desenvolvedores que comentaram)
-        int nodesSize = getMatrix().getNodes().size();
+        final int nodesSize = getMatrix().getNodes().size();
         int count = 0;
-        Set<AuxFileFilePull> pairFilesSet = new HashSet<>();
+        final Set<AuxFileFilePull> pairFilesSet = new HashSet<>();
         for (int i = 0; i < getMatrix().getNodes().size(); i++) {
             if (count++ % 100 == 0 || count == nodesSize) {
                 System.out.println(count + "/" + nodesSize);
@@ -145,6 +139,13 @@ public class BichoPairFilePerIssueMetricsInFixVersionServices extends AbstractBi
             if (issues.isEmpty()) {
                 out.printLog("No issues for pair file " + filename1 + ";" + filename2);
             }
+
+            // distinct files
+            allDistinctFiles.add(filename1);
+            allDistinctFiles.add(filename2);
+
+            // distinc issues
+            allDistinctIssues.addAll(issues);
 
             for (Integer issue : issues) {
                 AuxFileFilePull pairFile = new AuxFileFilePull(filename1, filename2, issue);
@@ -178,16 +179,16 @@ public class BichoPairFilePerIssueMetricsInFixVersionServices extends AbstractBi
                     committersPairFile.put(pairFile, pairFileCommitters);
                 }
 
-                List<Commenter> commenters = bichoDAO.selectCommentersByIssueId(issues);
+                List<Commenter> commenters = bichoDAO.selectCommentersByIssueId(issue);
 
                 /**
                  * Extract all distinct commenter of issue that pair of file was
                  * committed
                  */
-                if (commentersPairFile.containsKey(pairFile)) {
-                    commentersPairFile.get(pairFile).addAll(commenters);
+                if (commentersPairFile.containsKey(issue)) {
+                    commentersPairFile.get(issue).addAll(commenters);
                 } else {
-                    commentersPairFile.put(pairFile, new HashSet<>(commenters));
+                    commentersPairFile.put(issue, new HashSet<>(commenters));
                 }
 
                 // Commenters that are developer too (have same name)
@@ -197,10 +198,10 @@ public class BichoPairFilePerIssueMetricsInFixVersionServices extends AbstractBi
                         devCommenters.add(commenter);
                     }
                 }
-                if (devCommentersPairFile.containsKey(pairFile)) {
-                    devCommentersPairFile.get(pairFile).addAll(devCommenters);
+                if (devCommentersPairFile.containsKey(issue)) {
+                    devCommentersPairFile.get(issue).addAll(devCommenters);
                 } else {
-                    devCommentersPairFile.put(pairFile, devCommenters);
+                    devCommentersPairFile.put(issue, devCommenters);
                 }
 
                 if (commenters.isEmpty()) {
@@ -210,7 +211,7 @@ public class BichoPairFilePerIssueMetricsInFixVersionServices extends AbstractBi
                     DirectedSparseGraph<String, String> graphMulti
                             = new DirectedSparseGraph<>();
                     graphMulti.addVertex(commenters.get(0).getName());
-                    pairFileNetwork.put(pairFile, graphMulti);
+                    pairFileNetwork.put(issue, graphMulti);
                 } else {
                     Map<AuxUserUserDirectional, AuxUserUserDirectional> pairCommenters
                             = PairUtils.pairCommenters(commenters);
@@ -219,7 +220,7 @@ public class BichoPairFilePerIssueMetricsInFixVersionServices extends AbstractBi
                         DirectedSparseGraph<String, String> graphMulti
                                 = new DirectedSparseGraph<>();
                         graphMulti.addVertex(commenters.get(0).getName());
-                        pairFileNetwork.put(pairFile, graphMulti);
+                        pairFileNetwork.put(issue, graphMulti);
                         continue;
                     }
 
@@ -248,14 +249,13 @@ public class BichoPairFilePerIssueMetricsInFixVersionServices extends AbstractBi
                         }
 
                         // check if network already created
-                        if (pairFileNetwork.containsKey(pairFile)) {
-                            pairFileNetwork.get(pairFile)
+                        if (pairFileNetwork.containsKey(issue)) {
+                            pairFileNetwork.get(issue)
                                     .addEdge(pairUser.toStringDirectional(), pairUser.getUser(), pairUser.getUser2(), EdgeType.DIRECTED);
                         } else {
-                            DirectedSparseGraph<String, String> graphMulti
-                                    = new DirectedSparseGraph<>();
+                            DirectedSparseGraph<String, String> graphMulti = new DirectedSparseGraph<>();
                             graphMulti.addEdge(pairUser.toStringDirectional(), pairUser.getUser(), pairUser.getUser2(), EdgeType.DIRECTED);
-                            pairFileNetwork.put(pairFile, graphMulti);
+                            pairFileNetwork.put(issue, graphMulti);
                         }
                     }
                 }
@@ -263,7 +263,6 @@ public class BichoPairFilePerIssueMetricsInFixVersionServices extends AbstractBi
         }
         out.printLog("No commenters for issues " + Arrays.toString(noCommenters.toArray()));
 
-        SimpleDateFormat format = new SimpleDateFormat("dd.MM.yyyy");
         JungExport.exportToImage(globalGraph, "C:/Users/a562273/Desktop/networks/",
                 repository + " " + fixVersion);
 
@@ -276,7 +275,8 @@ public class BichoPairFilePerIssueMetricsInFixVersionServices extends AbstractBi
         out.printLog("Número de pares de arquivos distintos: " + pairFilesSet.size());
         out.printLog("Iniciando cálculo das métricas.");
 
-        Set<AuxFileFileMetrics> fileFileMetrics = new HashSet<>();
+        Set<AuxFileFileIssueMetrics> fileFileMetrics = new HashSet<>();
+        Map<Integer, NetworkMetricsCalculator> networkMetricsMap = new HashMap<>(issuesSize.intValue());
 
         out.printLog("Calculando metricas SNA...");
 
@@ -293,61 +293,21 @@ public class BichoPairFilePerIssueMetricsInFixVersionServices extends AbstractBi
         count = 0;
         final int size = committersPairFile.entrySet().size();
         out.printLog("Número de pares de arquivos: " + commentersPairFile.keySet().size());
-        for (Map.Entry<AuxFileFilePull, Set<Commenter>> entry : commentersPairFile.entrySet()) {
+        for (AuxFileFilePull fileFile : pairFilesSet) {
             if (count++ % 10 == 0 || count == size) {
                 System.out.println(count + "/" + size);
             }
-            AuxFileFilePull fileFile = entry.getKey();
-            Set<Commenter> devsCommentters = entry.getValue();
+            Integer issue = fileFile.getPullNumber();
+            Set<Commenter> devsCommentters = commentersPairFile.get(issue);
 
             // pair file network
-            final DirectedSparseGraph<String, String> pairFileGraph = pairFileNetwork.get(fileFile);
-            GlobalMeasure pairFileGlobal = GlobalMeasureCalculator.calcule(pairFileGraph);
-
-            // Map<String, Double> barycenter = BarycenterCalculator.calcule(pairFileGraph, edgesWeigth);
-            Map<String, Double> betweenness = BetweennessCalculator.calcule(pairFileGraph, edgesWeigth);
-            Map<String, Double> closeness = ClosenessCalculator.calcule(pairFileGraph, edgesWeigth);
-            Map<String, Integer> degree = DegreeCalculator.calcule(pairFileGraph);
-            // Map<String, Double> eigenvector = EigenvectorCalculator.calcule(pairFileGraph, edgesWeigth);
-            Map<String, EgoMeasure<String>> ego = EgoMeasureCalculator.calcule(pairFileGraph, edgesWeigth);
-            Map<String, StructuralHolesMeasure<String>> structuralHoles = StructuralHolesCalculator.calcule(pairFileGraph, edgesWeigth);
-
-//            DescriptiveStatisticsHelper barycenterStatistics = new DescriptiveStatisticsHelper(devsCommentters.isEmpty() ? 1 : devsCommentters.size());
-            DescriptiveStatisticsHelper betweennessStatistics = new DescriptiveStatisticsHelper(devsCommentters.isEmpty() ? 1 : devsCommentters.size());
-            DescriptiveStatisticsHelper closenessStatistics = new DescriptiveStatisticsHelper(devsCommentters.isEmpty() ? 1 : devsCommentters.size());
-            DescriptiveStatisticsHelper degreeStatistics = new DescriptiveStatisticsHelper(devsCommentters.isEmpty() ? 1 : devsCommentters.size());
-//            DescriptiveStatisticsHelper eigenvectorStatistics = new DescriptiveStatisticsHelper(devsCommentters.isEmpty() ? 1 : devsCommentters.size());
-            DescriptiveStatisticsHelper egoBetweennessStatistics = new DescriptiveStatisticsHelper(devsCommentters.isEmpty() ? 1 : devsCommentters.size());
-            DescriptiveStatisticsHelper egoSizeStatistics = new DescriptiveStatisticsHelper(devsCommentters.isEmpty() ? 1 : devsCommentters.size());
-//            DescriptiveStatisticsHelper egoPairsStatistics = new DescriptiveStatisticsHelper(devsCommentters.isEmpty() ? 1 : devsCommentters.size());
-            DescriptiveStatisticsHelper egoTiesStatistics = new DescriptiveStatisticsHelper(devsCommentters.isEmpty() ? 1 : devsCommentters.size());
-            DescriptiveStatisticsHelper egoDensityStatistics = new DescriptiveStatisticsHelper(devsCommentters.isEmpty() ? 1 : devsCommentters.size());
-            DescriptiveStatisticsHelper efficiencyStatistics = new DescriptiveStatisticsHelper(devsCommentters.isEmpty() ? 1 : devsCommentters.size());
-            DescriptiveStatisticsHelper effectiveSizeStatistics = new DescriptiveStatisticsHelper(devsCommentters.isEmpty() ? 1 : devsCommentters.size());
-            DescriptiveStatisticsHelper constraintStatistics = new DescriptiveStatisticsHelper(devsCommentters.isEmpty() ? 1 : devsCommentters.size());
-            DescriptiveStatisticsHelper hierarchyStatistics = new DescriptiveStatisticsHelper(devsCommentters.isEmpty() ? 1 : devsCommentters.size());
-
-            for (Commenter user : devsCommentters) {
-                String commenter = user.getName();
-
-//                barycenterStatistics.addValue(barycenter.get(commenter));
-                betweennessStatistics.addValue(betweenness.get(commenter));
-                closenessStatistics.addValue(closeness.get(commenter));
-                degreeStatistics.addValue(degree.get(commenter));
-//                eigenvectorStatistics.addValue(eigenvector.get(commenter));
-
-                final EgoMeasure<String> egoMetrics = ego.get(commenter);
-                egoBetweennessStatistics.addValue(egoMetrics.getBetweennessCentrality());
-                egoSizeStatistics.addValue(egoMetrics.getSize());
-//                egoPairsStatistics.addValue(ego.get(commenter).getPairs());
-                egoTiesStatistics.addValue(egoMetrics.getTies());
-                egoDensityStatistics.addValue(egoMetrics.getDensity());
-
-                final StructuralHolesMeasure<String> structuralHolesMetric = structuralHoles.get(commenter);
-                efficiencyStatistics.addValue(structuralHolesMetric.getEfficiency());
-                effectiveSizeStatistics.addValue(structuralHolesMetric.getEffectiveSize());
-                constraintStatistics.addValue(structuralHolesMetric.getConstraint());
-                hierarchyStatistics.addValue(structuralHolesMetric.getHierarchy());
+            final DirectedSparseGraph<String, String> issueGraph = pairFileNetwork.get(issue);
+            NetworkMetricsCalculator networkMetrics;
+            if (networkMetricsMap.containsKey(issue)) {
+                networkMetrics = networkMetricsMap.get(issue);
+            } else {
+                networkMetrics = new NetworkMetricsCalculator(issueGraph, edgesWeigth, devsCommentters);
+                networkMetricsMap.put(issue, networkMetrics);
             }
             Integer distinctCommentersCount = devsCommentters.size();
 
@@ -375,7 +335,7 @@ public class BichoPairFilePerIssueMetricsInFixVersionServices extends AbstractBi
                     cummulativeOwnerExperience = 0.0d, cummulativeOwnerExperience2 = 0.0d;
 
             long committers = devsCommitters.size();
-            long devCommenters = devCommentersPairFile.get(fileFile).size();
+            long devCommenters = devCommentersPairFile.get(issue).size();
             long distinctCommitters = bichoPairFileDAO.calculeCummulativeCommitters(
                     fileFile.getFileName(), fileFile.getFileName2(), fixVersion, fileFileIssues);
 
@@ -462,26 +422,26 @@ public class BichoPairFilePerIssueMetricsInFixVersionServices extends AbstractBi
 
             boolean samePackage = PathUtils.isSameFullPath(fileFile.getFileName(), fileFile.getFileName2());
 
-            AuxFileFileMetrics auxFileFileMetrics = new AuxFileFileMetrics(
-                    fileFile.getFileName(), fileFile.getFileName2(),
+            AuxFileFileIssueMetrics auxFileFileMetrics = new AuxFileFileIssueMetrics(
+                    fileFile.getFileName(), fileFile.getFileName2(), issue,
                     BooleanUtils.toInteger(samePackage),
                     // barycenterSum, barycenterAvg, barycenterMax,
-                    betweennessStatistics.getSum(), betweennessStatistics.getMean(), betweennessStatistics.getMedian(), betweennessStatistics.getMax(),
-                    closenessStatistics.getSum(), closenessStatistics.getMean(), closenessStatistics.getMedian(), closenessStatistics.getMax(),
-                    degreeStatistics.getSum(), degreeStatistics.getMean(), degreeStatistics.getMedian(), degreeStatistics.getMax(),
+                    networkMetrics.getBetweennessSum(), networkMetrics.getBetweennessMean(), networkMetrics.getBetweennessMedian(), networkMetrics.getBetweennessMax(),
+                    networkMetrics.getClosenessSum(), networkMetrics.getClosenessMean(), networkMetrics.getClosenessMedian(), networkMetrics.getClosenessMax(),
+                    networkMetrics.getDegreeSum(), networkMetrics.getDegreeMean(), networkMetrics.getDegreeMedian(), networkMetrics.getDegreeMax(),
                     // eigenvectorSum, eigenvectorAvg, eigenvectorMax,
 
-                    egoBetweennessStatistics.getSum(), egoBetweennessStatistics.getMean(), egoBetweennessStatistics.getMedian(), egoBetweennessStatistics.getMax(),
-                    egoSizeStatistics.getSum(), egoSizeStatistics.getMean(), egoSizeStatistics.getMedian(), egoSizeStatistics.getMax(),
-                    egoTiesStatistics.getSum(), egoTiesStatistics.getMean(), egoTiesStatistics.getMedian(), egoTiesStatistics.getMax(),
+                    networkMetrics.getEgoBetweennessSum(), networkMetrics.getEgoBetweennessMean(), networkMetrics.getEgoBetweennessMedian(), networkMetrics.getEgoBetweennessMax(),
+                    networkMetrics.getEgoSizeSum(), networkMetrics.getEgoSizeMean(), networkMetrics.getEgoSizeMedian(), networkMetrics.getEgoSizeMax(),
+                    networkMetrics.getEgoTiesSum(), networkMetrics.getEgoTiesMean(), networkMetrics.getEgoTiesMedian(), networkMetrics.getEgoTiesMax(),
                     // egoPairsSum, egoPairsAvg, egoPairsMax,
-                    egoDensityStatistics.getSum(), egoDensityStatistics.getMean(), egoDensityStatistics.getMedian(), egoDensityStatistics.getMax(),
-                    efficiencyStatistics.getSum(), efficiencyStatistics.getMean(), efficiencyStatistics.getMedian(), efficiencyStatistics.getMax(),
-                    effectiveSizeStatistics.getSum(), effectiveSizeStatistics.getMean(), effectiveSizeStatistics.getMedian(), effectiveSizeStatistics.getMax(),
-                    constraintStatistics.getSum(), constraintStatistics.getMean(), constraintStatistics.getMedian(), constraintStatistics.getMax(),
-                    hierarchyStatistics.getSum(), hierarchyStatistics.getMean(), hierarchyStatistics.getMedian(), hierarchyStatistics.getMax(),
-                    pairFileGlobal.getSize(), pairFileGlobal.getTies(),
-                    pairFileGlobal.getDensity(), pairFileGlobal.getDiameter(),
+                    networkMetrics.getEgoDensitySum(), networkMetrics.getEgoDensityMean(), networkMetrics.getEgoDensityMedian(), networkMetrics.getEgoDensityMax(),
+                    networkMetrics.getEfficiencySum(), networkMetrics.getEfficiencyMean(), networkMetrics.getEfficiencyMedian(), networkMetrics.getEfficiencyMax(),
+                    networkMetrics.getEffectiveSizeSum(), networkMetrics.getEffectiveSizeMean(), networkMetrics.getEffectiveSizeMedian(), networkMetrics.getEffectiveSizeMax(),
+                    networkMetrics.getConstraintSum(), networkMetrics.getConstraintMean(), networkMetrics.getConstraintMedian(), networkMetrics.getConstraintMax(),
+                    networkMetrics.getHierarchySum(), networkMetrics.getHierarchyMean(), networkMetrics.getHierarchyMedian(), networkMetrics.getHierarchyMax(),
+                    networkMetrics.getGlobalSize(), networkMetrics.getGlobalTies(),
+                    networkMetrics.getGlobalDensity(), networkMetrics.getGlobalDiameter(),
                     devCommitsStatistics.getSum(), devCommitsStatistics.getMean(), devCommitsStatistics.getMedian(), devCommitsStatistics.getMax(),
                     ownershipStatistics.getSum(), ownershipStatistics.getMean(), ownershipStatistics.getMedian(), ownershipStatistics.getMax(),
                     majorContributors, minorContributors,
@@ -520,26 +480,36 @@ public class BichoPairFilePerIssueMetricsInFixVersionServices extends AbstractBi
         metrics.setNodes(objectsToNodes(fileFileMetrics));
         metricsToSave.add(metrics);
 
-        List<AuxFileFileMetrics> metricsList = new ArrayList<>(fileFileMetrics);
+        List<AuxFileFileIssueMetrics> metricsList = new ArrayList<>(fileFileMetrics);
         // salvando a matriz com o top 10 par de arquivos
         EntityMetric metrics2 = new EntityMetric();
-        List<AuxFileFileMetrics> top10 = getTop10(metricsList);
-        metrics2.setNodes(objectsToNodes(top10));
-        metrics2.setAdditionalFilename(" top 10");
+        List<AuxFileFileIssueMetrics> top25 = getTop25(metricsList);
+        metrics2.setNodes(objectsToNodes(top25));
+        metrics2.setAdditionalFilename(" top 25");
         metricsToSave.add(metrics2);
 
         // separa o top 10 em A + qualquerarquivo
         int rank = 0;
-        for (AuxFileFileMetrics filePairTop : top10) {
-            List<AuxFileFileMetrics> changedWithA = new ArrayList<>();
-            for (AuxFileFileMetrics filePair : metricsList) {
-                if (filePair.getFile()
-                        .equals(filePairTop.getFile())
+        for (AuxFileFileIssueMetrics filePairTop : top25) {
+            List<AuxFileFileIssueMetrics> changedWithA = new ArrayList<>();
+            for (AuxFileFileIssueMetrics filePair : metricsList) {
+                if (filePair.getFile().equals(filePairTop.getFile())
                         && !filePair.equals(filePairTop)) {
+                    filePair.changeToRisky();
                     changedWithA.add(filePair);
                 }
             }
-            filePairTop.changeToRisky();
+
+            // complete with others
+            for (String file : allDistinctFiles) {
+                for (Integer issue : allDistinctIssues) {
+                    AuxFileFileIssueMetrics combined = new AuxFileFileIssueMetrics(filePairTop.getFile(), file, issue, new double[AuxFileFileIssueMetrics.HEADER_INDEX.size() - 4]);
+                    if (!changedWithA.contains(combined)) {
+                        changedWithA.add(combined);
+                    }
+                }
+            }
+
             changedWithA.add(0, filePairTop);
             EntityMetric metrics3 = new EntityMetric();
             metrics3.setNodes(objectsToNodes(changedWithA));
@@ -549,22 +519,22 @@ public class BichoPairFilePerIssueMetricsInFixVersionServices extends AbstractBi
         }
     }
 
-    private List<AuxFileFileMetrics> getTop10(final List<AuxFileFileMetrics> pairFileList) {
+    private List<AuxFileFileIssueMetrics> getTop25(final List<AuxFileFileIssueMetrics> pairFileList) {
         // order by number of defects (lower priority)
         orderByNumberOfDefects(pairFileList);
         // order by support (higher priority)
         orderByFilePairSupport(pairFileList);
 
-        int lastIndex = pairFileList.size() > 10 ? 10 : pairFileList.size();
-        final List<AuxFileFileMetrics> top10 = pairFileList.subList(0, lastIndex);
+        int lastIndex = pairFileList.size() > 25 ? 25 : pairFileList.size();
+        final List<AuxFileFileIssueMetrics> top10 = pairFileList.subList(0, lastIndex);
         return top10;
     }
 
-    private void orderByFilePairSupport(final List<AuxFileFileMetrics> pairFileList) {
-        Collections.sort(pairFileList, new Comparator<AuxFileFileMetrics>() {
+    private void orderByFilePairSupport(final List<AuxFileFileIssueMetrics> pairFileList) {
+        Collections.sort(pairFileList, new Comparator<AuxFileFileIssueMetrics>() {
 
             @Override
-            public int compare(AuxFileFileMetrics o1, AuxFileFileMetrics o2) {
+            public int compare(AuxFileFileIssueMetrics o1, AuxFileFileIssueMetrics o2) {
                 FilePairApriori apriori1 = o1.getFilePairApriori();
                 FilePairApriori apriori2 = o2.getFilePairApriori();
                 if (apriori1.getSupportFilePair() > apriori2.getSupportFilePair()) {
@@ -577,11 +547,11 @@ public class BichoPairFilePerIssueMetricsInFixVersionServices extends AbstractBi
         });
     }
 
-    private void orderByNumberOfDefects(final List<AuxFileFileMetrics> pairFileList) {
-        Collections.sort(pairFileList, new Comparator<AuxFileFileMetrics>() {
+    private void orderByNumberOfDefects(final List<AuxFileFileIssueMetrics> pairFileList) {
+        Collections.sort(pairFileList, new Comparator<AuxFileFileIssueMetrics>() {
 
             @Override
-            public int compare(AuxFileFileMetrics o1, AuxFileFileMetrics o2) {
+            public int compare(AuxFileFileIssueMetrics o1, AuxFileFileIssueMetrics o2) {
                 final int defectIssuesIdWeight1 = o1.getFutureDefectIssuesIdWeight();
                 final int defectIssuesIdWeight2 = o2.getFutureDefectIssuesIdWeight();
                 if (defectIssuesIdWeight1 > defectIssuesIdWeight2) {
@@ -596,7 +566,7 @@ public class BichoPairFilePerIssueMetricsInFixVersionServices extends AbstractBi
 
     @Override
     public String getHeadCSV() {
-        return "file;file2;"
+        return "file;file2;issue;"
                 + "samePackage;" // arquivos do par são do mesmo pacote = 1, caso contrário 0
                 // + "brcAvg;brcSum;brcMax;"
                 + "btwSum;btwAvg;btwMdn;btwMax;"
@@ -630,7 +600,7 @@ public class BichoPairFilePerIssueMetricsInFixVersionServices extends AbstractBi
                 + "ageRelease;ageTotal;"
                 + "updates;futureUpdates;"
                 + "fileFutureIssues;file2FutureIssues;allFutureIssues;"
-                + "supportFile;supportFile2;supportPairFile;confidence;confidence2;lift;conviction;conviction2;risk";
+                + "supportFile;supportFile2;supportPairFile;confidence;confidence2;lift;conviction;conviction2;changed";
     }
 
     @Override

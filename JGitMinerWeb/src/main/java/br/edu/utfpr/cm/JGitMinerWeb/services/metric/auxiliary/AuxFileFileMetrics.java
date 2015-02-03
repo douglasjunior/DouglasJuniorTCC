@@ -53,7 +53,7 @@ public class AuxFileFileMetrics {
                 + "ageRelease;ageTotal;"
                 + "updates;futureUpdates;"
                 + "fileFutureIssues;file2FutureIssues;allFutureIssues;"
-                + "supportFile;supportFile2;supportPairFile;confidence;confidence2;lift;conviction;conviction2;risk").split(";");
+                + "supportFile;supportFile2;supportPairFile;confidence;confidence2;lift;conviction;conviction2;changed").split(";");
         Map<String, Integer> headerIndex = new LinkedHashMap<>();
         int index = 0;
         for (String headerName : headerNames) {
@@ -146,6 +146,10 @@ public class AuxFileFileMetrics {
 
     public void changeToRisky() {
         risk = 1;
+    }
+
+    public int getRisky() {
+        return risk;
     }
 
     public int getFutureDefectIssuesIdWeight() {
