@@ -105,7 +105,8 @@ public class BichoDAO {
                         + "  FROM {0}_issues.comments c"
                         + "  JOIN {0}_issues.issues i ON i.id = c.issue_id"
                         + "  JOIN {0}_issues.people p ON p.id = c.submitted_by"
-                        + " WHERE 1 = 1", repository);
+                        // ignore continuous integration user
+                        + " WHERE UPPER(p.user_id) <> ?", repository);
 
         SELECT_FIX_VERSION_ORDERED
                 = QueryUtils.getQueryForDatabase(
@@ -269,7 +270,7 @@ public class BichoDAO {
         sql.append(" ORDER BY c.submitted_on ASC");
 
         List<Object[]> rawFilesPath
-                = dao.selectNativeWithParams(sql.toString(), new Object[0]);
+                = dao.selectNativeWithParams(sql.toString(), new Object[]{"HUDSON"});
 
         List<Commenter> files = new ArrayList<>();
         for (Object[] row : rawFilesPath) {
