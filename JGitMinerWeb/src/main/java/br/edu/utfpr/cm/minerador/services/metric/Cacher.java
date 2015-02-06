@@ -2,6 +2,11 @@ package br.edu.utfpr.cm.minerador.services.metric;
 
 import br.edu.utfpr.cm.JGitMinerWeb.dao.AuxCodeChurn;
 import br.edu.utfpr.cm.JGitMinerWeb.dao.BichoFileDAO;
+import br.edu.utfpr.cm.JGitMinerWeb.dao.BichoPairFileDAO;
+import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.auxiliary.AuxFileFile;
+import br.edu.utfpr.cm.JGitMinerWeb.services.metric.auxiliary.IssueMetrics;
+import br.edu.utfpr.cm.minerador.services.matrix.model.Commenter;
+import edu.uci.ics.jung.graph.DirectedSparseGraph;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
@@ -30,10 +35,24 @@ public class Cacher {
     private final Map<String, AuxCodeChurn> fileUserCodeChurnMap = new HashMap<>();
     private final Map<String, AuxCodeChurn> fileUserCummulativeCodeChurnMap = new HashMap<>();
 
+    // future issues
+    private final Map<AuxFileFile, Long> futureIssuesMap = new HashMap<>();
+
+    private final Map<Integer, IssueMetrics> issuesCommentsCacher = new HashMap<>();
+
+    private final Map<Integer, NetworkMetricsCalculator> networkMetricsMap = new HashMap<>();
+
     private final BichoFileDAO fileDAO;
+    private final BichoPairFileDAO pairFileDAO;
 
     public Cacher(BichoFileDAO fileDAO) {
         this.fileDAO = fileDAO;
+        pairFileDAO = null;
+    }
+
+    public Cacher(BichoFileDAO fileDAO, BichoPairFileDAO pairFileDAO) {
+        this.fileDAO = fileDAO;
+        this.pairFileDAO = pairFileDAO;
     }
 
     // Internal method with Map (cacher) parameter
@@ -162,5 +181,38 @@ public class Cacher {
 
     public AuxCodeChurn calculeFileCodeChurn(String fileName, String fixVersion) {
         return calculeFileCodeChurn(fileCodeChurnMap, fileName, fixVersion, null);
+    }
+
+    public long calculeFutureNumberOfIssues(AuxFileFile fileFile, String futureVersion) {
+        if (futureIssuesMap.containsKey(fileFile)) {
+            return futureIssuesMap.get(fileFile);
+        } else {
+            long futureIssues = pairFileDAO.calculeNumberOfIssues(
+                    fileFile.getFileName(), fileFile.getFileName2(),
+                    futureVersion);
+            futureIssuesMap.put(fileFile, futureIssues);
+            return futureIssues;
+        }
+    }
+
+    public IssueMetrics calculeIssueMetrics(Integer issue) {
+        if (issuesCommentsCacher.containsKey(issue)) {
+            return issuesCommentsCacher.get(issue);
+        } else {
+            IssueMetrics metric = pairFileDAO.listIssues(issue);
+            issuesCommentsCacher.put(issue, metric);
+            return metric;
+        }
+    }
+
+    NetworkMetricsCalculator calculeNetworkMetrics(Integer issue, DirectedSparseGraph<String, String> issueGraph, Map<String, Integer> edgesWeigth, Set<Commenter> devsCommentters) {
+        NetworkMetricsCalculator networkMetrics;
+        if (networkMetricsMap.containsKey(issue)) {
+            networkMetrics = networkMetricsMap.get(issue);
+        } else {
+            networkMetrics = new NetworkMetricsCalculator(issueGraph, edgesWeigth, devsCommentters);
+            networkMetricsMap.put(issue, networkMetrics);
+        }
+        return networkMetrics;
     }
 }

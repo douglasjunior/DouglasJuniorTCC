@@ -1,7 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package br.edu.utfpr.cm.JGitMinerWeb.services.matrix.auxiliary;
 
 import java.util.Objects;
@@ -10,35 +6,13 @@ import java.util.Objects;
  *
  * @author douglas
  */
-public class AuxFileFilePull {
+public class AuxFileFilePull extends AuxFileFile {
 
-    private String fileName;
-    private String fileName2;
     private Integer pullNumber;
 
-    public AuxFileFilePull() {
-    }
-
     public AuxFileFilePull(String fileName, String fileName2, Integer pullNumber) {
-        this.fileName = fileName;
-        this.fileName2 = fileName2;
+        super(fileName, fileName2);
         this.pullNumber = pullNumber;
-    }
-
-    public String getFileName() {
-        return fileName;
-    }
-
-    public void setFileName(String fileName) {
-        this.fileName = fileName;
-    }
-
-    public String getFileName2() {
-        return fileName2;
-    }
-
-    public void setFileName2(String fileName2) {
-        this.fileName2 = fileName2;
     }
 
     public Integer getPullNumber() {
@@ -51,17 +25,10 @@ public class AuxFileFilePull {
 
     @Override
     public boolean equals(Object obj) {
-        if (obj != null && obj instanceof AuxFileFilePull) {
+        if (super.equals(obj) && obj instanceof AuxFileFilePull) {
             AuxFileFilePull other = (AuxFileFilePull) obj;
             if (this.pullNumber.equals(other.pullNumber)) {
-                if (this.fileName.equals(other.fileName)
-                        && this.fileName2.equals(other.fileName2)) {
-                    return true;
-                }
-                if (this.fileName.equals(other.fileName2)
-                        && this.fileName2.equals(other.fileName)) {
-                    return true;
-                }
+                return true;
             }
         }
         return false;

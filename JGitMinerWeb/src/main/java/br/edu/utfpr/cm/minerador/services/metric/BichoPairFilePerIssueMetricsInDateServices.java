@@ -14,7 +14,7 @@ import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.auxiliary.AuxFileFile;
 import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.auxiliary.AuxFileFilePull;
 import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.auxiliary.AuxUserUserDirectional;
 import br.edu.utfpr.cm.JGitMinerWeb.services.metric.auxiliary.AuxFileFileIssueMetrics;
-import br.edu.utfpr.cm.JGitMinerWeb.services.metric.auxiliary.AuxWordiness;
+import br.edu.utfpr.cm.JGitMinerWeb.services.metric.auxiliary.IssueMetrics;
 import br.edu.utfpr.cm.JGitMinerWeb.services.metric.centrality.BetweennessCalculator;
 import br.edu.utfpr.cm.JGitMinerWeb.services.metric.centrality.ClosenessCalculator;
 import br.edu.utfpr.cm.JGitMinerWeb.services.metric.centrality.DegreeCalculator;
@@ -465,12 +465,12 @@ public class BichoPairFilePerIssueMetricsInDateServices extends AbstractBichoMet
 
             Long futureUpdates = updates;
             // list all issues and its comments
-            Collection<AuxWordiness> issuesAndComments
+            Collection<IssueMetrics> issuesAndComments
                     = bichoPairFileDAO.listIssues(fileFilePull.getFileName(), fileFilePull.getFileName2(), beginDate, endDate, fileFileIssuesPerIssue);
 
             long wordiness = 0;
             long commentsSum = 0;
-            for (AuxWordiness auxWordiness : issuesAndComments) {
+            for (IssueMetrics auxWordiness : issuesAndComments) {
                 wordiness += WordinessCalculator.calcule(auxWordiness);
                 commentsSum += auxWordiness.getComments().size();
             }

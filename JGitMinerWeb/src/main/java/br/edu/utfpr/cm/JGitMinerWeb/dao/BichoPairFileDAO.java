@@ -2,7 +2,7 @@ package br.edu.utfpr.cm.JGitMinerWeb.dao;
 
 import static br.edu.utfpr.cm.JGitMinerWeb.dao.QueryUtils.filterByIssues;
 import br.edu.utfpr.cm.JGitMinerWeb.model.miner.EntityComment;
-import br.edu.utfpr.cm.JGitMinerWeb.services.metric.auxiliary.AuxWordiness;
+import br.edu.utfpr.cm.JGitMinerWeb.services.metric.auxiliary.IssueMetrics;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -48,6 +48,7 @@ public class BichoPairFileDAO {
 
     private final String SELECT_ISSUES_OF_FILE_PAIR_BY_DATE;
     private final String SELECT_ISSUES_OF_FILE_PAIR_BY_DATE_AND_FIX_VERSION;
+    private final String SELECT_ISSUES_BY_ISSUES_ID;
 
     private final String COUNT_COMMENTS_OF_FILE_PAIR_BY_DATE;
 
@@ -316,6 +317,16 @@ public class BichoPairFileDAO {
                         + "   AND s2.date > i.submitted_on", repository)
                 + FILTER_BY_MAX_FILES_IN_COMMIT
                 + FILTER_BY_ISSUE_FIX_MAJOR_VERSION
+                + FIXED_ISSUES_ONLY;
+
+        SELECT_ISSUES_BY_ISSUES_ID
+                = QueryUtils.getQueryForDatabase(
+                        "SELECT DISTINCT i.id, i.issue, i.description, i.type, i.priority, assigned.user_id, submitted.user_id"
+                        + "  FROM {0}_issues.issues i"
+                        + "  JOIN {0}_issues.changes c ON c.issue_id = i.id"
+                        + "  JOIN {0}_issues.people assigned ON assigned.id = i.assigned_to"
+                        + "  JOIN {0}_issues.people submitted ON submitted.id = i.submitted_by"
+                        + " WHERE i.id = ?", repository)
                 + FIXED_ISSUES_ONLY;
 
         COUNT_COMMENTS_OF_FILE_PAIR_BY_DATE
@@ -600,7 +611,7 @@ public class BichoPairFileDAO {
                         + "  JOIN {0}_vcs.actions a ON a.commit_id = s.id"
                         + "  JOIN {0}_vcs.files fil ON fil.id = a.file_id"
                         + "  JOIN {0}_vcs.file_links fill ON fill.file_id = fil.id"
-                        // neste caso não é necessário
+                        // neste caso nÃ£o Ã© necessÃ¡rio
                         // temos que considerar todos os arquivos, inclusive quando renomeados
                         //                        + " AND fill.commit_id = "
                         //                        + "       (SELECT MAX(afill.commit_id) " // last commit where file has introduced, because it can have more than one
@@ -610,7 +621,7 @@ public class BichoPairFileDAO {
                         + "  JOIN {0}_vcs.actions a2 ON a2.commit_id = s2.id"
                         + "  JOIN {0}_vcs.files fil2 ON fil2.id = a2.file_id AND a.file_id <> a2.file_id"
                         + "  JOIN {0}_vcs.file_links fill2 ON fill2.file_id = fil2.id"
-                        // neste caso não é necessário
+                        // neste caso nÃ£o Ã© necessÃ¡rio
                         // temos que considerar todos os arquivos, inclusive quando renomeados
                         //                        + " AND fill2.commit_id = "
                         //                        + "       (SELECT MAX(afill2.commit_id) " // last commit where file has introduced, because it can have more than one
@@ -635,7 +646,7 @@ public class BichoPairFileDAO {
                         + "  JOIN {0}_vcs.actions a ON a.commit_id = s.id"
                         + "  JOIN {0}_vcs.files fil ON fil.id = a.file_id"
                         + "  JOIN {0}_vcs.file_links fill ON fill.file_id = fil.id"
-                        // neste caso não é necessário
+                        // neste caso nÃ£o Ã© necessÃ¡rio
                         // temos que considerar todos os arquivos, inclusive quando renomeados
                         //                        + " AND fill.commit_id = "
                         //                        + "       (SELECT MAX(afill.commit_id) " // last commit where file has introduced, because it can have more than one
@@ -645,7 +656,7 @@ public class BichoPairFileDAO {
                         + "  JOIN {0}_vcs.actions a2 ON a2.commit_id = s2.id"
                         + "  JOIN {0}_vcs.files fil2 ON fil2.id = a2.file_id AND a.file_id <> a2.file_id"
                         + "  JOIN {0}_vcs.file_links fill2 ON fill2.file_id = fil2.id"
-                        // neste caso não é necessário
+                        // neste caso nÃ£o Ã© necessÃ¡rio
                         // temos que considerar todos os arquivos, inclusive quando renomeados
                         //                        + " AND fill2.commit_id = "
                         //                        + "       (SELECT MAX(afill2.commit_id) " // last commit where file has introduced, because it can have more than one
@@ -1352,7 +1363,7 @@ public class BichoPairFileDAO {
         return count != null ? count : 0l;
     }
 
-    public Collection<AuxWordiness> listIssues(String file, String file2,
+    public Collection<IssueMetrics> listIssues(String file, String file2,
             Date beginDate, Date endDate, Collection<Integer> issues) {
         List<Object> selectParams = new ArrayList<>();
 
@@ -1368,12 +1379,12 @@ public class BichoPairFileDAO {
 
         List<Object[]> rawIssues = dao.selectNativeWithParams(sql.toString(), selectParams.toArray());
 
-        Map<Integer, AuxWordiness> cache = new HashMap<>(rawIssues.size());
+        Map<Integer, IssueMetrics> cache = new HashMap<>(rawIssues.size());
         for (Object[] issue : rawIssues) {
             Integer issueNumber = (Integer) issue[0];
 
             List<String> comments = dao.selectNativeWithParams(SELECT_COMMENTS_BY_ISSUE_ID, new Object[]{issueNumber});
-            AuxWordiness comment = new AuxWordiness(
+            IssueMetrics comment = new IssueMetrics(
                     issueNumber,
                     (String) issue[1],
                     (String) issue[2],
@@ -1384,7 +1395,7 @@ public class BichoPairFileDAO {
         return cache.values();
     }
 
-    public Collection<AuxWordiness> listIssues(String file, String file2,
+    public Collection<IssueMetrics> listIssues(String file, String file2,
             String fixVersion, Collection<Integer> issues) {
         List<Object> selectParams = new ArrayList<>();
 
@@ -1399,12 +1410,12 @@ public class BichoPairFileDAO {
 
         List<Object[]> rawIssues = dao.selectNativeWithParams(sql.toString(), selectParams.toArray());
 
-        Map<Integer, AuxWordiness> cache = new HashMap<>(rawIssues.size());
+        Map<Integer, IssueMetrics> cache = new HashMap<>(rawIssues.size());
         for (Object[] issue : rawIssues) {
             Integer issueNumber = (Integer) issue[0];
 
             List<String> comments = dao.selectNativeWithParams(SELECT_COMMENTS_BY_ISSUE_ID, new Object[]{issueNumber});
-            AuxWordiness comment = new AuxWordiness(
+            IssueMetrics comment = new IssueMetrics(
                     issueNumber,
                     (String) issue[1],
                     (String) issue[2],
@@ -1413,6 +1424,25 @@ public class BichoPairFileDAO {
         }
 
         return cache.values();
+    }
+
+    public IssueMetrics listIssues(Integer issue) {
+        Object[] rawIssues = dao.selectNativeOneWithParams(SELECT_ISSUES_BY_ISSUES_ID, new Object[]{issue});
+
+        Integer issueNumber = (Integer) rawIssues[0];
+
+        List<String> comments = dao.selectNativeWithParams(SELECT_COMMENTS_BY_ISSUE_ID, new Object[]{issueNumber});
+        IssueMetrics issueWithComments = new IssueMetrics(
+                issueNumber,
+                (String) rawIssues[1], // i.url
+                (String) rawIssues[2], // i.body
+                (String) rawIssues[3], // i.type
+                (String) rawIssues[4], // i.priority
+                (String) rawIssues[5], // assigned.user_id
+                (String) rawIssues[6], // submitted.user_id
+                comments);
+
+        return issueWithComments;
     }
 
     public List<EntityComment> listComments(String file, String file2, Date beginDate, Date endDate, boolean onlyFixed) {

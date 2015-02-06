@@ -1,7 +1,7 @@
 
 package br.edu.utfpr.cm.JGitMinerWeb.services.metric.discussion;
 
-import br.edu.utfpr.cm.JGitMinerWeb.services.metric.auxiliary.AuxWordiness;
+import br.edu.utfpr.cm.JGitMinerWeb.services.metric.auxiliary.IssueMetrics;
 import br.edu.utfpr.cm.JGitMinerWeb.util.LuceneUtil;
 import com.google.common.base.Strings;
 
@@ -11,7 +11,7 @@ import com.google.common.base.Strings;
  */
 public class WordinessCalculator {
 
-//    public static WordinessMeasure calcule(AuxWordiness auxWordiness) {
+//    public static WordinessMeasure calcule(IssueMetrics auxWordiness) {
 //        long wordiness = LuceneUtil.tokenizeString(Strings.nullToEmpty(auxWordiness.getIssueBody())).size();
 //
 //        for (final String comment : auxWordiness.getComments()) {
@@ -21,7 +21,7 @@ public class WordinessCalculator {
 //        return new WordinessMeasure(auxWordiness.getIssueNumber(), wordiness);
 //    }
 
-    public static long calcule(AuxWordiness auxWordiness) {
+    public static long calcule(IssueMetrics auxWordiness) {
         long wordiness = LuceneUtil.tokenizeString(Strings.nullToEmpty(auxWordiness.getIssueBody())).size();
 
         for (final String comment : auxWordiness.getComments()) {

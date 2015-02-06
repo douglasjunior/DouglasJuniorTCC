@@ -12,8 +12,8 @@ import java.util.Set;
  */
 public class AuxFileFile {
 
-    private final String fileName;
-    private final String fileName2;
+    protected final String fileName;
+    protected final String fileName2;
     private final Set<Integer> issuesId;
     private final Set<Integer> commitsId;
     private final Set<Integer> defectIssuesId;
@@ -44,11 +44,11 @@ public class AuxFileFile {
     }
 
     public Set<Integer> getCommitsId() {
-        return commitsId;
+        return Collections.unmodifiableSet(commitsId);
     }
 
     public Set<Integer> getDefectIssuesId() {
-        return defectIssuesId;
+        return Collections.unmodifiableSet(defectIssuesId);
     }
 
     public void addIssueId(Integer issueId) {

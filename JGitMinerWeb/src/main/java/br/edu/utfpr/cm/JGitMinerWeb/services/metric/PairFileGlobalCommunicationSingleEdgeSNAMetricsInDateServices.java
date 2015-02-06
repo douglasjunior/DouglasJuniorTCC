@@ -14,7 +14,7 @@ import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.UserCommentedSamePairOfFileI
 import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.auxiliary.AuxFileFile;
 import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.auxiliary.AuxUserUser;
 import br.edu.utfpr.cm.JGitMinerWeb.services.metric.auxiliary.AuxFileFileMetrics;
-import br.edu.utfpr.cm.JGitMinerWeb.services.metric.auxiliary.AuxWordiness;
+import br.edu.utfpr.cm.JGitMinerWeb.services.metric.auxiliary.IssueMetrics;
 import br.edu.utfpr.cm.JGitMinerWeb.services.metric.centrality.BetweennessCalculator;
 import br.edu.utfpr.cm.JGitMinerWeb.services.metric.centrality.ClosenessCalculator;
 import br.edu.utfpr.cm.JGitMinerWeb.services.metric.centrality.DegreeCalculator;
@@ -453,11 +453,11 @@ public class PairFileGlobalCommunicationSingleEdgeSNAMetricsInDateServices exten
             }
 
             // list all issues and its comments
-            List<AuxWordiness> issuesAndComments = pairFileDAO.listIssues(repository,
+            List<IssueMetrics> issuesAndComments = pairFileDAO.listIssues(repository,
                     fileFile.getFileName(), fileFile.getFileName2(), beginDate, endDate, true);
 
             long wordiness = 0;
-            for (AuxWordiness auxWordiness : issuesAndComments) {
+            for (IssueMetrics auxWordiness : issuesAndComments) {
                 wordiness += WordinessCalculator.calcule(auxWordiness);
             }
 

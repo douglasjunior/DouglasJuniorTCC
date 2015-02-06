@@ -1,7 +1,6 @@
 package br.edu.utfpr.cm.JGitMinerWeb.services.metric.auxiliary;
 
 import br.edu.utfpr.cm.JGitMinerWeb.util.Util;
-import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -12,11 +11,14 @@ import java.util.Objects;
  * @author douglas
  */
 public class AuxFileFileIssueMetrics extends AuxFileFileMetrics {
-    public static final Map<String, Integer> HEADER_INDEX;
-    public static final Integer futureDefectsIndex;
 
-    static {
-        String[] headerNames = ("file;file2;issue;"
+    private final String header;
+    private final Map<String, Integer> headerIndexes;
+    private final Integer futureDefectsIndex;
+
+    {
+        header = "file;file2;issue;"
+                + "issueType;issuePriority;issueAssignedTo;issueSubmittedBy;"
                 + "samePackage;" // arquivos do par são do mesmo pacote = 1, caso contrário 0
                 // + "brcAvg;brcSum;brcMax;"
                 + "btwSum;btwAvg;btwMdn;btwMax;"
@@ -45,37 +47,89 @@ public class AuxFileFileIssueMetrics extends AuxFileFileMetrics {
                 + "commenters;comments;wordiness;"
                 + "codeChurn;codeChurn2;codeChurnAvg;"
                 + "add;del;changes;"
-                //                + "rigidityFile1;rigidityFile2;rigidityPairFile;"
-                + "taskImprovement;taskDefect;futureDefects;"
+                // + "rigidityFile1;rigidityFile2;rigidityPairFile;"
+                // + "taskImprovement;taskDefect;"
+                + "futureDefects;"
                 + "ageRelease;ageTotal;"
                 + "updates;futureUpdates;"
-                + "fileFutureIssues;file2FutureIssues;allFutureIssues;"
-                + "supportFile;supportFile2;supportPairFile;confidence;confidence2;lift;conviction;conviction2;changed").split(";");
-        Map<String, Integer> headerIndex = new LinkedHashMap<>();
-        int index = 0;
-        for (String headerName : headerNames) {
-            headerIndex.put(headerName, index++);
+                + "fileIssues;file2Issues;allIssues;"
+                + "supportFile;supportFile2;supportPairFile;confidence;confidence2;lift;conviction;conviction2;changed";
+
+        String[] headerNames = header.split(";");
+        headerIndexes = new LinkedHashMap<>();
+        for (int i = 0; i < headerNames.length; i++) {
+            headerIndexes.put(headerNames[i], i);
         }
-        HEADER_INDEX = Collections.unmodifiableMap(headerIndex);
-        futureDefectsIndex = HEADER_INDEX.get("futureDefects");
+
+        futureDefectsIndex = headerIndexes.get("futureDefects");
     }
 
     private final Integer issue;
+    private final String issueType;
+    private final String issuePriority;
+    private final String issueAssignedTo;
+    private final String issueSubmittedBy;
+
+    public AuxFileFileIssueMetrics(String file, String file2, IssueMetrics issueMetrics, double... metrics) {
+        super(file, file2, metrics);
+        this.issue = issueMetrics.getIssueNumber();
+        this.issueType = issueMetrics.getIssueType();
+        this.issuePriority = issueMetrics.getPriority();
+        this.issueAssignedTo = issueMetrics.getAssignedTo();
+        this.issueSubmittedBy = issueMetrics.getSubmittedBy();
+    }
 
     public AuxFileFileIssueMetrics(String file, String file2, Integer issue, double... metrics) {
         super(file, file2, metrics);
         this.issue = issue;
+        this.issueType = "";
+        this.issuePriority = "";
+        this.issueAssignedTo = "";
+        this.issueSubmittedBy = "";
     }
 
     public AuxFileFileIssueMetrics(String file, String file2, Integer issue, List<Double> metrics) {
         super(file, file2, metrics);
         this.issue = issue;
+        this.issueType = "";
+        this.issuePriority = "";
+        this.issueAssignedTo = "";
+        this.issueSubmittedBy = "";
+    }
+
+    public String getHeader() {
+        return header;
+    }
+
+    public Integer getIssue() {
+        return issue;
+    }
+
+    public String getIssueType() {
+        return issueType;
+    }
+
+    public String getIssuePriority() {
+        return issuePriority;
+    }
+
+    public String getIssueAssignedTo() {
+        return issueAssignedTo;
+    }
+
+    public String getIssueSubmittedBy() {
+        return issueSubmittedBy;
     }
 
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder(getFile());
-        sb.append(";").append(getFile2()).append(";").append(issue);
+        sb.append(";").append(getFile2())
+                .append(";").append(issue)
+                .append(";").append(issueType)
+                .append(";").append(issuePriority)
+                .append(";").append(issueAssignedTo)
+                .append(";").append(issueSubmittedBy);
         for (double m : getMetrics()) {
             sb.append(";");
             sb.append(Util.tratarDoubleParaString(m));

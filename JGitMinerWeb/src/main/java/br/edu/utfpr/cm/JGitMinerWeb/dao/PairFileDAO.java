@@ -2,7 +2,7 @@ package br.edu.utfpr.cm.JGitMinerWeb.dao;
 
 import br.edu.utfpr.cm.JGitMinerWeb.model.miner.EntityComment;
 import br.edu.utfpr.cm.JGitMinerWeb.model.miner.EntityRepository;
-import br.edu.utfpr.cm.JGitMinerWeb.services.metric.auxiliary.AuxWordiness;
+import br.edu.utfpr.cm.JGitMinerWeb.services.metric.auxiliary.IssueMetrics;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
@@ -746,7 +746,7 @@ public class PairFileDAO {
         return matrix;
     }
 
-    public List<AuxWordiness> listIssues(EntityRepository repository, String file, String file2, Date beginDate, Date endDate, boolean onlyMergeds) {
+    public List<IssueMetrics> listIssues(EntityRepository repository, String file, String file2, Date beginDate, Date endDate, boolean onlyMergeds) {
         List<Object> selectParams = new ArrayList<>();
 
         StringBuilder sql = new StringBuilder();
@@ -771,10 +771,10 @@ public class PairFileDAO {
         }
 
         List<Object[]> rawIssues = dao.selectNativeWithParams(sql.toString(), selectParams.toArray());
-        List<AuxWordiness> issuesAndComments = new ArrayList<>(rawIssues.size());
+        List<IssueMetrics> issuesAndComments = new ArrayList<>(rawIssues.size());
         for (Object[] objects : rawIssues) {
             Integer issuedNumber = (Integer) objects[0];
-            AuxWordiness issue = new AuxWordiness(
+            IssueMetrics issue = new IssueMetrics(
                     issuedNumber,
                     (String) objects[1],
                     (String) objects[2],

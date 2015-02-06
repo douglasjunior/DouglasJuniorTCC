@@ -27,4 +27,12 @@ public class QueryUtils {
             sql.append(")");
         }
     }
+
+    public static void filterByIssues(Integer issues, StringBuilder sql) {
+        if (issues != null) {
+            sql.append(" AND i.id = ")
+                    .append(issues)
+                    .append(" ");
+        }
+    }
 }
