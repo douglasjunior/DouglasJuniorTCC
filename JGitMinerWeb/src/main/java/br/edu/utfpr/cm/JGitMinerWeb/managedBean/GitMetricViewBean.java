@@ -48,6 +48,13 @@ public class GitMetricViewBean implements Serializable {
         removeFromSession();
     }
 
+    public void deleteAll() {
+        for (EntityMetric metric : getMetrics()) {
+            dao.remove(metric);
+        }
+        reloadList();
+    }
+
     public void removeFromSession() {
         JsfUtil.removeAttributeFromSession(FOR_DELETE);
     }

@@ -13,6 +13,9 @@
             <p:commandButton onclick="PrimeFaces.monitorDownload(start, stop)" ajax="false" value="Download all CSV">
                 <p:fileDownload value="#{gitMetricViewBean.downloadAllCSV()}" />
             </p:commandButton>
+            <p:commandButton  icon="ui-icon-trash" value="Delete All"
+                              actionListener="#{gitMetricViewBean.addForDeleteInSession(metric)}"
+                              oncomplete="confirmationDeleteAll.show()" />
             <p:dataTable var="metric" value="#{gitMetricViewBean.metrics}" id="list" rows="10" lazy="false"
                          emptyMessage="No calculated metrics found." paginator="true" paginatorPosition="bottom"
                          paginatorTemplate="{CurrentPageReport}  {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
@@ -65,13 +68,21 @@
             </p:dataTable>
 
             <p:confirmDialog  id="confirmDelete" widgetVar="confirmation"
-                              message="Really delete this matrix?" header="Confirmation" 
+                              message="Really delete this metric?" header="Confirmation"
                               severity="alert"  closable="false" >
                 <p:commandButton value="Yes" id="confirmYes" update="list messages" oncomplete="confirmation.hide()" style="position: relative;left: 80px"
                                  actionListener="#{gitMetricViewBean.delete()}">
                 </p:commandButton>
                 <p:commandButton value="No" id="confirmNo" oncomplete="confirmation.hide()" style="position: relative;left: 80px"
                                  actionListener="#{gitMetricViewBean.removeFromSession()}"/>
+            </p:confirmDialog>
+
+            <p:confirmDialog  id="confirmDeleteAll" widgetVar="confirmationDeleteAll"
+                              message="Really delete all metrics?" header="Confirmation"
+                              severity="alert"  closable="false" >
+                <p:commandButton value="Yes" update="list messages" oncomplete="confirmationDeleteAll.hide()" style="position: relative;left: 80px"
+                                 actionListener="#{gitMetricViewBean.deleteAll()}" />
+                <p:commandButton value="No" oncomplete="confirmationDeleteAll.hide()" style="position: relative;left: 80px"/>
             </p:confirmDialog>
         </h:form>
         <!-- O código abaixo é responsavel por abrir a janela de Aguarde ao realizar o Download -->                              

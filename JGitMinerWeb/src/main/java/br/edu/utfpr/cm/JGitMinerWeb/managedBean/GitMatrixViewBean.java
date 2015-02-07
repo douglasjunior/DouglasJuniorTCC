@@ -5,11 +5,14 @@ import br.edu.utfpr.cm.JGitMinerWeb.model.matrix.EntityMatrix;
 import br.edu.utfpr.cm.JGitMinerWeb.model.matrix.EntityMatrixNode;
 import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.AbstractMatrixServices;
 import br.edu.utfpr.cm.JGitMinerWeb.util.JsfUtil;
+import br.edu.utfpr.cm.minerador.services.metric.AbstractBichoMetricServices;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintWriter;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 import javax.ejb.EJB;
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Named;
@@ -48,6 +51,13 @@ public class GitMatrixViewBean implements Serializable {
         }
     }
 
+    public void deleteAll() {
+        for (EntityMatrix matrix : getMatrices()) {
+            dao.remove(matrix);
+        }
+        reloadList();
+    }
+
     public void removeMatrixFromSession() {
         JsfUtil.removeAttributeFromSession(FOR_DELETE);
     }
@@ -76,6 +86,51 @@ public class GitMatrixViewBean implements Serializable {
             return getMatrices();
         }
         return matrices;
+    }
+
+    public StreamedContent downloadAllCSV() {
+        StreamedContent file = null;
+
+        try {
+            ByteArrayOutputStream zipBytes = new ByteArrayOutputStream();
+            ZipOutputStream zos = new ZipOutputStream(zipBytes);
+            zos.setLevel(9);
+
+            for (EntityMatrix matrix : getMatrices()) {
+                System.out.println("Matrix tem nodes: " + matrix.getNodes().size());
+
+                String fileName = generateFileName(matrix) + ".csv";
+
+                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                PrintWriter pw = new PrintWriter(baos);
+
+                AbstractBichoMetricServices services = AbstractBichoMetricServices.createInstance(matrix.getClassServicesName());
+
+                pw.println(services.getHeadCSV());
+
+                for (EntityMatrixNode node : matrix.getNodes()) {
+                    pw.println(node + "");
+                }
+
+                pw.flush();
+                pw.close();
+
+                ZipEntry ze = new ZipEntry(fileName.replaceAll("/", "-"));
+                zos.putNextEntry(ze);
+                zos.write(baos.toByteArray());
+                zos.closeEntry();
+
+                baos.close();
+            }
+
+            zos.close();
+            file = JsfUtil.downloadFile("All.zip", zipBytes.toByteArray());
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            JsfUtil.addErrorMessage(ex.toString());
+        }
+
+        return file;
     }
 
     public StreamedContent downloadCSV(EntityMatrix matrix) {
@@ -146,6 +201,6 @@ public class GitMatrixViewBean implements Serializable {
     }
 
     private String generateFileName(EntityMatrix matrix) {
-        return "(" + matrix.getId() + ") " + matrix.getClassServicesSingleName() + " (" + matrix.getRepository() + ")";
+        return matrix.getClassServicesSingleName();
     }
 }

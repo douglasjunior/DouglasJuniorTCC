@@ -78,6 +78,7 @@ public class BichoPairOfFileInFixVersionServices extends AbstractBichoMatrixServ
         String futureVersion = getFutureVersion();
 
         Map<FilePair, FilePairOutput> pairFiles = new HashMap<>();
+//        Set<FilePath> allDistinctFiles = new HashSet<>();
 
 //        Pattern fileToConsiders = null;
 //        if (getFilesToConsiders() != null && !getFilesToConsiders().isEmpty()) {
@@ -126,6 +127,7 @@ public class BichoPairOfFileInFixVersionServices extends AbstractBichoMatrixServ
                 out.printLog(files.size() + " files in commit #" + commit);
                 commitedFiles.addAll(files);
             }
+//            allDistinctFiles.addAll(commitedFiles);
 
             out.printLog("Number of files commited and related with issue: " + commitedFiles.size());
 
@@ -228,7 +230,17 @@ public class BichoPairOfFileInFixVersionServices extends AbstractBichoMatrixServ
 //                    changedWithA.add(filePair);
 //                }
 //            }
-//            filePairTop.changeToRisky();
+//
+//            // complete with others
+//            for (FilePath file : allDistinctFiles) {
+//                FilePair filePair = new FilePair(filePairTop.getFilePair().getFile1(), file.getFilePath());
+//                FilePairOutput combined = new FilePairOutput(filePair);
+//                if (!changedWithA.contains(combined)) {
+//                    changedWithA.add(combined);
+//                }
+//            }
+//
+////            filePairTop.changeToRisky();
 //            changedWithA.add(0, filePairTop);
 //            EntityMatrix matrix3 = new EntityMatrix();
 //            matrix3.setNodes(objectsToNodes(changedWithA));
