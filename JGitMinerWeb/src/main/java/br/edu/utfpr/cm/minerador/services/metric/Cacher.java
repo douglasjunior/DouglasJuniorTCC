@@ -37,8 +37,12 @@ public class Cacher {
 
     // future issues
     private final Map<AuxFileFile, Long> futureIssuesMap = new HashMap<>();
+    private final Map<AuxFileFile, Long> totalCommittersMap = new HashMap<>();
+    private final Map<AuxFileFile, Long> totalCommitsMap = new HashMap<>();
+    private final Map<AuxFileFile, Map<String, Long>> futureIssueTypessMap = new HashMap<>();
 
     private final Map<Integer, IssueMetrics> issuesCommentsCacher = new HashMap<>();
+    private final Map<Integer, Long> issuesReopenedCountCacher = new HashMap<>();
 
     private final Map<Integer, NetworkMetricsCalculator> networkMetricsMap = new HashMap<>();
 
@@ -47,7 +51,7 @@ public class Cacher {
 
     public Cacher(BichoFileDAO fileDAO) {
         this.fileDAO = fileDAO;
-        pairFileDAO = null;
+        this.pairFileDAO = null;
     }
 
     public Cacher(BichoFileDAO fileDAO, BichoPairFileDAO pairFileDAO) {
@@ -183,16 +187,22 @@ public class Cacher {
         return calculeFileCodeChurn(fileCodeChurnMap, fileName, fixVersion, null);
     }
 
+    public long calculeFutureNumberOfIssues(String file1, String file2, String futureVersion) {
+        AuxFileFile fileFifle = new AuxFileFile(file1, file2);
+        return calculeFutureNumberOfIssues(fileFifle, futureVersion);
+    }
+
     public long calculeFutureNumberOfIssues(AuxFileFile fileFile, String futureVersion) {
+        long futureIssues;
         if (futureIssuesMap.containsKey(fileFile)) {
-            return futureIssuesMap.get(fileFile);
+            futureIssues = futureIssuesMap.get(fileFile);
         } else {
-            long futureIssues = pairFileDAO.calculeNumberOfIssues(
+            futureIssues = pairFileDAO.calculeNumberOfIssues(
                     fileFile.getFileName(), fileFile.getFileName2(),
                     futureVersion);
             futureIssuesMap.put(fileFile, futureIssues);
-            return futureIssues;
         }
+        return futureIssues;
     }
 
     public IssueMetrics calculeIssueMetrics(Integer issue) {
@@ -205,7 +215,7 @@ public class Cacher {
         }
     }
 
-    NetworkMetricsCalculator calculeNetworkMetrics(Integer issue, DirectedSparseGraph<String, String> issueGraph, Map<String, Integer> edgesWeigth, Set<Commenter> devsCommentters) {
+    public NetworkMetricsCalculator calculeNetworkMetrics(Integer issue, DirectedSparseGraph<String, String> issueGraph, Map<String, Integer> edgesWeigth, Set<Commenter> devsCommentters) {
         NetworkMetricsCalculator networkMetrics;
         if (networkMetricsMap.containsKey(issue)) {
             networkMetrics = networkMetricsMap.get(issue);
@@ -214,5 +224,54 @@ public class Cacher {
             networkMetricsMap.put(issue, networkMetrics);
         }
         return networkMetrics;
+    }
+
+    public long calculeCummulativeCommitters(String file1, String file2, String fixVersion) {
+        AuxFileFile fileFile = new AuxFileFile(file1, file2);
+        long totalCommitters;
+        if (totalCommittersMap.containsKey(fileFile)) {
+            totalCommitters = totalCommittersMap.get(fileFile);
+        } else {
+            totalCommitters = pairFileDAO.calculeCummulativeCommitters(
+                    fileFile.getFileName(), fileFile.getFileName2(), fixVersion);
+            totalCommittersMap.put(fileFile, totalCommitters);
+        }
+        return totalCommitters;
+    }
+
+    public Long calculeCummulativeCommits(String file1, String file2, String fixVersion) {
+        AuxFileFile fileFile = new AuxFileFile(file1, file2);
+        long totalCommits;
+        if (totalCommitsMap.containsKey(fileFile)) {
+            totalCommits = totalCommitsMap.get(fileFile);
+        } else {
+            totalCommits = pairFileDAO.calculeCommits(file1, file2,
+                    fixVersion);
+            totalCommitsMap.put(fileFile, totalCommits);
+        }
+        return totalCommits;
+    }
+
+    public Map<String, Long> calculeFutureNumberOfIssuesWithType(String file1, String file2, String futureVersion) {
+        final Map<String, Long> futureIssuesTypes;
+        AuxFileFile fileFile = new AuxFileFile(file1, file2);
+        if (futureIssueTypessMap.containsKey(fileFile)) {
+            futureIssuesTypes = futureIssueTypessMap.get(fileFile);
+        } else {
+            futureIssuesTypes = pairFileDAO.countIssuesTypes(file1, file2, futureVersion);
+            futureIssueTypessMap.put(fileFile, futureIssuesTypes);
+        }
+        return futureIssuesTypes;
+    }
+
+    public long calculeIssueReopenedTimes(Integer issue) {
+        final long issueReopened;
+        if (issuesReopenedCountCacher.containsKey(issue)) {
+            issueReopened = issuesReopenedCountCacher.get(issue);
+        } else {
+            issueReopened = fileDAO.calculeIssueReopenedTimes(issue);
+            issuesReopenedCountCacher.put(issue, issueReopened);
+        }
+        return issueReopened;
     }
 }

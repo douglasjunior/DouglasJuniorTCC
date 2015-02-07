@@ -19,7 +19,8 @@ public class AuxFileFileIssueMetrics extends AuxFileFileMetrics {
     {
         header = "file;file2;issue;"
                 + "issueType;issuePriority;issueAssignedTo;issueSubmittedBy;"
-                + "samePackage;" // arquivos do par são do mesmo pacote = 1, caso contrário 0
+                + "issueWatchers;issueReopened;"
+                + "samePackage;sameOwnership;" // arquivos do par são do mesmo pacote = 1, caso contrário 0
                 // + "brcAvg;brcSum;brcMax;"
                 + "btwSum;btwAvg;btwMdn;btwMax;"
                 + "clsSum;clsAvg;clsMdn;clsMax;"
@@ -40,9 +41,10 @@ public class AuxFileFileIssueMetrics extends AuxFileFileMetrics {
                 + "majorContributors;minorContributors;"
                 + "oexp;oexp2;"
                 + "own;own2;"
-                + "adev;" // committers na release
-                + "ddev;" // committers desde o começo até a data final da relese
-                + "commits;" // commits do par de arquivos
+                + "committers;" // committers na release
+                + "totalCommitters;" // committers desde o começo até a data final da relese
+                + "commits;" // commits do par de arquivos na release
+                + "totalCommits;" // todos commits do par de arquivos
                 + "devCommenters;" // número de autores de comentários que são desenvolvedores
                 + "commenters;comments;wordiness;"
                 + "codeChurn;codeChurn2;codeChurnAvg;"
@@ -69,6 +71,7 @@ public class AuxFileFileIssueMetrics extends AuxFileFileMetrics {
     private final String issuePriority;
     private final String issueAssignedTo;
     private final String issueSubmittedBy;
+    private final long numberOfWatchers;
 
     public AuxFileFileIssueMetrics(String file, String file2, IssueMetrics issueMetrics, double... metrics) {
         super(file, file2, metrics);
@@ -77,6 +80,7 @@ public class AuxFileFileIssueMetrics extends AuxFileFileMetrics {
         this.issuePriority = issueMetrics.getPriority();
         this.issueAssignedTo = issueMetrics.getAssignedTo();
         this.issueSubmittedBy = issueMetrics.getSubmittedBy();
+        this.numberOfWatchers = issueMetrics.getNumberOfWatchers();
     }
 
     public AuxFileFileIssueMetrics(String file, String file2, Integer issue, double... metrics) {
@@ -86,6 +90,7 @@ public class AuxFileFileIssueMetrics extends AuxFileFileMetrics {
         this.issuePriority = "";
         this.issueAssignedTo = "";
         this.issueSubmittedBy = "";
+        this.numberOfWatchers = 0;
     }
 
     public AuxFileFileIssueMetrics(String file, String file2, Integer issue, List<Double> metrics) {
@@ -95,6 +100,7 @@ public class AuxFileFileIssueMetrics extends AuxFileFileMetrics {
         this.issuePriority = "";
         this.issueAssignedTo = "";
         this.issueSubmittedBy = "";
+        this.numberOfWatchers = 0;
     }
 
     public String getHeader() {
@@ -129,7 +135,9 @@ public class AuxFileFileIssueMetrics extends AuxFileFileMetrics {
                 .append(";").append(issueType)
                 .append(";").append(issuePriority)
                 .append(";").append(issueAssignedTo)
-                .append(";").append(issueSubmittedBy);
+                .append(";").append(issueSubmittedBy)
+                .append(";").append(numberOfWatchers);
+
         for (double m : getMetrics()) {
             sb.append(";");
             sb.append(Util.tratarDoubleParaString(m));

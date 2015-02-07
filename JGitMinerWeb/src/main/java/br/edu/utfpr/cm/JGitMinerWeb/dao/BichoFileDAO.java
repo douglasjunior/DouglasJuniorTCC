@@ -55,6 +55,8 @@ public class BichoFileDAO {
 
     private final String SELECT_COMMITTERS_OF_FILE;
 
+    private final String COUNT_ISSUE_REOPENED_TIMES;
+
     private final GenericBichoDAO dao;
 
     public BichoFileDAO(GenericBichoDAO dao, String repository, Integer maxFilePerCommit) {
@@ -241,6 +243,14 @@ public class BichoFileDAO {
                         + "           AND afill.file_id = fil.id)"
                         + " WHERE fill.file_path = ?", repository)
                 + FILTER_BY_MAX_FILES_IN_COMMIT;
+
+        COUNT_ISSUE_REOPENED_TIMES
+                = QueryUtils.getQueryForDatabase(
+                        "SELECT COALESCE(COUNT(1), 0)"
+                        + "  FROM {0}_issues.changes c"
+                        + " WHERE c.new_value = ?"
+                        + "   AND c.field = ?"
+                        + "   AND c.issue_id = ?", repository);
     }
 
     // Issues //////////////////////////////////////////////////////////////////
@@ -614,5 +624,11 @@ public class BichoFileDAO {
         }
 
         return commitersList;
+    }
+
+    public long calculeIssueReopenedTimes(Integer issue) {
+        Long count = (Long) dao.selectNativeOneWithParams(COUNT_ISSUE_REOPENED_TIMES, new Object[]{"Reopened", "Status", issue});
+
+        return count;
     }
 }

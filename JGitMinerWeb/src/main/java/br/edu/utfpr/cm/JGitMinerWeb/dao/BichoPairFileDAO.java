@@ -60,6 +60,7 @@ public class BichoPairFileDAO {
     private final String SELECT_COMMITTERS_OF_PAIR_FILE_BY_ISSUE_CREATION_DATE;
 
     private final String SELECT_COMMITTERS_OF_PAIR_FILE_BY_ISSUE_ID;
+    private final String SELECT_LAST_COMMITTER_OF_PAIR_FILE;
 
     private String SELECT_COMMITTERS_OF_PAIR_FILE;
 
@@ -79,6 +80,8 @@ public class BichoPairFileDAO {
     private final String FILTER_BY_ISSUE_TYPE;
 
     private final String SELECT_ISSUES_BY_FILE_NAME;
+
+    private final String COUNT_ISSUES_TYPES;
 
     private final GenericBichoDAO dao;
 
@@ -321,7 +324,11 @@ public class BichoPairFileDAO {
 
         SELECT_ISSUES_BY_ISSUES_ID
                 = QueryUtils.getQueryForDatabase(
-                        "SELECT DISTINCT i.id, i.issue, i.description, i.type, i.priority, assigned.user_id, submitted.user_id"
+                        "SELECT DISTINCT i.id, i.issue, i.description, i.type, i.priority, "
+                        + "     assigned.user_id, submitted.user_id,"
+                        + "     (SELECT COUNT(DISTINCT(iw.person_id))"
+                        + "        FROM {0}_issues.issues_watchers iw"
+                        + "       WHERE iw.issue_id = i.id) AS num_watchers"
                         + "  FROM {0}_issues.issues i"
                         + "  JOIN {0}_issues.changes c ON c.issue_id = i.id"
                         + "  JOIN {0}_issues.people assigned ON assigned.id = i.assigned_to"
@@ -500,6 +507,40 @@ public class BichoPairFileDAO {
                 + FILTER_BY_ISSUE_ID
                 + FIXED_ISSUES_ONLY;
 
+        SELECT_LAST_COMMITTER_OF_PAIR_FILE
+                = QueryUtils.getQueryForDatabase(
+                        "SELECT p.name"
+                        + "  FROM {0}_issues.issues i"
+                        + "  JOIN {0}_issues.changes c ON c.issue_id = i.id"
+                        + "  JOIN {0}_issues.issues_scmlog i2s ON i2s.issue_id = i.id"
+                        + "  JOIN {0}_vcs.scmlog s ON s.id = i2s.scmlog_id"
+                        + "  JOIN {0}_issues.issues_scmlog i2s2 ON i2s2.issue_id = i.id"
+                        + "  JOIN {0}_vcs.scmlog s2 ON s2.id = i2s2.scmlog_id"
+                        + "  JOIN {0}_vcs.people p ON p.id = s.committer_id"
+                        + "  JOIN {0}_vcs.actions a ON a.commit_id = s.id"
+                        + "  JOIN {0}_vcs.files fil ON fil.id = a.file_id"
+                        + "  JOIN {0}_vcs.file_links fill ON fill.file_id = fil.id AND fill.commit_id = "
+                        + "       (SELECT MAX(afill.commit_id) " // last commit where file has introduced, because it can have more than one
+                        + "          FROM {0}_vcs.file_links afill "
+                        + "         WHERE afill.commit_id <= s.id "
+                        + "           AND afill.file_id = fil.id)"
+                        + "  JOIN {0}_vcs.actions a2 ON a2.commit_id = s2.id"
+                        + "  JOIN {0}_vcs.files fil2 ON fil2.id = a2.file_id AND a2.file_id <> a.file_id"
+                        + "  JOIN {0}_vcs.file_links fill2 ON fill2.file_id = fil2.id AND fill2.commit_id = "
+                        + "       (SELECT MAX(afill2.commit_id) " // last commit where file has introduced, because it can have more than one
+                        + "          FROM {0}_vcs.file_links afill2 "
+                        + "         WHERE afill2.commit_id <= s2.id "
+                        + "           AND afill2.file_id = fil2.id)"
+                        + " WHERE fill.file_path = ?"
+                        + "   AND fill2.file_path = ?"
+                        + "   AND i.id <> ?"
+                        + "   AND s.date > i.submitted_on"
+                        + "   AND s2.date > i.submitted_on", repository)
+                + FILTER_BY_ISSUE_FIX_MAJOR_VERSION
+                + FIXED_ISSUES_ONLY
+                + " ORDER BY s.date DESC"
+                + " LIMIT 1";
+
         SELECT_COMMITTERS_OF_PAIR_FILE
                 = QueryUtils.getQueryForDatabase(
                         "SELECT DISTINCT(p.name)"
@@ -671,6 +712,46 @@ public class BichoPairFileDAO {
 
         SELECT_COMMENTS_BY_ISSUE_ID = QueryUtils.getQueryForDatabase(
                 "SELECT com.text FROM {0}_issues.comments com WHERE com.issue_id = ?", repository);
+
+        COUNT_ISSUES_TYPES
+                = QueryUtils.getQueryForDatabase(
+                        "SELECT"
+                        + "     (SELECT COALESCE(COUNT(1), 0)"
+                        + "         FROM {0}_issues.issues i"
+                        + "         WHERE i.type = i2.type "
+                        + ") AS count,"
+                        + "     i2.type"
+                        + "  FROM {0}_issues.issues i2"
+                        + " WHERE i2.id IN ("
+                        + "SELECT DISTINCT(i.id)"
+                        + "  FROM {0}_issues.issues i"
+                        + "  JOIN {0}_issues.changes c ON c.issue_id = i.id"
+                        + "  JOIN {0}_issues.issues_scmlog i2s ON i2s.issue_id = i.id"
+                        + "  JOIN {0}_vcs.scmlog s ON s.id = i2s.scmlog_id"
+                        + "  JOIN {0}_issues.issues_scmlog i2s2 ON i2s2.issue_id = i.id"
+                        + "  JOIN {0}_vcs.scmlog s2 ON s2.id = i2s2.scmlog_id"
+                        + "  JOIN {0}_vcs.actions a ON a.commit_id = s.id"
+                        + "  JOIN {0}_vcs.files fil ON fil.id = a.file_id"
+                        + "  JOIN {0}_vcs.file_links fill ON fill.file_id = fil.id AND fill.commit_id = "
+                        + "       (SELECT MAX(afill.commit_id) " // last commit where file has introduced, because it can have more than one
+                        + "          FROM {0}_vcs.file_links afill "
+                        + "         WHERE afill.commit_id <= s.id "
+                        + "           AND afill.file_id = fil.id)"
+                        + "  JOIN {0}_vcs.actions a2 ON a2.commit_id = s2.id"
+                        + "  JOIN {0}_vcs.files fil2 ON fil2.id = a2.file_id AND a.file_id <> a2.file_id"
+                        + "  JOIN {0}_vcs.file_links fill2 ON fill2.file_id = fil2.id AND fill2.commit_id = "
+                        + "       (SELECT MAX(afill2.commit_id) " // last commit where file has introduced, because it can have more than one
+                        + "          FROM {0}_vcs.file_links afill2 "
+                        + "         WHERE afill2.commit_id <= s2.id "
+                        + "           AND afill2.file_id = fil2.id)"
+                        + " WHERE fill.file_path = ?"
+                        + "   AND fill2.file_path = ? "
+                        + "   AND s.date > i.submitted_on"
+                        + "   AND s2.date > i.submitted_on"
+                        + "   AND i.type = i2.type"
+                        + FILTER_BY_MAX_FILES_IN_COMMIT
+                        + FILTER_BY_ISSUE_FIX_MAJOR_VERSION
+                        + ") GROUP BY i2.type", repository);
     }
 
     public long calculeNumberOfIssues(Date beginDate, Date endDate, boolean onlyFixed) {
@@ -1083,6 +1164,24 @@ public class BichoPairFileDAO {
         return commitersList;
     }
 
+    public AuxUser selectLastCommitter(String file1,
+            String file2, Integer issue) {
+
+        List<Object> selectParams = new ArrayList<>();
+        if (file1 == null || file2 == null) {
+            throw new IllegalArgumentException("Pair file could not be null");
+        }
+
+        selectParams.add(file1);
+        selectParams.add(file2);
+        selectParams.add(issue);
+
+        String committer = dao.selectNativeOneWithParams(
+                SELECT_LAST_COMMITTER_OF_PAIR_FILE, selectParams.toArray());
+
+        return new AuxUser(committer);
+    }
+
     public long calculeCommits(String file, String file2) {
         return calculeCommits(file, file2, null, null, null, null, true);
     }
@@ -1204,6 +1303,30 @@ public class BichoPairFileDAO {
         return count != null ? count : 0l;
     }
 
+    public long calculeCummulativeCommits(
+            String file, String file2, String fixVersion) {
+        List<Object> selectParams = new ArrayList<>();
+
+        if (file == null || file2 == null) {
+            throw new IllegalArgumentException("Pair file could not be null");
+        }
+
+        StringBuilder sql = new StringBuilder();
+        sql.append(COUNT_PAIR_FILE_COMMITS);
+
+        selectParams.add(file);
+        selectParams.add(file2);
+
+        sql.append(FIXED_ISSUES_ONLY);
+
+        sql.append(FILTER_BY_BEFORE_ISSUE_FIX_MAJOR_VERSION);
+        selectParams.add(fixVersion);
+
+        Long count = dao.selectNativeOneWithParams(sql.toString(), selectParams.toArray());
+
+        return count != null ? count : 0l;
+    }
+
     public long calculeCommitters(
             String file, String file2) {
         return calculeCommitters(file, file2, null, null, null, true);
@@ -1291,14 +1414,13 @@ public class BichoPairFileDAO {
     }
 
     public long calculeCummulativeCommitters(
-            String file, String file2, String fixVersion,
-            Collection<Integer> issues) {
-        return calculeCummulativeCommitters(file, file2, fixVersion, issues, true);
+            String file, String file2, String fixVersions) {
+        return calculeCummulativeCommitters(file, file2, fixVersions, null);
     }
 
     public long calculeCummulativeCommitters(
             String file, String file2, String fixVersion,
-            Collection<Integer> issues, boolean onlyFixed) {
+            Collection<Integer> issues) {
         List<Object> selectParams = new ArrayList<>();
 
         if (file == null || file2 == null) {
@@ -1307,18 +1429,16 @@ public class BichoPairFileDAO {
 
         StringBuilder sql = new StringBuilder();
         sql.append(COUNT_PAIR_FILE_COMMITTERS);
+        sql.append(FIXED_ISSUES_ONLY);
+        sql.append(FILTER_BY_BEFORE_ISSUE_FIX_MAJOR_VERSION);
 
         selectParams.add(file);
         selectParams.add(file2);
-
-        if (onlyFixed) {
-            sql.append(FIXED_ISSUES_ONLY);
-        }
-
-        sql.append(FILTER_BY_BEFORE_ISSUE_FIX_MAJOR_VERSION);
         selectParams.add(fixVersion);
 
-        filterByIssues(issues, sql);
+        if (issues != null) {
+            filterByIssues(issues, sql);
+        }
 
         Long count = dao.selectNativeOneWithParams(sql.toString(), selectParams.toArray());
 
@@ -1440,6 +1560,7 @@ public class BichoPairFileDAO {
                 (String) rawIssues[4], // i.priority
                 (String) rawIssues[5], // assigned.user_id
                 (String) rawIssues[6], // submitted.user_id
+                (Long) rawIssues[7], // i.num_watchers
                 comments);
 
         return issueWithComments;
@@ -1589,5 +1710,23 @@ public class BichoPairFileDAO {
         Days age = Days.daysBetween(createdAt, finalDate);
 
         return age.getDays();
+    }
+
+    public Map<String, Long> countIssuesTypes(String file1, String file2, String futureVersion) {
+        List<Object> params = new ArrayList<>();
+        params.add(file1);
+        params.add(file2);
+        params.add(futureVersion);
+
+        List<Object[]> rawFilesPath
+                = dao.selectNativeWithParams(COUNT_ISSUES_TYPES, params.toArray());
+
+        Map<String, Long> result = new HashMap<>(rawFilesPath.size());
+        for (Object[] row : rawFilesPath) {
+            Long count = (Long) row[0];
+            String type = (String) row[1];
+            result.put(type, count);
+        }
+        return result;
     }
 }

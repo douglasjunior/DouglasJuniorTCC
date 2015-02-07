@@ -19,6 +19,7 @@ public class IssueMetrics {
     private final String priority;
     private final String assignedTo;
     private final String submittedBy;
+    private final Long numberOfWatchers;
     private final List<String> comments;
     private long wordiness;
 
@@ -35,9 +36,12 @@ public class IssueMetrics {
             this.comments = new ArrayList<>();
         }
         this.issueType = "";
+        this.numberOfWatchers = 0l;
     }
 
-    public IssueMetrics(Integer issueNumber, String url, String issueBody, String issueType, String priority, String assignedTo, String submittedBy, List<String> comments) {
+    public IssueMetrics(Integer issueNumber, String url, String issueBody,
+            String issueType, String priority, String assignedTo, String submittedBy,
+            Long numberOfWatchers, List<String> comments) {
         this.issueNumber = issueNumber;
         this.url = url;
         this.issueBody = issueBody;
@@ -50,6 +54,7 @@ public class IssueMetrics {
             this.comments = new ArrayList<>();
         }
         this.issueType = issueType;
+        this.numberOfWatchers = numberOfWatchers;
     }
 
     public Integer getIssueNumber() {
@@ -78,6 +83,10 @@ public class IssueMetrics {
 
     public String getSubmittedBy() {
         return submittedBy;
+    }
+
+    public Long getNumberOfWatchers() {
+        return numberOfWatchers;
     }
 
     public List<String> getComments() {
