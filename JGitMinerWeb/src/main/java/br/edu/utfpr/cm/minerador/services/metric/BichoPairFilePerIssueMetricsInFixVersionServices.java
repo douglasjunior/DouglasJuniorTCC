@@ -484,7 +484,7 @@ public class BichoPairFilePerIssueMetricsInFixVersionServices extends AbstractBi
         EntityMetric metrics2 = new EntityMetric();
         List<AuxFileFileIssueMetrics> top25 = getTop25(metricsList);
         metrics2.setNodes(objectsToNodes(top25));
-        metrics2.setAdditionalFilename(" top 25");
+        metrics2.setAdditionalFilename("top 25");
         saveMetrics(metrics2);
 
         // separa o top 10 em A + qualquerarquivo
@@ -609,7 +609,7 @@ public class BichoPairFilePerIssueMetricsInFixVersionServices extends AbstractBi
             changedWithA.add(0, filePairTop);
             EntityMetric metrics3 = new EntityMetric();
             metrics3.setNodes(objectsToNodes(changedWithA));
-            metrics3.setAdditionalFilename(" " + rank++ + " file changed with " + filePairTop.getFile());
+            metrics3.setAdditionalFilename(rank++ + " file changed with " + filePairTop.getFile());
             saveMetrics(metrics3);
         }
     }

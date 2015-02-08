@@ -48,16 +48,10 @@
                 </p:column>
 
                 <p:column headerText="Download Files">
-                    <p:commandButton onclick="PrimeFaces.monitorDownload(start, stop)" ajax="false" value="Log">
-                        <p:fileDownload value="#{gitMatrixViewBean.downloadLOG(matrix)}" />  
-                    </p:commandButton> 
-                    <p:commandButton onclick="PrimeFaces.monitorDownload(start, stop)" ajax="false" value="CSV" title="#{matrix}">
-                        <p:fileDownload value="#{gitMatrixViewBean.downloadCSV(matrix)}" />  
-                    </p:commandButton> 
-                    <p:commandButton onclick="PrimeFaces.monitorDownload(start, stop)"  ajax="false" value="Params">
-                        <p:fileDownload value="#{gitMatrixViewBean.downloadParams(matrix)}" />  
-                    </p:commandButton> 
-
+                    <p:commandButton action="#{gitMatrixViewBean.downloadLOG(metric)}" ajax="false" value="Log"/>
+                    <p:commandButton action="#{gitMatrixViewBean.downloadCSV(metric)}" ajax="false" value="CSV" title="#{metric}"/>
+                    <p:commandButton action="#{gitMatrixViewBean.downloadAllCSVOfOneVersion(metric.matrix.toString())}" ajax="false" value="All CSV" title="#{metric}"/>
+                    <p:commandButton action="#{gitMatrixViewBean.downloadParams(metric)}"  ajax="false" value="Params"/>
                 </p:column>
 
                 <p:column headerText="Options">
@@ -84,19 +78,5 @@
                 <p:commandButton value="No" oncomplete="confirmationDeleteAll.hide()" style="position: relative;left: 80px" />
             </p:confirmDialog>
         </h:form>
-        <!-- O código abaixo é responsavel por abrir a janela de Aguarde ao realizar o Download -->                              
-        <p:dialog modal="true" widgetVar="statusDialog" header="Loading..." draggable="false" closable="false" resizable="false">
-            <p:graphicImage value="resources/images/ajaxloadingbar.gif" />                                                       
-        </p:dialog>                                                                                                              
-        <script type="text/javascript">                                                                                          
-            function start() {                                                                                                   
-                statusDialog.show();                                                                                             
-            }                                                                                                                    
-                                                                                                                                
-            function stop() {                                                                                                    
-                statusDialog.hide();                                                                                             
-            }                                                                                                                    
-        </script>                                                                                                                
-
     </p:fieldset>
 </div>
