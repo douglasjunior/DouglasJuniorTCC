@@ -1,6 +1,7 @@
 package br.edu.utfpr.cm.minerador.services.metric;
 
 import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericBichoDAO;
+import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericDao;
 import br.edu.utfpr.cm.JGitMinerWeb.model.matrix.EntityMatrix;
 import br.edu.utfpr.cm.JGitMinerWeb.model.metric.EntityMetric;
 import br.edu.utfpr.cm.JGitMinerWeb.model.metric.EntityMetricNode;
@@ -24,13 +25,8 @@ public abstract class AbstractBichoMetricServices extends AbstractBichoServices 
         matrix = null;
     }
 
-    public AbstractBichoMetricServices(GenericBichoDAO dao, OutLog out) {
-        super(dao, out);
-        this.matrix = null;
-    }
-
-    public AbstractBichoMetricServices(GenericBichoDAO dao, EntityMatrix matrix, Map<Object, Object> params, OutLog out) {
-        super(dao, params, out);
+    public AbstractBichoMetricServices(GenericBichoDAO dao, GenericDao genericDao, EntityMatrix matrix, Map<Object, Object> params, OutLog out) {
+        super(dao, genericDao, params, out);
         this.matrix = matrix;
     }
 

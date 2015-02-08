@@ -17,37 +17,36 @@ import java.util.Map;
  */
 public abstract class AbstractBichoServices implements Runnable, Serializable {
 
+    protected final GenericDao genericDao;
     protected final GenericBichoDAO dao;
     protected Map<Object, Object> params;
     protected OutLog out;
 
     public AbstractBichoServices() {
         this.dao = null;
+        this.genericDao = null;
     }
 
     public AbstractBichoServices(GenericBichoDAO dao, OutLog out) {
         this.dao = dao;
+        this.genericDao = null;
         this.out = out;
     }
 
     public AbstractBichoServices(GenericBichoDAO dao, Map<Object, Object> params, OutLog out) {
-        this(dao, out);
+        this(dao, null, params, out);
+    }
+
+    public AbstractBichoServices(GenericBichoDAO dao, GenericDao genericDao, Map<Object, Object> params, OutLog out) {
+        this.dao = dao;
+        this.genericDao = genericDao;
+        this.out = out;
         this.params = params;
     }
 
 
     @Override
     public abstract void run();
-
-    public static <T> T createInstance(GenericDao dao, OutLog out, String className) {
-        try {
-            return (T) Class.forName(className).getConstructor(GenericDao.class, OutLog.class).newInstance(dao, out);
-        }
-        catch (Exception ex) {
-            ex.printStackTrace();
-        }
-        return null;
-    }
 
     public static <T> T createInstance(String className) {
         try {

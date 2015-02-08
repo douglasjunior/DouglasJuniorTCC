@@ -5,6 +5,8 @@ import br.edu.utfpr.cm.JGitMinerWeb.dao.AuxUser;
 import br.edu.utfpr.cm.JGitMinerWeb.dao.BichoFileDAO;
 import br.edu.utfpr.cm.JGitMinerWeb.dao.BichoPairFileDAO;
 import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericBichoDAO;
+import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericDao;
+import br.edu.utfpr.cm.JGitMinerWeb.model.matrix.EntityMatrix;
 import br.edu.utfpr.cm.JGitMinerWeb.model.matrix.EntityMatrixNode;
 import br.edu.utfpr.cm.JGitMinerWeb.model.metric.EntityMetric;
 import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.UserCommentedSamePairOfFileInAllDateServices;
@@ -52,11 +54,11 @@ public class BichoPairFileGlobalCommunicationSingleEdgeSNAMetricsInDateServices 
     private String repository;
 
     public BichoPairFileGlobalCommunicationSingleEdgeSNAMetricsInDateServices() {
-        super(null, null);
+        super();
     }
 
-    public BichoPairFileGlobalCommunicationSingleEdgeSNAMetricsInDateServices(GenericBichoDAO dao, OutLog out) {
-        super(dao, out);
+    public BichoPairFileGlobalCommunicationSingleEdgeSNAMetricsInDateServices(GenericBichoDAO dao, GenericDao genericDao, EntityMatrix matrix, Map<Object, Object> params, OutLog out) {
+        super(dao, genericDao, matrix, params, out);
     }
 
     private Integer getIntervalOfMonths() {

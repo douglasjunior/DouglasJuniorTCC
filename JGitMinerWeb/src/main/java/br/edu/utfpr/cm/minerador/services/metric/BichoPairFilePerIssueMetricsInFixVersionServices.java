@@ -6,6 +6,7 @@ import br.edu.utfpr.cm.JGitMinerWeb.dao.BichoDAO;
 import br.edu.utfpr.cm.JGitMinerWeb.dao.BichoFileDAO;
 import br.edu.utfpr.cm.JGitMinerWeb.dao.BichoPairFileDAO;
 import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericBichoDAO;
+import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericDao;
 import br.edu.utfpr.cm.JGitMinerWeb.model.matrix.EntityMatrix;
 import br.edu.utfpr.cm.JGitMinerWeb.model.matrix.EntityMatrixNode;
 import br.edu.utfpr.cm.JGitMinerWeb.model.metric.EntityMetric;
@@ -49,15 +50,11 @@ public class BichoPairFilePerIssueMetricsInFixVersionServices extends AbstractBi
     private String repository;
 
     public BichoPairFilePerIssueMetricsInFixVersionServices() {
-        super(null, null);
+        super();
     }
 
-    public BichoPairFilePerIssueMetricsInFixVersionServices(GenericBichoDAO dao, OutLog out) {
-        super(dao, out);
-    }
-
-    public BichoPairFilePerIssueMetricsInFixVersionServices(GenericBichoDAO dao, EntityMatrix matrix, Map<Object, Object> params, OutLog out) {
-        super(dao, matrix, params, out);
+    public BichoPairFilePerIssueMetricsInFixVersionServices(GenericBichoDAO dao, GenericDao genericDao, EntityMatrix matrix, Map<Object, Object> params, OutLog out) {
+        super(dao, genericDao, matrix, params, out);
     }
 
     private Integer getIntervalOfMonths() {

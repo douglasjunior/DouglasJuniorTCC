@@ -96,30 +96,23 @@ public class GitMatrixViewBean implements Serializable {
             zos.setLevel(9);
 
             for (EntityMatrix matrix : getMatrices()) {
-                System.out.println("Matrix tem nodes: " + matrix.getNodes().size());
+                System.out.println("Matrix " + matrix + " tem nodes: " + matrix.getNodes().size());
 
                 String fileName = generateFileName(matrix) + ".csv";
 
-                ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                PrintWriter pw = new PrintWriter(baos);
-
                 AbstractBichoMatrixServices services = AbstractBichoMatrixServices.createInstance(matrix.getClassServicesName());
 
-                pw.println(services.getHeadCSV());
+                StringBuilder csv = new StringBuilder(services.getHeadCSV());
 
+                csv.append("\r\n");
                 for (EntityMatrixNode node : matrix.getNodes()) {
-                    pw.println(node + "");
+                    csv.append(node).append("\r\n");
                 }
-
-                pw.flush();
-                pw.close();
 
                 ZipEntry ze = new ZipEntry(fileName.replaceAll("/", "-"));
                 zos.putNextEntry(ze);
-                zos.write(baos.toByteArray());
+                zos.write(csv.toString().getBytes());
                 zos.closeEntry();
-
-                baos.close();
             }
 
             zos.close();
@@ -139,23 +132,16 @@ public class GitMatrixViewBean implements Serializable {
 
             String fileName = generateFileName(matrix) + ".csv";
 
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            PrintWriter pw = new PrintWriter(baos);
-
             AbstractBichoMatrixServices services = AbstractBichoMatrixServices.createInstance(matrix.getClassServicesName());
 
-            pw.println(services.getHeadCSV());
+            StringBuilder csv = new StringBuilder(services.getHeadCSV());
 
             for (EntityMatrixNode node : matrix.getNodes()) {
-                pw.println(node + "");
+                csv.append(node).append("\r\n");
             }
 
-            pw.flush();
-            pw.close();
+            file = JsfUtil.downloadFile(fileName, csv.toString().getBytes());
 
-            file = JsfUtil.downloadFile(fileName, baos.toByteArray());
-
-            baos.close();
         } catch (Exception ex) {
             ex.printStackTrace();
             JsfUtil.addErrorMessage(ex.toString());
