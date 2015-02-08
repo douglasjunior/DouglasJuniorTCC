@@ -354,7 +354,7 @@ public class BichoMetricQueueBean implements Serializable {
     private AbstractBichoMetricServices createMetricServiceInstance(EntityMatrix matrix, Map<Object, Object> params) {
         try {
             return (AbstractBichoMetricServices) serviceClass
-                    .getConstructor(GenericBichoDAO.class, EntityMatrix.class, Map.class, OutLog.class, List.class)
+                    .getConstructor(GenericBichoDAO.class, EntityMatrix.class, Map.class, OutLog.class)
                     .newInstance(bichoDao, matrix, params, out);
         } catch (Exception ex) {
             ex.printStackTrace();
