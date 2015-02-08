@@ -621,7 +621,7 @@ public class BichoPairFilePerIssueMetricsInFixVersionServices extends AbstractBi
         // order by support (higher priority)
         orderByFilePairSupport(pairFileList);
 
-        int lastIndex = pairFileList.size() > 1 ? 1 : pairFileList.size();
+        int lastIndex = pairFileList.size() > 25 ? 25 : pairFileList.size();
         final List<AuxFileFileIssueMetrics> top10 = pairFileList.subList(0, lastIndex);
         return top10;
     }
