@@ -25,7 +25,7 @@ public abstract class AbstractBichoMatrixServices extends AbstractBichoServices 
         this.matricesToSave = null;
     }
 
-    public AbstractBichoMatrixServices(GenericBichoDAO dao, String repository, List<EntityMatrix> matricesToSave, Map params, OutLog out) {
+    public AbstractBichoMatrixServices(GenericBichoDAO dao, String repository, List<EntityMatrix> matricesToSave, Map<Object, Object> params, OutLog out) {
         super(dao, params, out);
         this.repository = repository;
         this.matricesToSave = matricesToSave;

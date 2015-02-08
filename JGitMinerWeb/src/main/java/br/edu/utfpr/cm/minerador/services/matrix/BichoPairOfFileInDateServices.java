@@ -32,7 +32,7 @@ public class BichoPairOfFileInDateServices extends AbstractBichoMatrixServices {
         super(dao, out);
     }
 
-    public BichoPairOfFileInDateServices(GenericBichoDAO dao, String repository, List<EntityMatrix> matricesToSave, Map<?, ?> params, OutLog out) {
+    public BichoPairOfFileInDateServices(GenericBichoDAO dao, String repository, List<EntityMatrix> matricesToSave, Map<Object, Object> params, OutLog out) {
         super(dao, repository, matricesToSave, params, out);
     }
 

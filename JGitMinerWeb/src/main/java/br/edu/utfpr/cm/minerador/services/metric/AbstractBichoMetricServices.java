@@ -48,7 +48,7 @@ public abstract class AbstractBichoMetricServices extends AbstractBichoServices 
         entityMetric.setStoped(new Date());
         entityMetric.setComplete(true);
         // saving in jgitminer database
-        dao.insert(entityMetric);
+        genericDao.insert(entityMetric);
 
         out.printLog("\nSalvamento dos dados concluído!");
     }

@@ -34,7 +34,7 @@ public class BichoPairOfFileInFixVersionServices extends AbstractBichoMatrixServ
         super(dao, out);
     }
 
-    public BichoPairOfFileInFixVersionServices(GenericBichoDAO dao, String repository, List<EntityMatrix> matricesToSave, Map<?, ?> params, OutLog out) {
+    public BichoPairOfFileInFixVersionServices(GenericBichoDAO dao, String repository, List<EntityMatrix> matricesToSave, Map<Object, Object> params, OutLog out) {
         super(dao, repository, matricesToSave, params, out);
     }
 
