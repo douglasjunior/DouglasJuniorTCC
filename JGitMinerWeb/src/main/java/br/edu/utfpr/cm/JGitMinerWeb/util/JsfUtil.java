@@ -250,7 +250,7 @@ public class JsfUtil implements Serializable {
      * @throws IOException
      */
     public static StreamedContent downloadFile(String fileName, byte[] bytesFile) throws IOException {
-        return new DefaultStreamedContent(new ByteArrayInputStream(bytesFile), "application/download", fileName);
+        return new DefaultStreamedContent(new ByteArrayInputStream(bytesFile), "text/csv", fileName);
     }
 
     /**
