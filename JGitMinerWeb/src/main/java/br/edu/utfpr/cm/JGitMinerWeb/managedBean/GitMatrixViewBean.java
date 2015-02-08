@@ -125,6 +125,47 @@ public class GitMatrixViewBean implements Serializable {
         return file;
     }
 
+    public StreamedContent downloadAllCSVOfOneVersion(String version) {
+        StreamedContent file = null;
+
+        try {
+            ByteArrayOutputStream zipBytes = new ByteArrayOutputStream();
+            ZipOutputStream zos = new ZipOutputStream(zipBytes);
+            zos.setLevel(9);
+
+            for (EntityMatrix matrix : getMatrices()) {
+                if (!matrix.toString().startsWith(version)) {
+                    continue;
+                }
+                System.out.println("Matrix " + matrix + " tem nodes: " + matrix.getNodes().size());
+
+                String fileName = generateFileName(matrix) + ".csv";
+
+                AbstractBichoMatrixServices services = AbstractBichoMatrixServices.createInstance(matrix.getClassServicesName());
+
+                StringBuilder csv = new StringBuilder(services.getHeadCSV());
+
+                csv.append("\r\n");
+                for (EntityMatrixNode node : matrix.getNodes()) {
+                    csv.append(node).append("\r\n");
+                }
+
+                ZipEntry ze = new ZipEntry(fileName.replaceAll("/", "-"));
+                zos.putNextEntry(ze);
+                zos.write(csv.toString().getBytes());
+                zos.closeEntry();
+            }
+
+            zos.close();
+            file = JsfUtil.downloadFile("All.zip", zipBytes.toByteArray());
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            JsfUtil.addErrorMessage(ex.toString());
+        }
+
+        return file;
+    }
+
     public StreamedContent downloadCSV(EntityMatrix matrix) {
         StreamedContent file = null;
         try {

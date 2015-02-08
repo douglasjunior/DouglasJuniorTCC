@@ -52,10 +52,13 @@
                 <p:column headerText="Download Files">
                     <p:commandButton onclick="PrimeFaces.monitorDownload(start, stop)" ajax="false" value="Log">
                         <p:fileDownload value="#{gitMetricViewBean.downloadLOG(metric)}" />  
-                    </p:commandButton> 
+                    </p:commandButton>
                     <p:commandButton onclick="PrimeFaces.monitorDownload(start, stop)" ajax="false" value="CSV" title="#{metric}">
-                        <p:fileDownload value="#{gitMetricViewBean.downloadCSV(metric)}" />  
-                    </p:commandButton> 
+                        <p:fileDownload value="#{gitMetricViewBean.downloadCSV(metric)}" />
+                    </p:commandButton>
+                    <p:commandButton onclick="PrimeFaces.monitorDownload(start, stop)" ajax="false" value="All CSV" title="#{metric}">
+                        <p:fileDownload value="#{gitMetricViewBean.downloadAllCSVOfOneVersion(metric.matrix.toString())}" />
+                    </p:commandButton>
                     <p:commandButton onclick="PrimeFaces.monitorDownload(start, stop)"  ajax="false" value="Params">
                         <p:fileDownload value="#{gitMetricViewBean.downloadParams(metric)}" />  
                     </p:commandButton> 
