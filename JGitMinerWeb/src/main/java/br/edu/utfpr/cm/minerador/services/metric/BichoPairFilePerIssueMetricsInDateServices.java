@@ -6,7 +6,6 @@ import br.edu.utfpr.cm.JGitMinerWeb.dao.BichoDAO;
 import br.edu.utfpr.cm.JGitMinerWeb.dao.BichoFileDAO;
 import br.edu.utfpr.cm.JGitMinerWeb.dao.BichoPairFileDAO;
 import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericBichoDAO;
-import br.edu.utfpr.cm.JGitMinerWeb.model.matrix.EntityMatrix;
 import br.edu.utfpr.cm.JGitMinerWeb.model.matrix.EntityMatrixNode;
 import br.edu.utfpr.cm.JGitMinerWeb.model.metric.EntityMetric;
 import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.UserCommentedSamePairOfFileInAllDateServices;
@@ -66,10 +65,6 @@ public class BichoPairFilePerIssueMetricsInDateServices extends AbstractBichoMet
 
     public BichoPairFilePerIssueMetricsInDateServices(GenericBichoDAO dao, OutLog out) {
         super(dao, out);
-    }
-
-    public BichoPairFilePerIssueMetricsInDateServices(GenericBichoDAO dao, EntityMatrix matrix, Map<?, ?> params, OutLog out, List<EntityMetric> metricsToSave) {
-        super(dao, matrix, params, out, metricsToSave);
     }
 
     private Integer getIntervalOfMonths() {
@@ -590,11 +585,11 @@ public class BichoPairFilePerIssueMetricsInDateServices extends AbstractBichoMet
 
             EntityMetric metrics = new EntityMetric();
             metrics.setNodes(objectsToNodes(fileFileMetrics));
-            metricsToSave.add(metrics);
+            saveMetrics(metrics);
 
             EntityMetric metrics25percentMostUpdated = new EntityMetric();
             metrics25percentMostUpdated.setNodes(objectsToNodes(ListUtils.getFirst25PercentElements(ordered)));
-            metricsToSave.add(metrics25percentMostUpdated);
+            saveMetrics(metrics25percentMostUpdated);
         } catch (Exception e) {
             e.printStackTrace();
         }

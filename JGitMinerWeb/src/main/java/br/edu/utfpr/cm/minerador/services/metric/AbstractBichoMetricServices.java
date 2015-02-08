@@ -8,6 +8,7 @@ import br.edu.utfpr.cm.JGitMinerWeb.util.OutLog;
 import br.edu.utfpr.cm.minerador.services.AbstractBichoServices;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -18,27 +19,42 @@ import java.util.Map;
 public abstract class AbstractBichoMetricServices extends AbstractBichoServices {
 
     protected final EntityMatrix matrix;
-    protected final List<EntityMetric> metricsToSave;
 
     public AbstractBichoMetricServices() {
         matrix = null;
-        metricsToSave = null;
     }
 
     public AbstractBichoMetricServices(GenericBichoDAO dao, OutLog out) {
         super(dao, out);
         this.matrix = null;
-        metricsToSave = null;
     }
 
-    public AbstractBichoMetricServices(GenericBichoDAO dao, EntityMatrix matrix, Map<?, ?> params, OutLog out, List<EntityMetric> metricsToSave) {
+    public AbstractBichoMetricServices(GenericBichoDAO dao, EntityMatrix matrix, Map<Object, Object> params, OutLog out) {
         super(dao, params, out);
         this.matrix = matrix;
-        this.metricsToSave = metricsToSave;
     }
 
     public EntityMatrix getMatrix() {
         return matrix;
+    }
+
+    protected void saveMetrics(EntityMetric entityMetric) {
+        out.printLog("\nSalvando métricas com " + entityMetric.getNodes().size() + " registros. Parametros: " + entityMetric.getParams());
+
+        params.put("additionalFilename", entityMetric.getAdditionalFilename());
+        entityMetric.getParams().putAll(params);
+        entityMetric.setMatrix(matrix.toString());
+        entityMetric.setClassServicesName(BichoPairFilePerIssueMetricsInFixVersionServices.class.getName());
+        entityMetric.setLog(out.getLog().toString());
+        for (EntityMetricNode node : entityMetric.getNodes()) {
+            node.setMetric(entityMetric);
+        }
+        entityMetric.setStoped(new Date());
+        entityMetric.setComplete(true);
+        // saving in jgitminer database
+        dao.insert(entityMetric);
+
+        out.printLog("\nSalvamento dos dados concluído!");
     }
 
     @Override

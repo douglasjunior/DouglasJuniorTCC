@@ -32,6 +32,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -55,8 +56,8 @@ public class BichoPairFilePerIssueMetricsInFixVersionServices extends AbstractBi
         super(dao, out);
     }
 
-    public BichoPairFilePerIssueMetricsInFixVersionServices(GenericBichoDAO dao, EntityMatrix matrix, Map<?, ?> params, OutLog out, List<EntityMetric> metricsToSave) {
-        super(dao, matrix, params, out, metricsToSave);
+    public BichoPairFilePerIssueMetricsInFixVersionServices(GenericBichoDAO dao, EntityMatrix matrix, Map<Object, Object> params, OutLog out) {
+        super(dao, matrix, params, out);
     }
 
     private Integer getIntervalOfMonths() {
@@ -74,6 +75,7 @@ public class BichoPairFilePerIssueMetricsInFixVersionServices extends AbstractBi
     @Override
     public void run() {
         repository = getRepository();
+        final Date started = new Date();
 
         final String fixVersion = getVersion();
         final String futureVersion = getFutureVersion();
@@ -478,7 +480,7 @@ public class BichoPairFilePerIssueMetricsInFixVersionServices extends AbstractBi
 
         EntityMetric metrics = new EntityMetric();
         metrics.setNodes(objectsToNodes(fileFileMetrics));
-        metricsToSave.add(metrics);
+        saveMetrics(metrics);
 
         List<AuxFileFileIssueMetrics> metricsList = new ArrayList<>(fileFileMetrics);
         // salvando a matriz com o top 10 par de arquivos
@@ -486,7 +488,7 @@ public class BichoPairFilePerIssueMetricsInFixVersionServices extends AbstractBi
         List<AuxFileFileIssueMetrics> top25 = getTop25(metricsList);
         metrics2.setNodes(objectsToNodes(top25));
         metrics2.setAdditionalFilename(" top 25");
-        metricsToSave.add(metrics2);
+        saveMetrics(metrics2);
 
         // separa o top 10 em A + qualquerarquivo
         int rank = 1;
@@ -611,7 +613,7 @@ public class BichoPairFilePerIssueMetricsInFixVersionServices extends AbstractBi
             EntityMetric metrics3 = new EntityMetric();
             metrics3.setNodes(objectsToNodes(changedWithA));
             metrics3.setAdditionalFilename(" " + rank++ + " file changed with " + filePairTop.getFile());
-            metricsToSave.add(metrics3);
+            saveMetrics(metrics3);
         }
     }
 

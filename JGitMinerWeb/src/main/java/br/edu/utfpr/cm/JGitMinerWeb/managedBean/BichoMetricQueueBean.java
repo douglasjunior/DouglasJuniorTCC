@@ -4,8 +4,6 @@ import br.edu.utfpr.cm.JGitMinerWeb.converter.ClassConverter;
 import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericBichoDAO;
 import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericDao;
 import br.edu.utfpr.cm.JGitMinerWeb.model.matrix.EntityMatrix;
-import br.edu.utfpr.cm.JGitMinerWeb.model.metric.EntityMetric;
-import br.edu.utfpr.cm.JGitMinerWeb.model.metric.EntityMetricNode;
 import br.edu.utfpr.cm.JGitMinerWeb.util.JsfUtil;
 import br.edu.utfpr.cm.JGitMinerWeb.util.OutLog;
 import br.edu.utfpr.cm.minerador.services.metric.AbstractBichoMetricServices;
@@ -17,7 +15,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -247,47 +244,21 @@ public class BichoMetricQueueBean implements Serializable {
                 params.putAll(matrix.getParams());
 
                 out.resetLog();
-                final List<EntityMetric> metricsToSave = new ArrayList<>();
 
                 out.printLog("");
                 out.printLog("Params: " + params);
                 out.printLog("");
 
-                final AbstractBichoMetricServices services = createMetricServiceInstance(metricsToSave, matrix, params);
+                final AbstractBichoMetricServices services = createMetricServiceInstance(matrix, params);
 
                 Thread process = new Thread(services) {
 
                     @Override
                     public void run() {
-                        Date started = new Date();
                         try {
                             out.setCurrentProcess("Iniciando coleta dos dados para cálculo das métricas.");
 
                             super.run();
-
-                            out.printLog("");
-
-                            out.setCurrentProcess("Iniciando salvamento dos dados gerados.");
-
-                            for (EntityMetric entityMetric : metricsToSave) {
-                                out.printLog("Salvando métricas com " + entityMetric.getNodes().size() + " registros. Parametros: " + entityMetric.getParams());
-                                entityMetric.setStarted(started);
-                                params.put("additionalFilename", entityMetric.getAdditionalFilename());
-                                entityMetric.getParams().putAll(params);
-                                entityMetric.setMatrix(matrix.toString());
-                                entityMetric.setClassServicesName(serviceClass.getName());
-                                entityMetric.setLog(out.getLog().toString());
-                                for (EntityMetricNode node : entityMetric.getNodes()) {
-                                    node.setMetric(entityMetric);
-                                }
-                                entityMetric.setStoped(new Date());
-                                entityMetric.setComplete(true);
-                                // saving in jgitminer database
-                                dao.insert(entityMetric);
-                                out.printLog("");
-                                dao.clearCache(true);
-                            }
-                            out.printLog("Salvamento dos dados concluído!");
 
                             message = "Geração da matriz finalizada.";
                         } catch (Exception ex) {
@@ -380,11 +351,11 @@ public class BichoMetricQueueBean implements Serializable {
         return metricsServices;
     }
 
-    private AbstractBichoMetricServices createMetricServiceInstance(List<EntityMetric> metricsToSave, EntityMatrix matrix, Map<Object, Object> params) {
+    private AbstractBichoMetricServices createMetricServiceInstance(EntityMatrix matrix, Map<Object, Object> params) {
         try {
             return (AbstractBichoMetricServices) serviceClass
                     .getConstructor(GenericBichoDAO.class, EntityMatrix.class, Map.class, OutLog.class, List.class)
-                    .newInstance(bichoDao, matrix, params, out, metricsToSave);
+                    .newInstance(bichoDao, matrix, params, out);
         } catch (Exception ex) {
             ex.printStackTrace();
         }

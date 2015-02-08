@@ -6,7 +6,6 @@ import br.edu.utfpr.cm.JGitMinerWeb.dao.BichoDAO;
 import br.edu.utfpr.cm.JGitMinerWeb.dao.BichoFileDAO;
 import br.edu.utfpr.cm.JGitMinerWeb.dao.BichoPairFileDAO;
 import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericBichoDAO;
-import br.edu.utfpr.cm.JGitMinerWeb.model.matrix.EntityMatrix;
 import br.edu.utfpr.cm.JGitMinerWeb.model.matrix.EntityMatrixNode;
 import br.edu.utfpr.cm.JGitMinerWeb.model.metric.EntityMetric;
 import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.auxiliary.AuxFileFile;
@@ -62,10 +61,6 @@ public class BichoPairFileMetricsInFixVersionServices extends AbstractBichoMetri
 
     public BichoPairFileMetricsInFixVersionServices(GenericBichoDAO dao, OutLog out) {
         super(dao, out);
-    }
-
-    public BichoPairFileMetricsInFixVersionServices(GenericBichoDAO dao, EntityMatrix matrix, Map<?, ?> params, OutLog out, List<EntityMetric> metricsToSave) {
-        super(dao, matrix, params, out, metricsToSave);
     }
 
     private Integer getIntervalOfMonths() {
@@ -516,7 +511,7 @@ public class BichoPairFileMetricsInFixVersionServices extends AbstractBichoMetri
 
         EntityMetric metrics = new EntityMetric();
         metrics.setNodes(objectsToNodes(fileFileMetrics));
-        metricsToSave.add(metrics);
+        saveMetrics(metrics);
 
         List<AuxFileFileMetrics> metricsList = new ArrayList<>(fileFileMetrics);
         // salvando a matriz com o top 10 par de arquivos
@@ -524,7 +519,7 @@ public class BichoPairFileMetricsInFixVersionServices extends AbstractBichoMetri
         List<AuxFileFileMetrics> top10 = getTop10(metricsList);
         metrics2.setNodes(objectsToNodes(top10));
         metrics2.setAdditionalFilename(" top 10");
-        metricsToSave.add(metrics2);
+        saveMetrics(metrics2);
 
         // separa o top 10 em A + qualquerarquivo
         int rank = 0;
@@ -543,7 +538,7 @@ public class BichoPairFileMetricsInFixVersionServices extends AbstractBichoMetri
             metrics3.setNodes(objectsToNodes(changedWithA));
             rank++;
             metrics3.setAdditionalFilename(" " + rank + " file changed with " + filePairTop.getFile());
-            metricsToSave.add(metrics3);
+            saveMetrics(metrics3);
         }
     }
 

@@ -5,7 +5,6 @@ import br.edu.utfpr.cm.JGitMinerWeb.dao.AuxUser;
 import br.edu.utfpr.cm.JGitMinerWeb.dao.BichoFileDAO;
 import br.edu.utfpr.cm.JGitMinerWeb.dao.BichoPairFileDAO;
 import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericBichoDAO;
-import br.edu.utfpr.cm.JGitMinerWeb.model.matrix.EntityMatrix;
 import br.edu.utfpr.cm.JGitMinerWeb.model.matrix.EntityMatrixNode;
 import br.edu.utfpr.cm.JGitMinerWeb.model.metric.EntityMetric;
 import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.UserCommentedSamePairOfFileInAllDateServices;
@@ -58,10 +57,6 @@ public class BichoPairFileGlobalCommunicationSingleEdgeSNAMetricsInDateServices 
 
     public BichoPairFileGlobalCommunicationSingleEdgeSNAMetricsInDateServices(GenericBichoDAO dao, OutLog out) {
         super(dao, out);
-    }
-
-    public BichoPairFileGlobalCommunicationSingleEdgeSNAMetricsInDateServices(GenericBichoDAO dao, EntityMatrix matrix, Map<?, ?> params, OutLog out, List<EntityMetric> metricsToSave) {
-        super(dao, matrix, params, out, metricsToSave);
     }
 
     private Integer getIntervalOfMonths() {
@@ -537,7 +532,7 @@ public class BichoPairFileGlobalCommunicationSingleEdgeSNAMetricsInDateServices 
 
         EntityMetric metrics = new EntityMetric();
         metrics.setNodes(objectsToNodes(fileFileMetrics));
-        metricsToSave.add(metrics);
+        saveMetrics(metrics);
     }
 
     public Long calculeNumberOfIssues(Map<String, Long> issueFileMap, String fileName, BichoFileDAO fileDAO, Date futureBeginDate, Date futureEndDate) {
