@@ -3,7 +3,6 @@ package br.edu.utfpr.cm.JGitMinerWeb.managedBean;
 import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericDao;
 import br.edu.utfpr.cm.JGitMinerWeb.model.matrix.EntityMatrix;
 import br.edu.utfpr.cm.JGitMinerWeb.model.matrix.EntityMatrixNode;
-import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.AbstractMatrixServices;
 import br.edu.utfpr.cm.JGitMinerWeb.util.JsfUtil;
 import br.edu.utfpr.cm.minerador.services.metric.AbstractBichoMetricServices;
 import java.io.ByteArrayOutputStream;
@@ -143,7 +142,7 @@ public class GitMatrixViewBean implements Serializable {
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             PrintWriter pw = new PrintWriter(baos);
 
-            AbstractMatrixServices services = AbstractMatrixServices.createInstance(null, null, matrix.getClassServicesName());
+            AbstractBichoMetricServices services = AbstractBichoMetricServices.createInstance(matrix.getClassServicesName());
 
             pw.println(services.getHeadCSV());
 
