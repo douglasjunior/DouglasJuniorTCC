@@ -124,7 +124,7 @@ public class GitMetricViewBean implements Serializable {
 
             for (EntityMetric metric : getMetrics()) {
                 if (!metric.toString().matches("^" + version + "\\s.*$")
-                        && metric.toString().equals(version)) {
+                        || !metric.toString().equals(version)) {
                     continue;
                 }
                 System.out.println("Metric " + metric + " tem nodes: " + metric.getNodes().size());
