@@ -123,7 +123,8 @@ public class GitMetricViewBean implements Serializable {
             zos.setLevel(9);
 
             for (EntityMetric metric : getMetrics()) {
-                if (!metric.toString().startsWith(version)) {
+                if (!metric.toString().matches("^" + version + "\\s.*$")
+                        && metric.toString().equals(version)) {
                     continue;
                 }
                 System.out.println("Metric " + metric + " tem nodes: " + metric.getNodes().size());
@@ -179,7 +180,7 @@ public class GitMetricViewBean implements Serializable {
     public void downloadLOG(EntityMetric metric) {
         try {
             String fileName = generateFileName(metric) + ".log";
-            download(fileName, "text/plain", metric.getLog().toString().getBytes());
+            download(fileName, "text/plain", metric.getLog().getBytes());
         } catch (Exception ex) {
             ex.printStackTrace();
             JsfUtil.addErrorMessage(ex.toString());
