@@ -30,6 +30,7 @@ public class BichoPairFileDAO {
     private final String FILTER_BY_BEFORE_ISSUE_FIX_MAJOR_VERSION;
 
     private final String FILTER_BY_BEFORE_ISSUE_FIX_DATE;
+    private final String FILTER_BY_BEFORE_ISSUE_FIX_DATE_OF_ISSUE_ID;
 
     private final String FILTER_BY_AFTER_ISSUE_FIX_DATE;
 
@@ -47,7 +48,7 @@ public class BichoPairFileDAO {
     private final String LIST_COMMENTS_OF_FILE_PAIR_BY_DATE;
 
     private final String SELECT_ISSUES_OF_FILE_PAIR_BY_DATE;
-    private final String SELECT_ISSUES_OF_FILE_PAIR_BY_DATE_AND_FIX_VERSION;
+    private final String SELECT_ISSUES_OF_FILE_PAIR_BY_FIX_VERSION;
     private final String SELECT_ISSUES_BY_ISSUES_ID;
 
     private final String COUNT_COMMENTS_OF_FILE_PAIR_BY_DATE;
@@ -55,14 +56,15 @@ public class BichoPairFileDAO {
     private final String SUM_CHANGES_OF_FILE_PAIR_BY_DATE;
 
     private final String SUM_ADD_DEL_LINES_OF_FILE_PAIR_BY_DATE;
-    private final String SUM_ADD_DEL_LINES_OF_FILE_PAIR_BY_DATE_AND_FIX_VERSION;
+    private final String SUM_ADD_DEL_LINES_OF_FILE_PAIR_BY_FIX_VERSION;
+    private final String SUM_CUMMULATIVE_ADD_DEL_LINES_OF_FILE_PAIR_BY_FIX_VERSION;
 
     private final String SELECT_COMMITTERS_OF_PAIR_FILE_BY_ISSUE_CREATION_DATE;
 
     private final String SELECT_COMMITTERS_OF_PAIR_FILE_BY_ISSUE_ID;
     private final String SELECT_LAST_COMMITTER_OF_PAIR_FILE;
 
-    private String SELECT_COMMITTERS_OF_PAIR_FILE;
+    private final String SELECT_COMMITTERS_OF_PAIR_FILE;
 
     private final String COUNT_PAIR_FILE_COMMITS;
 
@@ -129,9 +131,19 @@ public class BichoPairFileDAO {
                 = " AND c.changed_on >= ?";
 
         FIXED_ISSUES_ONLY
-                = " AND i.resolution = 'Fixed'"
-                + " AND c.field = 'Resolution'"
+                = " AND i.resolution = \"Fixed\""
+                + " AND c.field = \"Resolution\""
                 + " AND c.new_value = i.resolution";
+
+        FILTER_BY_BEFORE_ISSUE_FIX_DATE_OF_ISSUE_ID
+                = QueryUtils.getQueryForDatabase(
+                        " AND c.changed_on <="
+                        + "     (SELECT MAX(c2.changed_on)"
+                        + "        FROM {0}_issues.changes c2"
+                        + "       WHERE c2.issue_id = ?"
+                        + "         AND c2.field = \"Resolution\""
+                        + "         AND c2.new_value = \"Fixed\")", repository);
+
         FILTER_BY_ISSUE_TYPE
                 = " AND i.type = ?";
 
@@ -291,7 +303,7 @@ public class BichoPairFileDAO {
                 + FILTER_BY_ISSUE_FIX_DATE
                 + FIXED_ISSUES_ONLY;
 
-        SELECT_ISSUES_OF_FILE_PAIR_BY_DATE_AND_FIX_VERSION
+        SELECT_ISSUES_OF_FILE_PAIR_BY_FIX_VERSION
                 = QueryUtils.getQueryForDatabase(
                         "SELECT DISTINCT i.id, i.issue, i.description"
                         + "  FROM {0}_issues.issues i"
@@ -400,51 +412,88 @@ public class BichoPairFileDAO {
                 + FILTER_BY_MAX_FILES_IN_COMMIT;
 
         SUM_ADD_DEL_LINES_OF_FILE_PAIR_BY_DATE
-                = QueryUtils.getQueryForDatabase(
-                        "SELECT COALESCE(SUM(filcl.added), 0), "
-                        + "      COALESCE(SUM(filcl.removed), 0)"
-                        + "  FROM {0}_issues.issues i"
-                        + "  JOIN {0}_issues.changes c ON c.issue_id = i.id"
-                        + "  JOIN {0}_issues.issues_scmlog i2s ON i2s.issue_id = i.id"
-                        + "  JOIN {0}_vcs.scmlog s ON s.id = i2s.scmlog_id"
-                        + "  JOIN {0}_vcs.actions a ON a.commit_id = s.id"
-                        + "  JOIN {0}_vcs.files fil ON fil.id = a.file_id"
-                        + "  JOIN {0}_vcs.file_links fill ON fill.file_id = fil.id AND fill.commit_id = "
-                        + "       (SELECT MAX(afill.commit_id) " // last commit where file has introduced, because it can have more than one
-                        + "          FROM {0}_vcs.file_links afill "
-                        + "         WHERE afill.commit_id <= s.id "
-                        + "           AND afill.file_id = fil.id)"
-                        + "  JOIN {0}_vcs.commits_files_lines filcl ON filcl.commit = s.id AND filcl.path = fill.file_path"
-                        + " WHERE (fill.file_path = ?"
-                        + "   OR fill.file_path = ?)"
-                        + "   AND s.date > i.submitted_on", repository)
-                + " AND s.num_files <= " + maxFilePerCommit
-                + FILTER_BY_ISSUE_FIX_DATE
-                + FIXED_ISSUES_ONLY;
+                = QueryUtils.getQueryForDatabase(""
+                        + "SELECT COALESCE(SUM(filcl.added), 0),"
+                        + "       COALESCE(SUM(filcl.removed), 0)"
+                        + "  FROM {0}_vcs.commits_files_lines filcl"
+                        + " WHERE (filcl.path = ?"
+                        + "    OR filcl.path = ?)"
+                        + "   AND filcl.commit IN ("
+                        + "       SELECT DISTINCT s.id"
+                        + "         FROM {0}_issues.issues i"
+                        + "         JOIN {0}_issues.issues_fix_version ifv ON ifv.issue_id = i.id"
+                        + "         JOIN {0}_issues.changes c ON c.issue_id = i.id"
+                        + "         JOIN {0}_issues.issues_scmlog i2s ON i2s.issue_id = i.id"
+                        + "         JOIN {0}_vcs.scmlog s ON s.id = i2s.scmlog_id"
+                        + "         JOIN {0}_vcs.actions a ON a.commit_id = s.id"
+                        + "         JOIN {0}_vcs.files fil ON fil.id = a.file_id"
+                        + "         JOIN {0}_vcs.file_links fill ON fill.file_id = fil.id AND fill.commit_id = "
+                        + "              (SELECT MAX(afill.commit_id) " // last commit where file has introduced, because it can have more than one
+                        + "                 FROM {0}_vcs.file_links afill "
+                        + "                WHERE afill.commit_id <= s.id "
+                        + "                  AND afill.file_id = fil.id)"
+                        + "      WHERE filcl.path = fill.file_path"
+                        + "        AND s.date > i.submitted_on"
+                        + " AND s.num_files <= " + maxFilePerCommit
+                        + FILTER_BY_ISSUE_FIX_DATE
+                        + FIXED_ISSUES_ONLY
+                        + ")", repository);
 
-        SUM_ADD_DEL_LINES_OF_FILE_PAIR_BY_DATE_AND_FIX_VERSION
-                = QueryUtils.getQueryForDatabase(
-                        "SELECT COALESCE(SUM(filcl.added), 0), "
-                        + "      COALESCE(SUM(filcl.removed), 0)"
-                        + "  FROM {0}_issues.issues i"
-                        + "  JOIN {0}_issues.issues_fix_version ifv ON ifv.issue_id = i.id"
-                        + "  JOIN {0}_issues.changes c ON c.issue_id = i.id"
-                        + "  JOIN {0}_issues.issues_scmlog i2s ON i2s.issue_id = i.id"
-                        + "  JOIN {0}_vcs.scmlog s ON s.id = i2s.scmlog_id"
-                        + "  JOIN {0}_vcs.actions a ON a.commit_id = s.id"
-                        + "  JOIN {0}_vcs.files fil ON fil.id = a.file_id"
-                        + "  JOIN {0}_vcs.file_links fill ON fill.file_id = fil.id AND fill.commit_id = "
-                        + "       (SELECT MAX(afill.commit_id) " // last commit where file has introduced, because it can have more than one
-                        + "          FROM {0}_vcs.file_links afill "
-                        + "         WHERE afill.commit_id <= s.id "
-                        + "           AND afill.file_id = fil.id)"
-                        + "  JOIN {0}_vcs.commits_files_lines filcl ON filcl.commit = s.id AND filcl.path = fill.file_path"
-                        + " WHERE (fill.file_path = ?"
-                        + "   OR fill.file_path = ?)"
-                        + "   AND s.date > i.submitted_on", repository)
-                + " AND s.num_files <= " + maxFilePerCommit
-                + FILTER_BY_ISSUE_FIX_MAJOR_VERSION
-                + FIXED_ISSUES_ONLY;
+        SUM_ADD_DEL_LINES_OF_FILE_PAIR_BY_FIX_VERSION
+                = QueryUtils.getQueryForDatabase(""
+                        + "SELECT COALESCE(SUM(filcl.added), 0),"
+                        + "       COALESCE(SUM(filcl.removed), 0)"
+                        + "  FROM {0}_vcs.commits_files_lines filcl"
+                        + " WHERE (filcl.path = ?"
+                        + "    OR filcl.path = ?)"
+                        + "   AND filcl.commit IN ("
+                        + "       SELECT DISTINCT s.id"
+                        + "         FROM {0}_issues.issues i"
+                        + "         JOIN {0}_issues.issues_fix_version ifv ON ifv.issue_id = i.id"
+                        + "         JOIN {0}_issues.changes c ON c.issue_id = i.id"
+                        + "         JOIN {0}_issues.issues_scmlog i2s ON i2s.issue_id = i.id"
+                        + "         JOIN {0}_vcs.scmlog s ON s.id = i2s.scmlog_id"
+                        + "         JOIN {0}_vcs.actions a ON a.commit_id = s.id"
+                        + "         JOIN {0}_vcs.files fil ON fil.id = a.file_id"
+                        + "         JOIN {0}_vcs.file_links fill ON fill.file_id = fil.id AND fill.commit_id = "
+                        + "              (SELECT MAX(afill.commit_id) " // last commit where file has introduced, because it can have more than one
+                        + "                 FROM {0}_vcs.file_links afill "
+                        + "                WHERE afill.commit_id <= s.id "
+                        + "                  AND afill.file_id = fil.id)"
+                        + "      WHERE filcl.path = fill.file_path"
+                        + "        AND s.date > i.submitted_on"
+                        + " AND s.num_files <= " + maxFilePerCommit
+                        + FILTER_BY_ISSUE_FIX_MAJOR_VERSION
+                        + FIXED_ISSUES_ONLY
+                        + ")", repository);
+
+        SUM_CUMMULATIVE_ADD_DEL_LINES_OF_FILE_PAIR_BY_FIX_VERSION
+                = QueryUtils.getQueryForDatabase(""
+                        + "SELECT COALESCE(SUM(filcl.added), 0),"
+                        + "       COALESCE(SUM(filcl.removed), 0)"
+                        + "  FROM {0}_vcs.commits_files_lines filcl"
+                        + " WHERE (filcl.path = ?"
+                        + "    OR filcl.path = ?)"
+                        + "   AND filcl.commit IN ("
+                        + "       SELECT DISTINCT s.id"
+                        + "         FROM {0}_issues.issues i"
+                        + "         JOIN {0}_issues.issues_fix_version ifv ON ifv.issue_id = i.id"
+                        + "         JOIN {0}_issues.changes c ON c.issue_id = i.id"
+                        + "         JOIN {0}_issues.issues_scmlog i2s ON i2s.issue_id = i.id"
+                        + "         JOIN {0}_vcs.scmlog s ON s.id = i2s.scmlog_id"
+                        + "         JOIN {0}_vcs.actions a ON a.commit_id = s.id"
+                        + "         JOIN {0}_vcs.files fil ON fil.id = a.file_id"
+                        + "         JOIN {0}_vcs.file_links fill ON fill.file_id = fil.id AND fill.commit_id = "
+                        + "              (SELECT MAX(afill.commit_id) " // last commit where file has introduced, because it can have more than one
+                        + "                 FROM {0}_vcs.file_links afill "
+                        + "                WHERE afill.commit_id <= s.id "
+                        + "                  AND afill.file_id = fil.id)"
+                        + "      WHERE filcl.path = fill.file_path"
+                        + " AND s.num_files <= " + maxFilePerCommit
+                        + FILTER_BY_BEFORE_ISSUE_FIX_DATE_OF_ISSUE_ID
+                        //+ FILTER_BY_ISSUE_FIX_MAJOR_VERSION
+                        + FIXED_ISSUES_ONLY, repository)
+                + "{0})";
 
         SELECT_COMMITTERS_OF_PAIR_FILE_BY_ISSUE_CREATION_DATE
                 = QueryUtils.getQueryForDatabase(
@@ -652,7 +701,7 @@ public class BichoPairFileDAO {
                         + "  JOIN {0}_vcs.actions a ON a.commit_id = s.id"
                         + "  JOIN {0}_vcs.files fil ON fil.id = a.file_id"
                         + "  JOIN {0}_vcs.file_links fill ON fill.file_id = fil.id"
-                        // neste caso nÃ£o Ã© necessÃ¡rio
+                        // neste caso nÃƒÂ£o ÃƒÂ© necessÃƒÂ¡rio
                         // temos que considerar todos os arquivos, inclusive quando renomeados
                         //                        + " AND fill.commit_id = "
                         //                        + "       (SELECT MAX(afill.commit_id) " // last commit where file has introduced, because it can have more than one
@@ -662,7 +711,7 @@ public class BichoPairFileDAO {
                         + "  JOIN {0}_vcs.actions a2 ON a2.commit_id = s2.id"
                         + "  JOIN {0}_vcs.files fil2 ON fil2.id = a2.file_id AND a.file_id <> a2.file_id"
                         + "  JOIN {0}_vcs.file_links fill2 ON fill2.file_id = fil2.id"
-                        // neste caso nÃ£o Ã© necessÃ¡rio
+                        // neste caso nÃƒÂ£o ÃƒÂ© necessÃƒÂ¡rio
                         // temos que considerar todos os arquivos, inclusive quando renomeados
                         //                        + " AND fill2.commit_id = "
                         //                        + "       (SELECT MAX(afill2.commit_id) " // last commit where file has introduced, because it can have more than one
@@ -687,7 +736,7 @@ public class BichoPairFileDAO {
                         + "  JOIN {0}_vcs.actions a ON a.commit_id = s.id"
                         + "  JOIN {0}_vcs.files fil ON fil.id = a.file_id"
                         + "  JOIN {0}_vcs.file_links fill ON fill.file_id = fil.id"
-                        // neste caso nÃ£o Ã© necessÃ¡rio
+                        // neste caso nÃƒÂ£o ÃƒÂ© necessÃƒÂ¡rio
                         // temos que considerar todos os arquivos, inclusive quando renomeados
                         //                        + " AND fill.commit_id = "
                         //                        + "       (SELECT MAX(afill.commit_id) " // last commit where file has introduced, because it can have more than one
@@ -697,7 +746,7 @@ public class BichoPairFileDAO {
                         + "  JOIN {0}_vcs.actions a2 ON a2.commit_id = s2.id"
                         + "  JOIN {0}_vcs.files fil2 ON fil2.id = a2.file_id AND a.file_id <> a2.file_id"
                         + "  JOIN {0}_vcs.file_links fill2 ON fill2.file_id = fil2.id"
-                        // neste caso nÃ£o Ã© necessÃ¡rio
+                        // neste caso nÃƒÂ£o ÃƒÂ© necessÃƒÂ¡rio
                         // temos que considerar todos os arquivos, inclusive quando renomeados
                         //                        + " AND fill2.commit_id = "
                         //                        + "       (SELECT MAX(afill2.commit_id) " // last commit where file has introduced, because it can have more than one
@@ -753,7 +802,10 @@ public class BichoPairFileDAO {
                         + FILTER_BY_ISSUE_FIX_MAJOR_VERSION
                         + ") GROUP BY i2.type", repository);
     }
-
+    public static void main(String[] args) {
+        final BichoPairFileDAO bichoPairFileDAO = new BichoPairFileDAO(null, "camel", 20);
+        System.out.println(bichoPairFileDAO.SUM_CUMMULATIVE_ADD_DEL_LINES_OF_FILE_PAIR_BY_FIX_VERSION);
+    }
     public long calculeNumberOfIssues(Date beginDate, Date endDate, boolean onlyFixed) {
 
         List<Object> selectParams = new ArrayList<>();
@@ -1010,6 +1062,25 @@ public class BichoPairFileDAO {
         filterByIssues(issues, sql);
 
         List<Object[]> sum = dao.selectNativeWithParams(sql.toString(), params);
+
+        Long additions = sum.get(0)[0] == null ? 0l : ((BigDecimal) sum.get(0)[0]).longValue();
+        Long deletions = sum.get(0)[1] == null ? 0l : ((BigDecimal) sum.get(0)[1]).longValue();
+
+        return new AuxCodeChurn(fileName, fileName2,
+                additions, deletions);
+    }
+
+    public AuxCodeChurn calculeCummulativeCodeChurnAddDelChange(String fileName2, String fileName, Integer issue, Collection<Integer> issues, String fixVersion) {
+        Object[] params = new Object[]{
+            fileName,
+            fileName2,
+            fixVersion,
+            issue
+        };
+        StringBuilder filterByIssues = new StringBuilder();
+        filterByIssues(issues, filterByIssues);
+        String sql = QueryUtils.getQueryForDatabase(SUM_CUMMULATIVE_ADD_DEL_LINES_OF_FILE_PAIR_BY_FIX_VERSION, filterByIssues.toString());
+        List<Object[]> sum = dao.selectNativeWithParams(sql, params);
 
         Long additions = sum.get(0)[0] == null ? 0l : ((BigDecimal) sum.get(0)[0]).longValue();
         Long deletions = sum.get(0)[1] == null ? 0l : ((BigDecimal) sum.get(0)[1]).longValue();
@@ -1520,7 +1591,7 @@ public class BichoPairFileDAO {
         List<Object> selectParams = new ArrayList<>();
 
         StringBuilder sql = new StringBuilder();
-        sql.append(SELECT_ISSUES_OF_FILE_PAIR_BY_DATE_AND_FIX_VERSION);
+        sql.append(SELECT_ISSUES_OF_FILE_PAIR_BY_FIX_VERSION);
 
         selectParams.add(file);
         selectParams.add(file2);

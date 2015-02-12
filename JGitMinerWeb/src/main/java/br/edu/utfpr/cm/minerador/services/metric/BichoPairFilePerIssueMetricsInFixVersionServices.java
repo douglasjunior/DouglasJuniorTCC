@@ -31,11 +31,14 @@ import edu.uci.ics.jung.graph.DirectedSparseGraph;
 import edu.uci.ics.jung.graph.util.EdgeType;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -83,13 +86,13 @@ public class BichoPairFilePerIssueMetricsInFixVersionServices extends AbstractBi
         final Map<AuxFileFilePull, Set<AuxUser>> committersPairFile = new HashMap<>();
         final Map<Integer, Set<Commenter>> devCommentersPairFile = new HashMap<>();
         final Map<Integer, Set<Commenter>> commentersPairFile = new HashMap<>();
-        final Map<AuxFileFilePull, Set<Integer>> issuesPairFile = new HashMap<>();
+        final Map<AuxFileFilePull, Set<Integer>> issuesPairFileMap = new HashMap<>();
         final Map<AuxFileFilePull, Set<Integer>> commitsPairFile = new HashMap<>();
+        final Map<AuxFileFile, Set<Integer>> allPairFileIssuesMap = new HashMap<>();
         final Map<AuxFileFile, Integer> futureDefectsPairFile = new HashMap<>();
         final Map<String, Integer> edgesWeigth = new HashMap<>();
+        final Map<Integer, Set<String>> distinctFilesPerIssueMap = new HashMap<>();
         final Set<Integer> noCommenters = new HashSet<>();
-        final Set<String> allDistinctFiles = new HashSet<>();
-        final Set<Integer> allDistinctIssues = new HashSet<>();
 
         // rede de comunicação global, com todos pares de arquivos
         DirectedSparseGraph<String, String> globalGraph = new DirectedSparseGraph<>();
@@ -138,30 +141,41 @@ public class BichoPairFilePerIssueMetricsInFixVersionServices extends AbstractBi
                 out.printLog("No issues for pair file " + filename1 + ";" + filename2);
             }
 
-            // distinct files
-            allDistinctFiles.add(filename1);
-            allDistinctFiles.add(filename2);
-
-            // distinc issues
-            allDistinctIssues.addAll(issues);
+            AuxFileFile fileFile = new AuxFileFile(filename1, filename2);
+            if (allPairFileIssuesMap.containsKey(fileFile)) {
+                allPairFileIssuesMap.get(fileFile).addAll(issues);
+            } else {
+                allPairFileIssuesMap.put(fileFile, issues);
+            }
 
             for (Integer issue : issues) {
-                AuxFileFilePull pairFile = new AuxFileFilePull(filename1, filename2, issue);
-                pairFilesSet.add(pairFile);
+                AuxFileFilePull pairFileIssue = new AuxFileFilePull(filename1, filename2, issue);
+                pairFilesSet.add(pairFileIssue);
 
-                if (commitsPairFile.containsKey(pairFile)) {
-                    commitsPairFile.get(pairFile).addAll(commits);
+                if (distinctFilesPerIssueMap.containsKey(issue)) {
+                    final Set<String> hashSet = distinctFilesPerIssueMap.get(issue);
+                    hashSet.add(filename1);
+                    hashSet.add(filename2);
                 } else {
-                    commitsPairFile.put(pairFile, commits);
+                    final Set<String> hashSet = new HashSet<>();
+                    distinctFilesPerIssueMap.put(issue, hashSet);
+                    hashSet.add(filename1);
+                    hashSet.add(filename2);
                 }
 
-                if (issuesPairFile.containsKey(pairFile)) {
-                    issuesPairFile.get(pairFile).addAll(issues);
+                if (commitsPairFile.containsKey(pairFileIssue)) {
+                    commitsPairFile.get(pairFileIssue).addAll(commits);
                 } else {
-                    issuesPairFile.put(pairFile, issues);
+                    commitsPairFile.put(pairFileIssue, commits);
                 }
 
-                futureDefectsPairFile.put(pairFile.getFileFile(), futureDefectsWeight);
+                if (issuesPairFileMap.containsKey(pairFileIssue)) {
+                    issuesPairFileMap.get(pairFileIssue).addAll(issues);
+                } else {
+                    issuesPairFileMap.put(pairFileIssue, issues);
+                }
+
+                futureDefectsPairFile.put(pairFileIssue.getFileFile(), futureDefectsWeight);
 
                 // TODO optimize querying at matrix generation
                 // Find the pair files committers
@@ -170,11 +184,11 @@ public class BichoPairFilePerIssueMetricsInFixVersionServices extends AbstractBi
                 /**
                  * Extract all distinct developer that commit a pair of file
                  */
-                if (committersPairFile.containsKey(pairFile)) {
-                    Set<AuxUser> commiters = committersPairFile.get(pairFile);
+                if (committersPairFile.containsKey(pairFileIssue)) {
+                    Set<AuxUser> commiters = committersPairFile.get(pairFileIssue);
                     commiters.addAll(pairFileCommitters);
                 } else {
-                    committersPairFile.put(pairFile, pairFileCommitters);
+                    committersPairFile.put(pairFileIssue, pairFileCommitters);
                 }
 
                 List<Commenter> commenters = bichoDAO.selectCommentersByIssueId(issue);
@@ -268,7 +282,7 @@ public class BichoPairFilePerIssueMetricsInFixVersionServices extends AbstractBi
 
         out.printLog("Número de autores de comentários (commenters): " + globalGraph.getVertexCount());
         out.printLog("Número de pares de arquivos (committers): " + committersPairFile.size());
-        out.printLog("Número de pares de arquivos (issues): " + issuesPairFile.size());
+        out.printLog("Número de pares de arquivos (issues): " + issuesPairFileMap.size());
         out.printLog("Número de pares de arquivos (commenters): " + commentersPairFile.size());
         out.printLog("Número de pares de arquivos distintos: " + pairFilesSet.size());
         out.printLog("Iniciando cálculo das métricas.");
@@ -303,7 +317,8 @@ public class BichoPairFilePerIssueMetricsInFixVersionServices extends AbstractBi
             final Integer distinctCommentersCount = devsCommentters.size();
 
             // Commit-based metrics ////////////////////////////////////////////
-            final Set<Integer> fileFileIssues = issuesPairFile.get(fileFile);
+            final Set<Integer> fileFileIssues = issuesPairFileMap.get(fileFile);
+            final Set<Integer> allPairFileIssues = allPairFileIssuesMap.get(fileFile.getFileFile());
 
 //            final Map<String, Long> issuesTypesCount = bichoDAO.countIssuesTypes(fileFileIssues);
 
@@ -389,9 +404,8 @@ public class BichoPairFilePerIssueMetricsInFixVersionServices extends AbstractBi
             final long codeChurn2 = cacher.calculeFileCodeChurn(
                     fileFile.getFileName2(), fixVersion).getChanges();
 
-            final AuxCodeChurn pairFileCodeChurn = bichoPairFileDAO.calculeCodeChurnAddDelChange(
-                    fileFile.getFileName2(), fileFile.getFileName(),
-                    fixVersion, fileFileIssues);
+            final AuxCodeChurn pairFileCodeChurn = cacher.calculeCummulativeCodeChurnAddDelChange(
+                    fileFile.getFileName2(), fileFile.getFileName(), issue, allPairFileIssues, fixVersion);
 
             final double codeChurnAvg = (codeChurn + codeChurn2) / 2.0d;
 
@@ -446,6 +460,7 @@ public class BichoPairFilePerIssueMetricsInFixVersionServices extends AbstractBi
                     majorContributors, minorContributors,
                     ownerExperience, ownerExperience2,
                     cummulativeOwnerExperience, cummulativeOwnerExperience2,
+                    distinctFilesPerIssueMap.get(issue).size(),
                     committers, distinctCommitters, commits, totalCommits, devCommenters,
                     distinctCommentersCount, issueMetrics.getNumberOfComments(), issueMetrics.getWordiness(),
                     codeChurn, codeChurn2, codeChurnAvg,
@@ -470,6 +485,7 @@ public class BichoPairFilePerIssueMetricsInFixVersionServices extends AbstractBi
                     apriori.getConviction(), apriori.getConviction2()
             );
 
+            auxFileFileMetrics.changeToRisky();
             fileFileMetrics.add(auxFileFileMetrics);
         }
 
@@ -480,34 +496,32 @@ public class BichoPairFilePerIssueMetricsInFixVersionServices extends AbstractBi
         saveMetrics(metrics);
 
         List<AuxFileFileIssueMetrics> metricsList = new ArrayList<>(fileFileMetrics);
-        // salvando a matriz com o top 10 par de arquivos
-        EntityMetric metrics2 = new EntityMetric();
-        List<AuxFileFileIssueMetrics> top25 = getTop25(metricsList);
-        metrics2.setNodes(objectsToNodes(top25));
-        metrics2.setAdditionalFilename("top 25");
-        saveMetrics(metrics2);
+        Map<String, Set<AuxFileFileIssueMetrics>> top25 = getTop25(metricsList);
 
         // separa o top 10 em A + qualquerarquivo
         int rank = 1;
-        for (AuxFileFileIssueMetrics filePairTop : top25) {
-            List<AuxFileFileIssueMetrics> changedWithA = new ArrayList<>();
-            for (AuxFileFileIssueMetrics filePair : metricsList) {
-                if (filePair.getFile().equals(filePairTop.getFile())
-                        && !filePair.equals(filePairTop)) {
-                    filePair.changeToRisky();
-                    changedWithA.add(filePair);
-                }
+        for (Map.Entry<String, Set<AuxFileFileIssueMetrics>> top25EntrySet : top25.entrySet()) {
+            final String combineWithFile = top25EntrySet.getKey();
+            final Set<AuxFileFileIssueMetrics> changedWithA = top25EntrySet.getValue();
+            final Set<AuxFileFileIssueMetrics> allCombinedFilesChangedWithA = new LinkedHashSet<>();
+
+            // issues onde pelo menos um dos pares identificados mudou
+            final Set<Integer> issuesWhereChangedAtLeatsOneTime = new HashSet<>();
+
+            for (AuxFileFileIssueMetrics filePairChangedMetrics : changedWithA) {
+                issuesWhereChangedAtLeatsOneTime.add(filePairChangedMetrics.getIssue());
             }
 
-            int progress = 0, totalProgress = allDistinctFiles.size() * allDistinctIssues.size();
-            // complete with others
-            for (String file : allDistinctFiles) {
-                for (Integer issue : allDistinctIssues) {
+            int progress = 0, totalProgress = changedWithA.size() * issuesWhereChangedAtLeatsOneTime.size();
+
+            for (Integer issue : issuesWhereChangedAtLeatsOneTime) {
+                for (AuxFileFileIssueMetrics filePairChangedMetrics : changedWithA) {
                     if (progress++ % 10 == 0 || progress == totalProgress) {
                         System.out.println("Rank " + rank + " - " + progress + "/" + totalProgress);
                     }
+
                     final IssueMetrics issueMetrics = cacher.calculeIssueMetrics(issue);
-                    AuxFileFileIssueMetrics combined = new AuxFileFileIssueMetrics(filePairTop.getFile(), file, issueMetrics);
+                    AuxFileFileIssueMetrics combined = new AuxFileFileIssueMetrics(filePairChangedMetrics.getFile(), filePairChangedMetrics.getFile2(), issueMetrics);
 
                     if (!changedWithA.contains(combined)) {
 
@@ -549,8 +563,8 @@ public class BichoPairFilePerIssueMetricsInFixVersionServices extends AbstractBi
                         final long totalCommits = cacher.calculeCummulativeCommits(combined.getFile(), combined.getFile2(),
                                 fixVersion);
                         // TODO da para usar o cache que vem da matrix
-//                        final long futureUpdates = cacher.calculeFutureNumberOfIssues(
-//                                filePairTop.getFile(), filePairTop.getFile2(), futureVersion);
+                        //                        final long futureUpdates = cacher.calculeFutureNumberOfIssues(
+                        //                                filePairTop.getFile(), filePairTop.getFile2(), futureVersion);
                         final Map<String, Long> futureIssuesTypes = cacher.calculeFutureNumberOfIssuesWithType(
                                 combined.getFile(), combined.getFile2(), futureVersion);
                         final long futureDefects;
@@ -565,6 +579,11 @@ public class BichoPairFilePerIssueMetricsInFixVersionServices extends AbstractBi
                             futureUpdates += entrySet.getValue();
                         }
 
+                        Collection<Integer> allPairFileIssues = allPairFileIssuesMap.get(new AuxFileFile(combined.getFile(), combined.getFile2()));
+
+                        final AuxCodeChurn pairFileCodeChurn = bichoPairFileDAO.calculeCummulativeCodeChurnAddDelChange(
+                                combined.getFile(), combined.getFile2(), issue, allPairFileIssues, fixVersion);
+
                         combined.addMetrics(
                                 // devCommitsStatistics.getSum(), devCommitsStatistics.getMean(), devCommitsStatistics.getMedian(), devCommitsStatistics.getMax(),
                                 0, 0, 0, 0,
@@ -576,6 +595,8 @@ public class BichoPairFilePerIssueMetricsInFixVersionServices extends AbstractBi
                                 0, 0,
                                 // cummulativeOwnerExperience, cummulativeOwnerExperience2,
                                 0, 0,
+                                // numFiles
+                                distinctFilesPerIssueMap.get(issue).size(),
                                 // committers, totalCommitters, commits, totalCommits, devCommenters,
                                 0, totalCommitters, 0, totalCommits, 0,
                                 // distinctCommentersCount, issuesAndComments.getNumberOfComments(), issuesAndComments.getWordiness(),
@@ -583,7 +604,7 @@ public class BichoPairFilePerIssueMetricsInFixVersionServices extends AbstractBi
                                 // codeChurn, codeChurn2, codeChurnAvg,
                                 0, 0, 0,
                                 // pairFileCodeChurn.getAdditionsNormalized(), pairFileCodeChurn.getDeletionsNormalized(), pairFileCodeChurn.getChanges()
-                                0, 0, 0,
+                                pairFileCodeChurn.getAdditionsNormalized(), pairFileCodeChurn.getDeletionsNormalized(), pairFileCodeChurn.getChanges(),
                                 // ageRelease, ageTotal
                                 0, 0,
                                 // updates, futureUpdates, futureDefects,
@@ -601,28 +622,59 @@ public class BichoPairFilePerIssueMetricsInFixVersionServices extends AbstractBi
                                 // conviction1, conviction2
                                 0, 0
                         );
-                        changedWithA.add(combined);
+                        allCombinedFilesChangedWithA.add(combined);
+                    } else {
+                        allCombinedFilesChangedWithA.add(filePairChangedMetrics);
                     }
+
                 }
             }
 
-            changedWithA.add(0, filePairTop);
             EntityMetric metrics3 = new EntityMetric();
-            metrics3.setNodes(objectsToNodes(changedWithA));
-            metrics3.setAdditionalFilename(rank++ + " file changed with " + filePairTop.getFile());
+            metrics3.setNodes(objectsToNodes(allCombinedFilesChangedWithA));
+            metrics3.setAdditionalFilename(rank++ + " file changed with " + combineWithFile);
             saveMetrics(metrics3);
         }
     }
 
-    private List<AuxFileFileIssueMetrics> getTop25(final List<AuxFileFileIssueMetrics> pairFileList) {
+    private Map<String, Set<AuxFileFileIssueMetrics>> getTop25(final List<AuxFileFileIssueMetrics> pairFileList) {
         // order by number of defects (lower priority)
         orderByNumberOfDefects(pairFileList);
         // order by support (higher priority)
         orderByFilePairSupport(pairFileList);
 
-        int lastIndex = pairFileList.size() > 25 ? 25 : pairFileList.size();
-        final List<AuxFileFileIssueMetrics> top10 = pairFileList.subList(0, lastIndex);
-        return top10;
+        // 25 arquivos distintos com maior confiança entre o par (coluna da esquerda)
+        final Set<String> distinctFileOfFilePairWithHigherConfidence = new LinkedHashSet<>(25);
+        final List<AuxFileFileIssueMetrics> top25Metrics = new ArrayList<>(25);
+        for (AuxFileFileIssueMetrics filePair : pairFileList) {
+            top25Metrics.add(filePair);
+            distinctFileOfFilePairWithHigherConfidence.add(filePair.getFile());
+            if (distinctFileOfFilePairWithHigherConfidence.size() >= 25) {
+                break;
+            }
+        }
+        // salvando a matriz com o top par de arquivos
+        EntityMetric metrics = new EntityMetric();
+        metrics.setNodes(objectsToNodes(top25Metrics));
+        metrics.setAdditionalFilename("top 25");
+        saveMetrics(metrics);
+
+        return getAllFilesChangedWithTop25(distinctFileOfFilePairWithHigherConfidence, pairFileList);
+    }
+
+    private Map<String, Set<AuxFileFileIssueMetrics>> getAllFilesChangedWithTop25(final Set<String> distinctFileOfFilePairWithHigherConfidence, final List<AuxFileFileIssueMetrics> pairFileList) {
+        Map<String, Set<AuxFileFileIssueMetrics>> top25 = new LinkedHashMap<>(25);
+        for (String file : distinctFileOfFilePairWithHigherConfidence) {
+            final Set<AuxFileFileIssueMetrics> filesChangedWithA = new LinkedHashSet<>();
+            
+            for (AuxFileFileIssueMetrics pairFile : pairFileList) {
+                if (pairFile.getFile().equals(file)) {
+                    filesChangedWithA.add(pairFile);
+                }
+            }
+            top25.put(file, filesChangedWithA);
+        }
+        return top25;
     }
 
     private void orderByFilePairSupport(final List<AuxFileFileIssueMetrics> pairFileList) {
@@ -685,6 +737,7 @@ public class BichoPairFilePerIssueMetricsInFixVersionServices extends AbstractBi
                 + "majorContributors;minorContributors;"
                 + "oexp;oexp2;"
                 + "own;own2;"
+                + "numFiles;"
                 + "committers;" // committers na release
                 + "totalCommitters;" // ddev, committers desde o começo até a data final da relese
                 + "commits;" // commits do par de arquivos na release

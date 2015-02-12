@@ -116,23 +116,23 @@ public class BichoFileDAO {
                 = " AND p.name = ?";
 
         FIXED_ISSUES_ONLY
-                = " AND i.resolution = 'Fixed'"
-                + " AND c.field = 'Resolution'"
+                = " AND i.resolution = \"Fixed\""
+                + " AND c.field = \"Resolution\""
                 + " AND c.new_value = i.resolution";
 
         FILTER_BY_LIKE_FILE_NAME
                 = " AND fill.file_path LIKE ?";
         FILTER_BY_JAVA_EXTENSION
-                = " AND fill.file_path LIKE '%.java'";
+                = " AND fill.file_path LIKE \"%.java\"";
         FILTER_BY_XML_EXTENSION
-                = " AND fill.file_path LIKE '%.xml'";
+                = " AND fill.file_path LIKE \"%.xml\"";
         FILTER_BY_JAVA_OR_XML_EXTENSION
-                = " AND (fill.file_path LIKE '%.java'"
-                + " OR fill.file_path LIKE '%.xml')";
+                = " AND (fill.file_path LIKE \"%.java\""
+                + " OR fill.file_path LIKE \"%.xml\")";
         FILTER_BY_JAVA_OR_XML_EXTENSION_AND_IS_NOT_TEST
-                = " AND (fill.file_path LIKE '%.java'"
-                + " OR fill.file_path LIKE '%.xml')"
-                + " AND fill.file_path NOT LIKE '%Test.java'";
+                = " AND (fill.file_path LIKE \"%.java\""
+                + " OR fill.file_path LIKE \"%.xml\")"
+                + " AND fill.file_path NOT LIKE \"%Test.java\"";
 
         COUNT_ISSUES_BY_FILENAME
                 = QueryUtils.getQueryForDatabase(

@@ -4,6 +4,7 @@ import br.edu.utfpr.cm.JGitMinerWeb.dao.AuxCodeChurn;
 import br.edu.utfpr.cm.JGitMinerWeb.dao.BichoFileDAO;
 import br.edu.utfpr.cm.JGitMinerWeb.dao.BichoPairFileDAO;
 import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.auxiliary.AuxFileFile;
+import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.auxiliary.AuxFileFilePull;
 import br.edu.utfpr.cm.JGitMinerWeb.services.metric.auxiliary.IssueMetrics;
 import br.edu.utfpr.cm.minerador.services.matrix.model.Commenter;
 import edu.uci.ics.jung.graph.DirectedSparseGraph;
@@ -45,6 +46,8 @@ public class Cacher {
     private final Map<Integer, Long> issuesReopenedCountCacher = new HashMap<>();
 
     private final Map<Integer, NetworkMetricsCalculator> networkMetricsMap = new HashMap<>();
+
+    private final Map<AuxFileFilePull, AuxCodeChurn> cummulativeCodeChurnMap = new HashMap<>();
 
     private final BichoFileDAO fileDAO;
     private final BichoPairFileDAO pairFileDAO;
@@ -273,5 +276,19 @@ public class Cacher {
             issuesReopenedCountCacher.put(issue, issueReopened);
         }
         return issueReopened;
+    }
+
+    public AuxCodeChurn calculeCummulativeCodeChurnAddDelChange(String fileName, String fileName2, Integer issue, Set<Integer> allPairFileIssues, String fixVersion) {
+        final AuxCodeChurn codeChurn;
+        final AuxFileFilePull fileFile = new AuxFileFilePull(fileName, fileName2, issue);
+
+        if (cummulativeCodeChurnMap.containsKey(fileFile)) {
+            codeChurn = cummulativeCodeChurnMap.get(fileFile);
+        } else {
+            codeChurn = pairFileDAO.calculeCummulativeCodeChurnAddDelChange(
+                    fileName, fileName2, issue, allPairFileIssues, fixVersion);
+            cummulativeCodeChurnMap.put(fileFile, codeChurn);
+        }
+        return codeChurn;
     }
 }

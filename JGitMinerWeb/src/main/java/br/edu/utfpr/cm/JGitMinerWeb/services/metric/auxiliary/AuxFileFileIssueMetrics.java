@@ -19,8 +19,10 @@ public class AuxFileFileIssueMetrics extends AuxFileFileMetrics {
     {
         header = "file;file2;issue;"
                 + "issueType;issuePriority;issueAssignedTo;issueSubmittedBy;"
-                + "issueWatchers;issueReopened;"
-                + "samePackage;sameOwnership;" // arquivos do par são do mesmo pacote = 1, caso contrário 0
+                + "issueWatchers;"
+                + "issueReopened;" // quantidade em que foi reaberto (status = reopened)
+                + "samePackage;" // arquivos do par são do mesmo pacote = 1, caso contrário 0
+                + "sameOwnership;" // mesmo autor que fez o commit do par na issue analisada e no ultimo commit antes da issue
                 // + "brcAvg;brcSum;brcMax;"
                 + "btwSum;btwAvg;btwMdn;btwMax;"
                 + "clsSum;clsAvg;clsMdn;clsMax;"
@@ -41,6 +43,7 @@ public class AuxFileFileIssueMetrics extends AuxFileFileMetrics {
                 + "majorContributors;minorContributors;"
                 + "oexp;oexp2;"
                 + "own;own2;"
+                + "files;" // total de arquivos modificados na issue
                 + "committers;" // committers na release
                 + "totalCommitters;" // committers desde o começo até a data final da relese
                 + "commits;" // commits do par de arquivos na release
@@ -48,12 +51,12 @@ public class AuxFileFileIssueMetrics extends AuxFileFileMetrics {
                 + "devCommenters;" // número de autores de comentários que são desenvolvedores
                 + "commenters;comments;wordiness;"
                 + "codeChurn;codeChurn2;codeChurnAvg;"
-                + "add;del;changes;"
+                + "add;del;changes;" // do par, até a release analisada com base na data de resolução (fix date)
                 // + "rigidityFile1;rigidityFile2;rigidityPairFile;"
                 // + "taskImprovement;taskDefect;"
-                + "futureDefects;"
+                + "futureDefects;" // numero de defeitos da proxima versao
                 + "ageRelease;ageTotal;"
-                + "updates;futureUpdates;"
+                + "updates;futureUpdates;" // numero de issues, numero de issues da proxima versao
                 + "fileIssues;file2Issues;allIssues;"
                 + "supportFile;supportFile2;supportPairFile;confidence;confidence2;lift;conviction;conviction2;changed";
 
