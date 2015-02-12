@@ -491,7 +491,7 @@ public class BichoPairFileDAO {
                         + "      WHERE filcl.path = fill.file_path"
                         + " AND s.num_files <= " + maxFilePerCommit
                         + FILTER_BY_BEFORE_ISSUE_FIX_DATE_OF_ISSUE_ID
-                        //+ FILTER_BY_ISSUE_FIX_MAJOR_VERSION
+                        + FILTER_BY_ISSUE_FIX_MAJOR_VERSION
                         + FIXED_ISSUES_ONLY, repository)
                 + "{0})";
 
@@ -802,10 +802,7 @@ public class BichoPairFileDAO {
                         + FILTER_BY_ISSUE_FIX_MAJOR_VERSION
                         + ") GROUP BY i2.type", repository);
     }
-    public static void main(String[] args) {
-        final BichoPairFileDAO bichoPairFileDAO = new BichoPairFileDAO(null, "camel", 20);
-        System.out.println(bichoPairFileDAO.SUM_CUMMULATIVE_ADD_DEL_LINES_OF_FILE_PAIR_BY_FIX_VERSION);
-    }
+
     public long calculeNumberOfIssues(Date beginDate, Date endDate, boolean onlyFixed) {
 
         List<Object> selectParams = new ArrayList<>();
@@ -1074,8 +1071,8 @@ public class BichoPairFileDAO {
         Object[] params = new Object[]{
             fileName,
             fileName2,
-            fixVersion,
-            issue
+            issue,
+            fixVersion
         };
         StringBuilder filterByIssues = new StringBuilder();
         filterByIssues(issues, filterByIssues);
