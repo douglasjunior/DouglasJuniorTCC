@@ -303,11 +303,11 @@ public class BichoPairFilePerIssueMetricsInFixVersionServices extends AbstractBi
         count = 0;
         final int size = committersPairFile.entrySet().size();
         out.printLog("Número de pares de arquivos: " + commentersPairFile.keySet().size());
-        for (AuxFileFilePull fileFile : pairFilesSet) {
+        for (AuxFileFilePull fileFilePull : pairFilesSet) {
             if (count++ % 10 == 0 || count == size) {
                 System.out.println(count + "/" + size);
             }
-            final Integer issue = fileFile.getPullNumber();
+            final Integer issue = fileFilePull.getPullNumber();
             final Set<Commenter> devsCommentters = commentersPairFile.get(issue);
 
             // pair file network
@@ -317,18 +317,18 @@ public class BichoPairFilePerIssueMetricsInFixVersionServices extends AbstractBi
             final Integer distinctCommentersCount = devsCommentters.size();
 
             // Commit-based metrics ////////////////////////////////////////////
-            final Set<Integer> fileFileIssues = issuesPairFileMap.get(fileFile);
-            final Set<Integer> allPairFileIssues = allPairFileIssuesMap.get(fileFile.getFileFile());
+            final Set<Integer> fileFileIssues = issuesPairFileMap.get(fileFilePull);
+            final Set<Integer> allPairFileIssues = allPairFileIssuesMap.get(fileFilePull.getFileFile());
 
 //            final Map<String, Long> issuesTypesCount = bichoDAO.countIssuesTypes(fileFileIssues);
 
             final long changes = cacher.calculeFileCodeChurn(
-                    fileFile.getFileName(), fixVersion).getChanges();
+                    fileFilePull.getFileName(), fixVersion).getChanges();
             final long changes2 = cacher.calculeFileCodeChurn(
-                    fileFile.getFileName2(), fixVersion).getChanges();
+                    fileFilePull.getFileName2(), fixVersion).getChanges();
 
             final Set<AuxUser> devsCommitters = bichoPairFileDAO.selectCommitters(
-                    fileFile.getFileName(), fileFile.getFileName2(), fixVersion, fileFileIssues);
+                    fileFilePull.getFileName(), fileFilePull.getFileName2(), fixVersion, fileFileIssues);
 
             final DescriptiveStatisticsHelper devCommitsStatistics = new DescriptiveStatisticsHelper();
             final DescriptiveStatisticsHelper ownershipStatistics = new DescriptiveStatisticsHelper();
@@ -338,17 +338,16 @@ public class BichoPairFilePerIssueMetricsInFixVersionServices extends AbstractBi
 
             final long committers = devsCommitters.size();
             final long devCommenters = devCommentersPairFile.get(issue).size();
-            final long distinctCommitters = cacher.calculeCummulativeCommitters(
-                    fileFile.getFileName(), fileFile.getFileName2(), fixVersion);
+            final long distinctCommitters = cacher.calculePastCommitters(
+                    fileFilePull.getFileFile(), fixVersion);
 
-            final Long commits = bichoPairFileDAO.calculeCommits(fileFile.getFileName(), fileFile.getFileName2(),
-                    fixVersion, fileFileIssues);
+            final Integer commits = commitsPairFile.get(fileFilePull).size();
 
-            final long totalCommits = cacher.calculeCummulativeCommits(fileFile.getFileName(), fileFile.getFileName2(),
-                    fixVersion);
+            final long totalCommits = cacher.calculePastCommits(
+                    fileFilePull.getFileFile(), fixVersion);
 
             for (AuxUser devCommitter : devsCommitters) {
-                Long devCommits = bichoPairFileDAO.calculeCommits(fileFile.getFileName(), fileFile.getFileName2(), devCommitter.getUser(),
+                Long devCommits = bichoPairFileDAO.calculeCommits(fileFilePull.getFileName(), fileFilePull.getFileName2(), devCommitter.getUser(),
                         fixVersion, fileFileIssues);
                 devCommitsStatistics.addValue(devCommits);
 
@@ -363,25 +362,25 @@ public class BichoPairFilePerIssueMetricsInFixVersionServices extends AbstractBi
 
                 // Calculing OEXP of each file
                 Double experience = cacher.calculeDevFileExperience(changes,
-                        fileFile.getFileName(), devCommitter.getUser(), fixVersion, fileFileIssues);
+                        fileFilePull.getFileName(), devCommitter.getUser(), fixVersion, fileFileIssues);
                 ownerExperience = Math.max(experience, ownerExperience);
 
                 Double experience2 = cacher.calculeDevFileExperience(changes2,
-                        fileFile.getFileName2(), devCommitter.getUser(), fixVersion, fileFileIssues);
+                        fileFilePull.getFileName2(), devCommitter.getUser(), fixVersion, fileFileIssues);
                 ownerExperience2 = Math.max(experience2, ownerExperience2);
 
                 // Calculing OWN
                 final long cummulativeChanges = cacher.calculeFileCummulativeCodeChurn(
-                        fileFile.getFileName(), fixVersion, fileFileIssues).getChanges();
+                        fileFilePull.getFileName(), fixVersion, fileFileIssues).getChanges();
                 final long cummulativeChanges2 = cacher.calculeFileCummulativeCodeChurn(
-                        fileFile.getFileName2(), fixVersion, fileFileIssues).getChanges();
+                        fileFilePull.getFileName2(), fixVersion, fileFileIssues).getChanges();
 
                 Double cumulativeExperience = cacher.calculeCummulativeDevFileExperience(cummulativeChanges,
-                        fileFile.getFileName(), devCommitter.getUser(), fixVersion, fileFileIssues);
+                        fileFilePull.getFileName(), devCommitter.getUser(), fixVersion, fileFileIssues);
                 cummulativeOwnerExperience = Math.max(cummulativeOwnerExperience, cumulativeExperience);
 
                 Double cumulativeExperience2 = cacher.calculeCummulativeDevFileExperience(cummulativeChanges2,
-                        fileFile.getFileName2(), devCommitter.getUser(), fixVersion, fileFileIssues);
+                        fileFilePull.getFileName2(), devCommitter.getUser(), fixVersion, fileFileIssues);
                 cummulativeOwnerExperience2 = Math.max(cummulativeOwnerExperience2, cumulativeExperience2);
 
             }
@@ -394,33 +393,33 @@ public class BichoPairFilePerIssueMetricsInFixVersionServices extends AbstractBi
 //                    beginDate, endDate, true);
 
             final long futureUpdates = cacher.calculeFutureNumberOfIssues(
-                    fileFile.getFileFile(), futureVersion);
+                    fileFilePull.getFileFile(), futureVersion);
 
             // list all issues and its comments
             final IssueMetrics issueMetrics = cacher.calculeIssueMetrics(issue);
 
             final long codeChurn = cacher.calculeFileCodeChurn(
-                    fileFile.getFileName(), fixVersion).getChanges();
+                    fileFilePull.getFileName(), fixVersion).getChanges();
             final long codeChurn2 = cacher.calculeFileCodeChurn(
-                    fileFile.getFileName2(), fixVersion).getChanges();
+                    fileFilePull.getFileName2(), fixVersion).getChanges();
 
             final AuxCodeChurn pairFileCodeChurn = cacher.calculeCummulativeCodeChurnAddDelChange(
-                    fileFile.getFileName2(), fileFile.getFileName(), issue, allPairFileIssues, fixVersion);
+                    fileFilePull.getFileName2(), fileFilePull.getFileName(), issue, allPairFileIssues, fixVersion);
 
             final double codeChurnAvg = (codeChurn + codeChurn2) / 2.0d;
 
             // pair file age in release interval (days)
-            final int ageRelease = bichoPairFileDAO.calculePairFileDaysAge(fileFile.getFileName(), fileFile.getFileName2(), fixVersion, true);
+            final int ageRelease = bichoPairFileDAO.calculePairFileDaysAge(fileFilePull.getFileName(), fileFilePull.getFileName2(), fixVersion, true);
 
             // pair file age in total until final date (days)
-            final int ageTotal = bichoPairFileDAO.calculeTotalPairFileDaysAge(fileFile.getFileName(), fileFile.getFileName2(), fixVersion, true);
+            final int ageTotal = bichoPairFileDAO.calculeTotalPairFileDaysAge(fileFilePull.getFileName(), fileFilePull.getFileName2(), fixVersion, true);
 
-            final boolean samePackage = PathUtils.isSameFullPath(fileFile.getFileName(), fileFile.getFileName2());
+            final boolean samePackage = PathUtils.isSameFullPath(fileFilePull.getFileName(), fileFilePull.getFileName2());
 
             final boolean sameOwnership;
             if (committers == 1l) {
                 final AuxUser pastCommitter = bichoPairFileDAO.selectLastCommitter(
-                        fileFile.getFileName(), fileFile.getFileName2(), issue);
+                        fileFilePull.getFileName(), fileFilePull.getFileName2(), issue);
                 if (pastCommitter.getUser() == null
                         || pastCommitter.getUser().equals(devsCommitters.iterator().next().getUser())) {
                     sameOwnership = true;
@@ -434,7 +433,7 @@ public class BichoPairFilePerIssueMetricsInFixVersionServices extends AbstractBi
             final long issueReopenedTimes = cacher.calculeIssueReopenedTimes(issue);
 
             final AuxFileFileIssueMetrics auxFileFileMetrics = new AuxFileFileIssueMetrics(
-                    fileFile.getFileName(), fileFile.getFileName2(), issueMetrics,
+                    fileFilePull.getFileName(), fileFilePull.getFileName2(), issueMetrics,
                     issueReopenedTimes,
                     BooleanUtils.toInteger(samePackage),
                     BooleanUtils.toInteger(sameOwnership),
@@ -467,7 +466,7 @@ public class BichoPairFilePerIssueMetricsInFixVersionServices extends AbstractBi
                     pairFileCodeChurn.getAdditionsNormalized(), pairFileCodeChurn.getDeletionsNormalized(), pairFileCodeChurn.getChanges(),
                     // rigidityFile1, rigidityFile2, rigidityPairFile,
 //                    issuesTypesCount.get("Improvement"), issuesTypesCount.get("Bug"),
-                    ageRelease, ageTotal, updates, futureUpdates, futureDefectsPairFile.get(fileFile.getFileFile())
+                    ageRelease, ageTotal, updates, futureUpdates, futureDefectsPairFile.get(fileFilePull.getFileFile())
             );
 
             // apriori /////////////////////////////////////////////////////////
@@ -521,6 +520,7 @@ public class BichoPairFilePerIssueMetricsInFixVersionServices extends AbstractBi
                     }
 
                     final IssueMetrics issueMetrics = cacher.calculeIssueMetrics(issue);
+                    final AuxFileFile fileFile = new AuxFileFile(filePairChangedMetrics.getFile(), filePairChangedMetrics.getFile2());
                     AuxFileFileIssueMetrics combined = new AuxFileFileIssueMetrics(filePairChangedMetrics.getFile(), filePairChangedMetrics.getFile2(), issueMetrics);
 
                     if (!changedWithA.contains(combined)) {
@@ -558,15 +558,13 @@ public class BichoPairFilePerIssueMetricsInFixVersionServices extends AbstractBi
 
                         final int numCommenters = commentersPairFile.get(issue).size();
 
-                        final long totalCommitters = cacher.calculeCummulativeCommitters(
-                                combined.getFile(), combined.getFile2(), fixVersion);
-                        final long totalCommits = cacher.calculeCummulativeCommits(combined.getFile(), combined.getFile2(),
-                                fixVersion);
+                        final long totalCommitters = cacher.calculePastCommitters(fileFile, fixVersion);
+                        final long totalCommits = cacher.calculePastCommits(fileFile, fixVersion);
                         // TODO da para usar o cache que vem da matrix
                         //                        final long futureUpdates = cacher.calculeFutureNumberOfIssues(
                         //                                filePairTop.getFile(), filePairTop.getFile2(), futureVersion);
                         final Map<String, Long> futureIssuesTypes = cacher.calculeFutureNumberOfIssuesWithType(
-                                combined.getFile(), combined.getFile2(), futureVersion);
+                                fileFile, futureVersion);
                         final long futureDefects;
                         if (futureIssuesTypes == null || !futureIssuesTypes.containsKey("Bug")) {
                             futureDefects = 0;

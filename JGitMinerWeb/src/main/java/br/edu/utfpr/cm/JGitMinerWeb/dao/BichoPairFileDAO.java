@@ -28,6 +28,7 @@ public class BichoPairFileDAO {
 
     private final String FILTER_BY_ISSUE_FIX_MAJOR_VERSION;
     private final String FILTER_BY_BEFORE_ISSUE_FIX_MAJOR_VERSION;
+    private final String FILTER_BY_BEFORE_ISSUE_FIX_MAJOR_VERSION_EXCLUSIVE;
 
     private final String FILTER_BY_BEFORE_ISSUE_FIX_DATE;
     private final String FILTER_BY_BEFORE_ISSUE_FIX_DATE_OF_ISSUE_ID;
@@ -119,7 +120,20 @@ public class BichoPairFileDAO {
                         + "  WHERE ifv.major_fix_version IN ("
                         + "SELECT ifvo.major_fix_version"
                         + "  FROM {0}_issues.issues_fix_version_order ifvo"
-                        + " WHERE ifvo.version_order <= "
+                        + " WHERE ifvo.version_order <= " // inclusive
+                        + "(SELECT ifvo2.version_order"
+                        + "   FROM {0}_issues.issues_fix_version_order ifvo2"
+                        + "  WHERE ifvo2.major_fix_version = ?)))", repository);
+
+        FILTER_BY_BEFORE_ISSUE_FIX_MAJOR_VERSION_EXCLUSIVE
+                = QueryUtils.getQueryForDatabase(
+                        " AND i.id IN ("
+                        + " SELECT ifv.issue_id "
+                        + "   FROM {0}_issues.issues_fix_version ifv "
+                        + "  WHERE ifv.major_fix_version IN ("
+                        + "SELECT ifvo.major_fix_version"
+                        + "  FROM {0}_issues.issues_fix_version_order ifvo"
+                        + " WHERE ifvo.version_order < " // exclusive
                         + "(SELECT ifvo2.version_order"
                         + "   FROM {0}_issues.issues_fix_version_order ifvo2"
                         + "  WHERE ifvo2.major_fix_version = ?)))", repository);
@@ -1315,30 +1329,34 @@ public class BichoPairFileDAO {
     }
 
     public long calculeCommits(String file, String file2, String fixVersion) {
-        return calculeCommits(file, file2, null, fixVersion, null, true);
+        return calculeCommitsByFixVersion(file, file2, null, null, fixVersion, null, true);
+    }
+
+    public long calculeCommits(String file, String file2, Integer issue, String fixVersion) {
+        return calculeCommitsByFixVersion(file, file2, null, issue, fixVersion, null, true);
     }
 
     public long calculeCommits(String file, String file2, String fixVersion,
             Collection<Integer> issues) {
-        return calculeCommits(file, file2, null, fixVersion, issues, true);
+        return calculeCommitsByFixVersion(file, file2, null, null, fixVersion, issues, true);
     }
 
     public long calculeCommits(String file, String file2, String fixVersion,
             boolean onlyFixed) {
-        return calculeCommits(file, file2, null, fixVersion, null, onlyFixed);
+        return calculeCommitsByFixVersion(file, file2, null, null, fixVersion, null, onlyFixed);
     }
 
     public long calculeCommits(String file, String file2, String user, String fixVersion) {
-        return calculeCommits(file, file2, user, fixVersion, null, true);
+        return calculeCommitsByFixVersion(file, file2, user, null, fixVersion, null, true);
     }
 
     public long calculeCommits(String file, String file2, String user,
             String fixVersion, Collection<Integer> issues) {
-        return calculeCommits(file, file2, user, fixVersion, issues, true);
+        return calculeCommitsByFixVersion(file, file2, user, null, fixVersion, issues, true);
     }
 
-    public long calculeCommits(
-            String file, String file2, String user, String fixVersion,
+    public long calculeCommitsByFixVersion(
+            String file, String file2, String user, Integer issue, String fixVersion,
             Collection<Integer> issues, boolean onlyFixed) {
         List<Object> selectParams = new ArrayList<>();
 
@@ -1365,6 +1383,35 @@ public class BichoPairFileDAO {
         }
 
         filterByIssues(issues, sql);
+
+        if (issue != null) {
+            sql.append(FILTER_BY_BEFORE_ISSUE_FIX_DATE_OF_ISSUE_ID);
+            selectParams.add(issue);
+        }
+
+        Long count = dao.selectNativeOneWithParams(sql.toString(), selectParams.toArray());
+
+        return count != null ? count : 0l;
+    }
+
+    public long calculePastCommitsByFixVersion(
+            String file, String file2, String fixVersion) {
+        List<Object> selectParams = new ArrayList<>();
+
+        if (file == null || file2 == null) {
+            throw new IllegalArgumentException("Pair file could not be null");
+        }
+
+        StringBuilder sql = new StringBuilder();
+        sql.append(COUNT_PAIR_FILE_COMMITS);
+
+        selectParams.add(file);
+        selectParams.add(file2);
+
+        sql.append(FIXED_ISSUES_ONLY);
+
+        sql.append(FILTER_BY_BEFORE_ISSUE_FIX_MAJOR_VERSION_EXCLUSIVE);
+        selectParams.add(fixVersion);
 
         Long count = dao.selectNativeOneWithParams(sql.toString(), selectParams.toArray());
 
@@ -1483,11 +1530,22 @@ public class BichoPairFileDAO {
 
     public long calculeCummulativeCommitters(
             String file, String file2, String fixVersions) {
-        return calculeCummulativeCommitters(file, file2, fixVersions, null);
+        return calculeCummulativeCommitters(file, file2, null, fixVersions, null);
+    }
+
+    public long calculeCummulativeCommitters(
+            String file, String file2, Integer issue, String fixVersions) {
+        return calculeCummulativeCommitters(file, file2, issue, fixVersions, null);
     }
 
     public long calculeCummulativeCommitters(
             String file, String file2, String fixVersion,
+            Collection<Integer> issues) {
+        return calculeCummulativeCommitters(file, file2, null, fixVersion, issues);
+    }
+
+    public long calculeCummulativeCommitters(
+            String file, String file2, Integer issue, String fixVersion,
             Collection<Integer> issues) {
         List<Object> selectParams = new ArrayList<>();
 
@@ -1499,6 +1557,43 @@ public class BichoPairFileDAO {
         sql.append(COUNT_PAIR_FILE_COMMITTERS);
         sql.append(FIXED_ISSUES_ONLY);
         sql.append(FILTER_BY_BEFORE_ISSUE_FIX_MAJOR_VERSION);
+
+        selectParams.add(file);
+        selectParams.add(file2);
+        selectParams.add(fixVersion);
+
+        if (issues != null) {
+            filterByIssues(issues, sql);
+        }
+
+        if (issue != null) {
+            sql.append(FILTER_BY_BEFORE_ISSUE_FIX_DATE_OF_ISSUE_ID);
+            selectParams.add(issue);
+        }
+
+        Long count = dao.selectNativeOneWithParams(sql.toString(), selectParams.toArray());
+
+        return count != null ? count : 0l;
+    }
+
+    public long calculePastCommitters(
+            String file, String file2, String fixVersions) {
+        return calculePastCommitters(file, file2, fixVersions, null);
+    }
+
+    public long calculePastCommitters(
+            String file, String file2, String fixVersion,
+            Collection<Integer> issues) {
+        List<Object> selectParams = new ArrayList<>();
+
+        if (file == null || file2 == null) {
+            throw new IllegalArgumentException("Pair file could not be null");
+        }
+
+        StringBuilder sql = new StringBuilder();
+        sql.append(COUNT_PAIR_FILE_COMMITTERS);
+        sql.append(FIXED_ISSUES_ONLY);
+        sql.append(FILTER_BY_BEFORE_ISSUE_FIX_MAJOR_VERSION_EXCLUSIVE);
 
         selectParams.add(file);
         selectParams.add(file2);

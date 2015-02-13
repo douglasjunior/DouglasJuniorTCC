@@ -39,7 +39,11 @@ public class Cacher {
     // future issues
     private final Map<AuxFileFile, Long> futureIssuesMap = new HashMap<>();
     private final Map<AuxFileFile, Long> totalCommittersMap = new HashMap<>();
+    private final Map<AuxFileFile, Long> totalPastCommittersMap = new HashMap<>();
+    private final Map<AuxFileFilePull, Long> totalCommittersUntiIssueFixDateMap = new HashMap<>();
     private final Map<AuxFileFile, Long> totalCommitsMap = new HashMap<>();
+    private final Map<AuxFileFile, Long> totalPastCommitsMap = new HashMap<>();
+    private final Map<AuxFileFilePull, Long> totalCommitsUntiIssueFixDateMap = new HashMap<>();
     private final Map<AuxFileFile, Map<String, Long>> futureIssueTypessMap = new HashMap<>();
 
     private final Map<Integer, IssueMetrics> issuesCommentsCacher = new HashMap<>();
@@ -242,26 +246,72 @@ public class Cacher {
         return totalCommitters;
     }
 
-    public Long calculeCummulativeCommits(String file1, String file2, String fixVersion) {
-        AuxFileFile fileFile = new AuxFileFile(file1, file2);
+    public long calculePastCommitters(AuxFileFile fileFile, String fixVersion) {
+        long totalCommitters;
+        if (totalPastCommittersMap.containsKey(fileFile)) {
+            totalCommitters = totalPastCommittersMap.get(fileFile);
+        } else {
+            totalCommitters = pairFileDAO.calculePastCommitters(
+                    fileFile.getFileName(), fileFile.getFileName2(), fixVersion);
+            totalPastCommittersMap.put(fileFile, totalCommitters);
+        }
+        return totalCommitters;
+    }
+
+    public long calculeCummulativeCommitters(AuxFileFilePull fileFile, String fixVersion) {
+        long totalCommitters;
+        if (totalCommittersUntiIssueFixDateMap.containsKey(fileFile)) {
+            totalCommitters = totalCommittersUntiIssueFixDateMap.get(fileFile);
+        } else {
+            totalCommitters = pairFileDAO.calculeCummulativeCommitters(
+                    fileFile.getFileName(), fileFile.getFileName2(), fileFile.getPullNumber(), fixVersion);
+            totalCommittersUntiIssueFixDateMap.put(fileFile, totalCommitters);
+        }
+        return totalCommitters;
+    }
+
+    public Long calculeCummulativeCommits(AuxFileFile fileFile, String fixVersion) {
         long totalCommits;
         if (totalCommitsMap.containsKey(fileFile)) {
             totalCommits = totalCommitsMap.get(fileFile);
         } else {
-            totalCommits = pairFileDAO.calculeCommits(file1, file2,
+            totalCommits = pairFileDAO.calculeCommits(fileFile.getFileName(), fileFile.getFileName2(),
                     fixVersion);
             totalCommitsMap.put(fileFile, totalCommits);
         }
         return totalCommits;
     }
 
-    public Map<String, Long> calculeFutureNumberOfIssuesWithType(String file1, String file2, String futureVersion) {
+    public Long calculePastCommits(AuxFileFile fileFile, String fixVersion) {
+        long totalCommits;
+        if (totalPastCommitsMap.containsKey(fileFile)) {
+            totalCommits = totalPastCommitsMap.get(fileFile);
+        } else {
+            totalCommits = pairFileDAO.calculePastCommitsByFixVersion(fileFile.getFileName(), fileFile.getFileName2(),
+                    fixVersion);
+            totalPastCommitsMap.put(fileFile, totalCommits);
+        }
+        return totalCommits;
+    }
+
+    public Long calculeCummulativeCommits(AuxFileFilePull fileFile, String fixVersion) {
+        long totalCommits;
+        if (totalCommitsUntiIssueFixDateMap.containsKey(fileFile)) {
+            totalCommits = totalCommitsUntiIssueFixDateMap.get(fileFile);
+        } else {
+            totalCommits = pairFileDAO.calculeCommits(fileFile.getFileName(), fileFile.getFileName2(),
+                    fileFile.getPullNumber(), fixVersion);
+            totalCommitsUntiIssueFixDateMap.put(fileFile, totalCommits);
+        }
+        return totalCommits;
+    }
+
+    public Map<String, Long> calculeFutureNumberOfIssuesWithType(AuxFileFile fileFile, String futureVersion) {
         final Map<String, Long> futureIssuesTypes;
-        AuxFileFile fileFile = new AuxFileFile(file1, file2);
         if (futureIssueTypessMap.containsKey(fileFile)) {
             futureIssuesTypes = futureIssueTypessMap.get(fileFile);
         } else {
-            futureIssuesTypes = pairFileDAO.countIssuesTypes(file1, file2, futureVersion);
+            futureIssuesTypes = pairFileDAO.countIssuesTypes(fileFile.getFileName(), fileFile.getFileName2(), futureVersion);
             futureIssueTypessMap.put(fileFile, futureIssuesTypes);
         }
         return futureIssuesTypes;
