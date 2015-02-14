@@ -173,6 +173,7 @@ public class GitMatrixViewBean implements Serializable {
 
             StringBuilder csv = new StringBuilder(services.getHeadCSV());
 
+            csv.append("\r\n");
             for (EntityMatrixNode node : matrix.getNodes()) {
                 csv.append(node).append("\r\n");
             }
