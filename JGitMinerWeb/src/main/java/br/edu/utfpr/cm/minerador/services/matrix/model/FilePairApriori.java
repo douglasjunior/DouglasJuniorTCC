@@ -23,15 +23,8 @@ public class FilePairApriori {
     private final boolean file2HasGreaterConfidence;
 
     public FilePairApriori(long fileIssues, long file2Issues, long filePairIssues, long allIssues) {
-        if (file2Issues > fileIssues) {
-            this.fileIssues = file2Issues;
-            this.file2Issues = fileIssues;
-            this.file2HasGreaterConfidence = true;
-        } else {
-            this.fileIssues = fileIssues;
-            this.file2Issues = file2Issues;
-            this.file2HasGreaterConfidence = false;
-        }
+        this.fileIssues = fileIssues;
+        this.file2Issues = file2Issues;
         this.issues = filePairIssues;
         this.allIssues = allIssues;
 
@@ -43,6 +36,12 @@ public class FilePairApriori {
         lift = supportFile * supportFile2 == 0 ? 0d : supportFilePair / (supportFile * supportFile2);
         conviction = 1 - confidence == 0 ? 0d : (1 - supportFile) / (1 - confidence);
         conviction2 = 1 - confidence2 == 0 ? 0d : (1 - supportFile2) / (1 - confidence2);
+
+        if (confidence2 > confidence) {
+            this.file2HasGreaterConfidence = true;
+        } else {
+            this.file2HasGreaterConfidence = false;
+        }
     }
 
     public long getFileIssues() {
@@ -99,6 +98,20 @@ public class FilePairApriori {
 
     @Override
     public String toString() {
+        if (file2HasGreaterConfidence) {
+            return file2Issues + SEPARATOR
+                    + fileIssues + SEPARATOR
+                    + issues + SEPARATOR
+                    + allIssues + SEPARATOR
+                    + supportFile2 + SEPARATOR
+                    + supportFile + SEPARATOR
+                    + supportFilePair + SEPARATOR
+                    + confidence2 + SEPARATOR
+                    + confidence + SEPARATOR
+                    + lift + SEPARATOR
+                    + conviction2 + SEPARATOR
+                    + conviction + SEPARATOR;
+        }
         return fileIssues + SEPARATOR
                 + file2Issues + SEPARATOR
                 + issues + SEPARATOR
