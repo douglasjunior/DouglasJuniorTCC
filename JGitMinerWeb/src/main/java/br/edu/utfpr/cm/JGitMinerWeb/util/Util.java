@@ -195,12 +195,6 @@ public class Util {
         return String.valueOf(valor).replace(",", ".");
     }
 
-    public static void main(String[] args) {
-        double d = 2.233d;
-        System.out.println(d);
-        System.out.println(tratarDoubleParaString(d));
-    }
-
     /**
      * Converte tipo de Dados de 'double' para String.
      *
