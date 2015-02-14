@@ -148,6 +148,14 @@ public class BichoPairFilePerIssueMetricsInFixVersionServices extends AbstractBi
                 allPairFileIssuesMap.put(fileFile, issues);
             }
 
+            if (futureDefectsPairFile.containsKey(fileFile)) {
+                Integer numberOfFutureDefects = futureDefectsPairFile.get(fileFile);
+                numberOfFutureDefects += futureDefectsWeight;
+                futureDefectsPairFile.put(fileFile, numberOfFutureDefects);
+            } else {
+                futureDefectsPairFile.put(fileFile, futureDefectsWeight);
+            }
+
             for (Integer issue : issues) {
                 AuxFileFilePull pairFileIssue = new AuxFileFilePull(filename1, filename2, issue);
                 pairFilesSet.add(pairFileIssue);
@@ -174,9 +182,6 @@ public class BichoPairFilePerIssueMetricsInFixVersionServices extends AbstractBi
                 } else {
                     issuesPairFileMap.put(pairFileIssue, issues);
                 }
-
-                futureDefectsPairFile.put(pairFileIssue.getFileFile(), futureDefectsWeight);
-
                 // TODO optimize querying at matrix generation
                 // Find the pair files committers
                 Set<AuxUser> pairFileCommitters = bichoPairFileDAO.selectCommitters(issues, filename1, filename2);

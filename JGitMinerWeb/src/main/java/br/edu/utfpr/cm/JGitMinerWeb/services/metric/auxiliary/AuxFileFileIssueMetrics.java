@@ -70,6 +70,7 @@ public class AuxFileFileIssueMetrics extends AuxFileFileMetrics {
     }
 
     private final Integer issue;
+    private final String issueKey;
     private final String issueType;
     private final String issuePriority;
     private final String issueAssignedTo;
@@ -79,6 +80,7 @@ public class AuxFileFileIssueMetrics extends AuxFileFileMetrics {
     public AuxFileFileIssueMetrics(String file, String file2, IssueMetrics issueMetrics, double... metrics) {
         super(file, file2, metrics);
         this.issue = issueMetrics.getIssueNumber();
+        this.issueKey = issueMetrics.getIssueKey();
         this.issueType = issueMetrics.getIssueType();
         this.issuePriority = issueMetrics.getPriority();
         this.issueAssignedTo = issueMetrics.getAssignedTo();
@@ -89,6 +91,7 @@ public class AuxFileFileIssueMetrics extends AuxFileFileMetrics {
     public AuxFileFileIssueMetrics(String file, String file2, Integer issue, double... metrics) {
         super(file, file2, metrics);
         this.issue = issue;
+        this.issueKey = "";
         this.issueType = "";
         this.issuePriority = "";
         this.issueAssignedTo = "";
@@ -99,6 +102,7 @@ public class AuxFileFileIssueMetrics extends AuxFileFileMetrics {
     public AuxFileFileIssueMetrics(String file, String file2, Integer issue, List<Double> metrics) {
         super(file, file2, metrics);
         this.issue = issue;
+        this.issueKey = "";
         this.issueType = "";
         this.issuePriority = "";
         this.issueAssignedTo = "";
@@ -112,6 +116,10 @@ public class AuxFileFileIssueMetrics extends AuxFileFileMetrics {
 
     public Integer getIssue() {
         return issue;
+    }
+
+    public String getIssueKey() {
+        return issueKey;
     }
 
     public String getIssueType() {
@@ -134,7 +142,7 @@ public class AuxFileFileIssueMetrics extends AuxFileFileMetrics {
     public String toString() {
         StringBuilder sb = new StringBuilder(getFile());
         sb.append(";").append(getFile2())
-                .append(";").append(issue)
+                .append(";").append(issueKey)
                 .append(";").append(issueType)
                 .append(";").append(issuePriority)
                 .append(";").append(issueAssignedTo)
@@ -143,7 +151,7 @@ public class AuxFileFileIssueMetrics extends AuxFileFileMetrics {
 
         for (double m : getMetrics()) {
             sb.append(";");
-            sb.append(Util.tratarDoubleParaString(m));
+            sb.append(m);
         }
         sb.append(";").append(getRisky());
         return sb.toString();

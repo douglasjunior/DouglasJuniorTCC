@@ -350,12 +350,13 @@ public class BichoPairFileDAO {
 
         SELECT_ISSUES_BY_ISSUES_ID
                 = QueryUtils.getQueryForDatabase(
-                        "SELECT DISTINCT i.id, i.issue, i.description, i.type, i.priority, "
+                        "SELECT DISTINCT i.id, iej.issue_key, i.issue, i.description, i.type, i.priority, "
                         + "     assigned.user_id, submitted.user_id,"
                         + "     (SELECT COUNT(DISTINCT(iw.person_id))"
                         + "        FROM {0}_issues.issues_watchers iw"
                         + "       WHERE iw.issue_id = i.id) AS num_watchers"
                         + "  FROM {0}_issues.issues i"
+                        + "  JOIN {0}_issues.issues_ext_jira iej ON iej.issue_id = i.id"
                         + "  JOIN {0}_issues.changes c ON c.issue_id = i.id"
                         + "  JOIN {0}_issues.people assigned ON assigned.id = i.assigned_to"
                         + "  JOIN {0}_issues.people submitted ON submitted.id = i.submitted_by"
@@ -777,16 +778,8 @@ public class BichoPairFileDAO {
                 "SELECT com.text FROM {0}_issues.comments com WHERE com.issue_id = ?", repository);
 
         COUNT_ISSUES_TYPES
-                = QueryUtils.getQueryForDatabase(
-                        "SELECT"
-                        + "     (SELECT COALESCE(COUNT(1), 0)"
-                        + "         FROM {0}_issues.issues i"
-                        + "         WHERE i.type = i2.type "
-                        + ") AS count,"
-                        + "     i2.type"
-                        + "  FROM {0}_issues.issues i2"
-                        + " WHERE i2.id IN ("
-                        + "SELECT DISTINCT(i.id)"
+                = QueryUtils.getQueryForDatabase(""
+                        + "SELECT COALESCE(COUNT(1), 0) AS count, i.type"
                         + "  FROM {0}_issues.issues i"
                         + "  JOIN {0}_issues.changes c ON c.issue_id = i.id"
                         + "  JOIN {0}_issues.issues_scmlog i2s ON i2s.issue_id = i.id"
@@ -811,10 +804,9 @@ public class BichoPairFileDAO {
                         + "   AND fill2.file_path = ? "
                         + "   AND s.date > i.submitted_on"
                         + "   AND s2.date > i.submitted_on"
-                        + "   AND i.type = i2.type"
                         + FILTER_BY_MAX_FILES_IN_COMMIT
                         + FILTER_BY_ISSUE_FIX_MAJOR_VERSION
-                        + ") GROUP BY i2.type", repository);
+                        + " GROUP BY i.type", repository);
     }
 
     public long calculeNumberOfIssues(Date beginDate, Date endDate, boolean onlyFixed) {
@@ -1717,13 +1709,14 @@ public class BichoPairFileDAO {
         List<String> comments = dao.selectNativeWithParams(SELECT_COMMENTS_BY_ISSUE_ID, new Object[]{issueNumber});
         IssueMetrics issueWithComments = new IssueMetrics(
                 issueNumber,
-                (String) rawIssues[1], // i.url
-                (String) rawIssues[2], // i.body
-                (String) rawIssues[3], // i.type
-                (String) rawIssues[4], // i.priority
-                (String) rawIssues[5], // assigned.user_id
-                (String) rawIssues[6], // submitted.user_id
-                (Long) rawIssues[7], // i.num_watchers
+                (String) rawIssues[1], // iej.issue_key
+                (String) rawIssues[2], // i.url
+                (String) rawIssues[3], // i.body
+                (String) rawIssues[4], // i.type
+                (String) rawIssues[5], // i.priority
+                (String) rawIssues[6], // assigned.user_id
+                (String) rawIssues[7], // submitted.user_id
+                (Long) rawIssues[8], // i.num_watchers
                 comments);
 
         return issueWithComments;

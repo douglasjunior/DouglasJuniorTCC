@@ -192,7 +192,13 @@ public class Util {
     }
 
     public static String tratarDoubleParaString(double valor) {
-        return (valor + "").replace(".", ",");
+        return String.valueOf(valor).replace(",", ".");
+    }
+
+    public static void main(String[] args) {
+        double d = 2.233d;
+        System.out.println(d);
+        System.out.println(tratarDoubleParaString(d));
     }
 
     /**

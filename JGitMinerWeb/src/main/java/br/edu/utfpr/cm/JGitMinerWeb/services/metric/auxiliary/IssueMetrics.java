@@ -13,6 +13,7 @@ import java.util.Objects;
 public class IssueMetrics {
 
     private final Integer issueNumber;
+    private final String issueKey;
     private final String url;
     private final String issueBody;
     private final String issueType;
@@ -25,6 +26,7 @@ public class IssueMetrics {
 
     public IssueMetrics(Integer issueNumber, String url, String issueBody, List<String> comments) {
         this.issueNumber = issueNumber;
+        this.issueKey = "";
         this.url = url;
         this.issueBody = issueBody;
         this.priority = "";
@@ -39,10 +41,11 @@ public class IssueMetrics {
         this.numberOfWatchers = 0l;
     }
 
-    public IssueMetrics(Integer issueNumber, String url, String issueBody,
+    public IssueMetrics(Integer issueNumber, String issueKey, String url, String issueBody,
             String issueType, String priority, String assignedTo, String submittedBy,
             Long numberOfWatchers, List<String> comments) {
         this.issueNumber = issueNumber;
+        this.issueKey = issueKey;
         this.url = url;
         this.issueBody = issueBody;
         this.priority = priority;
@@ -59,6 +62,10 @@ public class IssueMetrics {
 
     public Integer getIssueNumber() {
         return issueNumber;
+    }
+
+    public String getIssueKey() {
+        return issueKey;
     }
 
     public String getUrl() {
