@@ -20,10 +20,18 @@ public class FilePairApriori {
     private final double lift;
     private final double conviction;
     private final double conviction2;
+    private final boolean file2HasGreaterConfidence;
 
     public FilePairApriori(long fileIssues, long file2Issues, long filePairIssues, long allIssues) {
-        this.fileIssues = fileIssues;
-        this.file2Issues = file2Issues;
+        if (file2Issues > fileIssues) {
+            this.fileIssues = file2Issues;
+            this.file2Issues = fileIssues;
+            this.file2HasGreaterConfidence = true;
+        } else {
+            this.fileIssues = fileIssues;
+            this.file2Issues = file2Issues;
+            this.file2HasGreaterConfidence = false;
+        }
         this.issues = filePairIssues;
         this.allIssues = allIssues;
 
@@ -83,6 +91,10 @@ public class FilePairApriori {
 
     public double getConviction2() {
         return conviction2;
+    }
+
+    public boolean isFile2GreaterConfidence() {
+        return file2HasGreaterConfidence;
     }
 
     @Override

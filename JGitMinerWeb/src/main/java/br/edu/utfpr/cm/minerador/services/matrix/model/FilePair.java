@@ -27,11 +27,11 @@ public class FilePair {
     }
 
     public void orderFilePairByConfidence(FilePairApriori apriori) {
-        if (apriori.getConfidence2() > apriori.getConfidence()) {
-            String file1 = this.file1;
-            String file2 = this.file2;
-            this.file1 = file2;
-            this.file2 = file1;
+        if (apriori.isFile2GreaterConfidence()) {
+            String tempFile1 = this.file1;
+            String tempFile2 = this.file2;
+            this.file1 = tempFile2;
+            this.file2 = tempFile1;
         }
     }
 
