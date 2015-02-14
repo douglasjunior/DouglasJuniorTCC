@@ -48,10 +48,10 @@
                 </p:column>
 
                 <p:column headerText="Download Files">
-                    <p:commandButton action="#{gitMatrixViewBean.downloadLOG(metric)}" ajax="false" value="Log"/>
-                    <p:commandButton action="#{gitMatrixViewBean.downloadCSV(metric)}" ajax="false" value="CSV" title="#{metric}"/>
-                    <p:commandButton action="#{gitMatrixViewBean.downloadAllCSVOfOneVersion(metric.matrix.toString())}" ajax="false" value="All CSV" title="#{metric}"/>
-                    <p:commandButton action="#{gitMatrixViewBean.downloadParams(metric)}"  ajax="false" value="Params"/>
+                    <p:commandButton action="#{gitMatrixViewBean.downloadLOG(matrix)}" ajax="false" value="Log"/>
+                    <p:commandButton action="#{gitMatrixViewBean.downloadCSV(matrix)}" ajax="false" value="CSV" title="#{matrix}"/>
+                    <p:commandButton action="#{gitMatrixViewBean.downloadAllCSVOfOneVersion(matrix.toString())}" ajax="false" value="All CSV" title="#{matrix}"/>
+                    <p:commandButton action="#{gitMatrixViewBean.downloadParams(matrix)}"  ajax="false" value="Params"/>
                 </p:column>
 
                 <p:column headerText="Options">
