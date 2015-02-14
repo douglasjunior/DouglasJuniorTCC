@@ -2,6 +2,7 @@ package br.edu.utfpr.cm.minerador.services.matrix.model;
 
 import org.junit.After;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -25,12 +26,12 @@ public class FilePairAprioriTest {
 
     @Test
     public void testSupportFile1() {
-        assertEquals(0.5, instance.getSupportFile(), 0.001);
+        assertEquals(1, instance.getSupportFile(), 0.001);
     }
 
     @Test
     public void testSupportFile2() {
-        assertEquals(1, instance.getSupportFile2(), 0.001);
+        assertEquals(0.5, instance.getSupportFile2(), 0.001);
     }
 
     @Test
@@ -40,12 +41,12 @@ public class FilePairAprioriTest {
 
     @Test
     public void testConfidenceFile1() {
-        assertEquals(1, instance.getConfidence(), 0.001);
+        assertEquals(0.5, instance.getConfidence(), 0.001);
     }
 
     @Test
     public void testConfidenceFile2() {
-        assertEquals(0.5, instance.getConfidence2(), 0.001);
+        assertEquals(1, instance.getConfidence2(), 0.001);
     }
 
     @Test
@@ -64,7 +65,12 @@ public class FilePairAprioriTest {
     }
 
     @Test
+    public void testFile2HasGreaterConfidence() {
+        assertTrue(instance.isFile2GreaterConfidence());
+    }
+
+    @Test
     public void testToString() {
-        assertEquals("2;4;2;4;0.5;1.0;0.5;1.0;0.5;1.0;0.0;0.0;", instance.toString());
+        assertEquals("4;2;2;4;1.0;0.5;0.5;0.5;1.0;1.0;0.0;0.0;", instance.toString());
     }
 }
