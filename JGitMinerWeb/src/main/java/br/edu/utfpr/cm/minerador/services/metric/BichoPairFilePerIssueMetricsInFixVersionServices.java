@@ -93,6 +93,7 @@ public class BichoPairFilePerIssueMetricsInFixVersionServices extends AbstractBi
         final Map<String, Integer> edgesWeigth = new HashMap<>();
         final Map<Integer, Set<String>> distinctFilesPerIssueMap = new HashMap<>();
         final Set<Integer> noCommenters = new HashSet<>();
+        final Set<Integer> allFixedIssues = new HashSet<>();
 
         // rede de comunicação global, com todos pares de arquivos
         DirectedSparseGraph<String, String> globalGraph = new DirectedSparseGraph<>();
@@ -105,7 +106,7 @@ public class BichoPairFilePerIssueMetricsInFixVersionServices extends AbstractBi
         final BichoDAO bichoDAO = new BichoDAO(dao, repository);
         final BichoFileDAO bichoFileDAO = new BichoFileDAO(dao, repository, maxFilePerCommit);
         final BichoPairFileDAO bichoPairFileDAO = new BichoPairFileDAO(dao, repository, maxFilePerCommit);
-        final Long issuesSize = bichoPairFileDAO
+        final Long issuesSize = bichoDAO
                 .calculeNumberOfIssues(fixVersion, true);
 
         System.out.println("Number of all pull requests: " + issuesSize);
@@ -136,6 +137,7 @@ public class BichoPairFilePerIssueMetricsInFixVersionServices extends AbstractBi
             final Integer futureDefectsWeight = Integer.valueOf(columns[8]);
             final Set<Integer> futureDefects = toIntegerList(columns[9]);
 
+            allFixedIssues.addAll(issues);
 
             if (issues.isEmpty()) {
                 out.printLog("No issues for pair file " + filename1 + ";" + filename2);
@@ -290,21 +292,21 @@ public class BichoPairFilePerIssueMetricsInFixVersionServices extends AbstractBi
         out.printLog("Número de pares de arquivos (issues): " + issuesPairFileMap.size());
         out.printLog("Número de pares de arquivos (commenters): " + commentersPairFile.size());
         out.printLog("Número de pares de arquivos distintos: " + pairFilesSet.size());
-        out.printLog("Iniciando cálculo das métricas.");
 
-        Set<AuxFileFileIssueMetrics> fileFileMetrics = new HashSet<>();
-        out.printLog("Calculando metricas SNA...");
+        long numberAllFixedIssues = allFixedIssues.size();
+        out.printLog("Número de issues corrigidas: " + numberAllFixedIssues);
 
-        GlobalMeasure global = GlobalMeasureCalculator.calcule(globalGraph);
-        out.printLog("Global measures: " + global.toString());
-
-        // number of pull requests in date interval
-        Long numberAllIssues = issuesSize;
         // cache for optimization number of pull requests where file is in,
         // reducing access to database
         Cacher cacher = new Cacher(bichoFileDAO, bichoPairFileDAO);
 
-        out.printLog("Calculando somas, máximas, médias, updates, code churn e apriori para cada par de arquivos...");
+        out.printLog("Iniciando cálculo das métricas.");
+
+        Set<AuxFileFileIssueMetrics> fileFileMetrics = new HashSet<>();
+
+        GlobalMeasure global = GlobalMeasureCalculator.calcule(globalGraph);
+        out.printLog("Global measures: " + global.toString());
+
         count = 0;
         final int size = committersPairFile.entrySet().size();
         out.printLog("Número de pares de arquivos: " + commentersPairFile.keySet().size());
@@ -478,9 +480,9 @@ public class BichoPairFilePerIssueMetricsInFixVersionServices extends AbstractBi
             final Long file1Issues = cacher.calculeNumberOfIssues(auxFileFileMetrics.getFile(), fixVersion);
             final Long file2Issues = cacher.calculeNumberOfIssues(auxFileFileMetrics.getFile2(), fixVersion);
 
-            auxFileFileMetrics.addMetrics(file1Issues, file2Issues, numberAllIssues);
+            auxFileFileMetrics.addMetrics(file1Issues, file2Issues, numberAllFixedIssues);
 
-            final FilePairApriori apriori = new FilePairApriori(file1Issues, file2Issues, updates, numberAllIssues);
+            final FilePairApriori apriori = new FilePairApriori(file1Issues, file2Issues, updates, numberAllFixedIssues);
             auxFileFileMetrics.setFilePairApriori(apriori);
             auxFileFileMetrics.addMetrics(
                     apriori.getSupportFile(), apriori.getSupportFile2(), apriori.getSupportFilePair(),

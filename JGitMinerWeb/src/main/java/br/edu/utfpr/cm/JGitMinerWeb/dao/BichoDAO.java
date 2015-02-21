@@ -20,6 +20,8 @@ public class BichoDAO {
     // filters
     private final String FILTER_BY_MAX_FILES_IN_COMMIT;
     private final String FIXED_ISSUES_ONLY;
+    private final String FILTER_BY_ISSUE_FIX_MAJOR_VERSION;
+    private final String FILTER_BY_ISSUE_FIX_DATE;
 
     // queries
     private final String COUNT_FILES_PER_COMMITS;
@@ -31,6 +33,7 @@ public class BichoDAO {
     private final String SELECT_FIX_VERSION_ORDERED;
     private final String COUNT_ISSUES_TYPES_BEGIN;
     private final String COUNT_ISSUES_TYPES_END;
+    private final String COUNT_ISSUES;
 
     private final GenericBichoDAO dao;
 
@@ -46,9 +49,20 @@ public class BichoDAO {
                 = QueryUtils.getQueryForDatabase(
                         " AND s.num_files <= ?", repository);
 
+        // avoid join, because has poor performance in this case
+        FILTER_BY_ISSUE_FIX_MAJOR_VERSION
+                = QueryUtils.getQueryForDatabase(
+                        " AND i.id IN ("
+                        + " SELECT ifv.issue_id "
+                        + "   FROM {0}_issues.issues_fix_version ifv "
+                        + "  WHERE ifv.major_fix_version = ?)", repository);
+
+        FILTER_BY_ISSUE_FIX_DATE
+                = " AND c.changed_on BETWEEN ? AND ?";
+
         FIXED_ISSUES_ONLY
-                = " AND i.resolution = 'Fixed'"
-                + " AND c.field = 'Resolution'"
+                = " AND i.resolution = \"Fixed\""
+                + " AND c.field = \"Resolution\""
                 + " AND c.new_value = i.resolution";
 
         COUNT_FILES_PER_COMMITS = QueryUtils.getQueryForDatabase("SELECT s.id, s.num_files"
@@ -82,7 +96,7 @@ public class BichoDAO {
                 + FIXED_ISSUES_ONLY;
 
         SELECT_ISSUES_AND_TYPE_BY_FIXED_MAJOR_VERSION
-                = QueryUtils.getQueryForDatabase("SELECT i.id, i.type, s.id"
+                = QueryUtils.getQueryForDatabase("SELECT DISTINCT i.id, i.type, s.id"
                         + "  FROM {0}_issues.issues_scmlog i2s"
                         + "  JOIN {0}_issues.issues i ON i.id = i2s.issue_id"
                         + "  JOIN {0}_issues.issues_fix_version ifv ON ifv.issue_id = i2s.issue_id"
@@ -125,6 +139,62 @@ public class BichoDAO {
                         + "  FROM {0}_issues.issues i2"
                         + " GROUP BY i2.type", repository);
 
+        COUNT_ISSUES
+                = QueryUtils.getQueryForDatabase(
+                        "SELECT COUNT(DISTINCT(i.id))"
+                        + "  FROM {0}_issues.issues i"
+                        + "  JOIN {0}_issues.changes c ON c.issue_id = i.id"
+                        + "  JOIN {0}_issues.issues_scmlog i2s ON i2s.issue_id = i.id"
+                        + "  JOIN {0}_vcs.scmlog s ON s.id = i2s.scmlog_id"
+                        + "  JOIN {0}_issues.issues_scmlog i2s2 ON i2s2.issue_id = i.id"
+                        + "  JOIN {0}_vcs.scmlog s2 ON s2.id = i2s2.scmlog_id"
+                        + "  JOIN {0}.commits com ON com.commit_id = i2s.scmlog_id"
+                        + "  JOIN {0}.commits com2 ON com2.commit_id = i2s2.scmlog_id AND com.file_id <> com2.file_id"
+                        + " WHERE com.date > i.submitted_on"
+                        + "   AND com2.date > i.submitted_on", repository)
+                + FILTER_BY_MAX_FILES_IN_COMMIT;
+
+    }
+
+    public long calculeNumberOfIssues(Date beginDate, Date endDate, boolean onlyFixed) {
+
+        List<Object> selectParams = new ArrayList<>();
+
+        StringBuilder sql = new StringBuilder();
+        sql.append(COUNT_ISSUES);
+
+        if (onlyFixed) {
+            sql.append(FIXED_ISSUES_ONLY);
+        }
+
+        sql.append(FILTER_BY_ISSUE_FIX_DATE);
+        selectParams.add(beginDate);
+        selectParams.add(endDate);
+
+        Long count = (Long) dao.selectNativeOneWithParams(sql.toString(),
+                selectParams.toArray());
+
+        return count != null ? count : 0l;
+    }
+
+    public long calculeNumberOfIssues(String version, boolean onlyFixed) {
+
+        List<Object> selectParams = new ArrayList<>();
+
+        StringBuilder sql = new StringBuilder();
+        sql.append(COUNT_ISSUES);
+
+        if (onlyFixed) {
+            sql.append(FIXED_ISSUES_ONLY);
+        }
+
+        sql.append(FILTER_BY_ISSUE_FIX_MAJOR_VERSION);
+        selectParams.add(version);
+
+        Long count = (Long) dao.selectNativeOneWithParams(sql.toString(),
+                selectParams.toArray());
+
+        return count != null ? count : 0l;
     }
 
     public Map<Integer, Integer> countFilesPerCommit(Date beginDate, Date endDate) {

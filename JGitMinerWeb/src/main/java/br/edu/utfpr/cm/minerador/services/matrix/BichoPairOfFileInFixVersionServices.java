@@ -17,8 +17,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * 
@@ -71,7 +73,7 @@ public class BichoPairOfFileInFixVersionServices extends AbstractBichoMatrixServ
         System.out.println(params);
 
         if (getRepository() == null) {
-            throw new IllegalArgumentException("ParÃ¢metro Repository nÃ£o pode ser nulo.");
+            throw new IllegalArgumentException("Parameter repository must be informed.");
         }
 
         String version = getVersion();
@@ -127,6 +129,16 @@ public class BichoPairOfFileInFixVersionServices extends AbstractBichoMatrixServ
                 out.printLog(files.size() + " files in commit #" + commit);
                 commitedFiles.addAll(files);
             }
+
+            // empty
+            if (commitedFiles.isEmpty()) {
+                out.printLog("No file commited for issue #" + issue);
+                continue;
+            } else if (commitedFiles.size() == 1) {
+                out.printLog("One file only commited for issue #" + issue);
+                continue;
+
+            }
 //            allDistinctFiles.addAll(commitedFiles);
 
             out.printLog("Number of files commited and related with issue: " + commitedFiles.size());
@@ -138,10 +150,11 @@ public class BichoPairOfFileInFixVersionServices extends AbstractBichoMatrixServ
                     FilePath file2 = commitedFiles.get(j);
                     if (!file1.getFilePath().equals(file2.getFilePath())) {
                         FilePair filePair = new FilePair(file1.getFilePath(), file2.getFilePath());
-                        FilePairOutput filePairOutput = new FilePairOutput(filePair);
                         if (pairFiles.containsKey(filePair)) {
                             pairFiles.get(filePair).addIssueId(issue.getId());
+                            out.printLog("Pair file already exists: " + file1.getFilePath() + " - " + file2.getFilePath());
                         } else {
+                            FilePairOutput filePairOutput = new FilePairOutput(filePair);
                             filePairOutput.addIssueId(issue.getId());
                             if ("Bug".equals(issue.getType())) {
                                 filePairOutput.addDefectIssueId(issue.getId());
@@ -149,7 +162,9 @@ public class BichoPairOfFileInFixVersionServices extends AbstractBichoMatrixServ
                             filePairOutput.addCommitId(file1.getCommitId());
                             filePairOutput.addCommitId(file2.getCommitId());
                             pairFiles.put(filePair, filePairOutput);
+                            out.printLog("Paired file: " + file1.getFilePath() + " - " + file2.getFilePath());
                         }
+                        numberPairFilesInIssue++;
                     }
                 }
             }
@@ -178,11 +193,14 @@ public class BichoPairOfFileInFixVersionServices extends AbstractBichoMatrixServ
             }
         }
 
+        Set<Integer> allIssues = new HashSet<>();
+        for (Map.Entry<FilePair, FilePairOutput> entrySet : pairFiles.entrySet()) {
+            FilePairOutput value = entrySet.getValue();
+            allIssues.addAll(value.getIssuesId());
+        }
         // calculando o apriori
         out.printLog("Calculing apriori...");
-        Long allIssuesInPeriod = bichoPairFileDAO
-                .calculeNumberOfIssues(version, true);
-        out.printLog("Issues between period: " + allIssuesInPeriod);
+        out.printLog("Issues in version " + version + ": " + allIssues.size());
         int totalApriori = pairFiles.size();
         int countApriori = 0;
 
@@ -200,7 +218,7 @@ public class BichoPairOfFileInFixVersionServices extends AbstractBichoMatrixServ
             FilePairOutput filePairOutput = pairFiles.get(fileFile);
 
             FilePairApriori apriori = new FilePairApriori(file1Issues, file2Issues,
-                    filePairOutput.getIssuesIdWeight(), allIssuesInPeriod);
+                    filePairOutput.getIssuesIdWeight(), allIssues.size());
 
             fileFile.orderFilePairByConfidence(apriori);
             filePairOutput.setFilePairApriori(apriori);

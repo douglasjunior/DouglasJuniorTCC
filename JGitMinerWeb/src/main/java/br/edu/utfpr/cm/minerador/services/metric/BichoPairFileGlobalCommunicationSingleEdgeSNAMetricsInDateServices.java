@@ -2,6 +2,7 @@ package br.edu.utfpr.cm.minerador.services.metric;
 
 import br.edu.utfpr.cm.JGitMinerWeb.dao.AuxCodeChurn;
 import br.edu.utfpr.cm.JGitMinerWeb.dao.AuxUser;
+import br.edu.utfpr.cm.JGitMinerWeb.dao.BichoDAO;
 import br.edu.utfpr.cm.JGitMinerWeb.dao.BichoFileDAO;
 import br.edu.utfpr.cm.JGitMinerWeb.dao.BichoPairFileDAO;
 import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericBichoDAO;
@@ -123,9 +124,10 @@ public class BichoPairFileGlobalCommunicationSingleEdgeSNAMetricsInDateServices 
         
         int countIgnored = 0;
         final int maxFilePerCommit = 20;
+        BichoDAO bichoDAO = new BichoDAO(dao, repository);
         BichoFileDAO bichoFileDAO = new BichoFileDAO(dao, repository, maxFilePerCommit);
         BichoPairFileDAO bichoPairFileDAO = new BichoPairFileDAO(dao, repository, maxFilePerCommit);
-        Long issuesSize = bichoPairFileDAO
+        Long issuesSize = bichoDAO
                 .calculeNumberOfIssues(futureBeginDate, futureEndDate, true);
         
         System.out.println("Number of all pull requests: " + issuesSize);

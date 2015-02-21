@@ -177,7 +177,7 @@ public class BichoPairOfFileTop10InDateServices extends AbstractBichoMatrixServi
 
         // calculando o apriori
         out.printLog("Computing apriori...");
-        Long allIssuesInPeriod = bichoPairFileDAO
+        Long allIssuesInPeriod = bichoDAO
                 .calculeNumberOfIssues(beginDate, endDate, true);
         out.printLog("Issues between period: " + allIssuesInPeriod);
         int totalApriori = pairFiles.size();

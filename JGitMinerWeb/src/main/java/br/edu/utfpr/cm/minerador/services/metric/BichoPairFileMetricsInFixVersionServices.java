@@ -36,7 +36,6 @@ import br.edu.utfpr.cm.minerador.services.matrix.model.FilePairApriori;
 import static br.edu.utfpr.cm.minerador.services.metric.AbstractBichoMetricServices.objectsToNodes;
 import edu.uci.ics.jung.graph.DirectedSparseGraph;
 import edu.uci.ics.jung.graph.util.EdgeType;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -95,6 +94,7 @@ public class BichoPairFileMetricsInFixVersionServices extends AbstractBichoMetri
         final Map<AuxFileFile, Integer> futureDefectsPairFile = new HashMap<>();
         final Map<String, Integer> edgesWeigth = new HashMap<>();
         final Set<Integer> noCommenters = new HashSet<>();
+        final Set<Integer> allFixedIssues = new HashSet<>();
 
         // rede de comunicação global, com todos pares de arquivos
         DirectedSparseGraph<String, String> globalGraph = new DirectedSparseGraph<>();
@@ -107,10 +107,9 @@ public class BichoPairFileMetricsInFixVersionServices extends AbstractBichoMetri
         BichoDAO bichoDAO = new BichoDAO(dao, repository);
         BichoFileDAO bichoFileDAO = new BichoFileDAO(dao, repository, maxFilePerCommit);
         BichoPairFileDAO bichoPairFileDAO = new BichoPairFileDAO(dao, repository, maxFilePerCommit);
-        Long issuesSize = bichoPairFileDAO
-                .calculeNumberOfIssues(fixVersion, true);
+        long totalIssues = bichoDAO.calculeNumberOfIssues(fixVersion, true);
 
-        System.out.println("Number of all pull requests: " + issuesSize);
+        System.out.println("Number of fixed issues in version " + fixVersion + " : " + totalIssues);
 
         // construindo a rede de comunicação para cada par de arquivo (desenvolvedores que comentaram)
         int nodesSize = getMatrix().getNodes().size();
@@ -157,6 +156,8 @@ public class BichoPairFileMetricsInFixVersionServices extends AbstractBichoMetri
             } else {
                 issuesPairFile.put(pairFile, issues);
             }
+
+            allFixedIssues.addAll(issues);
 
             futureDefectsPairFile.put(pairFile, futureDefectsWeight);
 
@@ -258,12 +259,12 @@ public class BichoPairFileMetricsInFixVersionServices extends AbstractBichoMetri
         }
         out.printLog("No commenters for issues " + Arrays.toString(noCommenters.toArray()));
 
-        SimpleDateFormat format = new SimpleDateFormat("dd.MM.yyyy");
         JungExport.exportToImage(globalGraph, "C:/Users/a562273/Desktop/networks/",
                 repository + " " + fixVersion);
 
         out.printLog("Número de pares de arquivos ignoradoa: " + countIgnored);
 
+        out.printLog("Número de issues analisadas: " + allFixedIssues.size());
         out.printLog("Número de autores de comentários (commenters): " + globalGraph.getVertexCount());
         out.printLog("Número de pares de arquivos (committers): " + committersPairFile.size());
         out.printLog("Número de pares de arquivos (issues): " + issuesPairFile.size());
@@ -278,8 +279,7 @@ public class BichoPairFileMetricsInFixVersionServices extends AbstractBichoMetri
         GlobalMeasure global = GlobalMeasureCalculator.calcule(globalGraph);
         out.printLog("Global measures: " + global.toString());
 
-        // number of pull requests in date interval
-        Long numberAllFutureIssues = issuesSize;
+        totalIssues = allFixedIssues.size();
         // cache for optimization number of pull requests where file is in,
         // reducing access to database
         Cacher cacher = new Cacher(bichoFileDAO);
@@ -418,7 +418,7 @@ public class BichoPairFileMetricsInFixVersionServices extends AbstractBichoMetri
 
 //            double majorContributorsRate = (double) majorContributors / (double) committers; // % de major
 //            double minorContributorsRate = (double) minorContributors / (double) committers; // % de minor
-            Long updates = (long) fileFileIssues.size();
+            Long issues = (long) fileFileIssues.size();
 //                    bichoPairFileDAO.calculeNumberOfIssues(
 //                    fileFile.getFileName(), fileFile.getFileName2(),
 //                    beginDate, endDate, true);
@@ -488,16 +488,16 @@ public class BichoPairFileMetricsInFixVersionServices extends AbstractBichoMetri
                     pairFileCodeChurn.getAdditionsNormalized(), pairFileCodeChurn.getDeletionsNormalized(), pairFileCodeChurn.getChanges(),
                     // rigidityFile1, rigidityFile2, rigidityPairFile,
                     issuesTypesCount.get("Improvement"), issuesTypesCount.get("Bug"), futureDefectsPairFile.get(fileFile),
-                    ageRelease, ageTotal, updates, futureUpdates
+                    ageRelease, ageTotal, issues, futureUpdates
             );
 
             // apriori /////////////////////////////////////////////////////////
-            Long file1FutureIssues = cacher.calculeNumberOfIssues(auxFileFileMetrics.getFile(), fixVersion);
-            Long file2FutureIssues = cacher.calculeNumberOfIssues(auxFileFileMetrics.getFile2(), fixVersion);
+            Long file1Issues = cacher.calculeNumberOfIssues(auxFileFileMetrics.getFile(), fixVersion);
+            Long file2Issues = cacher.calculeNumberOfIssues(auxFileFileMetrics.getFile2(), fixVersion);
 
-            auxFileFileMetrics.addMetrics(file1FutureIssues, file2FutureIssues, numberAllFutureIssues);
+            auxFileFileMetrics.addMetrics(file1Issues, file2Issues, totalIssues);
 
-            FilePairApriori apriori = new FilePairApriori(file1FutureIssues, file2FutureIssues, updates, numberAllFutureIssues);
+            FilePairApriori apriori = new FilePairApriori(file1Issues, file2Issues, issues, totalIssues);
             auxFileFileMetrics.setFilePairApriori(apriori);
             auxFileFileMetrics.addMetrics(
                     apriori.getSupportFile(), apriori.getSupportFile2(), apriori.getSupportFilePair(),

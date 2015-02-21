@@ -125,7 +125,7 @@ public class BichoPairFileMetricsInDateServices extends AbstractBichoMetricServi
         BichoDAO bichoDAO = new BichoDAO(dao, repository);
         BichoFileDAO bichoFileDAO = new BichoFileDAO(dao, repository, maxFilePerCommit);
         BichoPairFileDAO bichoPairFileDAO = new BichoPairFileDAO(dao, repository, maxFilePerCommit);
-        Long issuesSize = bichoPairFileDAO
+        Long issuesSize = bichoDAO
                 .calculeNumberOfIssues(beginDate, endDate, true);
 
         System.out.println("Number of all pull requests: " + issuesSize);
