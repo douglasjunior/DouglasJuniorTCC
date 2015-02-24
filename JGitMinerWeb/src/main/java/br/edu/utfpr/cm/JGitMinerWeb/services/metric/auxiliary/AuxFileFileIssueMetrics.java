@@ -1,5 +1,7 @@
 package br.edu.utfpr.cm.JGitMinerWeb.services.metric.auxiliary;
 
+import br.edu.utfpr.cm.minerador.services.metric.model.IssueMetrics;
+import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.auxiliary.AuxFileFileIssue;
 import br.edu.utfpr.cm.JGitMinerWeb.util.Util;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -69,6 +71,7 @@ public class AuxFileFileIssueMetrics extends AuxFileFileMetrics {
         futureDefectsIndex = headerIndexes.get("futureDefects");
     }
 
+    private final AuxFileFileIssue fileFileIssue;
     private final Integer issue;
     private final String issueKey;
     private final String issueType;
@@ -86,6 +89,7 @@ public class AuxFileFileIssueMetrics extends AuxFileFileMetrics {
         this.issueAssignedTo = issueMetrics.getAssignedTo();
         this.issueSubmittedBy = issueMetrics.getSubmittedBy();
         this.numberOfWatchers = issueMetrics.getNumberOfWatchers();
+        this.fileFileIssue = new AuxFileFileIssue(getFileFile(), issue);
     }
 
     public AuxFileFileIssueMetrics(String file, String file2, Integer issue, double... metrics) {
@@ -97,6 +101,7 @@ public class AuxFileFileIssueMetrics extends AuxFileFileMetrics {
         this.issueAssignedTo = "";
         this.issueSubmittedBy = "";
         this.numberOfWatchers = 0;
+        this.fileFileIssue = new AuxFileFileIssue(getFileFile(), issue);
     }
 
     public AuxFileFileIssueMetrics(String file, String file2, Integer issue, List<Double> metrics) {
@@ -108,6 +113,7 @@ public class AuxFileFileIssueMetrics extends AuxFileFileMetrics {
         this.issueAssignedTo = "";
         this.issueSubmittedBy = "";
         this.numberOfWatchers = 0;
+        this.fileFileIssue = new AuxFileFileIssue(getFileFile(), issue);
     }
 
     public String getHeader() {

@@ -56,16 +56,9 @@ public abstract class AbstractBichoMetricServices extends AbstractBichoServices 
     @Override
     public abstract void run();
 
-    /**
-     * Name of columns separated by ";".
-     *
-     * @return column1;column2;column3;...
-     */
-    @Override
-    public abstract String getHeadCSV();
-
-    protected static List<EntityMetricNode> objectsToNodes(Collection<?> list) {
+    protected static List<EntityMetricNode> objectsToNodes(Collection<?> list, String header) {
         List<EntityMetricNode> nodes = new ArrayList<>();
+        nodes.add(new EntityMetricNode(header));
         for (Object value : list) {
             nodes.add(new EntityMetricNode(value.toString()));
         }

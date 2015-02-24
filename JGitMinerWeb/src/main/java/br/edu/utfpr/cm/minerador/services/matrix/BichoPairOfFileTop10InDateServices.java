@@ -212,13 +212,13 @@ public class BichoPairOfFileTop10InDateServices extends AbstractBichoMatrixServi
         }
 
         EntityMatrix matrix = new EntityMatrix();
-        matrix.setNodes(objectsToNodes(pairFileList));
+        matrix.setNodes(objectsToNodes(pairFileList, FilePairOutput.getToStringHeader()));
         matricesToSave.add(matrix);
 
         // salvando a matriz com o top 10 par de arquivos
         EntityMatrix matrix2 = new EntityMatrix();
         List<FilePairOutput> top10 = getTop10(pairFileList);
-        matrix2.setNodes(objectsToNodes(top10));
+        matrix2.setNodes(objectsToNodes(top10, FilePairOutput.getToStringHeader()));
         matrix2.setAdditionalFilename(" top 10");
         matricesToSave.add(matrix2);
 
@@ -235,7 +235,7 @@ public class BichoPairOfFileTop10InDateServices extends AbstractBichoMatrixServi
             }
             changedWithA.add(0, filePairTop);
             EntityMatrix matrix3 = new EntityMatrix();
-            matrix3.setNodes(objectsToNodes(changedWithA));
+            matrix3.setNodes(objectsToNodes(changedWithA, FilePairOutput.getToStringHeader()));
             rank++;
             matrix3.setAdditionalFilename(" " + rank + " file changed with " + filePairTop.getFilePair().getFile1());
             matricesToSave.add(matrix3);
@@ -285,10 +285,5 @@ public class BichoPairOfFileTop10InDateServices extends AbstractBichoMatrixServi
                 return 0;
             }
         });
-    }
-
-    @Override
-    public String getHeadCSV() {
-        return FilePairOutput.getToStringHeader();
     }
 }

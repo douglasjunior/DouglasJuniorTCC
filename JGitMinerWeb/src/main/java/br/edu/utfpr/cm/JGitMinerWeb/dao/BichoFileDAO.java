@@ -6,9 +6,13 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import org.joda.time.Days;
+import org.joda.time.LocalDate;
 
 /**
  *
@@ -25,6 +29,9 @@ public class BichoFileDAO {
 
     private final String FILTER_BY_ISSUE_FIX_MAJOR_VERSION;
     private final String FILTER_BY_BEFORE_ISSUE_FIX_MAJOR_VERSION;
+    private final String FILTER_BY_BEFORE_ISSUE_FIX_DATE_OF_ISSUE_ID;
+
+    private final String FILTER_BY_COMMIT;
 
     private final String FILTER_BY_ISSUE_FIX_DATE;
     private final String FILTER_BY_BEFORE_ISSUE_FIX_DATE;
@@ -53,13 +60,17 @@ public class BichoFileDAO {
 
     private final String COUNT_ISSUES_BY_FILENAME;
 
-    private final String SUM_CODE_CHURN_BY_FILE_NAME;
+    private final String SUM_ADD_AND_DEL_LINES_BY_FILE_NAME;
 
     private final String SELECT_FILES_PATH_BY_COMMIT_ID;
 
     private final String SELECT_COMMITTERS_OF_FILE;
+    private final String COUNT_COMMITTERS_OF_FILE;
 
     private final String COUNT_ISSUE_REOPENED_TIMES;
+
+    private final String COUNT_ISSUES_TYPES;
+    private final String SELECT_RELEASE_MIN_MAX_COMMIT_DATE_BY_FIX_VERSION;
 
     private final GenericBichoDAO dao;
 
@@ -99,10 +110,22 @@ public class BichoFileDAO {
                         + "  WHERE ifv.major_fix_version IN ("
                         + "SELECT ifvo.major_fix_version"
                         + "  FROM {0}_issues.issues_fix_version_order ifvo"
-                        + " WHERE ifvo.version_order <= "
-                        + "(SELECT ifvo2.version_order"
+                        + " WHERE ifvo.version_order <= " // inclusive
+                        + "(SELECT MAX(ifvo2.version_order)"
                         + "   FROM {0}_issues.issues_fix_version_order ifvo2"
-                        + "  WHERE ifvo2.major_fix_version = ?))", repository);
+                        + "  WHERE ifvo2.major_fix_version = ?)))", repository);
+
+        FILTER_BY_BEFORE_ISSUE_FIX_DATE_OF_ISSUE_ID
+                = QueryUtils.getQueryForDatabase(
+                        " AND c.changed_on <="
+                        + "     (SELECT MAX(c2.changed_on)"
+                        + "        FROM {0}_issues.changes c2"
+                        + "       WHERE c2.issue_id = ?"
+                        + "         AND c2.field = \"Resolution\""
+                        + "         AND c2.new_value = \"Fixed\")", repository);
+
+        FILTER_BY_COMMIT
+                = " AND s.id = ?";
 
         FILTER_BY_BEFORE_ISSUE_FIX_DATE
                 = " AND c.changed_on <= ?";
@@ -172,7 +195,7 @@ public class BichoFileDAO {
                 + FILTER_BY_MAX_FILES_IN_COMMIT
                 + FIXED_ISSUES_ONLY;
 
-        SUM_CODE_CHURN_BY_FILE_NAME
+        SUM_ADD_AND_DEL_LINES_BY_FILE_NAME
                 = QueryUtils.getQueryForDatabase(
                         "SELECT COALESCE(SUM(com.added_lines), 0),"
                         + "       COALESCE(SUM(com.removed_lines), 0)"
@@ -191,7 +214,15 @@ public class BichoFileDAO {
 
         SELECT_COMMITTERS_OF_FILE
                 = QueryUtils.getQueryForDatabase(
-                        "SELECT DISTINCT(p.user_id)"
+                        "SELECT DISTINCT(p.name)"
+                        + FROM_TABLE
+                        + "  JOIN {0}_vcs.people p ON p.id = s.committer_id"
+                        + WHERE, repository)
+                + FILTER_BY_MAX_FILES_IN_COMMIT;
+
+        COUNT_COMMITTERS_OF_FILE
+                = QueryUtils.getQueryForDatabase(
+                        "SELECT COUNT(DISTINCT(p.name))"
                         + FROM_TABLE
                         + "  JOIN {0}_vcs.people p ON p.id = s.committer_id"
                         + WHERE, repository)
@@ -204,6 +235,22 @@ public class BichoFileDAO {
                         + " WHERE c.new_value = ?"
                         + "   AND c.field = ?"
                         + "   AND c.issue_id = ?", repository);
+
+        COUNT_ISSUES_TYPES
+                = QueryUtils.getQueryForDatabase(""
+                        + "SELECT COALESCE(COUNT(DISTINCT(i.id)), 0) AS count, i.type"
+                        + FROM_TABLE
+                        + WHERE
+                        + FILTER_BY_MAX_FILES_IN_COMMIT
+                        + FILTER_BY_ISSUE_FIX_MAJOR_VERSION
+                        + " GROUP BY i.type", repository);
+
+        SELECT_RELEASE_MIN_MAX_COMMIT_DATE_BY_FIX_VERSION
+                = QueryUtils.getQueryForDatabase(
+                        "SELECT MIN(com.date), MAX(com.date)"
+                        + FROM_TABLE
+                        + WHERE, repository)
+                + FILTER_BY_MAX_FILES_IN_COMMIT;
     }
 
     // Issues //////////////////////////////////////////////////////////////////
@@ -369,7 +416,7 @@ public class BichoFileDAO {
         List<Object> selectParams = new ArrayList<>();
 
         StringBuilder sql = new StringBuilder();
-        sql.append(SUM_CODE_CHURN_BY_FILE_NAME);
+        sql.append(SUM_ADD_AND_DEL_LINES_BY_FILE_NAME);
 
         selectParams.add(fileName);
 
@@ -427,7 +474,7 @@ public class BichoFileDAO {
         List<Object> selectParams = new ArrayList<>();
 
         StringBuilder sql = new StringBuilder();
-        sql.append(SUM_CODE_CHURN_BY_FILE_NAME);
+        sql.append(SUM_ADD_AND_DEL_LINES_BY_FILE_NAME);
 
         selectParams.add(fileName);
 
@@ -468,7 +515,7 @@ public class BichoFileDAO {
         List<Object> selectParams = new ArrayList<>();
 
         StringBuilder sql = new StringBuilder();
-        sql.append(SUM_CODE_CHURN_BY_FILE_NAME);
+        sql.append(SUM_ADD_AND_DEL_LINES_BY_FILE_NAME);
 
         selectParams.add(fileName);
 
@@ -568,9 +615,253 @@ public class BichoFileDAO {
         return commitersList;
     }
 
+    public Long calculeCommitters(
+            String file, String fixVersion) {
+        return calculeCommitters(file, null, fixVersion);
+    }
+
+    public Long calculeCommitters(
+            String file, Integer issue, String fixVersion) {
+
+        List<Object> selectParams = new ArrayList<>();
+
+        StringBuilder sql = new StringBuilder();
+
+        sql.append(COUNT_COMMITTERS_OF_FILE);
+        selectParams.add(file);
+
+        sql.append(FILTER_BY_ISSUE_FIX_MAJOR_VERSION);
+        selectParams.add(fixVersion);
+
+        sql.append(FIXED_ISSUES_ONLY);
+
+        if (issue != null) {
+            sql.append(FILTER_BY_ISSUE);
+            selectParams.add(issue);
+        }
+
+        Long committers = dao.selectNativeOneWithParams(
+                sql.toString(), selectParams.toArray());
+
+        return committers;
+    }
+
+    public Long calculeCummulativeCommitters(
+            String file, Integer issue, String fixVersion) {
+
+        List<Object> selectParams = new ArrayList<>();
+
+        StringBuilder sql = new StringBuilder();
+
+        sql.append(COUNT_COMMITTERS_OF_FILE);
+        selectParams.add(file);
+
+        sql.append(FILTER_BY_ISSUE_FIX_MAJOR_VERSION);
+        selectParams.add(fixVersion);
+
+        sql.append(FIXED_ISSUES_ONLY);
+
+        sql.append(FILTER_BY_BEFORE_ISSUE_FIX_DATE_OF_ISSUE_ID);
+        selectParams.add(issue);
+
+        Long committers = dao.selectNativeOneWithParams(
+                sql.toString(), selectParams.toArray());
+
+        return committers;
+    }
+
     public long calculeIssueReopenedTimes(Integer issue) {
         Long count = (Long) dao.selectNativeOneWithParams(COUNT_ISSUE_REOPENED_TIMES, new Object[]{"Reopened", "Status", issue});
 
         return count;
     }
+
+    public Map<String, Long> calculeNumberOfIssuesGroupedByType(String filename, String version) {
+        List<Object[]> rawFilesPath
+                = dao.selectNativeWithParams(COUNT_ISSUES_TYPES, new Object[]{filename, version});
+
+        Map<String, Long> result = new HashMap<>(rawFilesPath.size());
+        for (Object[] row : rawFilesPath) {
+            Long count = (Long) row[0];
+            String type = (String) row[1];
+            result.put(type, count);
+        }
+        return result;
+    }
+
+    public AuxCodeChurn calculeAddDelChanges(String filename, Integer issue, String version) {
+        return calculeAddDelChanges(filename, issue, null, version);
+    }
+
+    public AuxCodeChurn calculeAddDelChanges(String filename, Integer issue, Integer commit, String version) {
+        List<Object> selectParams = new ArrayList<>();
+
+        StringBuilder sql = new StringBuilder();
+
+        sql.append(SUM_ADD_AND_DEL_LINES_BY_FILE_NAME);
+        selectParams.add(filename);
+
+        sql.append(FILTER_BY_BEFORE_ISSUE_FIX_MAJOR_VERSION);
+        selectParams.add(version);
+
+        if (commit != null) {
+            sql.append(FILTER_BY_COMMIT);
+            selectParams.add(commit);
+        }
+        sql.append(FIXED_ISSUES_ONLY);
+
+        List<Object[]> sum = dao.selectNativeWithParams(sql.toString(),
+                selectParams.toArray());
+        Long additions = sum.get(0)[0] == null ? 0l : ((BigDecimal) sum.get(0)[0]).longValue();
+        Long deletions = sum.get(0)[1] == null ? 0l : ((BigDecimal) sum.get(0)[1]).longValue();
+
+        return new AuxCodeChurn(filename, additions, deletions);
+    }
+
+    public long calculeCummulativeCommits(String file, Integer untilIssue, String fixVersion) {
+        List<Object> selectParams = new ArrayList<>();
+
+        StringBuilder sql = new StringBuilder();
+        sql.append(COUNT_COMMITS_BY_FILE_NAME);
+
+        selectParams.add(file);
+
+        sql.append(FIXED_ISSUES_ONLY);
+
+        sql.append(FILTER_BY_BEFORE_ISSUE_FIX_MAJOR_VERSION);
+        selectParams.add(fixVersion);
+
+        sql.append(FILTER_BY_BEFORE_ISSUE_FIX_DATE_OF_ISSUE_ID);
+        selectParams.add(fixVersion);
+
+        Long count = dao.selectNativeOneWithParams(sql.toString(), selectParams.toArray());
+
+        return count != null ? count : 0l;
+    }
+
+    public long calculeCommits(String file, String fixVersion) {
+        return calculeCommitsByFixVersion(file, null, null, fixVersion, null);
+    }
+
+    public long calculeCommits(String file, Integer issue, String fixVersion) {
+        return calculeCommitsByFixVersion(file, null, issue, fixVersion, null);
+    }
+
+    public long calculeCommits(String file, String fixVersion,
+            Collection<Integer> issues) {
+        return calculeCommitsByFixVersion(file, null, null, fixVersion, issues);
+    }
+
+    public long calculeCommits(String file, String user, String fixVersion) {
+        return calculeCommitsByFixVersion(file, user, null, fixVersion, null);
+    }
+
+    public long calculeCommits(String file, String user,
+            String fixVersion, Collection<Integer> issues) {
+        return calculeCommitsByFixVersion(file, user, null, fixVersion, issues);
+    }
+
+    public long calculeCommitsByFixVersion(
+            String file, String user, Integer issue, String fixVersion,
+            Collection<Integer> issues) {
+        List<Object> selectParams = new ArrayList<>();
+
+        StringBuilder sql = new StringBuilder();
+        sql.append(COUNT_COMMITS_BY_FILE_NAME);
+
+        selectParams.add(file);
+
+        sql.append(FIXED_ISSUES_ONLY);
+
+        sql.append(FILTER_BY_ISSUE_FIX_MAJOR_VERSION);
+        selectParams.add(fixVersion);
+
+        if (user != null) {
+            sql.append(FILTER_BY_USER_NAME);
+            selectParams.add(user);
+        }
+
+        filterByIssues(issues, sql);
+
+        Long count = dao.selectNativeOneWithParams(sql.toString(), selectParams.toArray());
+
+        return count != null ? count : 0l;
+    }
+
+    public int calculeFileAgeInDays(String filename, String fixVersion) {
+        return calculeFileAgeInDays(filename, null, fixVersion);
+    }
+
+    public int calculeFileAgeInDays(String filename, Integer issue, String fixVersion) {
+        List<Object> selectParams = new ArrayList<>();
+
+        StringBuilder sql = new StringBuilder();
+        sql.append(SELECT_RELEASE_MIN_MAX_COMMIT_DATE_BY_FIX_VERSION);
+        sql.append(FIXED_ISSUES_ONLY);
+
+        selectParams.add(filename);
+
+        sql.append(FILTER_BY_ISSUE_FIX_MAJOR_VERSION);
+        selectParams.add(fixVersion);
+
+        if (issue != null) {
+            sql.append(FILTER_BY_BEFORE_ISSUE_FIX_DATE_OF_ISSUE_ID);
+            selectParams.add(issue);
+        }
+
+        List<Object[]> minMaxDateList = dao.selectNativeWithParams(sql.toString(), selectParams.toArray());
+        Object[] minMaxDate = minMaxDateList.get(0);
+
+        if (minMaxDate[0] == null || minMaxDate[1] == null) {
+            return 0;
+        }
+
+        java.sql.Timestamp minDate = (java.sql.Timestamp) minMaxDate[0];
+        java.sql.Timestamp maxDate = (java.sql.Timestamp) minMaxDate[1];
+
+        LocalDate createdAt = new LocalDate(minDate.getTime());
+        LocalDate finalDate = new LocalDate(maxDate.getTime());
+        Days age = Days.daysBetween(createdAt, finalDate);
+
+        return age.getDays();
+    }
+
+    public int calculeTotalFileAgeInDays(String filename, String fixVersion) {
+        return calculeTotalFileAgeInDays(filename, null, fixVersion);
+    }
+
+    public int calculeTotalFileAgeInDays(String filename, Integer issue, String fixVersion) {
+        List<Object> selectParams = new ArrayList<>();
+
+        StringBuilder sql = new StringBuilder();
+        sql.append(SELECT_RELEASE_MIN_MAX_COMMIT_DATE_BY_FIX_VERSION);
+        sql.append(FIXED_ISSUES_ONLY);
+
+        selectParams.add(filename);
+
+        sql.append(FILTER_BY_BEFORE_ISSUE_FIX_MAJOR_VERSION);
+        selectParams.add(fixVersion);
+
+        if (issue != null) {
+            sql.append(FILTER_BY_BEFORE_ISSUE_FIX_DATE_OF_ISSUE_ID);
+            selectParams.add(issue);
+        }
+
+        List<Object[]> minMaxDateList = dao.selectNativeWithParams(sql.toString(), selectParams.toArray());
+        Object[] minMaxDate = minMaxDateList.get(0);
+
+        if (minMaxDate[0] == null || minMaxDate[1] == null) {
+            return 0;
+        }
+
+        java.sql.Timestamp minDate = (java.sql.Timestamp) minMaxDate[0];
+        java.sql.Timestamp maxDate = (java.sql.Timestamp) minMaxDate[1];
+
+        LocalDate createdAt = new LocalDate(minDate.getTime());
+        LocalDate finalDate = new LocalDate(maxDate.getTime());
+        Days age = Days.daysBetween(createdAt, finalDate);
+
+        return age.getDays();
+    }
+
 }

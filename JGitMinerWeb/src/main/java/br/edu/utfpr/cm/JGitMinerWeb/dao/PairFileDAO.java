@@ -2,7 +2,7 @@ package br.edu.utfpr.cm.JGitMinerWeb.dao;
 
 import br.edu.utfpr.cm.JGitMinerWeb.model.miner.EntityComment;
 import br.edu.utfpr.cm.JGitMinerWeb.model.miner.EntityRepository;
-import br.edu.utfpr.cm.JGitMinerWeb.services.metric.auxiliary.IssueMetrics;
+import br.edu.utfpr.cm.minerador.services.metric.model.IssueMetrics;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;

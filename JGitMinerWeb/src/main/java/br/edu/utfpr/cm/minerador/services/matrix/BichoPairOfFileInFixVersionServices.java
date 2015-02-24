@@ -227,7 +227,7 @@ public class BichoPairOfFileInFixVersionServices extends AbstractBichoMatrixServ
         }
 
         EntityMatrix matrix = new EntityMatrix();
-        matrix.setNodes(objectsToNodes(pairFileList));
+        matrix.setNodes(objectsToNodes(pairFileList, FilePairOutput.getToStringHeader()));
         matricesToSave.add(matrix);
 
 //        // salvando a matriz com o top 10 par de arquivos
@@ -311,10 +311,5 @@ public class BichoPairOfFileInFixVersionServices extends AbstractBichoMatrixServ
                 return 0;
             }
         });
-    }
-
-    @Override
-    public String getHeadCSV() {
-        return FilePairOutput.getToStringHeader();
     }
 }

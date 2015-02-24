@@ -1,7 +1,7 @@
 package br.edu.utfpr.cm.JGitMinerWeb.dao;
 
 import static br.edu.utfpr.cm.JGitMinerWeb.dao.QueryUtils.filterByIssues;
-import br.edu.utfpr.cm.JGitMinerWeb.services.metric.auxiliary.IssueMetrics;
+import br.edu.utfpr.cm.minerador.services.metric.model.IssueMetrics;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -133,7 +133,7 @@ public class BichoPairFileDAO {
                         + "SELECT ifvo.major_fix_version"
                         + "  FROM {0}_issues.issues_fix_version_order ifvo"
                         + " WHERE ifvo.version_order <= " // inclusive
-                        + "(SELECT ifvo2.version_order"
+                        + "(SELECT MAX(ifvo2.version_order)"
                         + "   FROM {0}_issues.issues_fix_version_order ifvo2"
                         + "  WHERE ifvo2.major_fix_version = ?)))", repository);
 
@@ -146,7 +146,7 @@ public class BichoPairFileDAO {
                         + "SELECT ifvo.major_fix_version"
                         + "  FROM {0}_issues.issues_fix_version_order ifvo"
                         + " WHERE ifvo.version_order < " // exclusive
-                        + "(SELECT ifvo2.version_order"
+                        + "(SELECT MIN(ifvo2.version_order)"
                         + "   FROM {0}_issues.issues_fix_version_order ifvo2"
                         + "  WHERE ifvo2.major_fix_version = ?)))", repository);
 
@@ -220,11 +220,11 @@ public class BichoPairFileDAO {
 
         SELECT_ISSUES_BY_ISSUES_ID
                 = QueryUtils.getQueryForDatabase(
-                        "SELECT DISTINCT i.id, iej.issue_key, i.issue, i.description, i.type, i.priority, "
-                        + "     assigned.user_id, submitted.user_id,"
-                        + "     (SELECT COUNT(DISTINCT(iw.person_id))"
-                        + "        FROM {0}_issues.issues_watchers iw"
-                        + "       WHERE iw.issue_id = i.id) AS num_watchers"
+                        "SELECT DISTINCT i.id, iej.issue_key, i.issue, "
+                        + "     i.description, i.type, i.priority, "
+                        + "     assigned.user_id, submitted.user_id, "
+                        + "     i.num_watchers, i.reopened_times,"
+                        + "     i.num_commenters, i.num_dev_commenters"
                         + "  FROM {0}_issues.issues i"
                         + "  JOIN {0}_issues.issues_ext_jira iej ON iej.issue_id = i.id"
                         + "  JOIN {0}_issues.changes c ON c.issue_id = i.id"
@@ -351,7 +351,7 @@ public class BichoPairFileDAO {
 
         COUNT_PAIR_FILE_COMMITTERS
                 = QueryUtils.getQueryForDatabase(
-                        "SELECT COUNT(DISTINCT(p.name))"
+                        "SELECT COUNT(DISTINCT(COALESCE(p.name, p.email)))"
                         + FROM_TABLE
                         + "  JOIN {0}_vcs.people p ON p.id = s.committer_id"
                         + WHERE, repository)
@@ -359,7 +359,7 @@ public class BichoPairFileDAO {
 
         COUNT_COMMENTERS_BY_ISSUE_ID
                 = QueryUtils.getQueryForDatabase(
-                        "SELECT COUNT(DISTINCT(p.user_id))"
+                        "SELECT COUNT(DISTINCT(COALESCE(p.name, p.email)))"
                         + "  FROM {0}_issues.issues i"
                         + "  JOIN {0}_issues.changes c ON c.issue_id = i.id"
                         + "  JOIN {0}_issues.comments comments ON comments.issue_id = i.id"
@@ -1192,8 +1192,12 @@ public class BichoPairFileDAO {
                 (String) rawIssues[5], // i.priority
                 (String) rawIssues[6], // assigned.user_id
                 (String) rawIssues[7], // submitted.user_id
-                (Long) rawIssues[8], // i.num_watchers
-                comments);
+                (Integer) rawIssues[8], // i.num_watchers
+                (Integer) rawIssues[9], // i.num_reopened
+                comments,
+                (Integer) rawIssues[10], // i.num_commenters
+                (Integer) rawIssues[11] // i.num_dev_commenters
+        );
 
         return issueWithComments;
     }
@@ -1242,7 +1246,7 @@ public class BichoPairFileDAO {
         return age.getDays();
     }
 
-    public int calculeTotalPairFileDaysAge(String file, String file2, String fixVersion, boolean onlyFixed) {
+    public int calculeTotalPairFilesAgeInDay(String file, String file2, String fixVersion, boolean onlyFixed) {
         List<Object> selectParams = new ArrayList<>();
 
         StringBuilder sql = new StringBuilder();
@@ -1275,7 +1279,7 @@ public class BichoPairFileDAO {
         return age.getDays();
     }
 
-    public int calculePairFileDaysAge(String file, String file2, String fixVersion, boolean onlyFixed) {
+    public int calculePairFileAgeInDays(String file, String file2, String fixVersion, boolean onlyFixed) {
         List<Object> selectParams = new ArrayList<>();
 
         StringBuilder sql = new StringBuilder();

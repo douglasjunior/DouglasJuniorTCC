@@ -205,12 +205,8 @@ public class BichoPairOfFileInDateServices extends AbstractBichoMatrixServices {
         }
 
         EntityMatrix matrix = new EntityMatrix();
-        matrix.setNodes(objectsToNodes(pairFileList));
+        matrix.setNodes(objectsToNodes(pairFileList, FilePairOutput.getToStringHeader()));
         matricesToSave.add(matrix);
     }
 
-    @Override
-    public String getHeadCSV() {
-        return FilePairOutput.getToStringHeader();
-    }
 }

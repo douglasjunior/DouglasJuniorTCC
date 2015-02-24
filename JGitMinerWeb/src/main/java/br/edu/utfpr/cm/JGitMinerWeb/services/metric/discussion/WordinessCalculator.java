@@ -1,7 +1,7 @@
 
 package br.edu.utfpr.cm.JGitMinerWeb.services.metric.discussion;
 
-import br.edu.utfpr.cm.JGitMinerWeb.services.metric.auxiliary.IssueMetrics;
+import br.edu.utfpr.cm.minerador.services.metric.model.IssueMetrics;
 import br.edu.utfpr.cm.JGitMinerWeb.util.LuceneUtil;
 import com.google.common.base.Strings;
 

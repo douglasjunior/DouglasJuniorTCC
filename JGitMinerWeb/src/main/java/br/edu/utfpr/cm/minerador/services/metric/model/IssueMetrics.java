@@ -1,4 +1,4 @@
-package br.edu.utfpr.cm.JGitMinerWeb.services.metric.auxiliary;
+package br.edu.utfpr.cm.minerador.services.metric.model;
 
 import br.edu.utfpr.cm.JGitMinerWeb.services.metric.discussion.WordinessCalculator;
 import java.util.ArrayList;
@@ -12,6 +12,19 @@ import java.util.Objects;
  */
 public class IssueMetrics {
 
+    public static final String HEADER
+            = "issue;"
+            + "issueType;"
+            + "issuePriority;"
+            + "issueAssignedTo;"
+            + "issueSubmittedBy;"
+            + "issueWatchers;"
+            + "issueReopened;" // quantidade em que foi reaberto (status = reopened)
+            + "commenters;"
+            + "devCommenters;"
+            + "comments;"
+            + "wordiness;";
+
     private final Integer issueNumber;
     private final String issueKey;
     private final String url;
@@ -20,30 +33,16 @@ public class IssueMetrics {
     private final String priority;
     private final String assignedTo;
     private final String submittedBy;
-    private final Long numberOfWatchers;
+    private final Integer numberOfWatchers;
+    private final Integer reopenedTimes;
     private final List<String> comments;
+    private final Integer commenters;
+    private final Integer devCommenters;
     private long wordiness;
-
-    public IssueMetrics(Integer issueNumber, String url, String issueBody, List<String> comments) {
-        this.issueNumber = issueNumber;
-        this.issueKey = "";
-        this.url = url;
-        this.issueBody = issueBody;
-        this.priority = "";
-        this.assignedTo = "";
-        this.submittedBy = "";
-        if (comments != null) {
-            this.comments = comments;
-        } else {
-            this.comments = new ArrayList<>();
-        }
-        this.issueType = "";
-        this.numberOfWatchers = 0l;
-    }
 
     public IssueMetrics(Integer issueNumber, String issueKey, String url, String issueBody,
             String issueType, String priority, String assignedTo, String submittedBy,
-            Long numberOfWatchers, List<String> comments) {
+            Integer numberOfWatchers, Integer reopenedTimes, List<String> comments, Integer commenters, Integer devCommenters) {
         this.issueNumber = issueNumber;
         this.issueKey = issueKey;
         this.url = url;
@@ -51,13 +50,36 @@ public class IssueMetrics {
         this.priority = priority;
         this.assignedTo = assignedTo;
         this.submittedBy = submittedBy;
+        this.issueType = issueType;
+        this.numberOfWatchers = numberOfWatchers;
+        this.reopenedTimes = reopenedTimes;
+
         if (comments != null) {
             this.comments = comments;
         } else {
             this.comments = new ArrayList<>();
         }
-        this.issueType = issueType;
-        this.numberOfWatchers = numberOfWatchers;
+
+        this.commenters = commenters;
+        this.devCommenters = devCommenters;
+    }
+
+    public IssueMetrics(Integer issueNumber, String issueKey, String issueBody, List<String> comments) {
+        this.issueNumber = issueNumber;
+        this.issueKey = issueKey;
+        this.issueBody = issueBody;
+
+        this.url = "";
+        this.priority = "";
+        this.assignedTo = "";
+        this.submittedBy = "";
+        this.reopenedTimes = 0;
+        this.issueType = "";
+        this.numberOfWatchers = 0;
+        this.comments = Collections.EMPTY_LIST;
+
+        this.commenters = 0;
+        this.devCommenters = 0;
     }
 
     public Integer getIssueNumber() {
@@ -92,8 +114,12 @@ public class IssueMetrics {
         return submittedBy;
     }
 
-    public Long getNumberOfWatchers() {
+    public Integer getNumberOfWatchers() {
         return numberOfWatchers;
+    }
+
+    public Integer getReopenedTimes() {
+        return reopenedTimes;
     }
 
     public List<String> getComments() {
@@ -116,15 +142,19 @@ public class IssueMetrics {
     }
 
     @Override
-    public String toString() {
-        return issueNumber + ";" + url;
-    }
-
-    @Override
     public int hashCode() {
         int hash = 5;
         hash = 29 * hash + Objects.hashCode(this.issueNumber);
         return hash;
+    }
+
+    @Override
+    public String toString() {
+        return issueKey + ";" + issueType + ";"
+                + priority + ";" + assignedTo + ";" + submittedBy + ";"
+                + numberOfWatchers + ";" + reopenedTimes + ";"
+                + commenters + ";" + devCommenters + ";"
+                + comments.size() + ";" + wordiness + ";";
     }
 
     @Override
@@ -136,10 +166,8 @@ public class IssueMetrics {
             return false;
         }
         final IssueMetrics other = (IssueMetrics) obj;
-        if (!Objects.equals(this.issueNumber, other.issueNumber)) {
-            return false;
-        }
-        return true;
+
+        return Objects.equals(this.issueNumber, other.issueNumber);
     }
 
 }

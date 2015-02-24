@@ -12,10 +12,9 @@ import br.edu.utfpr.cm.JGitMinerWeb.model.matrix.EntityMatrixNode;
 import br.edu.utfpr.cm.JGitMinerWeb.model.metric.EntityMetric;
 import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.UserCommentedSamePairOfFileInAllDateServices;
 import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.auxiliary.AuxFileFile;
-import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.auxiliary.AuxFileFilePull;
+import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.auxiliary.AuxFileFileIssue;
 import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.auxiliary.AuxUserUserDirectional;
 import br.edu.utfpr.cm.JGitMinerWeb.services.metric.auxiliary.AuxFileFileIssueMetrics;
-import br.edu.utfpr.cm.JGitMinerWeb.services.metric.auxiliary.IssueMetrics;
 import br.edu.utfpr.cm.JGitMinerWeb.services.metric.centrality.BetweennessCalculator;
 import br.edu.utfpr.cm.JGitMinerWeb.services.metric.centrality.ClosenessCalculator;
 import br.edu.utfpr.cm.JGitMinerWeb.services.metric.centrality.DegreeCalculator;
@@ -37,6 +36,7 @@ import br.edu.utfpr.cm.minerador.services.matrix.BichoPairOfFileInDateServices;
 import br.edu.utfpr.cm.minerador.services.matrix.BichoUserCommentedSamePairOfFileOnIssueInDateServices;
 import br.edu.utfpr.cm.minerador.services.matrix.model.Commenter;
 import br.edu.utfpr.cm.minerador.services.matrix.model.FilePairApriori;
+import br.edu.utfpr.cm.minerador.services.metric.model.IssueMetrics;
 import edu.uci.ics.jung.graph.DirectedSparseGraph;
 import edu.uci.ics.jung.graph.util.EdgeType;
 import java.text.SimpleDateFormat;
@@ -117,9 +117,9 @@ public class BichoPairFilePerIssueMetricsInDateServices extends AbstractBichoMet
 
         out.printLog("Iniciando construção da rede.");
 
-        final Map<AuxFileFilePull, Set<AuxUser>> committersPairFile = new HashMap<>();
-        final Map<AuxFileFilePull, Set<Commenter>> commentersPairFile = new HashMap<>();
-        final Map<AuxFileFilePull, Set<Commenter>> devCommentersPairFile = new HashMap<>();
+        final Map<AuxFileFileIssue, Set<AuxUser>> committersPairFile = new HashMap<>();
+        final Map<AuxFileFileIssue, Set<Commenter>> commentersPairFile = new HashMap<>();
+        final Map<AuxFileFileIssue, Set<Commenter>> devCommentersPairFile = new HashMap<>();
         final Map<AuxFileFile, Set<Integer>> issuesPairFile = new HashMap<>();
         final Map<AuxFileFile, Integer> futureDefectsPairFile = new HashMap<>();
         final Map<AuxFileFile, Set<Integer>> commitsPairFile = new HashMap<>();
@@ -131,7 +131,7 @@ public class BichoPairFilePerIssueMetricsInDateServices extends AbstractBichoMet
         DirectedSparseGraph<String, String> globalGraph = new DirectedSparseGraph<>();
 
         // rede de comunicação de cada par de arquivo
-        Map<AuxFileFilePull, DirectedSparseGraph<String, String>> pairFileNetwork = new HashMap<>();
+        Map<AuxFileFileIssue, DirectedSparseGraph<String, String>> pairFileNetwork = new HashMap<>();
 
         int countIgnored = 0;
         final int maxFilePerCommit = 20;
@@ -146,7 +146,7 @@ public class BichoPairFilePerIssueMetricsInDateServices extends AbstractBichoMet
         // construindo a rede de comunicação para cada par de arquivo (desenvolvedores que comentaram)
         int nodesSize = getMatrix().getNodes().size();
         int count = 0;
-        Set<AuxFileFilePull> pairFilesSet = new HashSet<>();
+        Set<AuxFileFileIssue> pairFilesSet = new HashSet<>();
         for (int i = 0; i < getMatrix().getNodes().size(); i++) {
             if (count++ % 100 == 0 || count == nodesSize) {
                 System.out.println(count + "/" + nodesSize);
@@ -196,7 +196,7 @@ public class BichoPairFilePerIssueMetricsInDateServices extends AbstractBichoMet
 
             // Group pair files by issue
             for (Integer issue : issues) {
-                AuxFileFilePull pairFileIssue = new AuxFileFilePull(filename1, filename2, issue);
+                AuxFileFileIssue pairFileIssue = new AuxFileFileIssue(filename1, filename2, issue);
                 pairFilesSet.add(pairFileIssue);
 
                 // TODO optimize querying at matrix generation
@@ -328,11 +328,11 @@ public class BichoPairFilePerIssueMetricsInDateServices extends AbstractBichoMet
         count = 0;
         final int size = committersPairFile.entrySet().size();
         out.printLog("Número de pares de arquivos: " + commentersPairFile.keySet().size());
-        for (Map.Entry<AuxFileFilePull, Set<Commenter>> entry : commentersPairFile.entrySet()) {
+        for (Map.Entry<AuxFileFileIssue, Set<Commenter>> entry : commentersPairFile.entrySet()) {
             if (count++ % 10 == 0 || count == size) {
                 System.out.println(count + "/" + size);
             }
-            AuxFileFilePull fileFilePull = entry.getKey();
+            AuxFileFileIssue fileFilePull = entry.getKey();
             AuxFileFile fileFile = new AuxFileFile(fileFilePull.getFileName(), fileFilePull.getFileName2());
             Set<Commenter> devsCommentters = entry.getValue();
 
@@ -586,18 +586,17 @@ public class BichoPairFilePerIssueMetricsInDateServices extends AbstractBichoMet
             });
 
             EntityMetric metrics = new EntityMetric();
-            metrics.setNodes(objectsToNodes(fileFileMetrics));
+            metrics.setNodes(objectsToNodes(fileFileMetrics, getHeadCSV()));
             saveMetrics(metrics);
 
             EntityMetric metrics25percentMostUpdated = new EntityMetric();
-            metrics25percentMostUpdated.setNodes(objectsToNodes(ListUtils.getFirst25PercentElements(ordered)));
+            metrics25percentMostUpdated.setNodes(objectsToNodes(ListUtils.getFirst25PercentElements(ordered), getHeadCSV()));
             saveMetrics(metrics25percentMostUpdated);
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    @Override
     public String getHeadCSV() {
         return "file;file2;"
                 + "issue;" // 1 issue da ocorrencia do par

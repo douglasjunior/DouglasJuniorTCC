@@ -14,7 +14,6 @@ import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.UserCommentedSamePairOfFileI
 import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.auxiliary.AuxFileFile;
 import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.auxiliary.AuxUserUserDirectional;
 import br.edu.utfpr.cm.JGitMinerWeb.services.metric.auxiliary.AuxFileFileMetrics;
-import br.edu.utfpr.cm.JGitMinerWeb.services.metric.auxiliary.IssueMetrics;
 import br.edu.utfpr.cm.JGitMinerWeb.services.metric.centrality.BetweennessCalculator;
 import br.edu.utfpr.cm.JGitMinerWeb.services.metric.centrality.ClosenessCalculator;
 import br.edu.utfpr.cm.JGitMinerWeb.services.metric.centrality.DegreeCalculator;
@@ -37,6 +36,7 @@ import br.edu.utfpr.cm.minerador.services.matrix.BichoUserCommentedSamePairOfFil
 import br.edu.utfpr.cm.minerador.services.matrix.model.Commenter;
 import br.edu.utfpr.cm.minerador.services.matrix.model.FilePairApriori;
 import static br.edu.utfpr.cm.minerador.services.metric.AbstractBichoMetricServices.objectsToNodes;
+import br.edu.utfpr.cm.minerador.services.metric.model.IssueMetrics;
 import edu.uci.ics.jung.graph.DirectedSparseGraph;
 import edu.uci.ics.jung.graph.util.EdgeType;
 import java.text.SimpleDateFormat;
@@ -533,14 +533,14 @@ public class BichoPairFileMetricsInDateServices extends AbstractBichoMetricServi
         out.printLog("Número de pares de arquivos: " + fileFileMetrics.size());
 
         EntityMetric metrics = new EntityMetric();
-        metrics.setNodes(objectsToNodes(fileFileMetrics));
+        metrics.setNodes(objectsToNodes(fileFileMetrics, getHeadCSV()));
         saveMetrics(metrics);
 
         List<AuxFileFileMetrics> metricsList = new ArrayList<>(fileFileMetrics);
         // salvando a matriz com o top 10 par de arquivos
         EntityMetric metrics2 = new EntityMetric();
         List<AuxFileFileMetrics> top10 = getTop10(metricsList);
-        metrics2.setNodes(objectsToNodes(top10));
+        metrics2.setNodes(objectsToNodes(top10, getHeadCSV()));
         metrics2.setAdditionalFilename(" top 10");
         saveMetrics(metrics2);
 
@@ -558,7 +558,7 @@ public class BichoPairFileMetricsInDateServices extends AbstractBichoMetricServi
             filePairTop.changeToRisky();
             changedWithA.add(0, filePairTop);
             EntityMetric metrics3 = new EntityMetric();
-            metrics3.setNodes(objectsToNodes(changedWithA));
+            metrics3.setNodes(objectsToNodes(changedWithA, getHeadCSV()));
             rank++;
             metrics3.setAdditionalFilename(" " + rank + " file changed with " + filePairTop.getFile());
             saveMetrics(metrics3);
@@ -610,7 +610,6 @@ public class BichoPairFileMetricsInDateServices extends AbstractBichoMetricServi
         });
     }
 
-    @Override
     public String getHeadCSV() {
         return "file;file2;"
                 + "samePackage;" // arquivos do par são do mesmo pacote = 1, caso contrário 0

@@ -103,9 +103,8 @@ public class GitMatrixViewBean implements Serializable {
 
                 AbstractBichoMatrixServices services = AbstractBichoMatrixServices.createInstance(matrix.getClassServicesName());
 
-                StringBuilder csv = new StringBuilder(services.getHeadCSV());
+                StringBuilder csv = new StringBuilder();
 
-                csv.append("\r\n");
                 for (EntityMatrixNode node : matrix.getNodes()) {
                     csv.append(node).append("\r\n");
                 }
@@ -140,9 +139,8 @@ public class GitMatrixViewBean implements Serializable {
 
                 AbstractBichoMatrixServices services = AbstractBichoMatrixServices.createInstance(matrix.getClassServicesName());
 
-                StringBuilder csv = new StringBuilder(services.getHeadCSV());
+                StringBuilder csv = new StringBuilder();
 
-                csv.append("\r\n");
                 for (EntityMatrixNode node : matrix.getNodes()) {
                     csv.append(node).append("\r\n");
                 }
@@ -169,11 +167,8 @@ public class GitMatrixViewBean implements Serializable {
 
             String fileName = generateFileName(matrix) + ".csv";
 
-            AbstractBichoMatrixServices services = AbstractBichoMatrixServices.createInstance(matrix.getClassServicesName());
+            StringBuilder csv = new StringBuilder();
 
-            StringBuilder csv = new StringBuilder(services.getHeadCSV());
-
-            csv.append("\r\n");
             for (EntityMatrixNode node : matrix.getNodes()) {
                 csv.append(node).append("\r\n");
             }

@@ -13,11 +13,11 @@ import org.junit.Test;
  */
 public class AuxFileFilePullTest {
 
-    private AuxFileFilePull instance1;
+    private AuxFileFileIssue instance1;
     
     @Before
     public void setup() {
-        instance1 = new AuxFileFilePull("FileA.java", "FileB.java", 1);
+        instance1 = new AuxFileFileIssue("FileA.java", "FileB.java", 1);
     }
     
     @After
@@ -31,8 +31,8 @@ public class AuxFileFilePullTest {
      */
     @Test
     public void testEqualsTrue() {
-        AuxFileFilePull equal1 = new AuxFileFilePull("FileA.java", "FileB.java", 1);
-        AuxFileFilePull equal2 = new AuxFileFilePull("FileB.java", "FileA.java", 1);
+        AuxFileFileIssue equal1 = new AuxFileFileIssue("FileA.java", "FileB.java", 1);
+        AuxFileFileIssue equal2 = new AuxFileFileIssue("FileB.java", "FileA.java", 1);
         
         assertTrue(instance1.equals(equal1));
         assertTrue(instance1.hashCode() == equal1.hashCode());
@@ -46,8 +46,8 @@ public class AuxFileFilePullTest {
      */
     @Test
     public void testEqualsFalse() {
-        AuxFileFilePull notEqual = new AuxFileFilePull("FileB.java", "FileC.java", 1);
-        AuxFileFilePull notEqual2 = new AuxFileFilePull("FileA.java", "FileB.java", 2);
+        AuxFileFileIssue notEqual = new AuxFileFileIssue("FileB.java", "FileC.java", 1);
+        AuxFileFileIssue notEqual2 = new AuxFileFileIssue("FileA.java", "FileB.java", 2);
         assertFalse(instance1.equals(notEqual));
         assertFalse(instance1.hashCode() == notEqual.hashCode());
         assertFalse(instance1.equals(notEqual2));

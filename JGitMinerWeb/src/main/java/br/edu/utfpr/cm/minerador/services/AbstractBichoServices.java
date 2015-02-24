@@ -126,11 +126,4 @@ public abstract class AbstractBichoServices implements Runnable, Serializable {
         }
         return lines;
     }
-
-    /**
-     * Name of columns separated by ";".
-     *
-     * @return column1;column2;column3;...
-     */
-    public abstract String getHeadCSV();
 }

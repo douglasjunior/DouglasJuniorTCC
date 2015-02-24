@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -22,6 +23,9 @@ public class BichoDAO {
     private final String FIXED_ISSUES_ONLY;
     private final String FILTER_BY_ISSUE_FIX_MAJOR_VERSION;
     private final String FILTER_BY_ISSUE_FIX_DATE;
+
+    // order
+    private final String ORDER_BY_FIX_DATE;
 
     // queries
     private final String COUNT_FILES_PER_COMMITS;
@@ -64,6 +68,9 @@ public class BichoDAO {
                 = " AND i.resolution = \"Fixed\""
                 + " AND c.field = \"Resolution\""
                 + " AND c.new_value = i.resolution";
+
+        ORDER_BY_FIX_DATE
+                = " ORDER BY c.changed_on";
 
         COUNT_FILES_PER_COMMITS = QueryUtils.getQueryForDatabase("SELECT s.id, s.num_files"
                 + "  FROM {0}_issues.issues_scmlog i2s"
@@ -229,6 +236,8 @@ public class BichoDAO {
             selectParams.add(maxFilesPerCommit);
         }
 
+        sql.append(ORDER_BY_FIX_DATE);
+
         List<Object[]> rawIssues = dao.selectNativeWithParams(sql.toString(), selectParams.toArray());
 
         Map<Integer, List<Integer>> issuesCommits = new HashMap<>();
@@ -262,7 +271,7 @@ public class BichoDAO {
 
         List<Object[]> rawIssues = dao.selectNativeWithParams(sql.toString(), selectParams.toArray());
 
-        Map<Issue, List<Integer>> issuesCommits = new HashMap<>();
+        Map<Issue, List<Integer>> issuesCommits = new LinkedHashMap<>(rawIssues.size());
         for (Object[] issueCommit : rawIssues) {
             Integer issueId = (Integer) issueCommit[0];
             String issueType = (String) issueCommit[1];

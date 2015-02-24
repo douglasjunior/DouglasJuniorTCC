@@ -6,13 +6,18 @@ import java.util.Objects;
  *
  * @author douglas
  */
-public class AuxFileFilePull {
+public class AuxFileFileIssue {
 
     private final AuxFileFile fileFile;
     private Integer pullNumber;
 
-    public AuxFileFilePull(String fileName, String fileName2, Integer pullNumber) {
+    public AuxFileFileIssue(String fileName, String fileName2, Integer pullNumber) {
         fileFile = new AuxFileFile(fileName, fileName2);
+        this.pullNumber = pullNumber;
+    }
+
+    public AuxFileFileIssue(AuxFileFile fileFile, Integer pullNumber) {
+        this.fileFile = fileFile;
         this.pullNumber = pullNumber;
     }
 
@@ -38,8 +43,8 @@ public class AuxFileFilePull {
 
     @Override
     public boolean equals(Object obj) {
-        if (obj instanceof AuxFileFilePull) {
-            AuxFileFilePull other = (AuxFileFilePull) obj;
+        if (obj instanceof AuxFileFileIssue) {
+            AuxFileFileIssue other = (AuxFileFileIssue) obj;
             if (fileFile.equals(other.getFileFile())
                     && this.pullNumber.equals(other.pullNumber)) {
                 return true;

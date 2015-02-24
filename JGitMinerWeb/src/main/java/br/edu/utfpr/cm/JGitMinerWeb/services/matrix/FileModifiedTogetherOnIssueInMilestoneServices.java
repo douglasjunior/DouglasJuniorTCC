@@ -7,7 +7,7 @@ package br.edu.utfpr.cm.JGitMinerWeb.services.matrix;
 import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericDao;
 import br.edu.utfpr.cm.JGitMinerWeb.model.matrix.EntityMatrix;
 import br.edu.utfpr.cm.JGitMinerWeb.model.miner.EntityRepository;
-import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.auxiliary.AuxFileFilePull;
+import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.auxiliary.AuxFileFileIssue;
 import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.nodes.NodeGeneric;
 import br.edu.utfpr.cm.JGitMinerWeb.util.OutLog;
 import br.edu.utfpr.cm.JGitMinerWeb.util.Util;
@@ -57,7 +57,7 @@ public class FileModifiedTogetherOnIssueInMilestoneServices extends AbstractMatr
             throw new IllegalArgumentException("Numero do Milestone inválido.");
         }
 
-        String jpql = "SELECT DISTINCT NEW " + AuxFileFilePull.class.getName() + "(f.filename, f2.filename, p.number) "
+        String jpql = "SELECT DISTINCT NEW " + AuxFileFileIssue.class.getName() + "(f.filename, f2.filename, p.number) "
                 + "FROM "
                 + "EntityPullRequest p JOIN p.issue i JOIN i.milestone m JOIN p.repositoryCommits rc JOIN p.repositoryCommits rc2 JOIN rc.files f JOIN rc2.files f2 "
                 + "WHERE "
@@ -78,7 +78,7 @@ public class FileModifiedTogetherOnIssueInMilestoneServices extends AbstractMatr
 
         List<NodeGeneric> nodes = new ArrayList<>();
         do {
-            List<AuxFileFilePull> resultTemp = dao.selectWithParams(jpql,
+            List<AuxFileFileIssue> resultTemp = dao.selectWithParams(jpql,
                     new String[]{"repository", "milestoneNumber", "prefixFile", "suffixFile"},
                     new Object[]{getRepository(), mileNumber, getPrefixFile(), getSuffixFile()},
                     offset, limit);
@@ -87,8 +87,8 @@ public class FileModifiedTogetherOnIssueInMilestoneServices extends AbstractMatr
             System.out.println("countTemp: " + countTemp);
             System.out.println("countTotal: " + countTotal);
             System.out.println("Transformando em Nodes...");
-            for (Iterator<AuxFileFilePull> it = resultTemp.iterator(); it.hasNext();) {
-                AuxFileFilePull aux = it.next();
+            for (Iterator<AuxFileFileIssue> it = resultTemp.iterator(); it.hasNext();) {
+                AuxFileFileIssue aux = it.next();
                 incrementNode(nodes, new NodeGeneric(aux.getFileName(), aux.getFileName2()));
             }
             System.out.println("Transformação concluída!");

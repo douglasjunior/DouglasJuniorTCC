@@ -1,7 +1,5 @@
-package br.edu.utfpr.cm.JGitMinerWeb.services.metric.auxiliary;
+package br.edu.utfpr.cm.minerador.services.metric.model;
 
-import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.auxiliary.AuxFileFile;
-import br.edu.utfpr.cm.JGitMinerWeb.util.Util;
 import br.edu.utfpr.cm.minerador.services.matrix.model.FilePairApriori;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -11,10 +9,11 @@ import java.util.Map;
 import java.util.Objects;
 
 /**
+ * A file pair metrics.
  *
- * @author douglas
+ * @author Rodrigo Kuroda
  */
-public class AuxFileFileMetrics {
+public class FilePairMetrics {
 
     public static final Map<String, Integer> HEADER_INDEX;
     public static final Integer futureDefectsIndex;
@@ -64,25 +63,30 @@ public class AuxFileFileMetrics {
         futureDefectsIndex = HEADER_INDEX.get("futureDefects");
     }
 
-    private final AuxFileFile fileFile;
-    private final String file;
-    private final String file2;
+    private final FilePair filePair;
     private FilePairApriori filePairApriori;
     private final List<Double> metrics;
-    private int risk = 0;
+    private int changed = 0;
 
-    public AuxFileFileMetrics(String file, String file2, double... metrics) {
-        this.file = file;
-        this.file2 = file2;
-        this.fileFile = new AuxFileFile(file, file2);
+    public FilePairMetrics(String file, String file2, double... metrics) {
+        this.filePair = new FilePair(file, file2);
         this.metrics = new ArrayList<>();
         addMetrics(metrics);
     }
 
-    public AuxFileFileMetrics(String file, String file2, List<Double> metrics) {
-        this.file = file;
-        this.file2 = file2;
-        this.fileFile = new AuxFileFile(file, file2);
+    public FilePairMetrics(FilePair filePair, double... metrics) {
+        this.filePair = filePair;
+        this.metrics = new ArrayList<>();
+        addMetrics(metrics);
+    }
+
+    public FilePairMetrics(String file, String file2, List<Double> metrics) {
+        this.filePair = new FilePair(file, file2);
+        this.metrics = metrics;
+    }
+
+    public FilePairMetrics(FilePair filePair, List<Double> metrics) {
+        this.filePair = filePair;
         this.metrics = metrics;
     }
 
@@ -94,15 +98,8 @@ public class AuxFileFileMetrics {
         this.filePairApriori = filePairApriori;
     }
 
-    public AuxFileFile getFileFile() {
-        return fileFile;
-    }
-
-    public String getFile() {
-        return file;
-    }
-    public String getFile2() {
-        return file2;
+    public FilePair getFilePair() {
+        return filePair;
     }
 
     public List<Double> getMetrics() {
@@ -111,20 +108,21 @@ public class AuxFileFileMetrics {
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder(file).append(";").append(file2);
-        for (double m : metrics) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(filePair);
+        for (double measure : metrics) {
             sb.append(";");
-            sb.append(Util.tratarDoubleParaString(m));
+            sb.append(measure);
         }
         sb.append(";");
-        sb.append(risk);
+        sb.append(changed);
         return sb.toString();
     }
 
     @Override
     public int hashCode() {
         int hash = 7;
-        hash = 89 * hash + (Objects.hashCode(this.file) + Objects.hashCode(this.file2));
+        hash = 89 * hash + Objects.hashCode(filePair);
         return hash;
     }
 
@@ -133,17 +131,11 @@ public class AuxFileFileMetrics {
         if (obj == null) {
             return false;
         }
-        if (!(obj instanceof AuxFileFileMetrics)) {
+        if (!(obj instanceof FilePairMetrics)) {
             return false;
         }
-        final AuxFileFileMetrics other = (AuxFileFileMetrics) obj;
-        if (Util.stringEquals(this.file, other.file) && Util.stringEquals(this.file2, other.file2)) {
-            return true;
-        }
-        if (Util.stringEquals(this.file, other.file2) && Util.stringEquals(this.file2, other.file)) {
-            return true;
-        }
-        return false;
+        final FilePairMetrics other = (FilePairMetrics) obj;
+        return Objects.equals(filePair, other.filePair);
     }
 
     public void addMetrics(double... metrics) {
@@ -152,12 +144,12 @@ public class AuxFileFileMetrics {
         }
     }
 
-    public void changeToRisky() {
-        risk = 1;
+    public void changed() {
+        changed = 1;
     }
 
     public int getRisky() {
-        return risk;
+        return changed;
     }
 
     public int getFutureDefectIssuesIdWeight() {

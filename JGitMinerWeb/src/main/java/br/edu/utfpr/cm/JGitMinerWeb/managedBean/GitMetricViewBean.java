@@ -4,7 +4,6 @@ import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericDao;
 import br.edu.utfpr.cm.JGitMinerWeb.model.metric.EntityMetric;
 import br.edu.utfpr.cm.JGitMinerWeb.model.metric.EntityMetricNode;
 import br.edu.utfpr.cm.JGitMinerWeb.util.JsfUtil;
-import br.edu.utfpr.cm.minerador.services.metric.AbstractBichoMetricServices;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -92,11 +91,8 @@ public class GitMetricViewBean implements Serializable {
 
                 String fileName = generateFileName(metric) + ".csv";
 
-                AbstractBichoMetricServices services = AbstractBichoMetricServices.createInstance(metric.getClassServicesName());
+                StringBuilder csv = new StringBuilder();
 
-                StringBuilder csv = new StringBuilder(services.getHeadCSV());
-
-                csv.append("\r\n");
                 for (EntityMetricNode node : metric.getNodes()) {
                     csv.append(node).append("\r\n");
                 }
@@ -131,11 +127,7 @@ public class GitMetricViewBean implements Serializable {
 
                 String fileName = generateFileName(metric) + ".csv";
 
-                AbstractBichoMetricServices services = AbstractBichoMetricServices.createInstance(metric.getClassServicesName());
-
-                StringBuilder csv = new StringBuilder(services.getHeadCSV());
-
-                csv.append("\r\n");
+                StringBuilder csv = new StringBuilder();
                 for (EntityMetricNode node : metric.getNodes()) {
                     csv.append(node).append("\r\n");
                 }
@@ -161,11 +153,8 @@ public class GitMetricViewBean implements Serializable {
 
             String fileName = generateFileName(metric) + ".csv";
 
-            AbstractBichoMetricServices services = AbstractBichoMetricServices.createInstance(metric.getClassServicesName());
+            StringBuilder csv = new StringBuilder();
 
-            StringBuilder csv = new StringBuilder(services.getHeadCSV());
-
-            csv.append("\r\n");
             for (EntityMetricNode node : metric.getNodes()) {
                 csv.append(node).append("\r\n");
             }

@@ -177,11 +177,10 @@ public class BichoUserCommentedSamePairOfFileOnIssueInDateServices extends Abstr
         out.printLog("Result: " + result.size());
 
         EntityMatrix matrix = new EntityMatrix();
-        matrix.setNodes(objectsToNodes(result.values()));
+        matrix.setNodes(objectsToNodes(result.values(), this.getHeadCSV()));
         matricesToSave.add(matrix);
     }
 
-    @Override
     public String getHeadCSV() {
         return "user;file;file2;user2;weigth";
     }

@@ -4,8 +4,8 @@ import br.edu.utfpr.cm.JGitMinerWeb.dao.AuxCodeChurn;
 import br.edu.utfpr.cm.JGitMinerWeb.dao.BichoFileDAO;
 import br.edu.utfpr.cm.JGitMinerWeb.dao.BichoPairFileDAO;
 import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.auxiliary.AuxFileFile;
-import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.auxiliary.AuxFileFilePull;
-import br.edu.utfpr.cm.JGitMinerWeb.services.metric.auxiliary.IssueMetrics;
+import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.auxiliary.AuxFileFileIssue;
+import br.edu.utfpr.cm.minerador.services.metric.model.IssueMetrics;
 import br.edu.utfpr.cm.minerador.services.matrix.model.Commenter;
 import edu.uci.ics.jung.graph.DirectedSparseGraph;
 import java.util.Collection;
@@ -40,10 +40,10 @@ public class Cacher {
     private final Map<AuxFileFile, Long> futureIssuesMap = new HashMap<>();
     private final Map<AuxFileFile, Long> totalCommittersMap = new HashMap<>();
     private final Map<AuxFileFile, Long> totalPastCommittersMap = new HashMap<>();
-    private final Map<AuxFileFilePull, Long> totalCommittersUntiIssueFixDateMap = new HashMap<>();
+    private final Map<AuxFileFileIssue, Long> totalCommittersUntiIssueFixDateMap = new HashMap<>();
     private final Map<AuxFileFile, Long> totalCommitsMap = new HashMap<>();
     private final Map<AuxFileFile, Long> totalPastCommitsMap = new HashMap<>();
-    private final Map<AuxFileFilePull, Long> totalCommitsUntiIssueFixDateMap = new HashMap<>();
+    private final Map<AuxFileFileIssue, Long> totalCommitsUntiIssueFixDateMap = new HashMap<>();
     private final Map<AuxFileFile, Map<String, Long>> futureIssueTypessMap = new HashMap<>();
 
     private final Map<Integer, IssueMetrics> issuesCommentsCacher = new HashMap<>();
@@ -51,7 +51,7 @@ public class Cacher {
 
     private final Map<Integer, NetworkMetricsCalculator> networkMetricsMap = new HashMap<>();
 
-    private final Map<AuxFileFilePull, AuxCodeChurn> cummulativeCodeChurnMap = new HashMap<>();
+    private final Map<AuxFileFileIssue, AuxCodeChurn> cummulativeCodeChurnMap = new HashMap<>();
 
     private final BichoFileDAO fileDAO;
     private final BichoPairFileDAO pairFileDAO;
@@ -258,7 +258,7 @@ public class Cacher {
         return totalCommitters;
     }
 
-    public long calculeCummulativeCommitters(AuxFileFilePull fileFile, String fixVersion) {
+    public long calculeCummulativeCommitters(AuxFileFileIssue fileFile, String fixVersion) {
         long totalCommitters;
         if (totalCommittersUntiIssueFixDateMap.containsKey(fileFile)) {
             totalCommitters = totalCommittersUntiIssueFixDateMap.get(fileFile);
@@ -294,7 +294,7 @@ public class Cacher {
         return totalCommits;
     }
 
-    public Long calculeCummulativeCommits(AuxFileFilePull fileFile, String fixVersion) {
+    public Long calculeCummulativeCommits(AuxFileFileIssue fileFile, String fixVersion) {
         long totalCommits;
         if (totalCommitsUntiIssueFixDateMap.containsKey(fileFile)) {
             totalCommits = totalCommitsUntiIssueFixDateMap.get(fileFile);
@@ -330,7 +330,7 @@ public class Cacher {
 
     public AuxCodeChurn calculeCummulativeCodeChurnAddDelChange(String fileName, String fileName2, Integer issue, Set<Integer> allPairFileIssues, String fixVersion) {
         final AuxCodeChurn codeChurn;
-        final AuxFileFilePull fileFile = new AuxFileFilePull(fileName, fileName2, issue);
+        final AuxFileFileIssue fileFile = new AuxFileFileIssue(fileName, fileName2, issue);
 
         if (cummulativeCodeChurnMap.containsKey(fileFile)) {
             codeChurn = cummulativeCodeChurnMap.get(fileFile);
