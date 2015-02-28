@@ -225,6 +225,7 @@ public class BichoPairOfFileInFixVersionServices extends AbstractBichoMatrixServ
 
             pairFileList.add(filePairOutput);
         }
+        oderByFilePairSupportAndNumberOfDefects(pairFileList);
 
         EntityMatrix matrix = new EntityMatrix();
         matrix.setNodes(objectsToNodes(pairFileList, FilePairOutput.getToStringHeader()));
@@ -269,14 +270,18 @@ public class BichoPairOfFileInFixVersionServices extends AbstractBichoMatrixServ
     }
 
     private List<FilePairOutput> getTop10(final List<FilePairOutput> pairFileList) {
-        // order by number of defects (lower priority)
-        orderByNumberOfDefects(pairFileList);
-        // order by support (higher priority)
-        orderByFilePairSupport(pairFileList);
+        oderByFilePairSupportAndNumberOfDefects(pairFileList);
 
         int lastIndex = pairFileList.size() > 10 ? 10 : pairFileList.size();
         final List<FilePairOutput> top10 = pairFileList.subList(0, lastIndex);
         return top10;
+    }
+
+    private void oderByFilePairSupportAndNumberOfDefects(final List<FilePairOutput> pairFileList) {
+        // order by number of defects (lower priority)
+        orderByNumberOfDefects(pairFileList);
+        // order by support (higher priority)
+        orderByFilePairSupport(pairFileList);
     }
 
     private void orderByFilePairSupport(final List<FilePairOutput> pairFileList) {

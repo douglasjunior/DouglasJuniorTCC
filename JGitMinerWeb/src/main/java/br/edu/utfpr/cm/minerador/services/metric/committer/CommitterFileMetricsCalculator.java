@@ -2,7 +2,6 @@ package br.edu.utfpr.cm.minerador.services.metric.committer;
 
 import br.edu.utfpr.cm.JGitMinerWeb.dao.BichoFileDAO;
 import br.edu.utfpr.cm.minerador.services.metric.model.CodeChurn;
-import br.edu.utfpr.cm.minerador.services.metric.model.Commit;
 import br.edu.utfpr.cm.minerador.services.metric.model.File;
 
 /**
@@ -42,12 +41,7 @@ public class CommitterFileMetricsCalculator {
 //        return new CommitterFileMetrics(committer, file, ownership, experience);
 //    }
 
-    public CommitterFileMetrics calculeForVersion(File file, Commit commit, String fixVersion) {
-        final Committer committer = commit.getCommiter();
-
-        final Committer lastCommitter = bichoFileDAO.selectLastCommitter(file.getFileName(), commit, fixVersion);
-        final boolean sameOwnership = committer.equals(lastCommitter);
-
+    public CommitterFileMetrics calculeForVersion(File file, Committer committer, String fixVersion) {
         //
         // TODO limitacao: arquivo pelo nome, nao pelo id.
         // Pelo id, podemos considerar os arquivos quando renomeados/movidos.
@@ -68,6 +62,6 @@ public class CommitterFileMetricsCalculator {
 
         double experience = committerFileChanges.doubleValue() / fileChanges.doubleValue();
 
-        return new CommitterFileMetrics(committer, file, sameOwnership, ownership, experience);
+        return new CommitterFileMetrics(committer, file, ownership, experience);
     }
 }

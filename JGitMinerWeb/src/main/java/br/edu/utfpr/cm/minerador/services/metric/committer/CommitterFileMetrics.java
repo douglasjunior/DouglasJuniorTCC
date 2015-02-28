@@ -2,7 +2,6 @@ package br.edu.utfpr.cm.minerador.services.metric.committer;
 
 import br.edu.utfpr.cm.minerador.services.metric.model.File;
 import java.util.Objects;
-import org.apache.commons.lang3.BooleanUtils;
 
 /**
  *
@@ -11,23 +10,20 @@ import org.apache.commons.lang3.BooleanUtils;
 public class CommitterFileMetrics {
 
     public final static String HEADER
-            = "sameOwnership;" // 1 = mesmo autor que fez o ultimo commit do arquivo
-            + "ownership;" // baseado no commit
-            + "experience;" // baseado no code churn
+            = "pv_ownership;" // baseado no commit
+            + "pv_experience;" // baseado no code churn
             ;
 
     private final Committer committer;
     private final File file;
     private final double ownership;
     private final double experience;
-    private final boolean sameOwnership;
 
-    public CommitterFileMetrics(Committer committer, File file, boolean sameOwnership, double ownership, double experience) {
+    public CommitterFileMetrics(Committer committer, File file, double ownership, double experience) {
         this.committer = committer;
         this.file = file;
         this.ownership = ownership;
         this.experience = experience;
-        this.sameOwnership = sameOwnership;
     }
 
     public Committer getCommitter() {
@@ -74,7 +70,7 @@ public class CommitterFileMetrics {
 
     @Override
     public String toString() {
-        return BooleanUtils.toInteger(sameOwnership) + ";" + ownership + ";"
+        return ownership + ";"
                 + experience + ";";
     }
 }

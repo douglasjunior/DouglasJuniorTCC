@@ -7,7 +7,7 @@ package br.edu.utfpr.cm.minerador.services.metric.committer;
 public final class EmptyCommitterFileMetrics extends CommitterFileMetrics {
 
     public EmptyCommitterFileMetrics() {
-        super(null, null, false, 0.0, 0.0);
+        super(null, null, 0.0, 0.0);
     }
 
 }

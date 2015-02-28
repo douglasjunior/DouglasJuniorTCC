@@ -25,6 +25,7 @@ import br.edu.utfpr.cm.minerador.services.matrix.BichoPairOfFileInFixVersionServ
 import br.edu.utfpr.cm.minerador.services.matrix.model.Commenter;
 import br.edu.utfpr.cm.minerador.services.matrix.model.FilePairApriori;
 import static br.edu.utfpr.cm.minerador.services.metric.AbstractBichoMetricServices.objectsToNodes;
+import br.edu.utfpr.cm.minerador.services.metric.committer.Committer;
 import br.edu.utfpr.cm.minerador.services.metric.committer.CommitterFileMetrics;
 import br.edu.utfpr.cm.minerador.services.metric.committer.CommitterFileMetricsCalculator;
 import br.edu.utfpr.cm.minerador.services.metric.committer.EmptyCommitterFileMetrics;
@@ -43,7 +44,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -84,7 +84,6 @@ public class BichoPairFilePerIssueMetricsInFixVersionServices extends AbstractBi
     @Override
     public void run() {
         repository = getRepository();
-        final Date started = new Date();
 
         final String fixVersion = getVersion();
         final String futureVersion = getFutureVersion();
@@ -581,7 +580,7 @@ public class BichoPairFilePerIssueMetricsInFixVersionServices extends AbstractBi
 
                     final CommitterFileMetrics committerFileMetrics;
                     if (pastMajorVersion != null) {
-                        committerFileMetrics = committerFileMetricsCalculator.calculeForVersion(file, commitInIssue, pastMajorVersion);
+                        committerFileMetrics = committerFileMetricsCalculator.calculeForVersion(file, commitInIssue.getCommiter(), pastMajorVersion);
                     } else {
                         committerFileMetrics = new EmptyCommitterFileMetrics();
                     }
@@ -619,6 +618,9 @@ public class BichoPairFilePerIssueMetricsInFixVersionServices extends AbstractBi
                             futureUpdates += entrySet.getValue();
                         }
 
+                        final Committer lastCommitter = bichoFileDAO.selectLastCommitter(file.getFileName(), commitInIssue, fixVersion);
+                        final boolean sameOwnership = commitInIssue.getCommiter().equals(lastCommitter);
+
                         final CodeChurn fileCodeChurn = bichoFileDAO.calculeAddDelChanges(filename, issue, commitInIssue.getId(), fixVersion);
 
                         // pair file age in release interval (days)
@@ -634,6 +636,8 @@ public class BichoPairFilePerIssueMetricsInFixVersionServices extends AbstractBi
                                 0,
                                 // cummulativeOwnerExperience
                                 0,
+                                // sameOwnership
+                                BooleanUtils.toInteger(sameOwnership),
                                 // number of distinct files in commit
                                 filesInCommit.size(),
                                 // committers, totalCommitters, commits, totalCommits,

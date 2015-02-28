@@ -31,7 +31,8 @@ public class BichoFileDAO {
     private final String FILTER_BY_ISSUE;
 
     private final String FILTER_BY_ISSUE_FIX_MAJOR_VERSION;
-    private final String FILTER_BY_BEFORE_ISSUE_FIX_MAJOR_VERSION;
+    private final String FILTER_BY_BEFORE_ISSUE_FIX_MAJOR_VERSION_INCLUSIVE;
+    private final String FILTER_BY_BEFORE_ISSUE_FIX_MAJOR_VERSION_EXCLUSIVE;
     private final String FILTER_BY_BEFORE_ISSUE_FIX_DATE_OF_ISSUE_ID;
 
     private final String FILTER_BY_COMMIT;
@@ -71,13 +72,14 @@ public class BichoFileDAO {
 
     private final String SELECT_FILES_PATH_BY_COMMIT_ID;
 
-    private final String SELECT_COMMITTERS_OF_FILE;
+    private final String SELECT_COMMITTERS_OF_FILE_BY_DATE;
+    private final String SELECT_COMMITTERS_OF_FILE_BY_FIX_MAJOR_VERSION;
     private final String COUNT_COMMITTERS_OF_FILE;
 
     private final String COUNT_ISSUE_REOPENED_TIMES;
 
     private final String COUNT_ISSUES_TYPES;
-    private final String SELECT_RELEASE_MIN_MAX_COMMIT_DATE_BY_FIX_VERSION;
+    private final String SELECT_RELEASE_MIN_MAX_COMMIT_DATE;
 
     private final String SELECT_LAST_COMMITTER_BEFORE_ISSUE;
 
@@ -111,7 +113,7 @@ public class BichoFileDAO {
                         + "  WHERE ifv.major_fix_version = ?)", repository);
 
         // avoid join, because has poor performance in this case
-        FILTER_BY_BEFORE_ISSUE_FIX_MAJOR_VERSION
+        FILTER_BY_BEFORE_ISSUE_FIX_MAJOR_VERSION_INCLUSIVE
                 = QueryUtils.getQueryForDatabase(
                         " AND i.id IN ("
                         + " SELECT ifv.issue_id "
@@ -121,6 +123,20 @@ public class BichoFileDAO {
                         + "  FROM {0}_issues.issues_fix_version_order ifvo"
                         + " WHERE ifvo.version_order <= " // inclusive
                         + "(SELECT MAX(ifvo2.version_order)"
+                        + "   FROM {0}_issues.issues_fix_version_order ifvo2"
+                        + "  WHERE ifvo2.major_fix_version = ?)))", repository);
+
+        // avoid join, because has poor performance in this case
+        FILTER_BY_BEFORE_ISSUE_FIX_MAJOR_VERSION_EXCLUSIVE
+                = QueryUtils.getQueryForDatabase(
+                        " AND i.id IN ("
+                        + " SELECT ifv.issue_id "
+                        + "   FROM {0}_issues.issues_fix_version ifv "
+                        + "  WHERE ifv.major_fix_version IN ("
+                        + "SELECT ifvo.major_fix_version"
+                        + "  FROM {0}_issues.issues_fix_version_order ifvo"
+                        + " WHERE ifvo.version_order < " // exclusive
+                        + "(SELECT MIN(ifvo2.version_order)"
                         + "   FROM {0}_issues.issues_fix_version_order ifvo2"
                         + "  WHERE ifvo2.major_fix_version = ?)))", repository);
 
@@ -217,7 +233,8 @@ public class BichoFileDAO {
                 + FILTER_BY_MAX_FILES_IN_COMMIT;
 
         SELECT_ISSUES_BY_FIX_MAJOR_VERSION
-                = QueryUtils.getQueryForDatabase("SELECT DISTINCT i.id"
+                = QueryUtils.getQueryForDatabase(
+                        "SELECT DISTINCT i.id"
                         + FROM_TABLE
                         + WHERE, repository)
                 + FILTER_BY_MAX_FILES_IN_COMMIT
@@ -225,20 +242,30 @@ public class BichoFileDAO {
                 + FIXED_ISSUES_ONLY;
 
         SELECT_FILES_PATH_BY_COMMIT_ID
-                = QueryUtils.getQueryForDatabase("SELECT com.file_id, com.file_path"
+                = QueryUtils.getQueryForDatabase(
+                        "SELECT com.file_id, com.file_path"
                         + "  FROM {0}.commits com"
                         + "  JOIN {0}_vcs.scmlog s ON s.id = com.commit_id"
                         + " WHERE com.commit_id = ?", repository)
                 + FILTER_BY_MAX_FILES_IN_COMMIT
                 + FILTER_BY_JAVA_OR_XML_EXTENSION_AND_IS_NOT_TEST;
 
-        SELECT_COMMITTERS_OF_FILE
+        SELECT_COMMITTERS_OF_FILE_BY_DATE
                 = QueryUtils.getQueryForDatabase(
                         "SELECT DISTINCT(p.name)"
                         + FROM_TABLE
                         + "  JOIN {0}_vcs.people p ON p.id = s.committer_id"
                         + WHERE, repository)
                 + FILTER_BY_MAX_FILES_IN_COMMIT;
+
+        SELECT_COMMITTERS_OF_FILE_BY_FIX_MAJOR_VERSION
+                = QueryUtils.getQueryForDatabase(
+                        "SELECT DISTINCT p.id, p.name, p.email"
+                        + FROM_TABLE
+                        + "  JOIN {0}_vcs.people p ON p.id = s.committer_id"
+                        + WHERE, repository)
+                + FILTER_BY_MAX_FILES_IN_COMMIT
+                + FILTER_BY_ISSUE_FIX_MAJOR_VERSION;
 
         COUNT_COMMITTERS_OF_FILE
                 = QueryUtils.getQueryForDatabase(
@@ -265,7 +292,7 @@ public class BichoFileDAO {
                         + FILTER_BY_ISSUE_FIX_MAJOR_VERSION
                         + " GROUP BY i.type", repository);
 
-        SELECT_RELEASE_MIN_MAX_COMMIT_DATE_BY_FIX_VERSION
+        SELECT_RELEASE_MIN_MAX_COMMIT_DATE
                 = QueryUtils.getQueryForDatabase(
                         "SELECT MIN(com.date), MAX(com.date)"
                         + FROM_TABLE
@@ -279,7 +306,7 @@ public class BichoFileDAO {
                         + "  JOIN {0}_vcs.people p ON p.id = s.committer_id"
                         + WHERE
                         + FIXED_ISSUES_ONLY
-                        + FILTER_BY_BEFORE_ISSUE_FIX_MAJOR_VERSION
+                        + FILTER_BY_BEFORE_ISSUE_FIX_MAJOR_VERSION_INCLUSIVE
                         + " AND s.date < "
                         + "     (SELECT MAX(s2.date) FROM {0}_vcs.scmlog s2"
                         + "       WHERE s2.id = ?)"
@@ -552,7 +579,7 @@ public class BichoFileDAO {
 
         selectParams.add(fileName);
 
-        sql.append(FILTER_BY_BEFORE_ISSUE_FIX_MAJOR_VERSION);
+        sql.append(FILTER_BY_BEFORE_ISSUE_FIX_MAJOR_VERSION_INCLUSIVE);
         selectParams.add(version);
 
         if (onlyFixed) {
@@ -619,7 +646,7 @@ public class BichoFileDAO {
         }
 
         StringBuilder sql = new StringBuilder();
-        sql.append(SELECT_COMMITTERS_OF_FILE);
+        sql.append(SELECT_COMMITTERS_OF_FILE_BY_DATE);
 
         selectParams.add(file);
 
@@ -643,6 +670,34 @@ public class BichoFileDAO {
         Set<AuxUser> commitersList = new HashSet<>(committers.size());
         for (String name : committers) {
             commitersList.add(new AuxUser(name));
+        }
+
+        return commitersList;
+    }
+
+    public Set<Committer> selectCommitters(String file, String fixVersion) {
+
+        List<Object> selectParams = new ArrayList<>();
+        StringBuilder sql = new StringBuilder();
+        sql.append(SELECT_COMMITTERS_OF_FILE_BY_FIX_MAJOR_VERSION);
+        sql.append(FIXED_ISSUES_ONLY);
+        selectParams.add(file);
+        selectParams.add(fixVersion);
+
+        List<Object[]> committers = dao.selectNativeWithParams(
+                sql.toString(), selectParams.toArray());
+
+        Set<Committer> commitersList = new HashSet<>(committers.size());
+        for (Object row[] : committers) {
+            Committer committer = null;
+            if (row != null) {
+                Integer committerId = (Integer) row[0];
+                String committerName = (String) row[1];
+                String committerEmail = (String) row[2];
+
+                committer = new Committer(committerId, committerName, committerEmail);
+            }
+            commitersList.add(committer);
         }
 
         return commitersList;
@@ -734,7 +789,7 @@ public class BichoFileDAO {
         sql.append(SUM_ADD_AND_DEL_LINES_BY_FILE_NAME);
         selectParams.add(filename);
 
-        sql.append(FILTER_BY_BEFORE_ISSUE_FIX_MAJOR_VERSION);
+        sql.append(FILTER_BY_BEFORE_ISSUE_FIX_MAJOR_VERSION_INCLUSIVE);
         selectParams.add(version);
 
         if (commit != null) {
@@ -782,7 +837,7 @@ public class BichoFileDAO {
 
         sql.append(FIXED_ISSUES_ONLY);
 
-        sql.append(FILTER_BY_BEFORE_ISSUE_FIX_MAJOR_VERSION);
+        sql.append(FILTER_BY_BEFORE_ISSUE_FIX_MAJOR_VERSION_INCLUSIVE);
         selectParams.add(fixVersion);
 
         sql.append(FILTER_BY_BEFORE_ISSUE_FIX_DATE_OF_ISSUE_ID);
@@ -855,7 +910,7 @@ public class BichoFileDAO {
         List<Object> selectParams = new ArrayList<>();
 
         StringBuilder sql = new StringBuilder();
-        sql.append(SELECT_RELEASE_MIN_MAX_COMMIT_DATE_BY_FIX_VERSION);
+        sql.append(SELECT_RELEASE_MIN_MAX_COMMIT_DATE);
         sql.append(FIXED_ISSUES_ONLY);
 
         selectParams.add(filename);
@@ -893,12 +948,12 @@ public class BichoFileDAO {
         List<Object> selectParams = new ArrayList<>();
 
         StringBuilder sql = new StringBuilder();
-        sql.append(SELECT_RELEASE_MIN_MAX_COMMIT_DATE_BY_FIX_VERSION);
+        sql.append(SELECT_RELEASE_MIN_MAX_COMMIT_DATE);
         sql.append(FIXED_ISSUES_ONLY);
 
         selectParams.add(filename);
 
-        sql.append(FILTER_BY_BEFORE_ISSUE_FIX_MAJOR_VERSION);
+        sql.append(FILTER_BY_BEFORE_ISSUE_FIX_MAJOR_VERSION_EXCLUSIVE);
         selectParams.add(fixVersion);
 
         if (issue != null) {

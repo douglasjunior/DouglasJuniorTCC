@@ -14,26 +14,28 @@ import java.util.Objects;
 public class FileIssueMetrics extends FileMetrics {
 
     public static final String HEADER
-            = "file;file2;"
+            = "file1;file2;"
             // metricas da issue
             + IssueMetrics.HEADER
             + NetworkMetrics.HEADER
             + CommitMetrics.HEADER
             + CommitterFileMetrics.HEADER
             // metricas de commit
-            + "majorContributor;"
-            + "ownerExperience;"
-            + "cummulativeOwnerExperience;"
+            + "isMajorContributor;" // committer é principal colaborador do arquivo
+            + "ownerExperience;" // experiencia do owner na versao anterior
+            + "cummulativeOwnerExperience;" // experiencia do owner ate a versao anterior
+            + "sameOwnership;" // total de arquivos modificados no commit
             + "files;" // total de arquivos modificados no commit
 //            + "committers;" // committers na release
-            + "totalCommitters;" // committers desde o começo até a data final da relese
+            + "totalCommitters;" // committers desde o começo ate a data final da relese
 //            + "commits;" // commits do par de arquivos na release
             + "totalCommits;" // todos commits do arquivo
-            + "add;del;changes;" // do arquivo, no commit de uma issue corrigida
-            + "ageRelease;ageTotal;" // idade do arquivo em dias
+            + "addedLines;deletedLines;changedLines;" // do arquivo, no commit de uma issue corrigida
+            + "fileAge;" // idade na versão em analise
+            + "pv_totalFileAge;" // idade do arquivo em dias
             + "futureDefects;" // numero de defeitos do primeiro arquivo na proxima versao
             + "futureIssues;" // numero de issues do arquivo na proxima versao
-            + "pairChanged;" // o par mudou nesse commit? 0 = não, 1 = sim
+            + "isFilePairChanged;" // o par mudou nesse commit? 0 = não, 1 = sim
             ;
 
     public static final Map<String, Integer> headerIndexes;
