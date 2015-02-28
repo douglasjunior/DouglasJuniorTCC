@@ -1,4 +1,4 @@
-package br.edu.utfpr.cm.minerador.services.metric;
+package br.edu.utfpr.cm.minerador.services.metric.socialnetwork;
 
 import br.edu.utfpr.cm.JGitMinerWeb.dao.BichoDAO;
 import br.edu.utfpr.cm.JGitMinerWeb.services.metric.centrality.BetweennessCalculator;
@@ -12,8 +12,8 @@ import br.edu.utfpr.cm.JGitMinerWeb.services.metric.structuralholes.StructuralHo
 import br.edu.utfpr.cm.JGitMinerWeb.services.metric.structuralholes.StructuralHolesMeasure;
 import br.edu.utfpr.cm.JGitMinerWeb.util.DescriptiveStatisticsHelper;
 import br.edu.utfpr.cm.minerador.services.matrix.model.Commenter;
-import br.edu.utfpr.cm.minerador.services.socialnetwork.CommunicationNetworkBuilder;
-import br.edu.utfpr.cm.minerador.services.socialnetwork.Network;
+import br.edu.utfpr.cm.minerador.services.metric.socialnetwork.CommunicationNetworkBuilder;
+import br.edu.utfpr.cm.minerador.services.metric.socialnetwork.Network;
 import edu.uci.ics.jung.graph.DirectedSparseGraph;
 import edu.uci.ics.jung.graph.Graph;
 import java.util.HashSet;

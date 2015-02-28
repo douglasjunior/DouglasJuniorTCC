@@ -1,5 +1,6 @@
 package br.edu.utfpr.cm.JGitMinerWeb.dao;
 
+import br.edu.utfpr.cm.minerador.services.metric.model.CodeChurn;
 import br.edu.utfpr.cm.JGitMinerWeb.model.miner.EntityComment;
 import br.edu.utfpr.cm.JGitMinerWeb.model.miner.EntityRepository;
 import br.edu.utfpr.cm.minerador.services.metric.model.IssueMetrics;
@@ -551,7 +552,7 @@ public class PairFileDAO {
         return sum;
     }
 
-    public AuxCodeChurn calculeCodeChurnAddDelChange(EntityRepository repository,
+    public CodeChurn calculeCodeChurnAddDelChange(EntityRepository repository,
             String fileName, String fileName2, Date beginDate, Date endDate) {
 
         Object[] params = new Object[]{
@@ -569,7 +570,7 @@ public class PairFileDAO {
         Long deletions = sum.get(0)[1] == null ? 0 : (Long) sum.get(0)[1];
         Long changes = sum.get(0)[2] == null ? 0 : (Long) sum.get(0)[2];
 
-        return new AuxCodeChurn(fileName, fileName2,
+        return new CodeChurn(fileName, fileName2,
                 additions, deletions, changes);
     }
 

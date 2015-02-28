@@ -2,7 +2,7 @@ package br.edu.utfpr.cm.JGitMinerWeb.util;
 
 import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.auxiliary.AuxUserUserDirectional;
 import br.edu.utfpr.cm.minerador.services.matrix.model.Commenter;
-import br.edu.utfpr.cm.minerador.services.socialnetwork.UserPairDirectionalWeighted;
+import br.edu.utfpr.cm.minerador.services.metric.socialnetwork.UserPairDirectionalWeighted;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;

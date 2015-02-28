@@ -1,6 +1,7 @@
 
 package br.edu.utfpr.cm.JGitMinerWeb.dao;
 
+import br.edu.utfpr.cm.minerador.services.metric.model.CodeChurn;
 import br.edu.utfpr.cm.JGitMinerWeb.model.miner.EntityRepository;
 import java.util.ArrayList;
 import java.util.Date;
@@ -280,17 +281,17 @@ public class FileDAO {
     }
 
     // CORE CHURN //////////////////////////////////////////////////////////////
-    public AuxCodeChurn sumCodeChurnByFilename(EntityRepository repository,
+    public CodeChurn sumCodeChurnByFilename(EntityRepository repository,
             String filename, Date beginDate, Date endDate) {
         return sumCodeChurnByFilename(repository, filename, null, beginDate, endDate, 0, 0, true);
     }
 
-    public AuxCodeChurn sumCodeChurnByFilename(EntityRepository repository,
+    public CodeChurn sumCodeChurnByFilename(EntityRepository repository,
             String filename, String user, Date beginDate, Date endDate) {
         return sumCodeChurnByFilename(repository, filename, user, beginDate, endDate, 0, 0, true);
     }
 
-    public AuxCodeChurn sumCodeChurnByFilename(EntityRepository repository,
+    public CodeChurn sumCodeChurnByFilename(EntityRepository repository,
             String filename, String user, Date beginDate, Date endDate,
             int minFilesPerCommit, int maxFilesPerCommit) {
         return sumCodeChurnByFilename(repository, filename, user,
@@ -298,7 +299,7 @@ public class FileDAO {
                 minFilesPerCommit, maxFilesPerCommit, true);
     }
 
-    public AuxCodeChurn sumCodeChurnByFilename(EntityRepository repository,
+    public CodeChurn sumCodeChurnByFilename(EntityRepository repository,
             String fileName, String user, Date beginDate, Date endDate,
             int minFilesPerCommit, int maxFilesPerCommit, boolean onlyMergeds) {
         List<Object> selectParams = new ArrayList<>();
@@ -342,7 +343,7 @@ public class FileDAO {
         List<Object[]> sum = dao.selectNativeWithParams(sql.toString(),
                 selectParams.toArray());
 
-        return new AuxCodeChurn(fileName,
+        return new CodeChurn(fileName,
                 (Long) sum.get(0)[0], (Long) sum.get(0)[1], (Long) sum.get(0)[2]);
     }
 

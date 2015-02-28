@@ -3,8 +3,8 @@ package br.edu.utfpr.cm.JGitMinerWeb.dao;
 import static br.edu.utfpr.cm.JGitMinerWeb.dao.QueryUtils.filterByIssues;
 import br.edu.utfpr.cm.minerador.services.matrix.model.Commenter;
 import br.edu.utfpr.cm.minerador.services.matrix.model.Issue;
+import br.edu.utfpr.cm.minerador.services.metric.committer.Committer;
 import br.edu.utfpr.cm.minerador.services.metric.model.Commit;
-import br.edu.utfpr.cm.minerador.services.metric.model.Committer;
 import br.edu.utfpr.cm.minerador.services.metric.model.File;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -44,6 +44,8 @@ public class BichoDAO {
     private final String COUNT_ISSUES_TYPES_END;
     private final String COUNT_ISSUES;
     private final String SELECT_COMMIT_AND_FILES_BY_ISSUE;
+    private final String SELECT_PAST_MAJOR_VERSION;
+    private final String SELECT_FUTURE_MAJOR_VERSION;
 
     private final GenericBichoDAO dao;
 
@@ -170,7 +172,7 @@ public class BichoDAO {
                 + FILTER_BY_MAX_FILES_IN_COMMIT;
 
         SELECT_COMMIT_AND_FILES_BY_ISSUE
-                =  QueryUtils.getQueryForDatabase(
+                = QueryUtils.getQueryForDatabase(
                         "SELECT DISTINCT com.commit_id, com.file_path, p.id, p.name, p.email"
                         + "  FROM {0}_issues.issues i"
                         + "  JOIN {0}_issues.changes c ON c.issue_id = i.id"
@@ -181,6 +183,24 @@ public class BichoDAO {
                         + " WHERE 1 = 1", repository)
                 + FILTER_BY_ISSUE_ID
                 + FILTER_BY_MAX_FILES_IN_COMMIT;
+
+        SELECT_PAST_MAJOR_VERSION
+                = QueryUtils.getQueryForDatabase(
+                        "SELECT ifvo.major_fix_version"
+                        + "  FROM {0}_issues.issues_fix_version_order ifvo"
+                        + " WHERE ifvo.version_order = "
+                        + "((SELECT MIN(ifvo2.version_order)"
+                        + "   FROM {0}_issues.issues_fix_version_order ifvo2"
+                        + "  WHERE ifvo2.major_fix_version = ?) - 1)", repository);
+
+        SELECT_FUTURE_MAJOR_VERSION
+                = QueryUtils.getQueryForDatabase(
+                        "SELECT ifvo.major_fix_version"
+                        + "  FROM {0}_issues.issues_fix_version_order ifvo"
+                        + " WHERE ifvo.version_order = "
+                        + "((SELECT MAX(ifvo2.version_order)"
+                        + "   FROM {0}_issues.issues_fix_version_order ifvo2"
+                        + "  WHERE ifvo2.major_fix_version = ?) + 1)", repository);
 
     }
 
@@ -437,5 +457,17 @@ public class BichoDAO {
         }
 
         return commits.keySet();
+    }
+
+    public String selectPastMajorVersion(String version) {
+        String pastMajorVersion
+                = dao.selectNativeOneWithParams(SELECT_PAST_MAJOR_VERSION, new Object[]{version});
+        return pastMajorVersion;
+    }
+
+    public String selectFutureMajorVersion(String version) {
+        String futureMajorVersion
+                = dao.selectNativeOneWithParams(SELECT_FUTURE_MAJOR_VERSION, new Object[]{version});
+        return futureMajorVersion;
     }
 }

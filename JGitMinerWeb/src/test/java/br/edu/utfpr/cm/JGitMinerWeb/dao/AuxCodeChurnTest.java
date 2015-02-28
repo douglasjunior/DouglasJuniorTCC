@@ -1,5 +1,6 @@
 package br.edu.utfpr.cm.JGitMinerWeb.dao;
 
+import br.edu.utfpr.cm.minerador.services.metric.model.CodeChurn;
 import org.junit.After;
 import static org.junit.Assert.assertEquals;
 import org.junit.Before;
@@ -10,13 +11,13 @@ import org.junit.Test;
  * @author Rodrigo T. Kuroda
  */
 public class AuxCodeChurnTest {
-    private AuxCodeChurn instance1;
-    private AuxCodeChurn instance2;
+    private CodeChurn instance1;
+    private CodeChurn instance2;
 
     @Before
     public void setup() {
-        instance1 = new AuxCodeChurn("FileA.java", 1, 2);
-        instance2 = new AuxCodeChurn("FileA.java", "FileB.java", 1, 2);
+        instance1 = new CodeChurn("FileA.java", 1, 2);
+        instance2 = new CodeChurn("FileA.java", "FileB.java", 1, 2);
     }
 
     @After
@@ -41,7 +42,7 @@ public class AuxCodeChurnTest {
 
     @Test
     public void testHashCode() {
-        AuxCodeChurn instance = new AuxCodeChurn("FileA.java", 10, 20);
+        CodeChurn instance = new CodeChurn("FileA.java", 10, 20);
         int expResult = instance1.hashCode();
         int result = instance.hashCode();
         assertEquals(expResult, result);
@@ -49,8 +50,8 @@ public class AuxCodeChurnTest {
 
     @Test
     public void testEquals() {
-        AuxCodeChurn equal1 = new AuxCodeChurn("FileA.java", 10, 20);
-        AuxCodeChurn equal2 = new AuxCodeChurn("FileB.java", "FileA.java", 10, 20);
+        CodeChurn equal1 = new CodeChurn("FileA.java", 10, 20);
+        CodeChurn equal2 = new CodeChurn("FileB.java", "FileA.java", 10, 20);
         boolean expResult = true;
         boolean result1 = instance1.equals(equal1);
         boolean result2 = instance2.equals(equal2);
@@ -60,8 +61,8 @@ public class AuxCodeChurnTest {
 
     @Test
     public void testNotEquals() {
-        AuxCodeChurn notEqual1 = new AuxCodeChurn("FileA.java", "FileB.java", 10, 20);
-        AuxCodeChurn notEqual2 = new AuxCodeChurn("FileA.java", 10, 20);
+        CodeChurn notEqual1 = new CodeChurn("FileA.java", "FileB.java", 10, 20);
+        CodeChurn notEqual2 = new CodeChurn("FileA.java", 10, 20);
         boolean expResult = false;
         boolean result1 = instance1.equals(notEqual1);
         boolean result2 = instance2.equals(notEqual2);

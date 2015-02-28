@@ -1,4 +1,4 @@
-package br.edu.utfpr.cm.minerador.services.socialnetwork;
+package br.edu.utfpr.cm.minerador.services.metric.socialnetwork;
 
 import br.edu.utfpr.cm.JGitMinerWeb.dao.BichoDAO;
 import br.edu.utfpr.cm.JGitMinerWeb.util.PairUtils;

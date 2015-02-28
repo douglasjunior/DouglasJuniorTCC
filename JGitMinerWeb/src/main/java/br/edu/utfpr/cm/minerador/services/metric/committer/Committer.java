@@ -1,4 +1,4 @@
-package br.edu.utfpr.cm.minerador.services.metric.model;
+package br.edu.utfpr.cm.minerador.services.metric.committer;
 
 import java.util.Objects;
 

@@ -1,4 +1,4 @@
-package br.edu.utfpr.cm.JGitMinerWeb.dao;
+package br.edu.utfpr.cm.minerador.services.metric.model;
 
 import java.util.Objects;
 
@@ -6,7 +6,7 @@ import java.util.Objects;
  *
  * @author Rodrigo T. Kuroda
  */
-public class AuxCodeChurn {
+public class CodeChurn {
 
     private final String file;
     private final String file2; // optional
@@ -14,7 +14,7 @@ public class AuxCodeChurn {
     private final long deletions;
     private final long changes;
 
-    public AuxCodeChurn(String file, long additions, long deletions) {
+    public CodeChurn(String file, long additions, long deletions) {
         this.file = file;
         this.file2 = null;
         this.additions = additions;
@@ -22,7 +22,7 @@ public class AuxCodeChurn {
         this.changes = additions + deletions;
     }
 
-    public AuxCodeChurn(String file, long additions, long deletions, long changes) {
+    public CodeChurn(String file, long additions, long deletions, long changes) {
         this.file = file;
         this.file2 = null;
         this.additions = additions;
@@ -30,7 +30,7 @@ public class AuxCodeChurn {
         this.changes = changes;
     }
 
-    public AuxCodeChurn(String file, String file2, long additions, long deletions) {
+    public CodeChurn(String file, String file2, long additions, long deletions) {
         this.file = file;
         this.file2 = file2;
         this.additions = additions;
@@ -38,7 +38,7 @@ public class AuxCodeChurn {
         this.changes = additions + deletions;
     }
 
-    public AuxCodeChurn(String file, String file2, long additions, long deletions, long changes) {
+    public CodeChurn(String file, String file2, long additions, long deletions, long changes) {
         this.file = file;
         this.file2 = file2;
         this.additions = additions;
@@ -46,7 +46,7 @@ public class AuxCodeChurn {
         this.changes = changes;
     }
 
-    public AuxCodeChurn(long additions, long deletions, long changes) {
+    public CodeChurn(long additions, long deletions, long changes) {
         this.file = null;
         this.file2 = null;
         this.additions = additions;
@@ -98,7 +98,7 @@ public class AuxCodeChurn {
         if (getClass() != obj.getClass()) {
             return false;
         }
-        final AuxCodeChurn other = (AuxCodeChurn) obj;
+        final CodeChurn other = (CodeChurn) obj;
 
         if (Objects.equals(this.file, other.file)
                 && Objects.equals(this.file2, other.file2)) {

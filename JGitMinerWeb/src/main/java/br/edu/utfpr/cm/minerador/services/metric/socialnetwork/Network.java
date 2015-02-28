@@ -1,4 +1,4 @@
-package br.edu.utfpr.cm.minerador.services.socialnetwork;
+package br.edu.utfpr.cm.minerador.services.metric.socialnetwork;
 
 import br.edu.utfpr.cm.minerador.services.matrix.model.Commenter;
 import edu.uci.ics.jung.graph.Graph;

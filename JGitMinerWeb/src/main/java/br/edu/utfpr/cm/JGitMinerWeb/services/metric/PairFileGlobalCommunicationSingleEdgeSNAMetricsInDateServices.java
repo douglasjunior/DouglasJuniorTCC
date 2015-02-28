@@ -1,6 +1,6 @@
 package br.edu.utfpr.cm.JGitMinerWeb.services.metric;
 
-import br.edu.utfpr.cm.JGitMinerWeb.dao.AuxCodeChurn;
+import br.edu.utfpr.cm.minerador.services.metric.model.CodeChurn;
 import br.edu.utfpr.cm.JGitMinerWeb.dao.AuxUser;
 import br.edu.utfpr.cm.JGitMinerWeb.dao.FileDAO;
 import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericDao;
@@ -273,11 +273,11 @@ public class PairFileGlobalCommunicationSingleEdgeSNAMetricsInDateServices exten
         Map<String, Long> pullRequestFileMap = new HashMap<>();
         // cache for optimization file code churn (add, del, change),
         // reducing access to database
-        Map<String, AuxCodeChurn> codeChurnRequestFileMap = new HashMap<>();
-        Map<String, AuxCodeChurn> cummulativeCodeChurnRequestFileMap = new HashMap<>();
+        Map<String, CodeChurn> codeChurnRequestFileMap = new HashMap<>();
+        Map<String, CodeChurn> cummulativeCodeChurnRequestFileMap = new HashMap<>();
         // cache for optimization file commits made by user,
         // reducing access to database
-        Map<String, AuxCodeChurn> fileUserCommitMap = new HashMap<>();
+        Map<String, CodeChurn> fileUserCommitMap = new HashMap<>();
 
         out.printLog("Calculando somas, máximas, médias, updates, code churn e apriori para cada par de arquivos...");
         count = 0;
@@ -470,7 +470,7 @@ public class PairFileGlobalCommunicationSingleEdgeSNAMetricsInDateServices exten
             Long codeChurn2 = fileDAO.calculeCodeChurn(repository,
                     fileFile.getFileName2(), beginDate, endDate);
 
-            AuxCodeChurn pairFileCodeChurn = pairFileDAO.calculeCodeChurnAddDelChange(repository,
+            CodeChurn pairFileCodeChurn = pairFileDAO.calculeCodeChurnAddDelChange(repository,
                     fileFile.getFileName2(), fileFile.getFileName(),
                     beginDate, endDate);
 
@@ -564,15 +564,15 @@ public class PairFileGlobalCommunicationSingleEdgeSNAMetricsInDateServices exten
         return fileNumberOfPullrequestOfPairFuture;
     }
 
-    public long calculeFileCodeChurn(Map<String, AuxCodeChurn> codeChurnRequestFileMap, String fileName, FileDAO fileDAO, Date beginDate, Date endDate) {
+    public long calculeFileCodeChurn(Map<String, CodeChurn> codeChurnRequestFileMap, String fileName, FileDAO fileDAO, Date beginDate, Date endDate) {
         final long /*additions, deletions,*/ changes;
         if (codeChurnRequestFileMap.containsKey(fileName)) { // cached
-            AuxCodeChurn sumCodeChurnFile = codeChurnRequestFileMap.get(fileName);
+            CodeChurn sumCodeChurnFile = codeChurnRequestFileMap.get(fileName);
 //                additions = sumCodeChurnFile.getAdditions();
 //                deletions = sumCodeChurnFile.getDeletions();
             changes = sumCodeChurnFile.getChanges();
         } else {
-            AuxCodeChurn sumCodeChurnFile = fileDAO.sumCodeChurnByFilename(repository, fileName, beginDate, endDate);
+            CodeChurn sumCodeChurnFile = fileDAO.sumCodeChurnByFilename(repository, fileName, beginDate, endDate);
             codeChurnRequestFileMap.put(fileName, sumCodeChurnFile);
 //                additions = sumCodeChurnFile.getAdditions();
 //                deletions = sumCodeChurnFile.getDeletions();
@@ -581,15 +581,15 @@ public class PairFileGlobalCommunicationSingleEdgeSNAMetricsInDateServices exten
         return changes;
     }
 
-    public double calculeDevFileExperience(final Long changes, Map<String, AuxCodeChurn> fileUserCommitMap, String fileName, String user, FileDAO fileDAO, Date beginDate, Date endDate) {
+    public double calculeDevFileExperience(final Long changes, Map<String, CodeChurn> fileUserCommitMap, String fileName, String user, FileDAO fileDAO, Date beginDate, Date endDate) {
         final long /*devAdditions, devDeletions,*/ devChanges;
         if (fileUserCommitMap.containsKey(fileName)) { // cached
-            AuxCodeChurn sumCodeChurnFile = fileUserCommitMap.get(fileName);
+            CodeChurn sumCodeChurnFile = fileUserCommitMap.get(fileName);
 //                    devAdditions = sumCodeChurnFile.getAdditions();
 //                    devDeletions = sumCodeChurnFile.getDeletions();
             devChanges = sumCodeChurnFile.getChanges();
         } else {
-            AuxCodeChurn sumCodeChurnFile = fileDAO.sumCodeChurnByFilename(repository,
+            CodeChurn sumCodeChurnFile = fileDAO.sumCodeChurnByFilename(repository,
                     fileName, user, beginDate, endDate
             );
             fileUserCommitMap.put(fileName, sumCodeChurnFile);

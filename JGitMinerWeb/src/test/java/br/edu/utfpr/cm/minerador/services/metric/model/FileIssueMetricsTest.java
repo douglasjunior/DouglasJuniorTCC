@@ -1,5 +1,6 @@
 package br.edu.utfpr.cm.minerador.services.metric.model;
 
+import br.edu.utfpr.cm.minerador.services.metric.committer.Committer;
 import org.junit.Assert;
 import org.junit.Test;
 

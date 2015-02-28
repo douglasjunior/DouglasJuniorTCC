@@ -1,4 +1,4 @@
-package br.edu.utfpr.cm.minerador.services.metric;
+package br.edu.utfpr.cm.minerador.services.metric.socialnetwork;
 
 import br.edu.utfpr.cm.JGitMinerWeb.services.metric.global.GlobalMeasure;
 import br.edu.utfpr.cm.JGitMinerWeb.util.DescriptiveStatisticsHelper;

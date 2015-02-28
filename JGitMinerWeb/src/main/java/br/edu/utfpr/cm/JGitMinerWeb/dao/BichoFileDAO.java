@@ -2,8 +2,9 @@ package br.edu.utfpr.cm.JGitMinerWeb.dao;
 
 import static br.edu.utfpr.cm.JGitMinerWeb.dao.QueryUtils.filterByIssues;
 import br.edu.utfpr.cm.minerador.services.matrix.model.FilePath;
+import br.edu.utfpr.cm.minerador.services.metric.committer.Committer;
+import br.edu.utfpr.cm.minerador.services.metric.model.CodeChurn;
 import br.edu.utfpr.cm.minerador.services.metric.model.Commit;
-import br.edu.utfpr.cm.minerador.services.metric.model.Committer;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -285,10 +286,6 @@ public class BichoFileDAO {
                         + " ORDER BY s.date DESC LIMIT 1", repository);
     }
 
-    public static void main(String args[]) {
-        System.out.println(new BichoFileDAO(null, "camel", 20).SELECT_LAST_COMMITTER_BEFORE_ISSUE);
-    }
-
     // Issues //////////////////////////////////////////////////////////////////
     public long calculeNumberOfIssues(
             String filename, Date beginDate, Date endDate) {
@@ -426,27 +423,27 @@ public class BichoFileDAO {
     }
 
     // CORE CHURN //////////////////////////////////////////////////////////////
-    public AuxCodeChurn sumCodeChurnByFilename(
+    public CodeChurn sumCodeChurnByFilename(
             String filename, Date beginDate, Date endDate) {
         return sumCodeChurnByFilename(filename, null, beginDate, endDate, null, true);
     }
 
-    public AuxCodeChurn sumCodeChurnByFilename(
+    public CodeChurn sumCodeChurnByFilename(
             String filename, String user, Date beginDate, Date endDate) {
         return sumCodeChurnByFilename(filename, user, beginDate, endDate, null, true);
     }
 
-    public AuxCodeChurn sumCodeChurnByFilename(
+    public CodeChurn sumCodeChurnByFilename(
             String filename, Date beginDate, Date endDate, Collection<Integer> issues) {
         return sumCodeChurnByFilename(filename, null, beginDate, endDate, issues, true);
     }
 
-    public AuxCodeChurn sumCodeChurnByFilename(
+    public CodeChurn sumCodeChurnByFilename(
             String filename, String user, Date beginDate, Date endDate, Collection<Integer> issues) {
         return sumCodeChurnByFilename(filename, user, beginDate, endDate, issues, true);
     }
 
-    public AuxCodeChurn sumCodeChurnByFilename(
+    public CodeChurn sumCodeChurnByFilename(
             String fileName, String user, Date beginDate, Date endDate,
             Collection<Integer> issues, boolean onlyFixed) {
         List<Object> selectParams = new ArrayList<>();
@@ -480,31 +477,31 @@ public class BichoFileDAO {
         List<Object[]> sum = dao.selectNativeWithParams(sql.toString(),
                 selectParams.toArray());
 
-        return new AuxCodeChurn(fileName,
+        return new CodeChurn(fileName,
                 ((BigDecimal) sum.get(0)[0]).longValue(), ((BigDecimal) sum.get(0)[1]).longValue());
     }
 
-    public AuxCodeChurn sumCodeChurnByFilename(
+    public CodeChurn sumCodeChurnByFilename(
             String filename, String version) {
         return sumCodeChurnByFilename(filename, null, version, null, true);
     }
 
-    public AuxCodeChurn sumCodeChurnByFilename(
+    public CodeChurn sumCodeChurnByFilename(
             String filename, String user, String version) {
         return sumCodeChurnByFilename(filename, user, version, null, true);
     }
 
-    public AuxCodeChurn sumCodeChurnByFilename(
+    public CodeChurn sumCodeChurnByFilename(
             String filename, String version, Collection<Integer> issues) {
         return sumCodeChurnByFilename(filename, null, version, issues, true);
     }
 
-    public AuxCodeChurn sumCodeChurnByFilename(
+    public CodeChurn sumCodeChurnByFilename(
             String filename, String user, String version, Collection<Integer> issues) {
         return sumCodeChurnByFilename(filename, user, version, issues, true);
     }
 
-    public AuxCodeChurn sumCodeChurnByFilename(
+    public CodeChurn sumCodeChurnByFilename(
             String fileName, String user, String version,
             Collection<Integer> issues, boolean onlyFixed) {
         List<Object> selectParams = new ArrayList<>();
@@ -531,21 +528,21 @@ public class BichoFileDAO {
         List<Object[]> sum = dao.selectNativeWithParams(sql.toString(),
                 selectParams.toArray());
 
-        return new AuxCodeChurn(fileName,
+        return new CodeChurn(fileName,
                 ((BigDecimal) sum.get(0)[0]).longValue(), ((BigDecimal) sum.get(0)[1]).longValue());
     }
 
-    public AuxCodeChurn sumCummulativeCodeChurnByFilename(
+    public CodeChurn sumCummulativeCodeChurnByFilename(
             String filename, String version, Collection<Integer> issues) {
         return sumCodeChurnByFilename(filename, null, version, issues, true);
     }
 
-    public AuxCodeChurn sumCummulativeCodeChurnByFilename(
+    public CodeChurn sumCummulativeCodeChurnByFilename(
             String filename, String user, String version, Collection<Integer> issues) {
         return sumCodeChurnByFilename(filename, user, version, issues, true);
     }
 
-    public AuxCodeChurn sumCummulativeCodeChurnByFilename(
+    public CodeChurn sumCummulativeCodeChurnByFilename(
             String fileName, String user, String version,
             Collection<Integer> issues, boolean onlyFixed) {
         List<Object> selectParams = new ArrayList<>();
@@ -572,7 +569,7 @@ public class BichoFileDAO {
         List<Object[]> sum = dao.selectNativeWithParams(sql.toString(),
                 selectParams.toArray());
 
-        return new AuxCodeChurn(fileName,
+        return new CodeChurn(fileName,
                 ((BigDecimal) sum.get(0)[0]).longValue(), ((BigDecimal) sum.get(0)[1]).longValue());
     }
 
@@ -725,11 +722,11 @@ public class BichoFileDAO {
         return result;
     }
 
-    public AuxCodeChurn calculeAddDelChanges(String filename, Integer issue, String version) {
+    public CodeChurn calculeAddDelChanges(String filename, Integer issue, String version) {
         return calculeAddDelChanges(filename, issue, null, version);
     }
 
-    public AuxCodeChurn calculeAddDelChanges(String filename, Integer issue, Integer commit, String version) {
+    public CodeChurn calculeAddDelChanges(String filename, Integer issue, Integer commit, String version) {
         List<Object> selectParams = new ArrayList<>();
 
         StringBuilder sql = new StringBuilder();
@@ -757,7 +754,7 @@ public class BichoFileDAO {
         Long additions = sum.get(0)[0] == null ? 0l : ((BigDecimal) sum.get(0)[0]).longValue();
         Long deletions = sum.get(0)[1] == null ? 0l : ((BigDecimal) sum.get(0)[1]).longValue();
 
-        return new AuxCodeChurn(filename, additions, deletions);
+        return new CodeChurn(filename, additions, deletions);
     }
 
     public List<Integer> selectIssues(String filename, String fixVersion) {
@@ -932,11 +929,14 @@ public class BichoFileDAO {
                 = dao.selectNativeOneWithParams(SELECT_LAST_COMMITTER_BEFORE_ISSUE,
                         new Object[]{filename, fixVersion, commit.getId()});
 
-        Integer committerId = (Integer) row[0];
-        String committerName = (String) row[1];
-        String committerEmail = (String) row[2];
+        Committer committer = null;
+        if (row != null) {
+            Integer committerId = (Integer) row[0];
+            String committerName = (String) row[1];
+            String committerEmail = (String) row[2];
 
-        Committer committer = new Committer(committerId, committerName, committerEmail);
+            committer = new Committer(committerId, committerName, committerEmail);
+        }
 
         return committer;
     }

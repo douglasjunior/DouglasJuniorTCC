@@ -1,6 +1,6 @@
 package br.edu.utfpr.cm.minerador.services.metric;
 
-import br.edu.utfpr.cm.JGitMinerWeb.dao.AuxCodeChurn;
+import br.edu.utfpr.cm.minerador.services.metric.model.CodeChurn;
 import br.edu.utfpr.cm.JGitMinerWeb.dao.AuxUser;
 import br.edu.utfpr.cm.JGitMinerWeb.dao.BichoDAO;
 import br.edu.utfpr.cm.JGitMinerWeb.dao.BichoFileDAO;
@@ -477,7 +477,7 @@ public class BichoPairFilePerIssueMetricsInDateServices extends AbstractBichoMet
             final long codeChurn2 = cacher.calculeFileCodeChurn(
                     fileFilePull.getFileName2(), beginDate, endDate).getChanges();
 
-            AuxCodeChurn pairFileCodeChurn = bichoPairFileDAO.calculeCodeChurnAddDelChange(fileFilePull.getFileName2(), fileFilePull.getFileName(),
+            CodeChurn pairFileCodeChurn = bichoPairFileDAO.calculeCodeChurnAddDelChange(fileFilePull.getFileName2(), fileFilePull.getFileName(),
                     beginDate, endDate, fileFileIssuesPerIssue);
 
             double codeChurnAvg = (codeChurn + codeChurn2) / 2.0d;

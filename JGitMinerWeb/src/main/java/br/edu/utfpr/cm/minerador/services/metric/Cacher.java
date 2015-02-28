@@ -1,6 +1,8 @@
 package br.edu.utfpr.cm.minerador.services.metric;
 
-import br.edu.utfpr.cm.JGitMinerWeb.dao.AuxCodeChurn;
+import br.edu.utfpr.cm.minerador.services.metric.socialnetwork.NetworkMetricsCalculator;
+import br.edu.utfpr.cm.minerador.services.metric.socialnetwork.NetworkMetrics;
+import br.edu.utfpr.cm.minerador.services.metric.model.CodeChurn;
 import br.edu.utfpr.cm.JGitMinerWeb.dao.BichoFileDAO;
 import br.edu.utfpr.cm.JGitMinerWeb.dao.BichoPairFileDAO;
 import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.auxiliary.AuxFileFile;
@@ -26,15 +28,15 @@ public class Cacher {
 
     // cache for optimization file code churn (add, del, change),
     // reducing access to database
-    private final Map<String, AuxCodeChurn> fileCodeChurnMap = new HashMap<>();
-    private final Map<String, AuxCodeChurn> fileCodeChurnByIssueMap = new HashMap<>();
+    private final Map<String, CodeChurn> fileCodeChurnMap = new HashMap<>();
+    private final Map<String, CodeChurn> fileCodeChurnByIssueMap = new HashMap<>();
     // cummulative (i.e. until a date)
-    private final Map<String, AuxCodeChurn> cummulativeCodeChurnRequestFileMap = new HashMap<>();
+    private final Map<String, CodeChurn> cummulativeCodeChurnRequestFileMap = new HashMap<>();
 
     // cache for optimization file commits made by user,
     // reducing access to database
-    private final Map<String, AuxCodeChurn> fileUserCodeChurnMap = new HashMap<>();
-    private final Map<String, AuxCodeChurn> fileUserCummulativeCodeChurnMap = new HashMap<>();
+    private final Map<String, CodeChurn> fileUserCodeChurnMap = new HashMap<>();
+    private final Map<String, CodeChurn> fileUserCummulativeCodeChurnMap = new HashMap<>();
 
     // future issues
     private final Map<AuxFileFile, Long> futureIssuesMap = new HashMap<>();
@@ -51,7 +53,7 @@ public class Cacher {
 
     private final Map<Integer, NetworkMetricsCalculator> networkMetricsMap = new HashMap<>();
 
-    private final Map<AuxFileFileIssue, AuxCodeChurn> cummulativeCodeChurnMap = new HashMap<>();
+    private final Map<AuxFileFileIssue, CodeChurn> cummulativeCodeChurnMap = new HashMap<>();
 
     private final BichoFileDAO fileDAO;
     private final BichoPairFileDAO pairFileDAO;
@@ -67,24 +69,24 @@ public class Cacher {
     }
 
     // Internal method with Map (cacher) parameter
-    private AuxCodeChurn calculeFileCodeChurn(Map<String, AuxCodeChurn> codeChurnCacher,
+    private CodeChurn calculeFileCodeChurn(Map<String, CodeChurn> codeChurnCacher,
             String fileName, Date beginDate, Date endDate, Collection<Integer> issues) {
         if (codeChurnCacher.containsKey(fileName)) {
             return codeChurnCacher.get(fileName);
         } else {
-            AuxCodeChurn sumCodeChurnFile = fileDAO.sumCodeChurnByFilename(fileName, beginDate, endDate, issues);
+            CodeChurn sumCodeChurnFile = fileDAO.sumCodeChurnByFilename(fileName, beginDate, endDate, issues);
             codeChurnCacher.put(fileName, sumCodeChurnFile);
             return sumCodeChurnFile;
         }
     }
 
     // Internal method with Map (cacher) parameter
-    private AuxCodeChurn calculeFileCodeChurn(Map<String, AuxCodeChurn> codeChurnCacher,
+    private CodeChurn calculeFileCodeChurn(Map<String, CodeChurn> codeChurnCacher,
             String fileName, String fixVersion, Collection<Integer> issues) {
         if (codeChurnCacher.containsKey(fileName)) {
             return codeChurnCacher.get(fileName);
         } else {
-            AuxCodeChurn sumCodeChurnFile = fileDAO.sumCodeChurnByFilename(fileName, fixVersion, issues);
+            CodeChurn sumCodeChurnFile = fileDAO.sumCodeChurnByFilename(fileName, fixVersion, issues);
             codeChurnCacher.put(fileName, sumCodeChurnFile);
             return sumCodeChurnFile;
         }
@@ -115,10 +117,10 @@ public class Cacher {
     public double calculeDevFileExperience(final Long changes, String fileName, String user, Date beginDate, Date endDate, Collection<Integer> issues) {
         final long devChanges;
         if (fileUserCodeChurnMap.containsKey(fileName)) {
-            AuxCodeChurn sumCodeChurnFile = fileUserCodeChurnMap.get(fileName);
+            CodeChurn sumCodeChurnFile = fileUserCodeChurnMap.get(fileName);
             devChanges = sumCodeChurnFile.getChanges();
         } else {
-            AuxCodeChurn sumCodeChurnFile = fileDAO.sumCodeChurnByFilename(fileName, user, beginDate, endDate, issues);
+            CodeChurn sumCodeChurnFile = fileDAO.sumCodeChurnByFilename(fileName, user, beginDate, endDate, issues);
             fileUserCodeChurnMap.put(fileName, sumCodeChurnFile);
             devChanges = sumCodeChurnFile.getChanges();
         }
@@ -128,10 +130,10 @@ public class Cacher {
     public double calculeCummulativeDevFileExperience(final Long changes, String fileName, String user, Date endDate, Collection<Integer> issues) {
         final long devChanges;
         if (fileUserCummulativeCodeChurnMap.containsKey(fileName)) {
-            AuxCodeChurn sumCodeChurnFile = fileUserCummulativeCodeChurnMap.get(fileName);
+            CodeChurn sumCodeChurnFile = fileUserCummulativeCodeChurnMap.get(fileName);
             devChanges = sumCodeChurnFile.getChanges();
         } else {
-            AuxCodeChurn sumCodeChurnFile = fileDAO.sumCodeChurnByFilename(fileName, user, null, endDate, issues);
+            CodeChurn sumCodeChurnFile = fileDAO.sumCodeChurnByFilename(fileName, user, null, endDate, issues);
             fileUserCummulativeCodeChurnMap.put(fileName, sumCodeChurnFile);
             devChanges = sumCodeChurnFile.getChanges();
         }
@@ -141,10 +143,10 @@ public class Cacher {
     public double calculeCummulativeDevFileExperience(final Long changes, String fileName, String user, String fixVersion, Collection<Integer> issues) {
         final long devChanges;
         if (fileUserCummulativeCodeChurnMap.containsKey(fileName)) {
-            AuxCodeChurn sumCodeChurnFile = fileUserCummulativeCodeChurnMap.get(fileName);
+            CodeChurn sumCodeChurnFile = fileUserCummulativeCodeChurnMap.get(fileName);
             devChanges = sumCodeChurnFile.getChanges();
         } else {
-            AuxCodeChurn sumCodeChurnFile = fileDAO.sumCummulativeCodeChurnByFilename(fileName, user, fixVersion, issues);
+            CodeChurn sumCodeChurnFile = fileDAO.sumCummulativeCodeChurnByFilename(fileName, user, fixVersion, issues);
             fileUserCummulativeCodeChurnMap.put(fileName, sumCodeChurnFile);
             devChanges = sumCodeChurnFile.getChanges();
         }
@@ -154,43 +156,43 @@ public class Cacher {
     public double calculeDevFileExperience(final Long changes, String fileName, String user, String fixVersion, Collection<Integer> issues) {
         final long devChanges;
         if (fileUserCodeChurnMap.containsKey(fileName)) {
-            AuxCodeChurn sumCodeChurnFile = fileUserCodeChurnMap.get(fileName);
+            CodeChurn sumCodeChurnFile = fileUserCodeChurnMap.get(fileName);
             devChanges = sumCodeChurnFile.getChanges();
         } else {
-            AuxCodeChurn sumCodeChurnFile = fileDAO.sumCodeChurnByFilename(fileName, user, fixVersion, issues);
+            CodeChurn sumCodeChurnFile = fileDAO.sumCodeChurnByFilename(fileName, user, fixVersion, issues);
             fileUserCodeChurnMap.put(fileName, sumCodeChurnFile);
             devChanges = sumCodeChurnFile.getChanges();
         }
         return changes == 0 ? 0.0 : (double) devChanges / (double) changes;
     }
 
-    public AuxCodeChurn calculeFileCummulativeCodeChurn(String fileName, Date endDate, Set<Integer> issues) {
+    public CodeChurn calculeFileCummulativeCodeChurn(String fileName, Date endDate, Set<Integer> issues) {
         return calculeFileCodeChurn(cummulativeCodeChurnRequestFileMap, fileName, null, endDate, issues);
     }
 
-    public AuxCodeChurn calculeFileCummulativeCodeChurn(String fileName, String fixVersion, Set<Integer> issues) {
+    public CodeChurn calculeFileCummulativeCodeChurn(String fileName, String fixVersion, Set<Integer> issues) {
         if (cummulativeCodeChurnRequestFileMap.containsKey(fileName)) {
             return cummulativeCodeChurnRequestFileMap.get(fileName);
         } else {
-            AuxCodeChurn sumCodeChurnFile = fileDAO.sumCummulativeCodeChurnByFilename(fileName, fixVersion, issues);
+            CodeChurn sumCodeChurnFile = fileDAO.sumCummulativeCodeChurnByFilename(fileName, fixVersion, issues);
             cummulativeCodeChurnRequestFileMap.put(fileName, sumCodeChurnFile);
             return sumCodeChurnFile;
         }
     }
 
-    public AuxCodeChurn calculeFileCodeChurnByIssues(String fileName, Date beginDate, Date endDate, Set<Integer> issues) {
+    public CodeChurn calculeFileCodeChurnByIssues(String fileName, Date beginDate, Date endDate, Set<Integer> issues) {
         return calculeFileCodeChurn(fileCodeChurnByIssueMap, fileName, beginDate, endDate, issues);
     }
 
-    public AuxCodeChurn calculeFileCodeChurnByIssues(String fileName, String fixVersion, Set<Integer> issues) {
+    public CodeChurn calculeFileCodeChurnByIssues(String fileName, String fixVersion, Set<Integer> issues) {
         return calculeFileCodeChurn(fileCodeChurnByIssueMap, fileName, fixVersion, issues);
     }
 
-    public AuxCodeChurn calculeFileCodeChurn(String fileName, Date beginDate, Date endDate) {
+    public CodeChurn calculeFileCodeChurn(String fileName, Date beginDate, Date endDate) {
         return calculeFileCodeChurn(fileCodeChurnMap, fileName, beginDate, endDate, null);
     }
 
-    public AuxCodeChurn calculeFileCodeChurn(String fileName, String fixVersion) {
+    public CodeChurn calculeFileCodeChurn(String fileName, String fixVersion) {
         return calculeFileCodeChurn(fileCodeChurnMap, fileName, fixVersion, null);
     }
 
@@ -328,8 +330,8 @@ public class Cacher {
         return issueReopened;
     }
 
-    public AuxCodeChurn calculeCummulativeCodeChurnAddDelChange(String fileName, String fileName2, Integer issue, Set<Integer> allPairFileIssues, String fixVersion) {
-        final AuxCodeChurn codeChurn;
+    public CodeChurn calculeCummulativeCodeChurnAddDelChange(String fileName, String fileName2, Integer issue, Set<Integer> allPairFileIssues, String fixVersion) {
+        final CodeChurn codeChurn;
         final AuxFileFileIssue fileFile = new AuxFileFileIssue(fileName, fileName2, issue);
 
         if (cummulativeCodeChurnMap.containsKey(fileFile)) {

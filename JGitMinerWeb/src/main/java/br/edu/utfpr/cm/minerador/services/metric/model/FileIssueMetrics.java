@@ -1,6 +1,7 @@
 package br.edu.utfpr.cm.minerador.services.metric.model;
 
-import br.edu.utfpr.cm.minerador.services.metric.NetworkMetrics;
+import br.edu.utfpr.cm.minerador.services.metric.committer.CommitterFileMetrics;
+import br.edu.utfpr.cm.minerador.services.metric.socialnetwork.NetworkMetrics;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -18,11 +19,11 @@ public class FileIssueMetrics extends FileMetrics {
             + IssueMetrics.HEADER
             + NetworkMetrics.HEADER
             + CommitMetrics.HEADER
-            + "sameOwnership;" // mesmo autor que fez o commit do par na issue analisada e no ultimo commit antes da issue
+            + CommitterFileMetrics.HEADER
             // metricas de commit
             + "majorContributor;"
-            + "oexp;"
-            + "own;"
+            + "ownerExperience;"
+            + "cummulativeOwnerExperience;"
             + "files;" // total de arquivos modificados no commit
 //            + "committers;" // committers na release
             + "totalCommitters;" // committers desde o começo até a data final da relese
@@ -53,6 +54,7 @@ public class FileIssueMetrics extends FileMetrics {
     private final IssueMetrics issueMetrics;
     private NetworkMetrics networkMetrics;
     private CommitMetrics commitMetrics;
+    private CommitterFileMetrics committerFileMetrics;
 
     public FileIssueMetrics(String file, String file2, IssueMetrics issueMetrics, double... metrics) {
         super(file, metrics);
@@ -98,6 +100,14 @@ public class FileIssueMetrics extends FileMetrics {
         this.commitMetrics = commitMetrics;
     }
 
+    public CommitterFileMetrics getCommitterFileMetrics() {
+        return committerFileMetrics;
+    }
+
+    public void setCommitterFileMetrics(CommitterFileMetrics committerFileMetrics) {
+        this.committerFileMetrics = committerFileMetrics;
+    }
+
     public String getHeader() {
         return HEADER;
     }
@@ -117,7 +127,8 @@ public class FileIssueMetrics extends FileMetrics {
                 .append(file2).append(";")
                 .append(issueMetrics)
                 .append(networkMetrics)
-                .append(commitMetrics);
+                .append(commitMetrics)
+                .append(committerFileMetrics);
 
         for (double m : getMetrics()) {
             sb.append(m).append(";");

@@ -1,5 +1,6 @@
 package br.edu.utfpr.cm.JGitMinerWeb.dao;
 
+import br.edu.utfpr.cm.minerador.services.metric.model.CodeChurn;
 import static br.edu.utfpr.cm.JGitMinerWeb.dao.QueryUtils.filterByIssues;
 import br.edu.utfpr.cm.minerador.services.metric.model.IssueMetrics;
 import java.math.BigDecimal;
@@ -552,12 +553,12 @@ public class BichoPairFileDAO {
         return count != null ? count : 0l;
     }
 
-    public AuxCodeChurn calculeCodeChurnAddDelChange(
+    public CodeChurn calculeCodeChurnAddDelChange(
             String fileName, String fileName2, Date beginDate, Date endDate) {
         return calculeCodeChurnAddDelChange(fileName, fileName2, beginDate, endDate, null);
     }
 
-    public AuxCodeChurn calculeCodeChurnAddDelChange(
+    public CodeChurn calculeCodeChurnAddDelChange(
             String fileName, String fileName2, Date beginDate, Date endDate, Collection<Integer> issues) {
 
         Object[] params = new Object[]{
@@ -575,16 +576,16 @@ public class BichoPairFileDAO {
         Long additions = sum.get(0)[0] == null ? 0l : ((BigDecimal) sum.get(0)[0]).longValue();
         Long deletions = sum.get(0)[1] == null ? 0l : ((BigDecimal) sum.get(0)[1]).longValue();
 
-        return new AuxCodeChurn(fileName, fileName2,
+        return new CodeChurn(fileName, fileName2,
                 additions, deletions);
     }
 
-    public AuxCodeChurn calculeCodeChurnAddDelChange(
+    public CodeChurn calculeCodeChurnAddDelChange(
             String fileName, String fileName2, String fixVersion) {
         return calculeCodeChurnAddDelChange(fileName, fileName2, fixVersion, null);
     }
 
-    public AuxCodeChurn calculeCodeChurnAddDelChange(
+    public CodeChurn calculeCodeChurnAddDelChange(
             String fileName, String fileName2, String fixVersion, Collection<Integer> issues) {
 
         Object[] params = new Object[]{
@@ -601,11 +602,11 @@ public class BichoPairFileDAO {
         Long additions = sum.get(0)[0] == null ? 0l : ((BigDecimal) sum.get(0)[0]).longValue();
         Long deletions = sum.get(0)[1] == null ? 0l : ((BigDecimal) sum.get(0)[1]).longValue();
 
-        return new AuxCodeChurn(fileName, fileName2,
+        return new CodeChurn(fileName, fileName2,
                 additions, deletions);
     }
 
-    public AuxCodeChurn calculeCummulativeCodeChurnAddDelChange(String fileName2, String fileName, Integer issue, Collection<Integer> issues, String fixVersion) {
+    public CodeChurn calculeCummulativeCodeChurnAddDelChange(String fileName2, String fileName, Integer issue, Collection<Integer> issues, String fixVersion) {
         Object[] params = new Object[]{
             fileName,
             fileName2,
@@ -620,7 +621,7 @@ public class BichoPairFileDAO {
         Long additions = sum.get(0)[0] == null ? 0l : ((BigDecimal) sum.get(0)[0]).longValue();
         Long deletions = sum.get(0)[1] == null ? 0l : ((BigDecimal) sum.get(0)[1]).longValue();
 
-        return new AuxCodeChurn(fileName, fileName2,
+        return new CodeChurn(fileName, fileName2,
                 additions, deletions);
     }
 

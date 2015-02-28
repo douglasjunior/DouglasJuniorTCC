@@ -1,6 +1,5 @@
 package br.edu.utfpr.cm.minerador.services.metric;
 
-import br.edu.utfpr.cm.JGitMinerWeb.dao.AuxCodeChurn;
 import br.edu.utfpr.cm.JGitMinerWeb.dao.AuxUser;
 import br.edu.utfpr.cm.JGitMinerWeb.dao.BichoDAO;
 import br.edu.utfpr.cm.JGitMinerWeb.dao.BichoFileDAO;
@@ -26,13 +25,18 @@ import br.edu.utfpr.cm.minerador.services.matrix.BichoPairOfFileInFixVersionServ
 import br.edu.utfpr.cm.minerador.services.matrix.model.Commenter;
 import br.edu.utfpr.cm.minerador.services.matrix.model.FilePairApriori;
 import static br.edu.utfpr.cm.minerador.services.metric.AbstractBichoMetricServices.objectsToNodes;
+import br.edu.utfpr.cm.minerador.services.metric.committer.CommitterFileMetrics;
+import br.edu.utfpr.cm.minerador.services.metric.committer.CommitterFileMetricsCalculator;
+import br.edu.utfpr.cm.minerador.services.metric.committer.EmptyCommitterFileMetrics;
+import br.edu.utfpr.cm.minerador.services.metric.model.CodeChurn;
 import br.edu.utfpr.cm.minerador.services.metric.model.Commit;
 import br.edu.utfpr.cm.minerador.services.metric.model.CommitMetrics;
-import br.edu.utfpr.cm.minerador.services.metric.model.Committer;
 import br.edu.utfpr.cm.minerador.services.metric.model.File;
 import br.edu.utfpr.cm.minerador.services.metric.model.FileIssueMetrics;
 import br.edu.utfpr.cm.minerador.services.metric.model.FilePair;
 import br.edu.utfpr.cm.minerador.services.metric.model.IssueMetrics;
+import br.edu.utfpr.cm.minerador.services.metric.socialnetwork.NetworkMetrics;
+import br.edu.utfpr.cm.minerador.services.metric.socialnetwork.NetworkMetricsCalculator;
 import edu.uci.ics.jung.graph.DirectedSparseGraph;
 import edu.uci.ics.jung.graph.util.EdgeType;
 import java.util.ArrayList;
@@ -116,6 +120,8 @@ public class BichoPairFilePerIssueMetricsInFixVersionServices extends AbstractBi
         final BichoPairFileDAO bichoPairFileDAO = new BichoPairFileDAO(dao, repository, maxFilePerCommit);
         final Long issuesSize = bichoDAO
                 .calculeNumberOfIssues(fixVersion, true);
+
+        final String pastMajorVersion = bichoDAO.selectPastMajorVersion(fixVersion);
 
         System.out.println("Number of all pull requests: " + issuesSize);
         final List<EntityMatrixNode> matrixLines = getMatrix().getNodes();
@@ -448,7 +454,7 @@ public class BichoPairFilePerIssueMetricsInFixVersionServices extends AbstractBi
             final long codeChurn2 = cacher.calculeFileCodeChurn(
                     fileFilePull.getFileName2(), fixVersion).getChanges();
 
-            final AuxCodeChurn pairFileCodeChurn = cacher.calculeCummulativeCodeChurnAddDelChange(
+            final CodeChurn pairFileCodeChurn = cacher.calculeCummulativeCodeChurnAddDelChange(
                     fileFilePull.getFileName2(), fileFilePull.getFileName(), issue, allPairFileIssues, fixVersion);
 
             final double codeChurnAvg = (codeChurn + codeChurn2) / 2.0d;
@@ -538,6 +544,8 @@ public class BichoPairFilePerIssueMetricsInFixVersionServices extends AbstractBi
         List<AuxFileFileIssueMetrics> metricsList = new ArrayList<>(fileFileMetrics);
         Set<FilePair> top25 = getTop25(metricsList);
 
+        CommitterFileMetricsCalculator committerFileMetricsCalculator = new CommitterFileMetricsCalculator(bichoFileDAO);
+
         // separa o top 10 em A + qualquerarquivo
         int rank = 1;
         for (FilePair filePair : top25) {
@@ -546,7 +554,7 @@ public class BichoPairFilePerIssueMetricsInFixVersionServices extends AbstractBi
             // par analisado
             final String filename = filePair.getFileName(); // arquivo principal
             final String filename2 = filePair.getFileName2();
-//            final File file = new File(filename);
+            final File file = new File(filename);
             final File file2 = new File(filename2);
 
             final List<Integer> issueWhereFileChanged = bichoFileDAO.selectIssues(filename, fixVersion);
@@ -571,7 +579,15 @@ public class BichoPairFilePerIssueMetricsInFixVersionServices extends AbstractBi
                     // TODO metrics do commit
                     final CommitMetrics commitMetrics = new CommitMetrics(commitInIssue);
 
+                    final CommitterFileMetrics committerFileMetrics;
+                    if (pastMajorVersion != null) {
+                        committerFileMetrics = committerFileMetricsCalculator.calculeForVersion(file, commitInIssue, pastMajorVersion);
+                    } else {
+                        committerFileMetrics = new EmptyCommitterFileMetrics();
+                    }
+
                     fileIssueMetrics.setCommitMetrics(commitMetrics);
+                    fileIssueMetrics.setCommitterFileMetrics(committerFileMetrics);
 
                     if (filesInCommit.contains(file2)) { // se houve commit do arquivo 2, então o par mudou
                         // muda a coluna changed para 1, indicando que o par analisado mudou nessa issue
@@ -603,7 +619,7 @@ public class BichoPairFilePerIssueMetricsInFixVersionServices extends AbstractBi
                             futureUpdates += entrySet.getValue();
                         }
 
-                        final AuxCodeChurn fileCodeChurn = bichoFileDAO.calculeAddDelChanges(filename, issue, commitInIssue.getId(), fixVersion);
+                        final CodeChurn fileCodeChurn = bichoFileDAO.calculeAddDelChanges(filename, issue, commitInIssue.getId(), fixVersion);
 
                         // pair file age in release interval (days)
                         final int ageRelease = bichoFileDAO.calculeFileAgeInDays(filename, issue, fixVersion);
@@ -611,12 +627,7 @@ public class BichoPairFilePerIssueMetricsInFixVersionServices extends AbstractBi
                         // pair file age in total until final date (days)
                         final int ageTotal = bichoFileDAO.calculeTotalFileAgeInDays(filename, issue, fixVersion);
 
-                        final Committer committer = bichoFileDAO.selectLastCommitter(filename, commitInIssue, fixVersion);
-                        final boolean sameOwnership = committer.equals(commitMetrics.getCommit().getCommiter());
-
                         fileIssueMetrics.addMetrics(
-                                // sameOwnership
-                                BooleanUtils.toInteger(sameOwnership),
                                 // majorContributors
                                 0,
                                 // ownerExperience,
