@@ -5,8 +5,8 @@ import br.edu.utfpr.cm.JGitMinerWeb.dao.BichoFileDAO;
 import br.edu.utfpr.cm.JGitMinerWeb.dao.BichoPairFileDAO;
 import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.auxiliary.AuxFileFile;
 import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.auxiliary.AuxFileFileIssue;
-import br.edu.utfpr.cm.minerador.services.metric.model.IssueMetrics;
 import br.edu.utfpr.cm.minerador.services.matrix.model.Commenter;
+import br.edu.utfpr.cm.minerador.services.metric.model.IssueMetrics;
 import edu.uci.ics.jung.graph.DirectedSparseGraph;
 import java.util.Collection;
 import java.util.Date;
@@ -222,7 +222,7 @@ public class Cacher {
         }
     }
 
-    public NetworkMetricsCalculator calculeNetworkMetrics(Integer issue, DirectedSparseGraph<String, String> issueGraph, Map<String, Integer> edgesWeigth, Set<Commenter> devsCommentters) {
+    public NetworkMetrics calculeNetworkMetrics(Integer issue, DirectedSparseGraph<String, String> issueGraph, Map<String, Integer> edgesWeigth, Set<Commenter> devsCommentters) {
         NetworkMetricsCalculator networkMetrics;
         if (networkMetricsMap.containsKey(issue)) {
             networkMetrics = networkMetricsMap.get(issue);
@@ -230,7 +230,7 @@ public class Cacher {
             networkMetrics = new NetworkMetricsCalculator(issueGraph, edgesWeigth, devsCommentters);
             networkMetricsMap.put(issue, networkMetrics);
         }
-        return networkMetrics;
+        return networkMetrics.getNetworkMetrics();
     }
 
     public long calculeCummulativeCommitters(String file1, String file2, String fixVersion) {

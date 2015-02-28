@@ -132,7 +132,7 @@ public class BichoMatrixQueueBean implements Serializable {
         if (params.containsKey("filename")) {
             params.remove("filename");
         }
-        List<String> versions = new BichoDAO(dao, repositoryId).selectFixVersionOrdered();
+        List<String> versions = new BichoDAO(dao, repositoryId, null).selectFixVersionOrdered();
         for (int i = 0; i < versions.size() - 1; i++) {
             Map<Object, Object> params = new LinkedHashMap<>();
             params.putAll(this.params);

@@ -122,7 +122,7 @@ public class BichoPairFileMetricsInDateServices extends AbstractBichoMetricServi
 
         int countIgnored = 0;
         final int maxFilePerCommit = 20;
-        BichoDAO bichoDAO = new BichoDAO(dao, repository);
+        BichoDAO bichoDAO = new BichoDAO(dao, repository, maxFilePerCommit);
         BichoFileDAO bichoFileDAO = new BichoFileDAO(dao, repository, maxFilePerCommit);
         BichoPairFileDAO bichoPairFileDAO = new BichoPairFileDAO(dao, repository, maxFilePerCommit);
         Long issuesSize = bichoDAO
@@ -192,7 +192,7 @@ public class BichoPairFileMetricsInDateServices extends AbstractBichoMetricServi
                 committersPairFile.put(pairFile, pairFileCommitters);
             }
 
-            List<Commenter> commenters = bichoDAO.selectCommentersByIssueId(issues);
+            List<Commenter> commenters = bichoDAO.selectCommentersByIssuesOrderBySubmissionDate(issues);
 
             /**
              * Extract all distinct commenter of issue that pair of file was

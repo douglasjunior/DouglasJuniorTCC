@@ -17,6 +17,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * 
@@ -93,7 +94,7 @@ public class BichoPairOfFileInDateServices extends AbstractBichoMatrixServices {
 //            fileToConsiders = MatcherUtils.createExtensionIncludeMatcher(getFilesToConsiders());
 //        }
 
-        BichoDAO bichoDAO = new BichoDAO(dao, getRepository());
+        BichoDAO bichoDAO = new BichoDAO(dao, getRepository(), getMaxFilesPerCommit());
         BichoFileDAO bichoFileDAO = new BichoFileDAO(dao, getRepository(), getMaxFilesPerCommit());
         BichoPairFileDAO bichoParFileDAO = new BichoPairFileDAO(dao, getRepository(), getMaxFilesPerCommit());
 
@@ -101,7 +102,7 @@ public class BichoPairOfFileInDateServices extends AbstractBichoMatrixServices {
         out.printLog("Minimum files per commit: " + getMinFilesPerCommit());
 
         // select a issue/pullrequest commenters
-        Map<Integer, List<Integer>> issuesCommits = bichoDAO.selectIssues(
+        Map<Integer, Set<Integer>> issuesCommits = bichoDAO.selectIssues(
                 beginDate, endDate, getMaxFilesPerCommit());
         
         out.printLog("Issues (filtered): " + issuesCommits.size());
@@ -111,9 +112,9 @@ public class BichoPairOfFileInDateServices extends AbstractBichoMatrixServices {
         Cacher cacher = new Cacher(bichoFileDAO);
 
         // combina em pares todos os arquivos commitados em uma issue
-        for (Map.Entry<Integer, List<Integer>> entrySet : issuesCommits.entrySet()) {
+        for (Map.Entry<Integer, Set<Integer>> entrySet : issuesCommits.entrySet()) {
             Integer issue = entrySet.getKey();
-            List<Integer> commits = entrySet.getValue();
+            Set<Integer> commits = entrySet.getValue();
 
             out.printLog("Issue #" + issue);
             out.printLog(count++ + " of the " + issuesCommits.size());

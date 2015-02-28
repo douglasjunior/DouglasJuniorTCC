@@ -1,10 +1,13 @@
 package br.edu.utfpr.cm.minerador.services.metric.model;
 
 import br.edu.utfpr.cm.JGitMinerWeb.services.metric.discussion.WordinessCalculator;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import org.joda.time.Days;
+import org.joda.time.LocalDate;
 
 /**
  *
@@ -23,7 +26,8 @@ public class IssueMetrics {
             + "commenters;"
             + "devCommenters;"
             + "comments;"
-            + "wordiness;";
+            + "wordiness;"
+            + "issueAge;";
 
     private final Integer issueNumber;
     private final String issueKey;
@@ -38,11 +42,16 @@ public class IssueMetrics {
     private final List<String> comments;
     private final Integer commenters;
     private final Integer devCommenters;
+    private final Timestamp submittedOn;
+    private final Timestamp fixedOn;
+    private final int issueAge;
     private long wordiness;
 
     public IssueMetrics(Integer issueNumber, String issueKey, String url, String issueBody,
             String issueType, String priority, String assignedTo, String submittedBy,
-            Integer numberOfWatchers, Integer reopenedTimes, List<String> comments, Integer commenters, Integer devCommenters) {
+            Integer numberOfWatchers, Integer reopenedTimes, List<String> comments,
+            Integer commenters, Integer devCommenters,
+            Timestamp submittedOn, Timestamp fixedOn) {
         this.issueNumber = issueNumber;
         this.issueKey = issueKey;
         this.url = url;
@@ -62,6 +71,17 @@ public class IssueMetrics {
 
         this.commenters = commenters;
         this.devCommenters = devCommenters;
+        this.submittedOn = submittedOn;
+        this.fixedOn = fixedOn;
+
+        if (submittedOn != null
+                && fixedOn != null) {
+            LocalDate createdAt = new LocalDate(submittedOn.getTime());
+            LocalDate finalDate = new LocalDate(fixedOn.getTime());
+            this.issueAge = Days.daysBetween(createdAt, finalDate).getDays();
+        } else {
+            this.issueAge = -1;
+        }
     }
 
     public IssueMetrics(Integer issueNumber, String issueKey, String issueBody, List<String> comments) {
@@ -80,6 +100,9 @@ public class IssueMetrics {
 
         this.commenters = 0;
         this.devCommenters = 0;
+        this.submittedOn = null;
+        this.fixedOn = null;
+        this.issueAge = 0;
     }
 
     public Integer getIssueNumber() {
@@ -130,6 +153,10 @@ public class IssueMetrics {
         comments.add(comment);
     }
 
+    public int getIssueAge() {
+        return issueAge;
+    }
+
     public long getWordiness() {
         if (wordiness == 0) {
             wordiness = WordinessCalculator.calcule(this);
@@ -154,7 +181,7 @@ public class IssueMetrics {
                 + priority + ";" + assignedTo + ";" + submittedBy + ";"
                 + numberOfWatchers + ";" + reopenedTimes + ";"
                 + commenters + ";" + devCommenters + ";"
-                + comments.size() + ";" + wordiness + ";";
+                + comments.size() + ";" + issueAge + ";" + wordiness + ";";
     }
 
     @Override

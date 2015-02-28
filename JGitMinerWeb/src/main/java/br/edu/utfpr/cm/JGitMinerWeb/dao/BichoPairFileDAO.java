@@ -3,6 +3,7 @@ package br.edu.utfpr.cm.JGitMinerWeb.dao;
 import static br.edu.utfpr.cm.JGitMinerWeb.dao.QueryUtils.filterByIssues;
 import br.edu.utfpr.cm.minerador.services.metric.model.IssueMetrics;
 import java.math.BigDecimal;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -47,6 +48,8 @@ public class BichoPairFileDAO {
     private final String FILTER_BY_ISSUE_ID;
 
     private final String FILTER_BY_ISSUE_TYPE;
+
+    private final String ORDER_BY_SUBMITTED_ON;
 
     // complete queries (commons fragment + specific fragments for query)
     private final String COUNT_ISSUES_BY_FILE_NAME;
@@ -182,6 +185,9 @@ public class BichoPairFileDAO {
         FILTER_BY_ISSUE_ID
                 = " AND i.id = ?";
 
+        ORDER_BY_SUBMITTED_ON
+                = " ORDER BY i.submitted_on";
+
         COUNT_ISSUES_BY_FILE_NAME
                 = QueryUtils.getQueryForDatabase(
                         "SELECT COUNT(DISTINCT(i.id))"
@@ -224,14 +230,16 @@ public class BichoPairFileDAO {
                         + "     i.description, i.type, i.priority, "
                         + "     assigned.user_id, submitted.user_id, "
                         + "     i.num_watchers, i.reopened_times,"
-                        + "     i.num_commenters, i.num_dev_commenters"
+                        + "     i.num_commenters, i.num_dev_commenters,"
+                        + "     i.submitted_on, MAX(c.changed_on)"
                         + "  FROM {0}_issues.issues i"
                         + "  JOIN {0}_issues.issues_ext_jira iej ON iej.issue_id = i.id"
                         + "  JOIN {0}_issues.changes c ON c.issue_id = i.id"
                         + "  JOIN {0}_issues.people assigned ON assigned.id = i.assigned_to"
                         + "  JOIN {0}_issues.people submitted ON submitted.id = i.submitted_by"
                         + " WHERE i.id = ?", repository)
-                + FIXED_ISSUES_ONLY;
+                + FIXED_ISSUES_ONLY
+                + ORDER_BY_SUBMITTED_ON;
 
         COUNT_COMMENTS_OF_FILE_PAIR_BY_DATE
                 = QueryUtils.getQueryForDatabase(
@@ -1196,7 +1204,9 @@ public class BichoPairFileDAO {
                 (Integer) rawIssues[9], // i.num_reopened
                 comments,
                 (Integer) rawIssues[10], // i.num_commenters
-                (Integer) rawIssues[11] // i.num_dev_commenters
+                (Integer) rawIssues[11], // i.num_dev_commenters
+                (Timestamp) rawIssues[12], // i.submitted_on
+                (Timestamp) rawIssues[13] // c.changed_on where value = "Fixed"
         );
 
         return issueWithComments;

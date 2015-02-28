@@ -8,25 +8,25 @@ import java.util.Objects;
  */
 public class FileIssueCommit extends FileIssue {
 
-    private final Integer commit;
+    private final Commit commit;
 
-    public FileIssueCommit(String fileName, Integer issue, Integer commit) {
+    public FileIssueCommit(String fileName, Integer issue, Commit commit) {
         super(fileName, issue);
         this.commit = commit;
     }
 
-    public FileIssueCommit(File file, Integer issue, Integer commit) {
+    public FileIssueCommit(File file, Integer issue, Commit commit) {
         super(file, issue);
         this.commit = commit;
     }
 
-    public Integer getCommit() {
+    public Commit getCommit() {
         return commit;
     }
 
     @Override
     public String toString() {
-        return super.toString() + ";" + commit;
+        return super.toString();
     }
 
     @Override
@@ -39,19 +39,15 @@ public class FileIssueCommit extends FileIssue {
 
     @Override
     public boolean equals(Object obj) {
-        if (obj == null) {
-            return false;
-        }
-        if (getClass() != obj.getClass()) {
-            return false;
-        }
-        final FileIssueCommit other = (FileIssueCommit) obj;
+        if (super.equals(obj)) { // obj is instace of FileIssue too
+            if (getClass() != obj.getClass()) {
+                return false;
+            }
+            final FileIssueCommit other = (FileIssueCommit) obj;
 
-        if (super.equals(obj) // obj is instace of FileIssue too
-                && Objects.equals(this.commit, other.commit)) {
-            return true;
+            return Objects.equals(this.commit, other.commit);
         }
-        return true;
+        return false;
     }
     
     

@@ -87,7 +87,7 @@ public class BichoPairOfFileInFixVersionServices extends AbstractBichoMatrixServ
 //            fileToConsiders = MatcherUtils.createExtensionIncludeMatcher(getFilesToConsiders());
 //        }
 
-        BichoDAO bichoDAO = new BichoDAO(dao, getRepository());
+        BichoDAO bichoDAO = new BichoDAO(dao, getRepository(), getMaxFilesPerCommit());
         BichoFileDAO bichoFileDAO = new BichoFileDAO(dao, getRepository(), getMaxFilesPerCommit());
         BichoPairFileDAO bichoPairFileDAO = new BichoPairFileDAO(dao, getRepository(), getMaxFilesPerCommit());
 

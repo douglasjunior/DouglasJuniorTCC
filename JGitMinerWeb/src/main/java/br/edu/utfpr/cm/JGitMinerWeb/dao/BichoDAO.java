@@ -3,11 +3,15 @@ package br.edu.utfpr.cm.JGitMinerWeb.dao;
 import static br.edu.utfpr.cm.JGitMinerWeb.dao.QueryUtils.filterByIssues;
 import br.edu.utfpr.cm.minerador.services.matrix.model.Commenter;
 import br.edu.utfpr.cm.minerador.services.matrix.model.Issue;
+import br.edu.utfpr.cm.minerador.services.metric.model.Commit;
+import br.edu.utfpr.cm.minerador.services.metric.model.Committer;
+import br.edu.utfpr.cm.minerador.services.metric.model.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -23,6 +27,7 @@ public class BichoDAO {
     private final String FIXED_ISSUES_ONLY;
     private final String FILTER_BY_ISSUE_FIX_MAJOR_VERSION;
     private final String FILTER_BY_ISSUE_FIX_DATE;
+    private final String FILTER_BY_ISSUE_ID;
 
     // order
     private final String ORDER_BY_FIX_DATE;
@@ -38,10 +43,11 @@ public class BichoDAO {
     private final String COUNT_ISSUES_TYPES_BEGIN;
     private final String COUNT_ISSUES_TYPES_END;
     private final String COUNT_ISSUES;
+    private final String SELECT_COMMIT_AND_FILES_BY_ISSUE;
 
     private final GenericBichoDAO dao;
 
-    public BichoDAO(GenericBichoDAO dao, String repository) {
+    public BichoDAO(GenericBichoDAO dao, String repository, Integer maxFilesPerCommit) {
         this.dao = dao;
 
         if (repository == null) {
@@ -50,8 +56,7 @@ public class BichoDAO {
 
         // filters
         FILTER_BY_MAX_FILES_IN_COMMIT
-                = QueryUtils.getQueryForDatabase(
-                        " AND s.num_files <= ?", repository);
+                = " AND s.num_files <= " + maxFilesPerCommit;
 
         // avoid join, because has poor performance in this case
         FILTER_BY_ISSUE_FIX_MAJOR_VERSION
@@ -68,6 +73,9 @@ public class BichoDAO {
                 = " AND i.resolution = \"Fixed\""
                 + " AND c.field = \"Resolution\""
                 + " AND c.new_value = i.resolution";
+
+        FILTER_BY_ISSUE_ID
+                = " AND i.id = ?";
 
         ORDER_BY_FIX_DATE
                 = " ORDER BY c.changed_on";
@@ -161,6 +169,19 @@ public class BichoDAO {
                         + "   AND com2.date > i.submitted_on", repository)
                 + FILTER_BY_MAX_FILES_IN_COMMIT;
 
+        SELECT_COMMIT_AND_FILES_BY_ISSUE
+                =  QueryUtils.getQueryForDatabase(
+                        "SELECT DISTINCT com.commit_id, com.file_path, p.id, p.name, p.email"
+                        + "  FROM {0}_issues.issues i"
+                        + "  JOIN {0}_issues.changes c ON c.issue_id = i.id"
+                        + "  JOIN {0}_issues.issues_scmlog i2s ON i2s.issue_id = i.id"
+                        + "  JOIN {0}_vcs.scmlog s ON s.id = i2s.scmlog_id"
+                        + "  JOIN {0}.commits com ON com.commit_id = i2s.scmlog_id"
+                        + "  JOIN {0}_vcs.people p ON p.id = com.committer_id"
+                        + " WHERE 1 = 1", repository)
+                + FILTER_BY_ISSUE_ID
+                + FILTER_BY_MAX_FILES_IN_COMMIT;
+
     }
 
     public long calculeNumberOfIssues(Date beginDate, Date endDate, boolean onlyFixed) {
@@ -222,7 +243,7 @@ public class BichoDAO {
         return numFilesPerCommit;
     }
 
-    public Map<Integer, List<Integer>> selectIssues(Date beginDate, Date endDate, Integer maxFilesPerCommit) {
+    public Map<Integer, Set<Integer>> selectIssues(Date beginDate, Date endDate, Integer maxFilesPerCommit) {
         List<Object> selectParams = new ArrayList<>();
 
         StringBuilder sql = new StringBuilder();
@@ -240,7 +261,7 @@ public class BichoDAO {
 
         List<Object[]> rawIssues = dao.selectNativeWithParams(sql.toString(), selectParams.toArray());
 
-        Map<Integer, List<Integer>> issuesCommits = new HashMap<>();
+        Map<Integer, Set<Integer>> issuesCommits = new HashMap<>();
         for (Object[] issueCommit : rawIssues) {
             Integer issue = (Integer) issueCommit[0];
             Integer commit = (Integer) issueCommit[1];
@@ -248,7 +269,7 @@ public class BichoDAO {
             if (issuesCommits.containsKey(issue)) {
                 issuesCommits.get(issue).add(commit);
             } else {
-                List<Integer> commits = new ArrayList<>();
+                Set<Integer> commits = new LinkedHashSet<>();
                 commits.add(commit);
                 issuesCommits.put(issue, commits);
             }
@@ -323,7 +344,7 @@ public class BichoDAO {
         return issuesCommits;
     }
 
-    public List<Commenter> selectCommentersByIssueId(Integer issue) {
+    public List<Commenter> selectCommentersByIssueOrderBySubmissionDate(Integer issue) {
         List<Object[]> rawFilesPath
                 = dao.selectNativeWithParams(SELECT_COMMENTERS_BY_ISSUE_ORDER_BY_SUBMIT,
                         new Object[]{issue});
@@ -341,7 +362,7 @@ public class BichoDAO {
         return files;
     }
 
-    public List<Commenter> selectCommentersByIssueId(Collection<Integer> issue) {
+    public List<Commenter> selectCommentersByIssuesOrderBySubmissionDate(Collection<Integer> issue) {
         StringBuilder sql = new StringBuilder(SELECT_COMMENTERS);
 
         filterByIssues(issue, sql);
@@ -387,5 +408,34 @@ public class BichoDAO {
             result.put(type, count);
         }
         return result;
+    }
+
+    public Set<Commit> selectFilesAndCommitByIssue(Integer issue) {
+        List<Object[]> rawFilesPath
+                = dao.selectNativeWithParams(SELECT_COMMIT_AND_FILES_BY_ISSUE, new Object[]{issue});
+
+        Map<Commit, Commit> commits = new LinkedHashMap<>();
+
+        for (Object[] row : rawFilesPath) {
+
+            Integer commitId = (Integer) row[0];
+            String fileName = (String) row[1];
+            Integer committerId = (Integer) row[2];
+            String committerName = (String) row[3];
+            String committerEmail = (String) row[4];
+
+            Committer committer = new Committer(committerId, committerName, committerEmail);
+
+            Commit commit = new Commit(commitId, committer);
+
+            if (commits.containsKey(commit)) {
+                commits.get(commit).getFiles().add(new File(fileName));
+            } else {
+                commit.getFiles().add(new File(fileName));
+                commits.put(commit, commit);
+            }
+        }
+
+        return commits.keySet();
     }
 }

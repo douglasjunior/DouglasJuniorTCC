@@ -31,7 +31,7 @@ public class FileIssue {
 
     @Override
     public String toString() {
-        return file.getFileName();
+        return file.toString();
     }
 
     @Override

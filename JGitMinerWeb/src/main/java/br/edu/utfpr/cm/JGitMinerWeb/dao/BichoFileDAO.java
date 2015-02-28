@@ -2,6 +2,8 @@ package br.edu.utfpr.cm.JGitMinerWeb.dao;
 
 import static br.edu.utfpr.cm.JGitMinerWeb.dao.QueryUtils.filterByIssues;
 import br.edu.utfpr.cm.minerador.services.matrix.model.FilePath;
+import br.edu.utfpr.cm.minerador.services.metric.model.Commit;
+import br.edu.utfpr.cm.minerador.services.metric.model.Committer;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -53,6 +55,8 @@ public class BichoFileDAO {
     private final String FILTER_BY_JAVA_OR_XML_EXTENSION;
     private final String FILTER_BY_JAVA_OR_XML_EXTENSION_AND_IS_NOT_TEST;
 
+    private final String ORDER_BY_SUBMITTED_ON;
+
     // complete queries (commons fragment + specific fragments for query)
     private final String COUNT_DISTINCT_COMMITERS_BY_FILE_NAME;
 
@@ -61,6 +65,8 @@ public class BichoFileDAO {
     private final String COUNT_ISSUES_BY_FILENAME;
 
     private final String SUM_ADD_AND_DEL_LINES_BY_FILE_NAME;
+
+    private final String SELECT_ISSUES_BY_FIX_MAJOR_VERSION;
 
     private final String SELECT_FILES_PATH_BY_COMMIT_ID;
 
@@ -71,6 +77,8 @@ public class BichoFileDAO {
 
     private final String COUNT_ISSUES_TYPES;
     private final String SELECT_RELEASE_MIN_MAX_COMMIT_DATE_BY_FIX_VERSION;
+
+    private final String SELECT_LAST_COMMITTER_BEFORE_ISSUE;
 
     private final GenericBichoDAO dao;
 
@@ -171,6 +179,9 @@ public class BichoFileDAO {
                 + " OR com.file_path LIKE \"%.xml\")"
                 + " AND com.file_path NOT LIKE \"%Test.java\"";
 
+        ORDER_BY_SUBMITTED_ON
+                = " ORDER BY i.submitted_on";
+
         COUNT_ISSUES_BY_FILENAME
                 = QueryUtils.getQueryForDatabase(
                         "SELECT COUNT(DISTINCT(i.id))"
@@ -203,6 +214,14 @@ public class BichoFileDAO {
                         + "  JOIN {0}_vcs.people p ON p.id = s.committer_id"
                         + WHERE, repository)
                 + FILTER_BY_MAX_FILES_IN_COMMIT;
+
+        SELECT_ISSUES_BY_FIX_MAJOR_VERSION
+                = QueryUtils.getQueryForDatabase("SELECT DISTINCT i.id"
+                        + FROM_TABLE
+                        + WHERE, repository)
+                + FILTER_BY_MAX_FILES_IN_COMMIT
+                + FILTER_BY_ISSUE_FIX_MAJOR_VERSION
+                + FIXED_ISSUES_ONLY;
 
         SELECT_FILES_PATH_BY_COMMIT_ID
                 = QueryUtils.getQueryForDatabase("SELECT com.file_id, com.file_path"
@@ -251,6 +270,23 @@ public class BichoFileDAO {
                         + FROM_TABLE
                         + WHERE, repository)
                 + FILTER_BY_MAX_FILES_IN_COMMIT;
+
+        SELECT_LAST_COMMITTER_BEFORE_ISSUE
+                = QueryUtils.getQueryForDatabase(
+                        "SELECT DISTINCT p.id, p.name, p.email"
+                        + FROM_TABLE
+                        + "  JOIN {0}_vcs.people p ON p.id = s.committer_id"
+                        + WHERE
+                        + FIXED_ISSUES_ONLY
+                        + FILTER_BY_BEFORE_ISSUE_FIX_MAJOR_VERSION
+                        + " AND s.date < "
+                        + "     (SELECT MAX(s2.date) FROM {0}_vcs.scmlog s2"
+                        + "       WHERE s2.id = ?)"
+                        + " ORDER BY s.date DESC LIMIT 1", repository);
+    }
+
+    public static void main(String args[]) {
+        System.out.println(new BichoFileDAO(null, "camel", 20).SELECT_LAST_COMMITTER_BEFORE_ISSUE);
     }
 
     // Issues //////////////////////////////////////////////////////////////////
@@ -708,6 +744,12 @@ public class BichoFileDAO {
             sql.append(FILTER_BY_COMMIT);
             selectParams.add(commit);
         }
+
+        if (issue != null) {
+            sql.append(FILTER_BY_ISSUE);
+            selectParams.add(issue);
+        }
+
         sql.append(FIXED_ISSUES_ONLY);
 
         List<Object[]> sum = dao.selectNativeWithParams(sql.toString(),
@@ -716,6 +758,21 @@ public class BichoFileDAO {
         Long deletions = sum.get(0)[1] == null ? 0l : ((BigDecimal) sum.get(0)[1]).longValue();
 
         return new AuxCodeChurn(filename, additions, deletions);
+    }
+
+    public List<Integer> selectIssues(String filename, String fixVersion) {
+        List<Object> selectParams = new ArrayList<>();
+
+        StringBuilder sql = new StringBuilder();
+        sql.append(SELECT_ISSUES_BY_FIX_MAJOR_VERSION);
+        selectParams.add(filename);
+        selectParams.add(fixVersion);
+
+        sql.append(ORDER_BY_SUBMITTED_ON);
+
+        List<Integer> issues = dao.selectNativeWithParams(sql.toString(), selectParams.toArray());
+
+        return issues;
     }
 
     public long calculeCummulativeCommits(String file, Integer untilIssue, String fixVersion) {
@@ -767,14 +824,19 @@ public class BichoFileDAO {
         List<Object> selectParams = new ArrayList<>();
 
         StringBuilder sql = new StringBuilder();
+
         sql.append(COUNT_COMMITS_BY_FILE_NAME);
-
         selectParams.add(file);
-
-        sql.append(FIXED_ISSUES_ONLY);
 
         sql.append(FILTER_BY_ISSUE_FIX_MAJOR_VERSION);
         selectParams.add(fixVersion);
+
+        sql.append(FIXED_ISSUES_ONLY);
+
+        if (issue != null) {
+            sql.append(FILTER_BY_ISSUE);
+            selectParams.add(issue);
+        }
 
         if (user != null) {
             sql.append(FILTER_BY_USER_NAME);
@@ -862,6 +924,21 @@ public class BichoFileDAO {
         Days age = Days.daysBetween(createdAt, finalDate);
 
         return age.getDays();
+    }
+
+    public Committer selectLastCommitter(String filename, Commit commit, String fixVersion) {
+
+        Object[] row
+                = dao.selectNativeOneWithParams(SELECT_LAST_COMMITTER_BEFORE_ISSUE,
+                        new Object[]{filename, fixVersion, commit.getId()});
+
+        Integer committerId = (Integer) row[0];
+        String committerName = (String) row[1];
+        String committerEmail = (String) row[2];
+
+        Committer committer = new Committer(committerId, committerName, committerEmail);
+
+        return committer;
     }
 
 }

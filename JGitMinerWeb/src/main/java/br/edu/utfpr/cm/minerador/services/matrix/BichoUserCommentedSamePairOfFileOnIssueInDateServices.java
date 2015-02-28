@@ -86,14 +86,14 @@ public class BichoUserCommentedSamePairOfFileOnIssueInDateServices extends Abstr
 //        }
 //        Pattern fileToIgnore = MatcherUtils.createExcludeMatcher(getFilesToIgnore());
         int maxFilePerCommit = 20;
-        BichoDAO bichoDAO = new BichoDAO(dao, getRepository());
+        BichoDAO bichoDAO = new BichoDAO(dao, getRepository(), maxFilePerCommit);
         BichoFileDAO bichoFileDAO = new BichoFileDAO(dao, getRepository(), maxFilePerCommit);
 
         out.printLog("Maximum files per commit: " + getMaxFilesPerCommit());
         out.printLog("Minimum files per commit: " + getMinFilesPerCommit());
 
         // select a issue/pullrequest commenters
-        Map<Integer, List<Integer>> issuesCommits = bichoDAO.selectIssues(
+        Map<Integer, Set<Integer>> issuesCommits = bichoDAO.selectIssues(
                 beginDate, endDate, getMaxFilesPerCommit());
         
         out.printLog("Issues (filtered): " + issuesCommits.size());
@@ -101,9 +101,9 @@ public class BichoUserCommentedSamePairOfFileOnIssueInDateServices extends Abstr
         int count = 1;
         int totalFilePairsCount = 0;
 
-        for (Map.Entry<Integer, List<Integer>> entrySet : issuesCommits.entrySet()) {
+        for (Map.Entry<Integer, Set<Integer>> entrySet : issuesCommits.entrySet()) {
             Integer issue = entrySet.getKey();
-            List<Integer> commits = entrySet.getValue();
+            Set<Integer> commits = entrySet.getValue();
 
             out.printLog("##################### NR: " + issue);
             out.printLog(count + " of the " + issuesCommits.size());
@@ -144,7 +144,7 @@ public class BichoUserCommentedSamePairOfFileOnIssueInDateServices extends Abstr
             out.printLog("Issue files pairs: " + totalPullRequestFilePairsCount);
 
             // seleciona os autores de cada comentario (mesmo repetido)
-            List<Commenter> commenters = bichoDAO.selectCommentersByIssueId(issue);
+            List<Commenter> commenters = bichoDAO.selectCommentersByIssueOrderBySubmissionDate(issue);
             out.printLog("Issue comments" + commenters.size());
 
             Map<AuxUserUserDirectional, AuxUserUserDirectional> pairCommenter
