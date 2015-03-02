@@ -8,11 +8,8 @@ import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericDao;
 import br.edu.utfpr.cm.JGitMinerWeb.model.matrix.EntityMatrix;
 import br.edu.utfpr.cm.JGitMinerWeb.model.matrix.EntityMatrixNode;
 import br.edu.utfpr.cm.JGitMinerWeb.model.metric.EntityMetric;
-import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.auxiliary.AuxFileFile;
-import br.edu.utfpr.cm.JGitMinerWeb.services.metric.auxiliary.AuxFileFileIssueMetrics;
 import br.edu.utfpr.cm.JGitMinerWeb.util.OutLog;
 import br.edu.utfpr.cm.minerador.services.matrix.BichoPairOfFileInFixVersionServices;
-import br.edu.utfpr.cm.minerador.services.matrix.model.FilePairApriori;
 import static br.edu.utfpr.cm.minerador.services.metric.AbstractBichoMetricServices.objectsToNodes;
 import br.edu.utfpr.cm.minerador.services.metric.committer.Committer;
 import br.edu.utfpr.cm.minerador.services.metric.committer.CommitterFileMetrics;
@@ -28,12 +25,9 @@ import br.edu.utfpr.cm.minerador.services.metric.model.IssueMetrics;
 import br.edu.utfpr.cm.minerador.services.metric.socialnetwork.NetworkMetrics;
 import br.edu.utfpr.cm.minerador.services.metric.socialnetwork.NetworkMetricsCalculator;
 import br.edu.utfpr.cm.minerador.services.util.MatrixUtils;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -95,16 +89,40 @@ public class BichoPairFileMostChangedPerIssueMetricsInFixVersionServices extends
         Cacher cacher = new Cacher(bichoFileDAO, bichoPairFileDAO);
 
         Set<FilePair> top25 = getTop25Matrix(matrixNodes, headerIndexesMap);
-        // calcule committer experience for top 25 files
-        for (FilePair filePair : top25) {
-            final Set<Committer> fileCommittersInPreviousVersion
-                    = bichoFileDAO.selectCommitters(filePair.getFileName(), fixVersion);
-            for (Committer committer : fileCommittersInPreviousVersion) {
-
-            }
-        }
 
         CommitterFileMetricsCalculator committerFileMetricsCalculator = new CommitterFileMetricsCalculator(bichoFileDAO);
+
+        final Set<Committer> majorContributorsInPreviousVersion = new HashSet<>();
+        final Map<String, Double> ownerExperience = new HashMap<>(25);
+        final Map<Committer, CommitterFileMetrics> committerFileMetricsList = new HashMap<>();
+        // calcule committer experience for each top 25 files in previous version
+        for (FilePair filePair : top25) {
+            final String filename = filePair.getFileName();
+
+            final Set<Committer> fileCommittersInPreviousVersion
+                    = bichoFileDAO.selectCommitters(filename, fixVersion);
+
+            for (Committer committer : fileCommittersInPreviousVersion) {
+                CommitterFileMetrics committerFileMetrics;
+                if (pastMajorVersion != null) {
+                    committerFileMetrics
+                            = committerFileMetricsCalculator.calculeForVersion(
+                                    filename, committer, pastMajorVersion);
+                } else {
+                    committerFileMetrics = new EmptyCommitterFileMetrics();
+                }
+                committerFileMetricsList.put(committer, committerFileMetrics);
+                if (committerFileMetrics.getOwnership() > 0.05) { // maior que 5% = major
+                    majorContributorsInPreviousVersion.add(committer);
+                }
+
+                if (ownerExperience.containsKey(filename)) {
+                    ownerExperience.put(filename, Math.max(committerFileMetrics.getExperience(), ownerExperience.get(filename)));
+                } else {
+                    ownerExperience.put(filename, committerFileMetrics.getExperience());
+                }
+            }
+        }
 
         // separa o top 10 em A + qualquerarquivo
         int rank = 1;
@@ -140,9 +158,12 @@ public class BichoPairFileMostChangedPerIssueMetricsInFixVersionServices extends
                     final CommitMetrics commitMetrics = new CommitMetrics(commitInIssue);
 
                     final CommitterFileMetrics committerFileMetrics;
-                    if (pastMajorVersion != null) {
-                        committerFileMetrics = committerFileMetricsCalculator.calculeForVersion(file, commitInIssue.getCommiter(), pastMajorVersion);
+
+                    if (committerFileMetricsList.containsKey(commitInIssue.getCommiter())) {
+                        // committer already commits the file
+                        committerFileMetrics = committerFileMetricsList.get(commitInIssue.getCommiter());
                     } else {
+                        // committer does not commit the file yet (i.e. first commit of committer)
                         committerFileMetrics = new EmptyCommitterFileMetrics();
                     }
 
@@ -193,11 +214,9 @@ public class BichoPairFileMostChangedPerIssueMetricsInFixVersionServices extends
 
                         fileIssueMetrics.addMetrics(
                                 // majorContributors
-                                0,
+                                BooleanUtils.toInteger(majorContributorsInPreviousVersion.contains(commitInIssue.getCommiter())),
                                 // ownerExperience,
-                                0,
-                                // cummulativeOwnerExperience
-                                0,
+                                ownerExperience.get(filename),
                                 // sameOwnership
                                 BooleanUtils.toInteger(sameOwnership),
                                 // number of distinct files in commit
@@ -249,102 +268,6 @@ public class BichoPairFileMostChangedPerIssueMetricsInFixVersionServices extends
         return distinctFileOfFilePairWithHigherConfidence;
     }
 
-    private Set<FilePair> getTop25(final List<AuxFileFileIssueMetrics> pairFileList) {
-        // order by number of defects (lower priority)
-        orderByNumberOfDefects(pairFileList);
-        // order by support (higher priority)
-        orderByFilePairSupport(pairFileList);
-
-        // 25 arquivos distintos com maior confiança entre o par (coluna da esquerda)
-        final Set<FilePair> distinctFileOfFilePairWithHigherConfidence = new LinkedHashSet<>(25);
-        final List<AuxFileFileIssueMetrics> top25Metrics = new ArrayList<>(25);
-        for (AuxFileFileIssueMetrics filePairMetrics : pairFileList) {
-            top25Metrics.add(filePairMetrics);
-            FilePair filePair = new FilePair(filePairMetrics.getFile(), filePairMetrics.getFile2());
-            distinctFileOfFilePairWithHigherConfidence.add(filePair);
-            if (distinctFileOfFilePairWithHigherConfidence.size() >= 25) {
-                break;
-            }
-        }
-        // salvando a matriz com o top par de arquivos
-        EntityMetric metrics = new EntityMetric();
-        metrics.setNodes(objectsToNodes(top25Metrics, getHeadCSV()));
-        metrics.setAdditionalFilename("top 25");
-        saveMetrics(metrics);
-
-        return distinctFileOfFilePairWithHigherConfidence;
-    }
-
-    private Map<AuxFileFile, Set<Integer>> getAllTopFileChanges(Set<AuxFileFile> distinctFileOfFilePairWithHigherConfidence, List<AuxFileFileIssueMetrics> pairFileList) {
-        Map<AuxFileFile, Set<Integer>> topFiles = new LinkedHashMap<>(distinctFileOfFilePairWithHigherConfidence.size());
-
-        for (AuxFileFile fileFile : distinctFileOfFilePairWithHigherConfidence) {
-            for (AuxFileFileIssueMetrics fileFileIssueMetrics : pairFileList) {
-                // one file of pair is equals to first file (file with high confidence)?
-                if (fileFileIssueMetrics.getFile().equals(fileFile.getFileName())
-                        || fileFileIssueMetrics.getFile2().equals(fileFile.getFileName())) {
-                    if (topFiles.containsKey(fileFile)) {
-                        topFiles.get(fileFile).add(fileFileIssueMetrics.getIssue());
-                    } else {
-                        Set<Integer> changes = new LinkedHashSet<>();
-                        changes.add(fileFileIssueMetrics.getIssue());
-                        topFiles.put(fileFile, changes);
-                    }
-                }
-            }
-        }
-        return topFiles;
-    }
-
-    private Map<String, Set<AuxFileFileIssueMetrics>> getAllFilesChangedWithTop25(final Set<String> distinctFileOfFilePairWithHigherConfidence, final List<AuxFileFileIssueMetrics> pairFileList) {
-        Map<String, Set<AuxFileFileIssueMetrics>> top25 = new LinkedHashMap<>(25);
-        for (String file : distinctFileOfFilePairWithHigherConfidence) {
-            final Set<AuxFileFileIssueMetrics> filesChangedWithA = new LinkedHashSet<>();
-            
-            for (AuxFileFileIssueMetrics pairFile : pairFileList) {
-                if (pairFile.getFile().equals(file)) {
-                    filesChangedWithA.add(pairFile);
-                }
-            }
-            top25.put(file, filesChangedWithA);
-        }
-        return top25;
-    }
-
-    private void orderByFilePairSupport(final List<AuxFileFileIssueMetrics> pairFileList) {
-        Collections.sort(pairFileList, new Comparator<AuxFileFileIssueMetrics>() {
-
-            @Override
-            public int compare(AuxFileFileIssueMetrics o1, AuxFileFileIssueMetrics o2) {
-                FilePairApriori apriori1 = o1.getFilePairApriori();
-                FilePairApriori apriori2 = o2.getFilePairApriori();
-                if (apriori1.getSupportFilePair() > apriori2.getSupportFilePair()) {
-                    return -1;
-                } else if (apriori1.getSupportFilePair() < apriori2.getSupportFilePair()) {
-                    return 1;
-                }
-                return 0;
-            }
-        });
-    }
-
-    private void orderByNumberOfDefects(final List<AuxFileFileIssueMetrics> pairFileList) {
-        Collections.sort(pairFileList, new Comparator<AuxFileFileIssueMetrics>() {
-
-            @Override
-            public int compare(AuxFileFileIssueMetrics o1, AuxFileFileIssueMetrics o2) {
-                final int defectIssuesIdWeight1 = o1.getFutureDefectIssuesIdWeight();
-                final int defectIssuesIdWeight2 = o2.getFutureDefectIssuesIdWeight();
-                if (defectIssuesIdWeight1 > defectIssuesIdWeight2) {
-                    return -1;
-                } else if (defectIssuesIdWeight1 < defectIssuesIdWeight2) {
-                    return 1;
-                }
-                return 0;
-            }
-        });
-    }
-
     public String getHeadCSV() {
         return "file;file2;issue;"
                 + "issueType;issuePriority;issueAssignedTo;issueSubmittedBy;"
@@ -394,18 +317,5 @@ public class BichoPairFileMostChangedPerIssueMetricsInFixVersionServices extends
 
     private String getRepository() {
         return getMatrix().getRepository();
-    }
-
-    private Set<Integer> toIntegerList(String value) {
-        String values[] = value.split(",");
-        Set<Integer> list = new HashSet<>(values.length);
-        for (String integerValue : values) {
-            if (!integerValue.isEmpty()) {
-                list.add(Integer.valueOf(integerValue));
-            }
-        }
-        return list;
-    }
-
-    
+    }    
 }

@@ -23,7 +23,6 @@ public class FileIssueMetrics extends FileMetrics {
             // metricas de commit
             + "isMajorContributor;" // committer é principal colaborador do arquivo
             + "ownerExperience;" // experiencia do owner na versao anterior
-            + "cummulativeOwnerExperience;" // experiencia do owner ate a versao anterior
             + "sameOwnership;" // total de arquivos modificados no commit
             + "files;" // total de arquivos modificados no commit
 //            + "committers;" // committers na release

@@ -64,4 +64,8 @@ public class CommitterFileMetricsCalculator {
 
         return new CommitterFileMetrics(committer, file, ownership, experience);
     }
+
+    public CommitterFileMetrics calculeForVersion(String file, Committer committer, String fixVersion) {
+        return calculeForVersion(new File(file), committer, fixVersion);
+    }
 }
