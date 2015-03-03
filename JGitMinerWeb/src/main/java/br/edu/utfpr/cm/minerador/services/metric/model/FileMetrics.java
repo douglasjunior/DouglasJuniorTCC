@@ -136,7 +136,7 @@ public class FileMetrics {
         changed = 1;
     }
 
-    public int getRisky() {
+    public int getChanged() {
         return changed;
     }
 

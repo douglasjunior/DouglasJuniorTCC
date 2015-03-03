@@ -1,6 +1,5 @@
 package br.edu.utfpr.cm.minerador.services.metric;
 
-import br.edu.utfpr.cm.minerador.services.metric.model.CodeChurn;
 import br.edu.utfpr.cm.JGitMinerWeb.dao.AuxUser;
 import br.edu.utfpr.cm.JGitMinerWeb.dao.BichoDAO;
 import br.edu.utfpr.cm.JGitMinerWeb.dao.BichoFileDAO;
@@ -36,6 +35,7 @@ import br.edu.utfpr.cm.minerador.services.matrix.BichoUserCommentedSamePairOfFil
 import br.edu.utfpr.cm.minerador.services.matrix.model.Commenter;
 import br.edu.utfpr.cm.minerador.services.matrix.model.FilePairApriori;
 import static br.edu.utfpr.cm.minerador.services.metric.AbstractBichoMetricServices.objectsToNodes;
+import br.edu.utfpr.cm.minerador.services.metric.model.CodeChurn;
 import br.edu.utfpr.cm.minerador.services.metric.model.IssueMetrics;
 import edu.uci.ics.jung.graph.DirectedSparseGraph;
 import edu.uci.ics.jung.graph.util.EdgeType;
@@ -450,7 +450,7 @@ public class BichoPairFileMetricsInDateServices extends AbstractBichoMetricServi
             long wordiness = 0;
             long commentsSum = 0;
             for (IssueMetrics auxWordiness : issuesAndComments) {
-                wordiness += WordinessCalculator.calcule(auxWordiness);
+                wordiness += WordinessCalculator.calcule(auxWordiness.getIssueBody(), auxWordiness.getComments());
                 commentsSum += auxWordiness.getComments().size();
             }
 

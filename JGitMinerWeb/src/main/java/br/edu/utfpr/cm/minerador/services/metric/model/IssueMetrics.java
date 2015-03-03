@@ -82,6 +82,8 @@ public class IssueMetrics {
         } else {
             this.issueAge = -1;
         }
+
+        wordiness = WordinessCalculator.calcule(issueBody, comments);
     }
 
     public IssueMetrics(Integer issueNumber, String issueKey, String issueBody, List<String> comments) {
@@ -153,14 +155,19 @@ public class IssueMetrics {
         comments.add(comment);
     }
 
+    public Timestamp getSubmittedOn() {
+        return submittedOn;
+    }
+
+    public Timestamp getFixedOn() {
+        return fixedOn;
+    }
+
     public int getIssueAge() {
         return issueAge;
     }
 
     public long getWordiness() {
-        if (wordiness == 0) {
-            wordiness = WordinessCalculator.calcule(this);
-        }
         return wordiness;
     }
 
@@ -181,7 +188,7 @@ public class IssueMetrics {
                 + priority + ";" + assignedTo + ";" + submittedBy + ";"
                 + numberOfWatchers + ";" + reopenedTimes + ";"
                 + commenters + ";" + devCommenters + ";"
-                + comments.size() + ";" + issueAge + ";" + wordiness + ";";
+                + comments.size() + ";" + wordiness + ";" + issueAge + ";";
     }
 
     @Override

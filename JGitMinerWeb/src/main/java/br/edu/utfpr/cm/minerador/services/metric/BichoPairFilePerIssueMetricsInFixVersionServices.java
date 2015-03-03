@@ -602,7 +602,7 @@ public class BichoPairFilePerIssueMetricsInFixVersionServices extends AbstractBi
                         fileIssueMetrics.setNetworkMetrics(networkMetrics);
 
                         final long totalCommitters = bichoFileDAO.calculeCummulativeCommitters(filename, issue, fixVersion);
-                        final long totalCommits = bichoFileDAO.calculeCummulativeCommits(filename, issue, fixVersion);
+                        final long totalCommits = bichoFileDAO.calculeCummulativeCommits(filename, fixVersion);
 
                         final Map<String, Long> futureIssuesTypes = bichoFileDAO.calculeNumberOfIssuesGroupedByType(
                                 filename, futureVersion);

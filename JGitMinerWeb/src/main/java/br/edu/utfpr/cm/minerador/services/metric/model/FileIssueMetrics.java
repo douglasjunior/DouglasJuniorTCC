@@ -26,12 +26,12 @@ public class FileIssueMetrics extends FileMetrics {
             + "sameOwnership;" // total de arquivos modificados no commit
             + "files;" // total de arquivos modificados no commit
 //            + "committers;" // committers na release
-            + "totalCommitters;" // committers desde o começo ate a data final da relese
+            + "pv_totalCommitters;" // committers desde o começo ate a data final da relese
 //            + "commits;" // commits do par de arquivos na release
-            + "totalCommits;" // todos commits do arquivo
+            + "pv_totalCommits;" // todos commits do arquivo
             + "addedLines;deletedLines;changedLines;" // do arquivo, no commit de uma issue corrigida
-            + "fileAge;" // idade na versão em analise
-            + "pv_totalFileAge;" // idade do arquivo em dias
+            + "fileAge;" // idade do arquivo na versão em dias na versao em analise
+            + "pv_totalFileAge;" // idade do arquivo em dias desde o primeiro commit
             + "futureDefects;" // numero de defeitos do primeiro arquivo na proxima versao
             + "futureIssues;" // numero de issues do arquivo na proxima versao
             + "isFilePairChanged;" // o par mudou nesse commit? 0 = não, 1 = sim
@@ -134,7 +134,7 @@ public class FileIssueMetrics extends FileMetrics {
         for (double m : getMetrics()) {
             sb.append(m).append(";");
         }
-        sb.append(getRisky());
+        sb.append(getChanged()).append(";");
         return sb.toString();
     }
 

@@ -5,12 +5,14 @@ import br.edu.utfpr.cm.minerador.services.matrix.model.FilePath;
 import br.edu.utfpr.cm.minerador.services.metric.committer.Committer;
 import br.edu.utfpr.cm.minerador.services.metric.model.CodeChurn;
 import br.edu.utfpr.cm.minerador.services.metric.model.Commit;
+import br.edu.utfpr.cm.minerador.services.metric.model.File;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -82,6 +84,9 @@ public class BichoFileDAO {
     private final String SELECT_RELEASE_MIN_MAX_COMMIT_DATE;
 
     private final String SELECT_LAST_COMMITTER_BEFORE_ISSUE;
+
+    private final String SELECT_COMMIT_AND_FILES_BY_FILENAME_AND_ISSUE;
+    private final String FILTER_BY_ISSUE_ID;
 
     private final GenericBichoDAO dao;
 
@@ -195,6 +200,9 @@ public class BichoFileDAO {
                 = " AND (com.file_path LIKE \"%.java\""
                 + " OR com.file_path LIKE \"%.xml\")"
                 + " AND com.file_path NOT LIKE \"%Test.java\"";
+
+        FILTER_BY_ISSUE_ID
+                = " AND i.id = ?";
 
         ORDER_BY_SUBMITTED_ON
                 = " ORDER BY i.submitted_on";
@@ -311,6 +319,15 @@ public class BichoFileDAO {
                         + "     (SELECT MAX(s2.date) FROM {0}_vcs.scmlog s2"
                         + "       WHERE s2.id = ?)"
                         + " ORDER BY s.date DESC LIMIT 1", repository);
+
+        SELECT_COMMIT_AND_FILES_BY_FILENAME_AND_ISSUE
+                = QueryUtils.getQueryForDatabase(
+                        "SELECT DISTINCT com.commit_id, com.file_path, p.id, p.name, p.email"
+                        + FROM_TABLE
+                        + "  JOIN {0}_vcs.people p ON p.id = s.committer_id"
+                        + WHERE, repository)
+                + FILTER_BY_ISSUE_ID
+                + FILTER_BY_MAX_FILES_IN_COMMIT;
     }
 
     // Issues //////////////////////////////////////////////////////////////////
@@ -744,13 +761,10 @@ public class BichoFileDAO {
         sql.append(COUNT_COMMITTERS_OF_FILE);
         selectParams.add(file);
 
-        sql.append(FILTER_BY_ISSUE_FIX_MAJOR_VERSION);
+        sql.append(FILTER_BY_BEFORE_ISSUE_FIX_MAJOR_VERSION_EXCLUSIVE);
         selectParams.add(fixVersion);
 
         sql.append(FIXED_ISSUES_ONLY);
-
-        sql.append(FILTER_BY_BEFORE_ISSUE_FIX_DATE_OF_ISSUE_ID);
-        selectParams.add(issue);
 
         Long committers = dao.selectNativeOneWithParams(
                 sql.toString(), selectParams.toArray());
@@ -789,7 +803,7 @@ public class BichoFileDAO {
         sql.append(SUM_ADD_AND_DEL_LINES_BY_FILE_NAME);
         selectParams.add(filename);
 
-        sql.append(FILTER_BY_BEFORE_ISSUE_FIX_MAJOR_VERSION_INCLUSIVE);
+        sql.append(FILTER_BY_ISSUE_FIX_MAJOR_VERSION);
         selectParams.add(version);
 
         if (commit != null) {
@@ -827,7 +841,7 @@ public class BichoFileDAO {
         return issues;
     }
 
-    public long calculeCummulativeCommits(String file, Integer untilIssue, String fixVersion) {
+    public long calculeCummulativeCommits(String file, String fixVersion) {
         List<Object> selectParams = new ArrayList<>();
 
         StringBuilder sql = new StringBuilder();
@@ -835,12 +849,7 @@ public class BichoFileDAO {
 
         selectParams.add(file);
 
-        sql.append(FIXED_ISSUES_ONLY);
-
-        sql.append(FILTER_BY_BEFORE_ISSUE_FIX_MAJOR_VERSION_INCLUSIVE);
-        selectParams.add(fixVersion);
-
-        sql.append(FILTER_BY_BEFORE_ISSUE_FIX_DATE_OF_ISSUE_ID);
+        sql.append(FILTER_BY_BEFORE_ISSUE_FIX_MAJOR_VERSION_EXCLUSIVE);
         selectParams.add(fixVersion);
 
         Long count = dao.selectNativeOneWithParams(sql.toString(), selectParams.toArray());
@@ -994,6 +1003,35 @@ public class BichoFileDAO {
         }
 
         return committer;
+    }
+
+    public Set<Commit> selectFilesAndCommitByFileAndIssue(String filename, Integer issue) {
+        List<Object[]> rawFilesPath
+                = dao.selectNativeWithParams(SELECT_COMMIT_AND_FILES_BY_FILENAME_AND_ISSUE, new Object[]{filename, issue});
+
+        Map<Commit, Commit> commits = new LinkedHashMap<>();
+
+        for (Object[] row : rawFilesPath) {
+
+            Integer commitId = (Integer) row[0];
+            String fileName = (String) row[1];
+            Integer committerId = (Integer) row[2];
+            String committerName = (String) row[3];
+            String committerEmail = (String) row[4];
+
+            Committer committer = new Committer(committerId, committerName, committerEmail);
+
+            Commit commit = new Commit(commitId, committer);
+
+            if (commits.containsKey(commit)) {
+                commits.get(commit).getFiles().add(new File(fileName));
+            } else {
+                commit.getFiles().add(new File(fileName));
+                commits.put(commit, commit);
+            }
+        }
+
+        return commits.keySet();
     }
 
 }

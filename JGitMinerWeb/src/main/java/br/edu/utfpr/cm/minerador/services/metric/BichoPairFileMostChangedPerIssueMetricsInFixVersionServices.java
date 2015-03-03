@@ -62,6 +62,10 @@ public class BichoPairFileMostChangedPerIssueMetricsInFixVersionServices extends
         return getStringParam("futureVersion");
     }
 
+    public String getAdditionalFilename() {
+        return getStringParam("filename");
+    }
+
     @Override
     public void run() {
         repository = getRepository();
@@ -149,6 +153,9 @@ public class BichoPairFileMostChangedPerIssueMetricsInFixVersionServices extends
                 final Set<Commit> issueCommits = bichoDAO.selectFilesAndCommitByIssue(issue);
 
                 for (Commit commitInIssue : issueCommits) {
+                    if (!commitInIssue.getFiles().contains(file)) {
+                        continue;
+                    }
                     Set<File> filesInCommit = commitInIssue.getFiles();
 
                     // metricas do arquivo com maior confiança, somente
@@ -184,7 +191,7 @@ public class BichoPairFileMostChangedPerIssueMetricsInFixVersionServices extends
                         fileIssueMetrics.setNetworkMetrics(networkMetrics);
 
                         final long totalCommitters = bichoFileDAO.calculeCummulativeCommitters(filename, issue, fixVersion);
-                        final long totalCommits = bichoFileDAO.calculeCummulativeCommits(filename, issue, fixVersion);
+                        final long totalCommits = bichoFileDAO.calculeCummulativeCommits(filename, fixVersion);
 
                         final Map<String, Long> futureIssuesTypes
                                 = bichoFileDAO.calculeNumberOfIssuesGroupedByType(
@@ -196,9 +203,9 @@ public class BichoPairFileMostChangedPerIssueMetricsInFixVersionServices extends
                             futureDefects = futureIssuesTypes.get("Bug");
                         }
 
-                        long futureUpdates = 0;
+                        long futureIssues = 0;
                         for (Map.Entry<String, Long> entrySet : futureIssuesTypes.entrySet()) {
-                            futureUpdates += entrySet.getValue();
+                            futureIssues += entrySet.getValue();
                         }
 
                         final Committer lastCommitter = bichoFileDAO.selectLastCommitter(file.getFileName(), commitInIssue, fixVersion);
@@ -227,8 +234,8 @@ public class BichoPairFileMostChangedPerIssueMetricsInFixVersionServices extends
                                 fileCodeChurn.getAdditionsNormalized(), fileCodeChurn.getDeletionsNormalized(), fileCodeChurn.getChanges(),
                                 // ageRelease, ageTotal
                                 ageRelease, ageTotal,
-                                // futureUpdates, futureDefects,
-                                futureUpdates, futureDefects
+                                // futureDefects, futureIssues
+                                futureDefects, futureIssues
                         );
 
                         allFileChanges.add(fileIssueMetrics);
@@ -238,7 +245,7 @@ public class BichoPairFileMostChangedPerIssueMetricsInFixVersionServices extends
 
             EntityMetric metrics3 = new EntityMetric();
             metrics3.setNodes(objectsToNodes(allFileChanges, FileIssueMetrics.HEADER));
-            metrics3.setAdditionalFilename("rank " + rank++);
+            metrics3.setAdditionalFilename("rank " + rank++ + " " + getAdditionalFilename());
             saveMetrics(metrics3);
         }
     }

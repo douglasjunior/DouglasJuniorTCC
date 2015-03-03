@@ -1,6 +1,5 @@
 package br.edu.utfpr.cm.JGitMinerWeb.services.metric;
 
-import br.edu.utfpr.cm.minerador.services.metric.model.CodeChurn;
 import br.edu.utfpr.cm.JGitMinerWeb.dao.AuxUser;
 import br.edu.utfpr.cm.JGitMinerWeb.dao.FileDAO;
 import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericDao;
@@ -14,7 +13,6 @@ import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.UserCommentedSamePairOfFileI
 import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.auxiliary.AuxFileFile;
 import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.auxiliary.AuxUserUser;
 import br.edu.utfpr.cm.JGitMinerWeb.services.metric.auxiliary.AuxFileFileMetrics;
-import br.edu.utfpr.cm.minerador.services.metric.model.IssueMetrics;
 import br.edu.utfpr.cm.JGitMinerWeb.services.metric.centrality.BetweennessCalculator;
 import br.edu.utfpr.cm.JGitMinerWeb.services.metric.centrality.ClosenessCalculator;
 import br.edu.utfpr.cm.JGitMinerWeb.services.metric.centrality.DegreeCalculator;
@@ -31,6 +29,8 @@ import br.edu.utfpr.cm.JGitMinerWeb.util.JungExport;
 import br.edu.utfpr.cm.JGitMinerWeb.util.MathUtils;
 import br.edu.utfpr.cm.JGitMinerWeb.util.OutLog;
 import br.edu.utfpr.cm.JGitMinerWeb.util.PathUtils;
+import br.edu.utfpr.cm.minerador.services.metric.model.CodeChurn;
+import br.edu.utfpr.cm.minerador.services.metric.model.IssueMetrics;
 import edu.uci.ics.jung.graph.DirectedSparseGraph;
 import edu.uci.ics.jung.graph.util.EdgeType;
 import java.text.SimpleDateFormat;
@@ -458,7 +458,7 @@ public class PairFileGlobalCommunicationSingleEdgeSNAMetricsInDateServices exten
 
             long wordiness = 0;
             for (IssueMetrics auxWordiness : issuesAndComments) {
-                wordiness += WordinessCalculator.calcule(auxWordiness);
+                wordiness += WordinessCalculator.calcule(auxWordiness.getIssueBody(), auxWordiness.getComments());
             }
 
             Long commentsSum = pairFileDAO.calculeComments(repository,

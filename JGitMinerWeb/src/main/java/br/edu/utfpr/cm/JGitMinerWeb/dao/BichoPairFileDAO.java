@@ -1,7 +1,7 @@
 package br.edu.utfpr.cm.JGitMinerWeb.dao;
 
-import br.edu.utfpr.cm.minerador.services.metric.model.CodeChurn;
 import static br.edu.utfpr.cm.JGitMinerWeb.dao.QueryUtils.filterByIssues;
+import br.edu.utfpr.cm.minerador.services.metric.model.CodeChurn;
 import br.edu.utfpr.cm.minerador.services.metric.model.IssueMetrics;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
