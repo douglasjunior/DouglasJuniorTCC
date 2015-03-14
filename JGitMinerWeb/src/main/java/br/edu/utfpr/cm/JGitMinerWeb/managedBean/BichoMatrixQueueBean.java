@@ -136,6 +136,15 @@ public class BichoMatrixQueueBean implements Serializable {
         for (int i = 0; i < versions.size() - 1; i++) {
             Map<Object, Object> params = new LinkedHashMap<>();
             params.putAll(this.params);
+            if (!params.containsKey("minFilesPerCommit")) {
+                params.put("minFilesPerCommit", 1);
+            }
+            if (!params.containsKey("maxFilesPerCommit")) {
+                params.put("maxFilesPerCommit", 20);
+            }
+            if (!params.containsKey("mergedOnly")) {
+                params.put("mergedOnly", true);
+            }
             params.put("version", versions.get(i));
             params.put("filename", versions.get(i));
             params.put("futureVersion", versions.get(i + 1));

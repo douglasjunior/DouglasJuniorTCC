@@ -1,12 +1,14 @@
 package br.edu.utfpr.cm.JGitMinerWeb.managedBean;
 
 import br.edu.utfpr.cm.JGitMinerWeb.converter.ClassConverter;
+import br.edu.utfpr.cm.JGitMinerWeb.dao.BichoDAO;
 import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericBichoDAO;
 import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericDao;
 import br.edu.utfpr.cm.JGitMinerWeb.model.matrix.EntityMatrix;
 import br.edu.utfpr.cm.JGitMinerWeb.util.JsfUtil;
 import br.edu.utfpr.cm.JGitMinerWeb.util.OutLog;
 import br.edu.utfpr.cm.minerador.services.metric.AbstractBichoMetricServices;
+import br.edu.utfpr.minerador.preprocessor.comparator.MatrixComparator;
 import com.google.common.util.concurrent.AtomicDouble;
 import java.io.PrintWriter;
 import java.io.Serializable;
@@ -14,7 +16,6 @@ import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -128,62 +129,7 @@ public class BichoMetricQueueBean implements Serializable {
 
     public void queueAll() {
         List<EntityMatrix> matrices = (List<EntityMatrix>) JsfUtil.getObjectFromSession(LIST);
-        Collections.sort(matrices, new Comparator<EntityMatrix>() {
-
-            @Override
-            public int compare(EntityMatrix o1, EntityMatrix o2) {
-
-                String[] version1 = o1.toString().split(" ")[1].split("[.]");
-                String[] version2 = o2.toString().split(" ")[1].split("[.]");
-
-                int length = version1.length;
-                if (version2.length > version1.length) {
-                    length = version2.length;
-                }
-
-                for (int i = 0; i < length; i++) {
-                    String s0 = null;
-                    if (i < version1.length) {
-                        s0 = version1[i].split("[-]")[0];
-                    }
-
-                    Integer i0;
-                    try {
-                        i0 = (s0 == null) ? 0 : Integer.parseInt(s0);
-                    } catch (java.lang.NumberFormatException ex) {
-                        i0 = 9999;
-                    }
-
-                    String s1 = null;
-                    if (i < version2.length) {
-                        s1 = version2[i].split("[-]")[0];
-                    }
-                    Integer i1;
-                    try {
-                        i1 = (s1 == null) ? 0 : Integer.parseInt(s1);
-                    } catch (java.lang.NumberFormatException ex) {
-                        i1 = 9999;
-                    }
-
-                    if (version1[i].contains("-")
-                            && version2[i].contains("-")) {
-                        if (version1[i].compareTo(version2[i]) < 0) {
-                            return -1;
-                        } else if (version2[i].compareTo(version1[i]) < 0) {
-                            return 1;
-                        }
-                    } else {
-                        if (i0.compareTo(i1) < 0) {
-                            return -1;
-                        } else if (i1.compareTo(i0) < 0) {
-                            return 1;
-                        }
-                    }
-                }
-
-                return 0;
-            }
-        });
+        Collections.sort(matrices, new MatrixComparator());
         for (EntityMatrix matrix : matrices) {
             Map<Object, Object> params = new LinkedHashMap<>();
             params.put("matrix", matrix);
@@ -191,6 +137,24 @@ public class BichoMetricQueueBean implements Serializable {
             params.put("futureVersion", matrix.getParams().get("futureVersion"));
             out.printLog("Queued params: " + params);
             paramsQueue.add(params);
+        }
+        params = new LinkedHashMap<>();
+    }
+
+    public void queueAllForAllVersion() {
+        List<EntityMatrix> matrices = (List<EntityMatrix>) JsfUtil.getObjectFromSession(LIST);
+        Collections.sort(matrices, new MatrixComparator());
+        List<String> versions = new BichoDAO(bichoDao, matrix.getRepository(), null).selectFixVersionOrdered();
+        for (EntityMatrix matrix : matrices) {
+            for (int i = 0; i < versions.size() - 1; i++) {
+                Map<Object, Object> params = new LinkedHashMap<>();
+                params.put("matrix", matrix);
+                params.put("version", versions.get(i));//matrix.getParams().get("version"));
+                params.put("filename", "v" + versions.get(i));//matrix.getParams().get("version"));
+                params.put("futureVersion", versions.get(i + 1)); //matrix.getParams().get("futureVersion"));
+                out.printLog("Queued params: " + params);
+                paramsQueue.add(params);
+            }
         }
         params = new LinkedHashMap<>();
     }

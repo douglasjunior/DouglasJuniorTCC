@@ -13,6 +13,9 @@
             <p:commandButton onclick="PrimeFaces.monitorDownload(start, stop)" ajax="false" value="Download all CSV">
                 <p:fileDownload value="#{gitMetricViewBean.downloadAllCSV()}" />
             </p:commandButton>
+            <p:commandButton onclick="PrimeFaces.monitorDownload(start, stop)" ajax="false" value="Download all CSV Not Empty In Folder">
+                <p:fileDownload value="#{gitMetricViewBean.downloadAllCSVNotEmptyInFolder()}" />
+            </p:commandButton>
             <p:commandButton  icon="ui-icon-trash" value="Delete All"
                               actionListener="#{gitMetricViewBean.addForDeleteInSession(metric)}"
                               oncomplete="confirmationDeleteAll.show()" />

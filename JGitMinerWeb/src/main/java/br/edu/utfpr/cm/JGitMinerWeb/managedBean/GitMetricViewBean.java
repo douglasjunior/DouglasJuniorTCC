@@ -8,8 +8,10 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.Serializable;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 import javax.ejb.EJB;
@@ -147,6 +149,62 @@ public class GitMetricViewBean implements Serializable {
         }
     }
 
+    public void downloadAllCSVNotEmptyInFolder() {
+        try {
+            ByteArrayOutputStream zipBytes = new ByteArrayOutputStream();
+            ZipOutputStream zos = new ZipOutputStream(zipBytes);
+            zos.setLevel(9);
+            String project = "All";
+            Set<String> files = new HashSet<>();
+
+            for (EntityMetric metric : getMetrics()) {
+                System.out.println("Metric " + metric + " tem nodes: " + metric.getNodes().size());
+
+                if (metric.getNodes().size() == 1) {
+                    continue;
+                }
+                String fileName = (generateFileName(metric) + ".csv").replace("  ", " ");
+                String[] nameParts = fileName.replace(".csv", "").split(" ");
+
+                project = nameParts[0];
+                String version = nameParts[1].replace(".", "_");
+                String projectVersion = project + " " + version;
+                String path;
+                if (nameParts.length == 5) {
+                    path = projectVersion + "/" + fileName;
+                } else {
+                    String rank = nameParts[3] + " " + nameParts[4].replace("v", "");
+                    path = projectVersion + "/" + rank + "/"
+                            + "train_" + version
+                            + "_test_" + nameParts[5].replace("v", "").replace(".", "_") + ".csv";
+                }
+
+                if (!files.contains(path)) {
+                    StringBuilder csv = new StringBuilder();
+                    for (EntityMetricNode node : metric.getNodes()) {
+                        String line = node.toString();
+                        if (line.endsWith(";")) { // prevents error weka/r, remove last ;
+                            csv.append(line.substring(0, line.length() - 1));
+                        } else {
+                            csv.append(line);
+                        }
+                        csv.append("\r\n");
+                    }
+                    ZipEntry ze = new ZipEntry(path);
+                    zos.putNextEntry(ze);
+                    zos.write(csv.toString().getBytes());
+                    zos.closeEntry();
+                    files.add(path);
+                }
+            }
+            zos.close();
+            download(project + ".zip", "application/zip", zipBytes.toByteArray());
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            JsfUtil.addErrorMessage(ex.toString());
+        }
+    }
+
     public void downloadCSV(EntityMetric metric) {
         try {
             System.out.println("Metric tem nodes: " + metric.getNodes().size());
@@ -204,12 +262,11 @@ public class GitMetricViewBean implements Serializable {
         ec.setResponseContentType(contentType); // Check http://www.iana.org/assignments/media-types for all types. Use if necessary ExternalContext#getMimeType() for auto-detection based on filename.
         ec.setResponseContentLength(content.length); // Set it with the file size. This header is optional. It will work if it's omitted, but the download progress will be unknown.
         ec.setResponseHeader("Content-Disposition", "attachment; filename=\"" + filename + "\""); // The Save As popup magic is done here. You can give it any file name you want, this only won't work in MSIE, it will use current request URL as file name instead.
-
-        OutputStream output = ec.getResponseOutputStream();
-        output.write(content);
-        output.flush();
-        fc.responseComplete(); // Important! Otherwise JSF will attempt to render the response which obviously will fail since it's already written with a file and closed.
-        output.close();
+        try (OutputStream output = ec.getResponseOutputStream()) {
+            output.write(content);
+            output.flush();
+            fc.responseComplete(); // Important! Otherwise JSF will attempt to render the response which obviously will fail since it's already written with a file and closed.
+        }
     }
 
     private String generateFileName(EntityMetric metric) {

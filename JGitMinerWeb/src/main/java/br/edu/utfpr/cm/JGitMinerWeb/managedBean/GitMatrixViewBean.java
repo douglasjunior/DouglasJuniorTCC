@@ -101,8 +101,6 @@ public class GitMatrixViewBean implements Serializable {
 
                 String fileName = generateFileName(matrix) + ".csv";
 
-                AbstractBichoMatrixServices services = AbstractBichoMatrixServices.createInstance(matrix.getClassServicesName());
-
                 StringBuilder csv = new StringBuilder();
 
                 for (EntityMatrixNode node : matrix.getNodes()) {
@@ -219,15 +217,14 @@ public class GitMatrixViewBean implements Serializable {
         ec.setResponseContentType(contentType); // Check http://www.iana.org/assignments/media-types for all types. Use if necessary ExternalContext#getMimeType() for auto-detection based on filename.
         ec.setResponseContentLength(content.length); // Set it with the file size. This header is optional. It will work if it's omitted, but the download progress will be unknown.
         ec.setResponseHeader("Content-Disposition", "attachment; filename=\"" + filename + "\""); // The Save As popup magic is done here. You can give it any file name you want, this only won't work in MSIE, it will use current request URL as file name instead.
-
-        OutputStream output = ec.getResponseOutputStream();
-        output.write(content);
-        output.flush();
-        fc.responseComplete(); // Important! Otherwise JSF will attempt to render the response which obviously will fail since it's already written with a file and closed.
-        output.close();
+        try (OutputStream output = ec.getResponseOutputStream()) {
+            output.write(content);
+            output.flush();
+            fc.responseComplete(); // Important! Otherwise JSF will attempt to render the response which obviously will fail since it's already written with a file and closed.
+        }
     }
 
     private String generateFileName(EntityMatrix matrix) {
-        return matrix.getClassServicesSingleName();
+        return matrix.toString();
     }
 }
