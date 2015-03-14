@@ -15,6 +15,8 @@ public class FilePairOutput {
     private final FilePair filePair;
     private final Set<Integer> issuesId;
     private final Set<Integer> commitsId;
+    private final Set<Integer> commitsFile1Id;
+    private final Set<Integer> commitsFile2Id;
     private final Set<Integer> defectIssuesId;
     private final Set<Integer> futureDefectIssuesId;
     private FilePairApriori filePairApriori;
@@ -23,6 +25,8 @@ public class FilePairOutput {
         this.filePair = filePair;
         this.issuesId = new HashSet<>();
         this.commitsId = new HashSet<>();
+        this.commitsFile1Id = new HashSet<>();
+        this.commitsFile2Id = new HashSet<>();
         this.defectIssuesId = new HashSet<>();
         this.futureDefectIssuesId = new HashSet<>();
     }
@@ -47,12 +51,32 @@ public class FilePairOutput {
         return commitsId.size();
     }
 
+    public Set<Integer> getCommitsFile1Id() {
+        return Collections.unmodifiableSet(commitsFile1Id);
+    }
+
+    public int getCommitsFile1IdWeight() {
+        return commitsFile2Id.size();
+    }
+
+    public Set<Integer> getCommitsFile2Id() {
+        return Collections.unmodifiableSet(commitsFile2Id);
+    }
+
+    public int getCommitsFile2IdWeight() {
+        return commitsFile2Id.size();
+    }
+
     public Set<Integer> getIssuesId() {
         return Collections.unmodifiableSet(issuesId);
     }
 
     public int getIssuesIdWeight() {
         return issuesId.size();
+    }
+
+    public Set<Integer> getDefectIssuesId() {
+        return defectIssuesId;
     }
 
     public Set<Integer> getFutureDefectIssuesId() {
@@ -69,6 +93,14 @@ public class FilePairOutput {
 
     public void addCommitId(Integer commitId) {
         commitsId.add(commitId);
+    }
+
+    public void addCommitFile1Id(Integer commitId) {
+        commitsFile1Id.add(commitId);
+    }
+
+    public void addCommitFile2Id(Integer commitId) {
+        commitsFile2Id.add(commitId);
     }
 
     public void addDefectIssueId(Integer defectId) {
@@ -123,6 +155,12 @@ public class FilePairOutput {
         appendInteger(toString, commitsId.size());
         appendSetInteger(toString, commitsId);
 
+        appendInteger(toString, commitsFile1Id.size());
+        appendSetInteger(toString, commitsFile1Id);
+
+        appendInteger(toString, commitsFile2Id.size());
+        appendSetInteger(toString, commitsFile2Id);
+
         appendInteger(toString, defectIssuesId.size());
         appendSetInteger(toString, defectIssuesId);
 
@@ -138,6 +176,8 @@ public class FilePairOutput {
         return FilePair.getToStringHeader()
                 + "issues;issuesId;"
                 + "commits;commitsId;"
+                + "commitsFile1;commitsFile1Id;"
+                + "commitsFile2;commitsFile2Id;"
                 + "defectIssues;defectIssuesId;"
                 + "futureDefectIssues;futureDefectIssuesId;"
                 + FilePairApriori.getToStringHeader();

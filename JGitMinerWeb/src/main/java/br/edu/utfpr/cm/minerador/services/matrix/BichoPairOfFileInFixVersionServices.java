@@ -151,16 +151,26 @@ public class BichoPairOfFileInFixVersionServices extends AbstractBichoMatrixServ
                     if (!file1.getFilePath().equals(file2.getFilePath())) {
                         FilePair filePair = new FilePair(file1.getFilePath(), file2.getFilePath());
                         if (pairFiles.containsKey(filePair)) {
-                            pairFiles.get(filePair).addIssueId(issue.getId());
-                            out.printLog("Pair file already exists: " + file1.getFilePath() + " - " + file2.getFilePath());
+                            FilePairOutput filePairOutput = pairFiles.get(filePair);
+                            filePairOutput.addIssueId(issue.getId());
+                            if (file1.getCommitId().equals(file2.getCommitId())) {
+                                filePairOutput.addCommitId(file1.getCommitId());
+                            }
+                            filePairOutput.addCommitFile1Id(file1.getCommitId());
+                            filePairOutput.addCommitFile2Id(file2.getCommitId());
+
+//                            out.printLog("Pair file already exists: " + file1.getFilePath() + " - " + file2.getFilePath());
                         } else {
                             FilePairOutput filePairOutput = new FilePairOutput(filePair);
                             filePairOutput.addIssueId(issue.getId());
                             if ("Bug".equals(issue.getType())) {
                                 filePairOutput.addDefectIssueId(issue.getId());
                             }
-                            filePairOutput.addCommitId(file1.getCommitId());
-                            filePairOutput.addCommitId(file2.getCommitId());
+                            if (file1.getCommitId().equals(file2.getCommitId())) {
+                                filePairOutput.addCommitId(file1.getCommitId());
+                            }
+                            filePairOutput.addCommitFile1Id(file1.getCommitId());
+                            filePairOutput.addCommitFile2Id(file2.getCommitId());
                             pairFiles.put(filePair, filePairOutput);
                             out.printLog("Paired file: " + file1.getFilePath() + " - " + file2.getFilePath());
                         }

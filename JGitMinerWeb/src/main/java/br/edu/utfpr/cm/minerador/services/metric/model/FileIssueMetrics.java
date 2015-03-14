@@ -34,7 +34,7 @@ public class FileIssueMetrics extends FileMetrics {
             + "pv_totalFileAge;" // idade do arquivo em dias desde o primeiro commit
             + "futureDefects;" // numero de defeitos do primeiro arquivo na proxima versao
             + "futureIssues;" // numero de issues do arquivo na proxima versao
-            + "isFilePairChanged;" // o par mudou nesse commit? 0 = não, 1 = sim
+            + "isFilePairChanged" // o par mudou nesse commit? 0 = não, 1 = sim
             ;
 
     public static final Map<String, Integer> headerIndexes;
@@ -134,7 +134,7 @@ public class FileIssueMetrics extends FileMetrics {
         for (double m : getMetrics()) {
             sb.append(m).append(";");
         }
-        sb.append(getChanged()).append(";");
+        sb.append(getChanged());
         return sb.toString();
     }
 

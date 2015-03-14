@@ -20,7 +20,7 @@ public class FilePairOutputTest {
         filePairOutput.addFutureDefectIssuesId(5);
         filePairOutput.addFutureDefectIssuesId(6);
 
-        assertEquals("A;B;2;1,2;2;3,4;0;;2;5,6;2;4;2;8;0.25;0.5;0.25;1.0;0.5;2.0;0.0;1.0;", filePairOutput.toString());
+        assertEquals("A;B;2;1,2;2;3,4;0;;0;;0;;2;5,6;2;4;2;8;0.25;0.5;0.25;1.0;0.5;2.0;0.0;1.0;", filePairOutput.toString());
     }
 
     @Test
@@ -34,7 +34,7 @@ public class FilePairOutputTest {
         filePairOutput.addFutureDefectIssuesId(5);
         filePairOutput.addFutureDefectIssuesId(6);
 
-        assertEquals("B;A;2;1,2;2;3,4;0;;2;5,6;2;4;2;8;0.25;0.5;0.25;1.0;0.5;2.0;0.0;1.0;", filePairOutput.toString());
+        assertEquals("B;A;2;1,2;2;3,4;0;;0;;0;;2;5,6;2;4;2;8;0.25;0.5;0.25;1.0;0.5;2.0;0.0;1.0;", filePairOutput.toString());
     }
 
     @Test
@@ -42,6 +42,8 @@ public class FilePairOutputTest {
         assertEquals("file1;file2;"
                 + "issues;issuesId;"
                 + "commits;commitsId;"
+                + "commitsFile1;commitsFile1Id;"
+                + "commitsFile2;commitsFile2Id;"
                 + "defectIssues;defectIssuesId;"
                 + "futureDefectIssues;futureDefectIssuesId;"
                 + "fileIssues;file2Issues;issues;allIssues;supportFile;supportFile2;"

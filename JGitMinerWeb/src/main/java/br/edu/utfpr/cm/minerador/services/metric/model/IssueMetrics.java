@@ -186,7 +186,8 @@ public class IssueMetrics {
     public String toString() {
         return issueKey + ";" + issueType + ";"
                 + priority + ";" + assignedTo + ";" + submittedBy + ";"
-                + numberOfWatchers + ";" + reopenedTimes + ";"
+                + numberOfWatchers + ";"
+                + reopenedTimes + ";"
                 + commenters + ";" + devCommenters + ";"
                 + comments.size() + ";" + wordiness + ";" + issueAge + ";";
     }

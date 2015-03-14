@@ -25,6 +25,7 @@ import br.edu.utfpr.cm.minerador.services.metric.model.IssueMetrics;
 import br.edu.utfpr.cm.minerador.services.metric.socialnetwork.NetworkMetrics;
 import br.edu.utfpr.cm.minerador.services.metric.socialnetwork.NetworkMetricsCalculator;
 import br.edu.utfpr.cm.minerador.services.util.MatrixUtils;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -92,7 +93,7 @@ public class BichoPairFileMostChangedPerIssueMetricsInFixVersionServices extends
         // reducing access to database
         Cacher cacher = new Cacher(bichoFileDAO, bichoPairFileDAO);
 
-        Set<FilePair> top25 = getTop25Matrix(matrixNodes, headerIndexesMap);
+        Set<FilePair> top25 = getTop25Matrix(matrix.getNodes().get(0), matrixNodes, headerIndexesMap);
 
         CommitterFileMetricsCalculator committerFileMetricsCalculator = new CommitterFileMetricsCalculator(bichoFileDAO);
 
@@ -250,27 +251,29 @@ public class BichoPairFileMostChangedPerIssueMetricsInFixVersionServices extends
         }
     }
 
-    private Set<FilePair> getTop25Matrix(final List<EntityMatrixNode> matrixNodes, final Map<String, Integer> header) {
-        // order by number of defects (lower priority)
-        MatrixUtils.orderByNumberOfDefects(matrixNodes, header);
-        // order by support (higher priority)
-        MatrixUtils.orderByFilePairSupport(matrixNodes, header);
-
+    private Set<FilePair> getTop25Matrix(final EntityMatrixNode headerNode, final List<EntityMatrixNode> matrixNodes, final Map<String, Integer> header) {
         // 25 arquivos distintos com maior confiança entre o par (coluna da esquerda)
         final int file1Index = header.get("file1");
         final int file2Index = header.get("file2");
 
         final Set<FilePair> distinctFileOfFilePairWithHigherConfidence = new LinkedHashSet<>(25);
+        final List<EntityMatrixNode> nodesTop25 = new ArrayList<>();
         for (EntityMatrixNode node : matrixNodes) {
             final String[] lineValues = MatrixUtils.separateValues(node);
 
             FilePair filePair = new FilePair(lineValues[file1Index], lineValues[file2Index]);
 
             distinctFileOfFilePairWithHigherConfidence.add(filePair);
+            nodesTop25.add(node);
             if (distinctFileOfFilePairWithHigherConfidence.size() >= 25) {
                 break;
             }
         }
+
+        EntityMetric top25 = new EntityMetric();
+        top25.setNodes(objectsToNodes(nodesTop25, headerNode.toString()));
+        top25.setAdditionalFilename("top 25");
+        saveMetrics(top25);
 
         return distinctFileOfFilePairWithHigherConfidence;
     }
