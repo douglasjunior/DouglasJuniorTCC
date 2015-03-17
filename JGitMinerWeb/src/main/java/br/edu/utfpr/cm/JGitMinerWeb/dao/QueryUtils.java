@@ -1,7 +1,9 @@
 package br.edu.utfpr.cm.JGitMinerWeb.dao;
 
+import br.edu.utfpr.cm.minerador.services.matrix.model.Issue;
 import java.text.MessageFormat;
 import java.util.Collection;
+import java.util.Set;
 
 /**
  *
@@ -22,6 +24,21 @@ public class QueryUtils {
                     sql.append(",");
                 }
                 sql.append(issue);
+                appendComma = true;
+            }
+            sql.append(")");
+        }
+    }
+
+    public static void filterByIssues(Set<Issue> issues, StringBuilder sql) {
+        if (issues != null && !issues.isEmpty()) {
+            sql.append(" AND i.id IN (");
+            boolean appendComma = false;
+            for (Issue issue : issues) {
+                if (appendComma) {
+                    sql.append(",");
+                }
+                sql.append(issue.getId());
                 appendComma = true;
             }
             sql.append(")");

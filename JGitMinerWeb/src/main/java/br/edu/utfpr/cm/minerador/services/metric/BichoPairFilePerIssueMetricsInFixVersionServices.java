@@ -442,7 +442,7 @@ public class BichoPairFilePerIssueMetricsInFixVersionServices extends AbstractBi
 //                    fileFile.getFileName(), fileFile.getFileName2(),
 //                    beginDate, endDate, true);
 
-            final long futureUpdates = cacher.calculeFutureNumberOfIssues(
+            final long futureIssues = cacher.calculeFutureNumberOfIssues(
                     fileFilePull.getFileFile(), futureVersion);
 
             // list all issues and its comments
@@ -512,7 +512,7 @@ public class BichoPairFilePerIssueMetricsInFixVersionServices extends AbstractBi
                     pairFileCodeChurn.getAdditionsNormalized(), pairFileCodeChurn.getDeletionsNormalized(), pairFileCodeChurn.getChanges(),
                     // rigidityFile1, rigidityFile2, rigidityPairFile,
 //                    issuesTypesCount.get("Improvement"), issuesTypesCount.get("Bug"),
-                    ageRelease, ageTotal, updates, futureUpdates, futureDefectsPairFile.get(fileFilePull.getFileFile())
+                    ageRelease, ageTotal, updates, futureIssues, futureDefectsPairFile.get(fileFilePull.getFileFile())
             );
 
             // apriori /////////////////////////////////////////////////////////

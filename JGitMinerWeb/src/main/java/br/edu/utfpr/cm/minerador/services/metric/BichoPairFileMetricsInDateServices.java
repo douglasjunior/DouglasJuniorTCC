@@ -30,7 +30,6 @@ import br.edu.utfpr.cm.JGitMinerWeb.util.OutLog;
 import br.edu.utfpr.cm.JGitMinerWeb.util.PairUtils;
 import br.edu.utfpr.cm.JGitMinerWeb.util.PathUtils;
 import br.edu.utfpr.cm.minerador.services.matrix.BichoPairOfFileInDateServices;
-import br.edu.utfpr.cm.minerador.services.matrix.BichoPairOfFileTop10InDateServices;
 import br.edu.utfpr.cm.minerador.services.matrix.BichoUserCommentedSamePairOfFileOnIssueInDateServices;
 import br.edu.utfpr.cm.minerador.services.matrix.model.Commenter;
 import br.edu.utfpr.cm.minerador.services.matrix.model.FilePairApriori;
@@ -510,11 +509,11 @@ public class BichoPairFileMetricsInDateServices extends AbstractBichoMetricServi
             // apriori /////////////////////////////////////////////////////////
             Long file1FutureIssues
                     = cacher.calculeNumberOfIssues(auxFileFileMetrics.getFile(),
-                            bichoFileDAO, beginDate, endDate);
+                            beginDate, endDate);
 
             Long file2FutureIssues
                     = cacher.calculeNumberOfIssues(auxFileFileMetrics.getFile2(),
-                            bichoFileDAO, beginDate, endDate);
+                            beginDate, endDate);
 
             auxFileFileMetrics.addMetrics(file1FutureIssues, file2FutureIssues, numberAllFutureIssues);
 
@@ -651,8 +650,7 @@ public class BichoPairFileMetricsInDateServices extends AbstractBichoMetricServi
     @Override
     public List<String> getAvailableMatricesPermitted() {
         return Arrays.asList(BichoUserCommentedSamePairOfFileOnIssueInDateServices.class.getName(),
-                BichoPairOfFileInDateServices.class.getName(),
-                BichoPairOfFileTop10InDateServices.class.getName());
+                BichoPairOfFileInDateServices.class.getName());
     }
 
     private String getRepository() {

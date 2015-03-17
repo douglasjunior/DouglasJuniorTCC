@@ -18,8 +18,10 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import javax.ejb.EJB;
@@ -133,8 +135,18 @@ public class BichoMetricQueueBean implements Serializable {
         for (EntityMatrix matrix : matrices) {
             Map<Object, Object> params = new LinkedHashMap<>();
             params.put("matrix", matrix);
-            params.put("version", matrix.getParams().get("version"));
-            params.put("futureVersion", matrix.getParams().get("futureVersion"));
+            if (matrix.getParams().get("version") != null) {
+                params.put("version", matrix.getParams().get("version"));
+            }
+            if (matrix.getParams().get("futureVersion") != null) {
+                params.put("futureVersion", matrix.getParams().get("futureVersion"));
+            }
+            if (matrix.getParams().get("index") != null) {
+                params.put("index", matrix.getParams().get("index"));
+            }
+            if (matrix.getParams().get("quantity") != null) {
+                params.put("quantity", matrix.getParams().get("quantity"));
+            }
             out.printLog("Queued params: " + params);
             paramsQueue.add(params);
         }
@@ -152,6 +164,27 @@ public class BichoMetricQueueBean implements Serializable {
                 params.put("version", versions.get(i));//matrix.getParams().get("version"));
                 params.put("filename", "v" + versions.get(i));//matrix.getParams().get("version"));
                 params.put("futureVersion", versions.get(i + 1)); //matrix.getParams().get("futureVersion"));
+                out.printLog("Queued params: " + params);
+                paramsQueue.add(params);
+            }
+        }
+        params = new LinkedHashMap<>();
+    }
+
+    public void queueAllForAllMatrixIndex() {
+        List<EntityMatrix> matrices = (List<EntityMatrix>) JsfUtil.getObjectFromSession(LIST);
+        Collections.sort(matrices, new MatrixComparator());
+        Set<Integer> indexes = new LinkedHashSet<>(matrices.size());
+        for (EntityMatrix matrix : matrices) {
+            indexes.add(Integer.valueOf(String.valueOf(matrix.getParams().get("index"))));
+        }
+
+        for (EntityMatrix matrix : matrices) {
+            for (Integer index : indexes) {
+                Map<Object, Object> params = new LinkedHashMap<>();
+                params.put("matrix", matrix);
+                params.put("index", index);//matrix.getParams().get("version"));
+                params.put("filename", "v" + index);//matrix.getParams().get("version"));
                 out.printLog("Queued params: " + params);
                 paramsQueue.add(params);
             }

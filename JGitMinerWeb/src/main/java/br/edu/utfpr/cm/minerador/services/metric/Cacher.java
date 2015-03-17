@@ -1,14 +1,15 @@
 package br.edu.utfpr.cm.minerador.services.metric;
 
-import br.edu.utfpr.cm.minerador.services.metric.socialnetwork.NetworkMetricsCalculator;
-import br.edu.utfpr.cm.minerador.services.metric.socialnetwork.NetworkMetrics;
-import br.edu.utfpr.cm.minerador.services.metric.model.CodeChurn;
 import br.edu.utfpr.cm.JGitMinerWeb.dao.BichoFileDAO;
 import br.edu.utfpr.cm.JGitMinerWeb.dao.BichoPairFileDAO;
 import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.auxiliary.AuxFileFile;
 import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.auxiliary.AuxFileFileIssue;
 import br.edu.utfpr.cm.minerador.services.matrix.model.Commenter;
+import br.edu.utfpr.cm.minerador.services.matrix.model.Issue;
+import br.edu.utfpr.cm.minerador.services.metric.model.CodeChurn;
 import br.edu.utfpr.cm.minerador.services.metric.model.IssueMetrics;
+import br.edu.utfpr.cm.minerador.services.metric.socialnetwork.NetworkMetrics;
+import br.edu.utfpr.cm.minerador.services.metric.socialnetwork.NetworkMetricsCalculator;
 import edu.uci.ics.jung.graph.DirectedSparseGraph;
 import java.util.Collection;
 import java.util.Date;
@@ -92,7 +93,7 @@ public class Cacher {
         }
     }
 
-    public Long calculeNumberOfIssues(String fileName, BichoFileDAO fileDAO, Date futureBeginDate, Date futureEndDate) {
+    public Long calculeNumberOfIssues(String fileName, Date futureBeginDate, Date futureEndDate) {
         Long fileNumberOfPullrequestOfPairFuture;
         if (issueFileMap.containsKey(fileName)) {
             fileNumberOfPullrequestOfPairFuture = issueFileMap.get(fileName);
@@ -109,6 +110,17 @@ public class Cacher {
             fileNumberOfPullrequestOfPairFuture = issueFileMap.get(fileName);
         } else {
             fileNumberOfPullrequestOfPairFuture = fileDAO.calculeNumberOfIssues(fileName, fixVersion);
+            issueFileMap.put(fileName, fileNumberOfPullrequestOfPairFuture);
+        }
+        return fileNumberOfPullrequestOfPairFuture;
+    }
+
+    public Long calculeNumberOfIssues(String fileName, Set<Issue> issues) {
+        Long fileNumberOfPullrequestOfPairFuture;
+        if (issueFileMap.containsKey(fileName)) {
+            fileNumberOfPullrequestOfPairFuture = issueFileMap.get(fileName);
+        } else {
+            fileNumberOfPullrequestOfPairFuture = fileDAO.calculeNumberOfIssues(fileName, issues);
             issueFileMap.put(fileName, fileNumberOfPullrequestOfPairFuture);
         }
         return fileNumberOfPullrequestOfPairFuture;

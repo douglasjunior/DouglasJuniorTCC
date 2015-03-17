@@ -537,10 +537,10 @@ public class BichoPairFilePerIssueMetricsInDateServices extends AbstractBichoMet
 
             // apriori /////////////////////////////////////////////////////////
             Long file1FutureIssues
-                    = cacher.calculeNumberOfIssues(auxFileFileMetrics.getFile(), bichoFileDAO, beginDate, endDate);
+                    = cacher.calculeNumberOfIssues(auxFileFileMetrics.getFile(), beginDate, endDate);
 
             Long file2FutureIssues
-                    = cacher.calculeNumberOfIssues(auxFileFileMetrics.getFile2(), bichoFileDAO, beginDate, endDate);
+                    = cacher.calculeNumberOfIssues(auxFileFileMetrics.getFile2(), beginDate, endDate);
 
             auxFileFileMetrics.addMetrics(file1FutureIssues, file2FutureIssues, numberAllFutureIssues);
 

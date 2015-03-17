@@ -18,6 +18,7 @@ public class FilePairOutput {
     private final Set<Integer> commitsFile1Id;
     private final Set<Integer> commitsFile2Id;
     private final Set<Integer> defectIssuesId;
+    private final Set<Integer> futureIssuesId;
     private final Set<Integer> futureDefectIssuesId;
     private FilePairApriori filePairApriori;
 
@@ -28,6 +29,7 @@ public class FilePairOutput {
         this.commitsFile1Id = new HashSet<>();
         this.commitsFile2Id = new HashSet<>();
         this.defectIssuesId = new HashSet<>();
+        this.futureIssuesId = new HashSet<>();
         this.futureDefectIssuesId = new HashSet<>();
     }
 
@@ -88,35 +90,43 @@ public class FilePairOutput {
     }
 
     public void addIssueId(Integer issueId) {
-        issuesId.add(issueId);
+        this.issuesId.add(issueId);
     }
 
     public void addCommitId(Integer commitId) {
-        commitsId.add(commitId);
+        this.commitsId.add(commitId);
     }
 
     public void addCommitFile1Id(Integer commitId) {
-        commitsFile1Id.add(commitId);
+        this.commitsFile1Id.add(commitId);
     }
 
     public void addCommitFile2Id(Integer commitId) {
-        commitsFile2Id.add(commitId);
+        this.commitsFile2Id.add(commitId);
     }
 
     public void addDefectIssueId(Integer defectId) {
-        defectIssuesId.add(defectId);
+        this.defectIssuesId.add(defectId);
     }
 
     public void addDefectIssuesId(Collection<Integer> defectId) {
-        futureDefectIssuesId.addAll(defectId);
+        this.futureDefectIssuesId.addAll(defectId);
+    }
+
+    public void addFutureIssuesId(Integer futureIssueId) {
+        this.futureIssuesId.add(futureIssueId);
+    }
+
+    public void addFutureIssuesId(Collection<Integer> futureIssuesId) {
+        this.futureIssuesId.addAll(futureIssuesId);
     }
 
     public void addFutureDefectIssuesId(Integer futureDefectId) {
-        futureDefectIssuesId.add(futureDefectId);
+        this.futureDefectIssuesId.add(futureDefectId);
     }
 
     public void addFutureDefectIssuesId(Collection<Integer> futureDefectId) {
-        futureDefectIssuesId.addAll(futureDefectId);
+        this.futureDefectIssuesId.addAll(futureDefectId);
     }
 
     @Override
@@ -167,6 +177,9 @@ public class FilePairOutput {
         appendInteger(toString, futureDefectIssuesId.size());
         appendSetInteger(toString, futureDefectIssuesId);
 
+        appendInteger(toString, futureIssuesId.size());
+        appendSetInteger(toString, futureIssuesId);
+
         toString.append(filePairApriori.toString());
 
         return toString.toString();
@@ -180,6 +193,7 @@ public class FilePairOutput {
                 + "commitsFile2;commitsFile2Id;"
                 + "defectIssues;defectIssuesId;"
                 + "futureDefectIssues;futureDefectIssuesId;"
+                + "futureIssues;futureIssuesId;"
                 + FilePairApriori.getToStringHeader();
     }
 

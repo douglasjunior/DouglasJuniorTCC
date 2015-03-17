@@ -57,6 +57,11 @@ public class BichoMatrixQueueBean implements Serializable {
     public BichoMatrixQueueBean() {
         out = new OutLog();
         params = new LinkedHashMap<>();
+
+        params.put("minFilesPerCommit", 1);
+        params.put("maxFilesPerCommit", 20);
+        params.put("mergedOnly", true);
+
         paramsQueue = new ArrayList<>();
         threadPool = Executors.newSingleThreadExecutor();
     }

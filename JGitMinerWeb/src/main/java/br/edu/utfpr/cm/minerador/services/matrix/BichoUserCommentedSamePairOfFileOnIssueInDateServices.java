@@ -93,8 +93,7 @@ public class BichoUserCommentedSamePairOfFileOnIssueInDateServices extends Abstr
         out.printLog("Minimum files per commit: " + getMinFilesPerCommit());
 
         // select a issue/pullrequest commenters
-        Map<Integer, Set<Integer>> issuesCommits = bichoDAO.selectIssues(
-                beginDate, endDate, getMaxFilesPerCommit());
+        Map<Integer, Set<Integer>> issuesCommits = bichoDAO.selectIssues(beginDate, endDate);
         
         out.printLog("Issues (filtered): " + issuesCommits.size());
 

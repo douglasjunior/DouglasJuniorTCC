@@ -1,6 +1,7 @@
 package br.edu.utfpr.cm.JGitMinerWeb.dao;
 
 import static br.edu.utfpr.cm.JGitMinerWeb.dao.QueryUtils.filterByIssues;
+import br.edu.utfpr.cm.minerador.services.matrix.model.Issue;
 import br.edu.utfpr.cm.minerador.services.metric.model.CodeChurn;
 import br.edu.utfpr.cm.minerador.services.metric.model.IssueMetrics;
 import java.math.BigDecimal;
@@ -84,6 +85,7 @@ public class BichoPairFileDAO {
     private final String SELECT_COMMENTS_BY_ISSUE_ID;
 
     private final String SELECT_ISSUES_BY_FILE_NAME;
+    private final String SELECT_ISSUES_AND_TYPE_BY_FILE_NAME;
 
     private final String COUNT_ISSUES_TYPES;
 
@@ -199,6 +201,14 @@ public class BichoPairFileDAO {
         SELECT_ISSUES_BY_FILE_NAME
                 = QueryUtils.getQueryForDatabase(
                         "SELECT DISTINCT(i.id)"
+                        + FROM_TABLE
+                        + WHERE, repository)
+                + FILTER_BY_MAX_FILES_IN_COMMIT
+                + FIXED_ISSUES_ONLY;
+
+        SELECT_ISSUES_AND_TYPE_BY_FILE_NAME
+                = QueryUtils.getQueryForDatabase(
+                        "SELECT DISTINCT i.id, type"
                         + FROM_TABLE
                         + WHERE, repository)
                 + FILTER_BY_MAX_FILES_IN_COMMIT
@@ -507,9 +517,58 @@ public class BichoPairFileDAO {
         sql.append(FILTER_BY_ISSUE_FIX_MAJOR_VERSION);
         selectParams.add(version);
 
-        List<Integer> issues = dao.selectNativeWithParams(sql.toString(), selectParams.toArray());
+        List<Integer> filePairIssues = dao.selectNativeWithParams(sql.toString(), selectParams.toArray());
 
-        return issues;
+        return filePairIssues;
+    }
+
+    public Map<String, Set<Integer>> selectIssues(String file, String file2, Set<Issue> issues) {
+        List<Object> selectParams = new ArrayList<>();
+
+        StringBuilder sql = new StringBuilder();
+        sql.append(SELECT_ISSUES_AND_TYPE_BY_FILE_NAME);
+        selectParams.add(file);
+        selectParams.add(file2);
+
+        filterByIssues(issues, sql);
+
+        List<Object[]> filePairIssues = dao.selectNativeWithParams(sql.toString(), selectParams.toArray());
+
+        Map<String, Set<Integer>> issuesAndTypes = new HashMap<>();
+        for (Object[] filePairIssue : filePairIssues) {
+            Integer issueId = Integer.valueOf(String.valueOf(filePairIssue[0]));
+            String type = String.valueOf(filePairIssue[1]);
+            if (issuesAndTypes.containsKey(type)) {
+                issuesAndTypes.get(type).add(issueId);
+            } else {
+                Set<Integer> setIssues = new HashSet<>();
+                setIssues.add(issueId);
+                issuesAndTypes.put(type, setIssues);
+            }
+        }
+        return issuesAndTypes;
+    }
+
+    public List<Integer> selectIssues(
+            String file, String file2, Set<Issue> issues, String type) {
+
+        List<Object> selectParams = new ArrayList<>();
+
+        StringBuilder sql = new StringBuilder();
+        sql.append(SELECT_ISSUES_BY_FILE_NAME);
+        selectParams.add(file);
+        selectParams.add(file2);
+
+        if (type != null) {
+            sql.append(FILTER_BY_ISSUE_TYPE);
+            selectParams.add(type);
+        }
+
+        filterByIssues(issues, sql);
+
+        List<Integer> filePairIssues = dao.selectNativeWithParams(sql.toString(), selectParams.toArray());
+
+        return filePairIssues;
     }
 
     public long calculeComments(

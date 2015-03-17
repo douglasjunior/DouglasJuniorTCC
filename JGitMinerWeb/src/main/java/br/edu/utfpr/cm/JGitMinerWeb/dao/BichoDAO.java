@@ -32,8 +32,13 @@ public class BichoDAO {
     // order
     private final String ORDER_BY_FIX_DATE;
 
+    // limiting
+    private final String LIMIT_OFFSET = " LIMIT ? OFFSET ?";
+
     // queries
     private final String COUNT_FILES_PER_COMMITS;
+    private final String SELECT_ALL_FIXED_ISSUES;
+    private final String SELECT_ALL_FIXED_ISSUES_LIMIT_OFFSET;
     private final String SELECT_ISSUES_BY_FIXED_DATE;
     private final String SELECT_ISSUES_AND_TYPE_BY_FIXED_MAJOR_VERSION;
     private final String SELECT_ISSUES_AND_TYPE_BY_FIXED_DATE;
@@ -80,7 +85,7 @@ public class BichoDAO {
                 = " AND i.id = ?";
 
         ORDER_BY_FIX_DATE
-                = " ORDER BY c.changed_on";
+                = " ORDER BY i.fixed_on";
 
         COUNT_FILES_PER_COMMITS = QueryUtils.getQueryForDatabase("SELECT s.id, s.num_files"
                 + "  FROM {0}_issues.issues_scmlog i2s"
@@ -88,7 +93,32 @@ public class BichoDAO {
                 + "  JOIN {0}_issues.changes c ON c.issue_id = i.id"
                 + "  JOIN {0}_vcs.scmlog s ON s.id = i2s.scmlog_id"
                 + "   AND s.num_files > 0", repository)
-                + FIXED_ISSUES_ONLY;
+                + FIXED_ISSUES_ONLY
+                + FILTER_BY_MAX_FILES_IN_COMMIT;
+
+        SELECT_ALL_FIXED_ISSUES
+                = QueryUtils.getQueryForDatabase("SELECT i.id, i.type, s.id"
+                        + "  FROM {0}_issues.issues_scmlog i2s"
+                        + "  JOIN {0}_issues.issues i ON i.id = i2s.issue_id"
+                        + "  JOIN {0}_issues.changes c ON c.issue_id = i.id"
+                        + "  JOIN {0}_vcs.scmlog s ON s.id = i2s.scmlog_id"
+                        + " WHERE s.date > i.submitted_on"
+                        + "   AND s.num_files > 0", repository)
+                + FIXED_ISSUES_ONLY
+                + FILTER_BY_MAX_FILES_IN_COMMIT;
+
+        SELECT_ALL_FIXED_ISSUES_LIMIT_OFFSET
+                = QueryUtils.getQueryForDatabase("SELECT DISTINCT(i.id) "
+                        + "    FROM {0}_issues.issues i "
+                        + "    JOIN {0}_issues.issues_scmlog i2s ON i2s.issue_id = i.id"
+                        + "    JOIN {0}_vcs.scmlog s ON s.id = i2s.scmlog_id"
+                        + "   WHERE i.fixed_on IS NOT NULL"
+                        + " WHERE s.date > i.submitted_on"
+                        + "   AND s.num_files > 0", repository)
+                + FIXED_ISSUES_ONLY
+                + FILTER_BY_MAX_FILES_IN_COMMIT
+                + ORDER_BY_FIX_DATE
+                + "   LIMIT ? OFFSET ?";
 
         SELECT_ISSUES_BY_FIXED_DATE
                 = QueryUtils.getQueryForDatabase("SELECT i.id, s.id"
@@ -99,7 +129,8 @@ public class BichoDAO {
                         + " WHERE c.changed_on BETWEEN ? AND ?"
                         + "   AND s.date > i.submitted_on"
                         + "   AND s.num_files > 0", repository)
-                + FIXED_ISSUES_ONLY;
+                + FIXED_ISSUES_ONLY
+                + FILTER_BY_MAX_FILES_IN_COMMIT;
 
         SELECT_ISSUES_AND_TYPE_BY_FIXED_DATE
                 = QueryUtils.getQueryForDatabase("SELECT i.id, i.type, s.id"
@@ -110,7 +141,8 @@ public class BichoDAO {
                         + " WHERE c.changed_on BETWEEN ? AND ?"
                         + "   AND s.date > i.submitted_on"
                         + "   AND s.num_files > 0", repository)
-                + FIXED_ISSUES_ONLY;
+                + FIXED_ISSUES_ONLY
+                + FILTER_BY_MAX_FILES_IN_COMMIT;
 
         SELECT_ISSUES_AND_TYPE_BY_FIXED_MAJOR_VERSION
                 = QueryUtils.getQueryForDatabase("SELECT DISTINCT i.id, i.type, s.id"
@@ -122,7 +154,8 @@ public class BichoDAO {
                         + " WHERE ifv.major_fix_version = ?"
                         + "   AND s.date > i.submitted_on"
                         + "   AND s.num_files > 0", repository)
-                + FIXED_ISSUES_ONLY;
+                + FIXED_ISSUES_ONLY
+                + FILTER_BY_MAX_FILES_IN_COMMIT;
 
         SELECT_COMMENTERS_BY_ISSUE_ORDER_BY_SUBMIT
                 = QueryUtils.getQueryForDatabase("SELECT p.id, p.user_id, p.email, p.is_dev"
@@ -252,7 +285,7 @@ public class BichoDAO {
         selectParams.add(endDate);
 
         List<Object[]> rawFilesPerCommit = dao.selectNativeWithParams(COUNT_FILES_PER_COMMITS, selectParams.toArray());
-        
+
         Map<Integer, Integer> numFilesPerCommit = new HashMap<>(rawFilesPerCommit.size());
         for (Object[] objects : rawFilesPerCommit) {
             Integer commitId = (Integer) objects[0];
@@ -263,7 +296,7 @@ public class BichoDAO {
         return numFilesPerCommit;
     }
 
-    public Map<Integer, Set<Integer>> selectIssues(Date beginDate, Date endDate, Integer maxFilesPerCommit) {
+    public Map<Integer, Set<Integer>> selectIssues(Date beginDate, Date endDate) {
         List<Object> selectParams = new ArrayList<>();
 
         StringBuilder sql = new StringBuilder();
@@ -271,11 +304,6 @@ public class BichoDAO {
 
         selectParams.add(beginDate);
         selectParams.add(endDate);
-
-        if (maxFilesPerCommit > 0) {
-            sql.append(FILTER_BY_MAX_FILES_IN_COMMIT);
-            selectParams.add(maxFilesPerCommit);
-        }
 
         sql.append(ORDER_BY_FIX_DATE);
 
@@ -297,18 +325,71 @@ public class BichoDAO {
         return issuesCommits;
     }
 
-    public Map<Issue, List<Integer>> selectIssuesAndType(String version, Integer maxFilesPerCommit) {
+    public List<Map<Issue, List<Integer>>> selectAllIssuesAndTypeSubdividedBy(Integer size) {
+        List<Object> selectParams = new ArrayList<>();
+
+        StringBuilder sql = new StringBuilder();
+        sql.append(SELECT_ALL_FIXED_ISSUES);
+
+        sql.append(ORDER_BY_FIX_DATE);
+
+        Integer offset = 0;
+        sql.append(LIMIT_OFFSET);
+        selectParams.add(size);
+        selectParams.add(offset);
+
+        final Object[] params = selectParams.toArray();
+        List<Map<Issue, List<Integer>>> dividedIssuesCommits = new ArrayList<>();
+        List<Object[]> rawIssues = dao.selectNativeWithParams(sql.toString(), params);
+
+        while (!rawIssues.isEmpty() && rawIssues.get(0)[0] != null) {
+            Map<Issue, List<Integer>> issuesCommits = new LinkedHashMap<>();
+            for (Object[] issueCommit : rawIssues) {
+                Integer issueId = (Integer) issueCommit[0];
+                String issueType = (String) issueCommit[1];
+                Integer commit = (Integer) issueCommit[2];
+
+                Issue issue = new Issue(issueId, issueType);
+                if (issuesCommits.containsKey(issue)) {
+                    issuesCommits.get(issue).add(commit);
+                } else {
+                    List<Integer> commits = new ArrayList<>();
+                    commits.add(commit);
+                    issuesCommits.put(issue, commits);
+                }
+            }
+            dividedIssuesCommits.add(issuesCommits);
+
+            offset += size;
+            params[1] = offset;
+            rawIssues = dao.selectNativeWithParams(sql.toString(), params);
+        }
+        return dividedIssuesCommits;
+    }
+
+    public List<Integer> selectIssuesAndType(Integer size, Integer index) {
+        List<Object> selectParams = new ArrayList<>();
+
+        StringBuilder sql = new StringBuilder();
+        sql.append(SELECT_ALL_FIXED_ISSUES_LIMIT_OFFSET);
+
+        Integer offset = size * index;
+        selectParams.add(size);
+        selectParams.add(offset);
+
+        final Object[] params = selectParams.toArray();
+        List<Integer> issues = dao.selectNativeWithParams(sql.toString(), params);
+
+        return issues;
+    }
+
+    public Map<Issue, List<Integer>> selectIssuesAndType(String version) {
         List<Object> selectParams = new ArrayList<>();
 
         StringBuilder sql = new StringBuilder();
         sql.append(SELECT_ISSUES_AND_TYPE_BY_FIXED_MAJOR_VERSION);
 
         selectParams.add(version);
-
-        if (maxFilesPerCommit > 0) {
-            sql.append(FILTER_BY_MAX_FILES_IN_COMMIT);
-            selectParams.add(maxFilesPerCommit);
-        }
 
         List<Object[]> rawIssues = dao.selectNativeWithParams(sql.toString(), selectParams.toArray());
 
@@ -330,7 +411,7 @@ public class BichoDAO {
         return issuesCommits;
     }
 
-    public Map<Issue, List<Integer>> selectIssuesAndType(Date beginDate, Date endDate, Integer maxFilesPerCommit) {
+    public Map<Issue, List<Integer>> selectIssuesAndType(Date beginDate, Date endDate) {
         List<Object> selectParams = new ArrayList<>();
 
         StringBuilder sql = new StringBuilder();
@@ -338,11 +419,6 @@ public class BichoDAO {
 
         selectParams.add(beginDate);
         selectParams.add(endDate);
-
-        if (maxFilesPerCommit > 0) {
-            sql.append(FILTER_BY_MAX_FILES_IN_COMMIT);
-            selectParams.add(maxFilesPerCommit);
-        }
 
         List<Object[]> rawIssues = dao.selectNativeWithParams(sql.toString(), selectParams.toArray());
 

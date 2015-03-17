@@ -95,8 +95,7 @@ public class BichoPairOfFileInFixVersionServices extends AbstractBichoMatrixServ
         out.printLog("Minimum files per commit: " + getMinFilesPerCommit());
 
         // select a issue/pullrequest commenters
-        Map<Issue, List<Integer>> issuesCommits = bichoDAO.selectIssuesAndType(
-                version, getMaxFilesPerCommit());
+        Map<Issue, List<Integer>> issuesCommits = bichoDAO.selectIssuesAndType(version);
         
         out.printLog("Issues (filtered): " + issuesCommits.size());
 

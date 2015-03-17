@@ -103,7 +103,7 @@ public class BichoPairOfFileInDateServices extends AbstractBichoMatrixServices {
 
         // select a issue/pullrequest commenters
         Map<Integer, Set<Integer>> issuesCommits = bichoDAO.selectIssues(
-                beginDate, endDate, getMaxFilesPerCommit());
+                beginDate, endDate);
         
         out.printLog("Issues (filtered): " + issuesCommits.size());
 
@@ -188,12 +188,12 @@ public class BichoPairOfFileInDateServices extends AbstractBichoMatrixServices {
             Long file1Issues
                     = cacher.calculeNumberOfIssues(
                             fileFile.getFile1(),
-                            bichoFileDAO, beginDate, endDate);
+                            beginDate, endDate);
 
             Long file2Issues
                     = cacher.calculeNumberOfIssues(
                             fileFile.getFile2(),
-                            bichoFileDAO, beginDate, endDate);
+                            beginDate, endDate);
 
             FilePairOutput filePairOutput = pairFiles.get(fileFile);
 

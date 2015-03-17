@@ -40,7 +40,6 @@ public class CommitterFileMetricsCalculator {
 //
 //        return new CommitterFileMetrics(committer, file, ownership, experience);
 //    }
-
     public CommitterFileMetrics calculeForVersion(File file, Committer committer, String fixVersion) {
         //
         // TODO limitacao: arquivo pelo nome, nao pelo id.
@@ -67,5 +66,33 @@ public class CommitterFileMetricsCalculator {
 
     public CommitterFileMetrics calculeForVersion(String file, Committer committer, String fixVersion) {
         return calculeForVersion(new File(file), committer, fixVersion);
+    }
+
+    public CommitterFileMetrics calculeForIndex(File file, Committer committer, Integer index, Integer quantity) {
+        //
+        // TODO limitacao: arquivo pelo nome, nao pelo id.
+        // Pelo id, podemos considerar os arquivos quando renomeados/movidos.
+        // Pensar em uma estrategia para lidar com isso.
+        //
+        // TODO melhorar usando id do committer
+        //
+        final Long committerFileCommits = bichoFileDAO.calculeCommits(file.getFileName(), committer.getName(), index, quantity);
+        final Long fileCommits = bichoFileDAO.calculeCommits(file.getFileName(), index, quantity);
+
+        final double ownership = committerFileCommits.doubleValue() / fileCommits.doubleValue();
+
+        final CodeChurn committerFileCodeChurn = bichoFileDAO.sumCodeChurnByFilename(file.getFileName(), committer.getName(), index, quantity);
+        final Long committerFileChanges = committerFileCodeChurn.getChanges();
+
+        final CodeChurn fileCodeChurn = bichoFileDAO.sumCodeChurnByFilename(file.getFileName(), index, quantity);
+        final Long fileChanges = fileCodeChurn.getChanges();
+
+        double experience = committerFileChanges.doubleValue() / fileChanges.doubleValue();
+
+        return new CommitterFileMetrics(committer, file, ownership, experience);
+    }
+
+    public CommitterFileMetrics calculeForIndex(String file, Committer committer, Integer index, Integer quantity) {
+        return calculeForIndex(new File(file), committer, index, quantity);
     }
 }
