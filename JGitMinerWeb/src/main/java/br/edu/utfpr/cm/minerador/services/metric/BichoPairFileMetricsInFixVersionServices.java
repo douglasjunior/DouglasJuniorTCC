@@ -115,7 +115,7 @@ public class BichoPairFileMetricsInFixVersionServices extends AbstractBichoMetri
         int nodesSize = getMatrix().getNodes().size();
         int count = 0;
         Set<AuxFileFile> pairFilesSet = new HashSet<>();
-        for (int i = 0; i < getMatrix().getNodes().size(); i++) {
+        for (int i = 1; i < getMatrix().getNodes().size(); i++) {
             if (count++ % 100 == 0 || count == nodesSize) {
                 System.out.println(count + "/" + nodesSize);
             }

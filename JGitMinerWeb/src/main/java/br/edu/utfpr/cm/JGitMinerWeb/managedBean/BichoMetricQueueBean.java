@@ -158,6 +158,9 @@ public class BichoMetricQueueBean implements Serializable {
         Collections.sort(matrices, new MatrixComparator());
         List<String> versions = new BichoDAO(bichoDao, matrix.getRepository(), null).selectFixVersionOrdered();
         for (EntityMatrix matrix : matrices) {
+            if (matrix.toString().endsWith("top 25")) {
+                continue;
+            }
             for (int i = 0; i < versions.size() - 1; i++) {
                 Map<Object, Object> params = new LinkedHashMap<>();
                 params.put("matrix", matrix);
@@ -176,6 +179,9 @@ public class BichoMetricQueueBean implements Serializable {
         Collections.sort(matrices, new MatrixComparator());
         Set<Integer> indexes = new LinkedHashSet<>(matrices.size());
         for (EntityMatrix matrix : matrices) {
+            if (matrix.toString().endsWith("top 25")) {
+                continue;
+            }
             indexes.add(Integer.valueOf(String.valueOf(matrix.getParams().get("index"))));
         }
 
@@ -184,7 +190,7 @@ public class BichoMetricQueueBean implements Serializable {
                 Map<Object, Object> params = new LinkedHashMap<>();
                 params.put("matrix", matrix);
                 params.put("index", index);//matrix.getParams().get("version"));
-                params.put("filename", "v" + index);//matrix.getParams().get("version"));
+                params.put("filename", "v" + (index + 1));//matrix.getParams().get("version"));
                 out.printLog("Queued params: " + params);
                 paramsQueue.add(params);
             }

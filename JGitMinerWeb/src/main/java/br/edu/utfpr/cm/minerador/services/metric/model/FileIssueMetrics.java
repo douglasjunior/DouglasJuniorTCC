@@ -34,7 +34,8 @@ public class FileIssueMetrics extends FileMetrics {
             + "pv_totalFileAge;" // idade do arquivo em dias desde o primeiro commit
             + "futureDefects;" // numero de defeitos do primeiro arquivo na proxima versao
             + "futureIssues;" // numero de issues do arquivo na proxima versao
-            + "isFilePairChanged" // o par mudou nesse commit? 0 = não, 1 = sim
+            + "isFilePairChanged;" // o par mudou nesse commit? 0 = não, 1 = sim
+            + "changedAfterReopened" // index (1a reabertura, 2a, 3a e assim sucessivamente) onde o arquivo B foi alterado após a issue ter sido reaberta
             ;
 
     public static final Map<String, Integer> headerIndexes;
@@ -56,6 +57,7 @@ public class FileIssueMetrics extends FileMetrics {
     private NetworkMetrics networkMetrics;
     private CommitMetrics commitMetrics;
     private CommitterFileMetrics committerFileMetrics;
+    private int changedAfterReopened;
 
     public FileIssueMetrics(String file, String file2, IssueMetrics issueMetrics, double... metrics) {
         super(file, metrics);
@@ -121,6 +123,14 @@ public class FileIssueMetrics extends FileMetrics {
         return issueMetrics;
     }
 
+    public int getChangedAfterReopened() {
+        return changedAfterReopened;
+    }
+
+    public void setFileBChangedAfterReopened(int reopenedIndex) {
+        this.changedAfterReopened = reopenedIndex;
+    }
+
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
@@ -135,6 +145,7 @@ public class FileIssueMetrics extends FileMetrics {
             sb.append(m).append(";");
         }
         sb.append(getChanged());
+        sb.append(";").append(changedAfterReopened);
         return sb.toString();
     }
 

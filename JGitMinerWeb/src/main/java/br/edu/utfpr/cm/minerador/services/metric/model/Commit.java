@@ -1,6 +1,7 @@
 package br.edu.utfpr.cm.minerador.services.metric.model;
 
 import br.edu.utfpr.cm.minerador.services.metric.committer.Committer;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
@@ -14,23 +15,30 @@ public class Commit {
     public static final String HEADER = Committer.HEADER + "numFiles;";
 
     private final Integer id;
+    private final Date commitDate;
     private final Committer committer;
     private final Set<File> files;
 
-    public Commit(Integer id, Committer commiter) {
+    public Commit(Integer id, Committer commiter, Date commitDate) {
         this.id = id;
         this.committer = commiter;
+        this.commitDate = commitDate;
         this.files = new HashSet<>();
     }
 
-    public Commit(Integer id, Committer commiter, Set<File> files) {
+    public Commit(Integer id, Committer commiter, Date commitDate, Set<File> files) {
         this.id = id;
         this.committer = commiter;
+        this.commitDate = commitDate;
         this.files = files;
     }
 
     public Integer getId() {
         return id;
+    }
+
+    public Date getCommitDate() {
+        return commitDate;
     }
 
     public int getNumberOfFiles() {

@@ -113,7 +113,10 @@ public class BichoPairFileDAO {
                 = " WHERE com.file_path = ?"
                 + "   AND com2.file_path = ? "
                 + "   AND com.date > i.submitted_on"
-                + "   AND com2.date > i.submitted_on";
+                + "   AND com2.date > i.submitted_on"
+                + "   AND com.date < i.fixed_on"
+                + "   AND com2.date < i.fixed_on"
+                ;
         // filters
         FILTER_BY_MAX_FILES_IN_COMMIT
                 = " AND s.num_files <= " + maxFilePerCommit + " AND s2.num_files <= " + maxFilePerCommit;
@@ -230,7 +233,10 @@ public class BichoPairFileDAO {
                         + " WHERE com.file_path = ?"
                         + "   AND com2.file_path = ?"
                         + "   AND com.date > i.submitted_on"
-                        + "   AND com2.date > i.submitted_on", repository)
+                        + "   AND com2.date > i.submitted_on"
+                        + "   AND com.date < i.fixed_on"
+                        + "   AND com2.date < i.fixed_on"
+                        , repository)
                 + FILTER_BY_MAX_FILES_IN_COMMIT
                 + FILTER_BY_ISSUE_FIX_MAJOR_VERSION
                 + FIXED_ISSUES_ONLY;
@@ -278,6 +284,7 @@ public class BichoPairFileDAO {
                         + "         JOIN {0}_vcs.scmlog s ON s.id = i2s.scmlog_id"
                         + "         JOIN {0}.commits com ON com.commit_id = i2s.scmlog_id AND com.file_id <> com2.file_id"
                         + "      WHERE com.date > i.submitted_on"
+                        + "        AND com.date < i.fixed_on"
                         + "        AND s.num_files <= " + maxFilePerCommit
                         + FILTER_BY_ISSUE_FIX_DATE
                         + FIXED_ISSUES_ONLY
@@ -298,6 +305,7 @@ public class BichoPairFileDAO {
                         + "         JOIN {0}_vcs.scmlog s ON s.id = i2s.scmlog_id"
                         + "         JOIN {0}.commits com ON com.commit_id = i2s.scmlog_id"
                         + "      WHERE com.date > i.submitted_on"
+                        + "        AND com.date < i.fixed_on"
                         + " AND s.num_files <= " + maxFilePerCommit
                         + FILTER_BY_ISSUE_FIX_MAJOR_VERSION
                         + FIXED_ISSUES_ONLY
@@ -318,6 +326,7 @@ public class BichoPairFileDAO {
                         + "         JOIN {0}_vcs.scmlog s ON s.id = i2s.scmlog_id"
                         + "      WHERE s.num_files <= " + maxFilePerCommit
                         + "        AND s.date > i.submitted_on"
+                        + "        AND s.date < i.fixed_on"
                         + FILTER_BY_BEFORE_ISSUE_FIX_DATE_OF_ISSUE_ID
                         + FILTER_BY_ISSUE_FIX_MAJOR_VERSION
                         + FIXED_ISSUES_ONLY, repository)

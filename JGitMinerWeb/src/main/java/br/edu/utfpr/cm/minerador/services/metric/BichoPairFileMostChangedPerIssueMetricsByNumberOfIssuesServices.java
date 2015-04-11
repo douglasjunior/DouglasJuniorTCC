@@ -77,8 +77,9 @@ public class BichoPairFileMostChangedPerIssueMetricsByNumberOfIssuesServices ext
         final Map<String, Integer> headerIndexesMap = MatrixUtils.extractHeaderIndexes(matrix);
         final List<EntityMatrixNode> matrixNodes = MatrixUtils.extractValues(matrix);
         final Integer quantity = getQuantity(); // index x quantity
-        final Integer batchIndex = getIndex(); // index x quantity
-        final Integer pastIndex = batchIndex - 1;
+        final Integer analysisIndex = getIndex(); // index x quantity
+        final Integer pastIndex = analysisIndex - 1;
+        final Integer futureIndex = analysisIndex + 1;
 
         // cache for optimization number of pull requests where file is in,
         // reducing access to database
@@ -86,8 +87,8 @@ public class BichoPairFileMostChangedPerIssueMetricsByNumberOfIssuesServices ext
 
         Set<FilePair> top25 = getTop25Matrix(matrix.getNodes().get(0), matrixNodes, headerIndexesMap);
 
-        Set<Integer> issues = getIntegerSetFromMatrix(matrixNodes, headerIndexesMap.get("issuesId"));
-        Set<Integer> futureIssues = getIntegerSetFromMatrix(matrixNodes, headerIndexesMap.get("futureIssuesId"));
+        Set<Integer> issues = bichoDAO.selectIssuesAndType(quantity, analysisIndex);//getIntegerSetFromMatrix(matrixNodes, headerIndexesMap.get("issuesId"));
+        Set<Integer> futureIssues = bichoDAO.selectIssuesAndType(quantity, futureIndex);//getIntegerSetFromMatrix(matrixNodes, headerIndexesMap.get("futureIssuesId"));
 
         final Integer issuesSize = issues.size();
 
@@ -107,7 +108,7 @@ public class BichoPairFileMostChangedPerIssueMetricsByNumberOfIssuesServices ext
 
             for (Committer committer : fileCommittersInPreviousVersion) {
                 CommitterFileMetrics committerFileMetrics;
-                if (pastIndex != null && pastIndex >= 0) {
+                if (pastIndex >= 0) {
                     committerFileMetrics
                             = committerFileMetricsCalculator.calculeForIndex(
                                     filename, committer, pastIndex, quantity);
@@ -127,7 +128,6 @@ public class BichoPairFileMostChangedPerIssueMetricsByNumberOfIssuesServices ext
             }
         }
 
-        // separa o top 10 em A + qualquerarquivo
         int rank = 1;
         for (FilePair filePair : top25) {
             final Set<FileIssueMetrics> allFileChanges = new LinkedHashSet<>();

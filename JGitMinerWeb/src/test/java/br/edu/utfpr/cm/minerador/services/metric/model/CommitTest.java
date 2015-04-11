@@ -1,6 +1,7 @@
 package br.edu.utfpr.cm.minerador.services.metric.model;
 
 import br.edu.utfpr.cm.minerador.services.metric.committer.Committer;
+import java.util.Date;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import org.junit.Test;
@@ -24,8 +25,8 @@ public class CommitTest {
 
     @Test
     public void testEquals() {
-        final Commit commit1 = new Commit(1, new Committer(1, "Foo", "Bar"));
-        final Commit commit2 = new Commit(1, new Committer(2, "Bar", "Foo"));
+        final Commit commit1 = new Commit(1, new Committer(1, "Foo", "Bar"), new Date());
+        final Commit commit2 = new Commit(1, new Committer(2, "Bar", "Foo"), new Date());
 
         assertTrue(commit1.equals(commit1));
         assertTrue(commit2.equals(commit2));
@@ -35,8 +36,8 @@ public class CommitTest {
 
     @Test
     public void testNotEquals() {
-        final Commit commit1 = new Commit(1, new Committer(1, "Foo", "Bar"));
-        final Commit commit2 = new Commit(2, new Committer(1, "Foo", "Bar"));
+        final Commit commit1 = new Commit(1, new Committer(1, "Foo", "Bar"), new Date());
+        final Commit commit2 = new Commit(2, new Committer(1, "Foo", "Bar"), new Date());
 
         assertFalse(commit1.equals(commit2));
         assertFalse(commit2.equals(commit1));

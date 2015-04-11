@@ -27,6 +27,7 @@ import br.edu.utfpr.cm.minerador.services.metric.socialnetwork.NetworkMetricsCal
 import br.edu.utfpr.cm.minerador.services.util.MatrixUtils;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -152,15 +153,89 @@ public class BichoPairFileMostChangedPerIssueMetricsInFixVersionServices extends
                 final IssueMetrics issueMetrics = cacher.calculeIssueMetrics(issue);
 
                 final Set<Commit> issueCommits = bichoDAO.selectFilesAndCommitByIssue(issue);
+                final Map<Integer, Set<File>> cummulativeFilesCommittedInIssue = new HashMap<>();
+
+                // seleciona data de abertura e da 1a correcao + data de reabertura e correcao para cada vez que a issue foi reaberta
+                List<Date[]> openedFixedDateList = bichoDAO.selectIssueOpenedPeriod(issue);
+
+                if (issueMetrics.getReopenedTimes() > 0) {
+                    if (!issueMetrics.getReopenedTimes().equals(openedFixedDateList.size())) {
+                        System.out.println("Inconsistencia no quantidade de reaberura da issue " + issue
+                                + ": issueMetrics.getReopenedTimes() = " + issueMetrics.getReopenedTimes()
+                                + ", openedFixedDateList.size() = " + openedFixedDateList.size());
+                    }
+                    // junta os arquivos que foram modificados
+                    for (int i = 0; i < openedFixedDateList.size(); i++) {
+                        for (Commit commitInIssue : issueCommits) {
+                            final Date[] openedFixedDate = openedFixedDateList.get(i);
+                            final Date openedAt = openedFixedDate[0];
+                            final Date fixedAt = openedFixedDate[1];
+                            final Date commitDate = commitInIssue.getCommitDate();
+                            // arquivo A foi commitado anteriormente, entre abertura (diferente de reabertura) e correcao
+                            if (commitDate.after(openedAt) // commit foi entre a data de reabertura e correcao
+                                    && commitDate.before(fixedAt)) {
+                                if (cummulativeFilesCommittedInIssue.containsKey(i)) {
+                                    cummulativeFilesCommittedInIssue.get(i).addAll(commitInIssue.getFiles());
+                                } else {
+                                    Set<File> files = new HashSet<>();
+                                    files.addAll(commitInIssue.getFiles());
+                                    cummulativeFilesCommittedInIssue.put(i, files);
+                                }
+                            }
+                        }
+                    }
+                }
 
                 for (Commit commitInIssue : issueCommits) {
-                    if (!commitInIssue.getFiles().contains(file)) {
-                        continue;
-                    }
                     Set<File> filesInCommit = commitInIssue.getFiles();
 
                     // metricas do arquivo com maior confiança, somente
                     final FileIssueMetrics fileIssueMetrics = new FileIssueMetrics(filename, filename2, commitInIssue, issueMetrics);
+
+                    if (filesInCommit.contains(file2)) { // se houve commit do arquivo 2, então o par mudou
+                        int currentCommitIndex = -1;
+                        for (int i = 0; i < openedFixedDateList.size(); i++) {
+                            final Date[] openedFixedDate = openedFixedDateList.get(i);
+                            final Date opened = openedFixedDate[0];
+                            final Date fixed = openedFixedDate[1];
+                            final Date commitDate = commitInIssue.getCommitDate();
+                            if (commitDate.after(opened) // commit foi entre a data de reabertura e correcao
+                                    && commitDate.before(fixed)) {
+                                currentCommitIndex = i;
+                                break;
+                            }
+                        }
+
+                        // precisa verificar antes se o arquivo B foi commitado (vide if anterior)
+                        if (issueMetrics.getReopenedTimes() > 0
+                                && currentCommitIndex > 0) { // se foi reaberto, verificar se arquivo B (do par A-B) mudou depois da reabertura
+
+                            // verifica se o arquivo A foi commitado exclusivamente antes, entre abertura/reabertura e correcao
+                            boolean fileACommitedExclusivelyInPastFix = true;
+                            for (int i = 0; i < currentCommitIndex; i++) {
+                                Set<File> filesCommitedInIndex = cummulativeFilesCommittedInIssue.get(i);
+                                if (filesCommitedInIndex != null
+                                        && !filesCommitedInIndex.contains(file) // arquivo A deve ter sido commitado exclusivamente entre a abertura/reabertura e correcao
+                                        || filesCommitedInIndex.contains(file2)) {
+                                    fileACommitedExclusivelyInPastFix = false;
+                                    break;
+                                }
+                            }
+
+                            if (fileACommitedExclusivelyInPastFix) {
+                                Set<File> filesCommitedInCurrentIndex = cummulativeFilesCommittedInIssue.get(currentCommitIndex);
+                                // deve ter sido feito commit exclusivamente do arquivo B no periodo (abertura/reabertura e correcao) corrente
+                                if (!filesCommitedInCurrentIndex.contains(file)
+                                        && filesCommitedInCurrentIndex.contains(file2)) {
+                                    fileIssueMetrics.setFileBChangedAfterReopened(1);
+                                }
+                            }
+                        }
+                    }
+
+                    if (!commitInIssue.getFiles().contains(file)) {
+                        continue;
+                    }
 
                     // TODO metrics do commit
                     final CommitMetrics commitMetrics = new CommitMetrics(commitInIssue);
@@ -239,6 +314,10 @@ public class BichoPairFileMostChangedPerIssueMetricsInFixVersionServices extends
                                 futureDefects, futureIssues
                         );
 
+                        if (fileIssueMetrics.getChangedAfterReopened() == 1) {
+                            System.out.println("changedAfterReopened = " + getRepository() + " " + getVersion() + " rank " + rank + " (" + matrix.toString() + ")");
+                            out.printLog("changedAfterReopened = " + getRepository() + " " + getVersion() + " rank " + rank + " (" + matrix.toString() + ")");
+                        }
                         allFileChanges.add(fileIssueMetrics);
                     }
                 }

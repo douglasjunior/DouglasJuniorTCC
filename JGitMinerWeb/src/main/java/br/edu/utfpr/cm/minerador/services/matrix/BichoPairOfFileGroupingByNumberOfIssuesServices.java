@@ -18,6 +18,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -78,7 +79,6 @@ public class BichoPairOfFileGroupingByNumberOfIssuesServices extends AbstractBic
 
         Integer quantity = getQuantity();
 
-        Map<FilePair, FilePairOutput> pairFiles = new HashMap<>();
 //        Set<FilePath> allDistinctFiles = new HashSet<>();
 
 //        Pattern fileToConsiders = null;
@@ -93,24 +93,34 @@ public class BichoPairOfFileGroupingByNumberOfIssuesServices extends AbstractBic
         out.printLog("Maximum files per commit: " + getMaxFilesPerCommit());
         out.printLog("Minimum files per commit: " + getMinFilesPerCommit());
 
+        Set<FilePath> allFiles = new HashSet<>();
+        Set<FilePath> allTestJavaFiles = new HashSet<>();
+        Set<FilePath> allJavaFiles = new HashSet<>();
+        Set<FilePath> allXmlFiles = new HashSet<>();
+        Set<FilePath> allFilteredFiles = new HashSet<>();
+
+        Set<Integer> allCommits = new HashSet<>();
+        Set<Integer> allConsideredCommits = new HashSet<>();
+        Set<Integer> allDefectIssues = new HashSet<>();
+
         // select a issue/pullrequest commenters
         List<Map<Issue, List<Integer>>> subdividedIssuesCommits = bichoDAO.selectAllIssuesAndTypeSubdividedBy(quantity);
 
         out.printLog("Issues (filtered): " + subdividedIssuesCommits.size());
 
         int count = 1;
-        int numberFilePairs = 0;
         Cacher cacher = new Cacher(bichoFileDAO);
 
         // combina em pares todos os arquivos commitados em uma issue
         int progressFilePairing = 0;
         for (int index = 0; index < subdividedIssuesCommits.size() - 1; index++) {
+            final Map<FilePair, FilePairOutput> pairFiles = new HashMap<>();
             final Map<Issue, List<Integer>> issuesCommits = subdividedIssuesCommits.get(index);
             final Set<Issue> issues = issuesCommits.keySet();
             final Set<Issue> futureIssues = subdividedIssuesCommits.get(index + 1).keySet();
-            final int totalIssues = issues.size();
+            final int totalIssues = issuesCommits.size();
             for (Map.Entry<Issue, List<Integer>> entrySet : issuesCommits.entrySet()) {
-                if (++progressFilePairing % 10 == 0
+                if (++progressFilePairing % 100 == 0
                         || progressFilePairing == totalIssues) {
                     System.out.println(progressFilePairing + "/" + totalIssues);
                 }
@@ -121,6 +131,7 @@ public class BichoPairOfFileGroupingByNumberOfIssuesServices extends AbstractBic
                 out.printLog(count++ + " of the " + subdividedIssuesCommits.size());
 
                 out.printLog(commits.size() + " commits references the issue");
+                allCommits.addAll(commits);
 
                 // monta os pares com os arquivos de todos os commits da issue
                 List<FilePath> commitedFiles = new ArrayList<>();
@@ -128,8 +139,24 @@ public class BichoPairOfFileGroupingByNumberOfIssuesServices extends AbstractBic
 
                     // select name of commited files
                     List<FilePath> files = bichoFileDAO.selectFilesByCommitId(commit);
+
+                    allFiles.addAll(files);
+
                     out.printLog(files.size() + " files in commit #" + commit);
-                    commitedFiles.addAll(files);
+                    for (FilePath file : files) {
+                        if (file.getFilePath().toLowerCase().endsWith("test.java")
+                                || (!file.getFilePath().endsWith(".java")
+                                && !file.getFilePath().endsWith(".xml"))) {
+                            allFilteredFiles.add(file);
+                        } else {
+                            if (file.getFilePath().endsWith(".java")) {
+                                allJavaFiles.add(file);
+                            } else if (file.getFilePath().endsWith(".xml")) {
+                                allXmlFiles.add(file);
+                            }
+                            commitedFiles.add(file);
+                        }
+                    }
                 }
 
                 // empty
@@ -139,61 +166,22 @@ public class BichoPairOfFileGroupingByNumberOfIssuesServices extends AbstractBic
                 } else if (commitedFiles.size() == 1) {
                     out.printLog("One file only commited for issue #" + issue);
                     continue;
-
                 }
                 //            allDistinctFiles.addAll(commitedFiles);
 
                 out.printLog("Number of files commited and related with issue: " + commitedFiles.size());
 
-                int numberPairFilesInIssue = 0;
-                for (int i = 0; i < commitedFiles.size(); i++) {
-                    FilePath file1 = commitedFiles.get(i);
-                    for (int j = i + 1; j < commitedFiles.size(); j++) {
-                        FilePath file2 = commitedFiles.get(j);
-                        if (!file1.getFilePath().equals(file2.getFilePath())) {
-                            FilePair filePair = new FilePair(file1.getFilePath(), file2.getFilePath());
-                            if (pairFiles.containsKey(filePair)) {
-                                FilePairOutput filePairOutput = pairFiles.get(filePair);
-                                filePairOutput.addIssueId(issue.getId());
-                                if (file1.getCommitId().equals(file2.getCommitId())) {
-                                    filePairOutput.addCommitId(file1.getCommitId());
-                                }
-                                filePairOutput.addCommitFile1Id(file1.getCommitId());
-                                filePairOutput.addCommitFile2Id(file2.getCommitId());
-
-                                //                            out.printLog("Pair file already exists: " + file1.getFilePath() + " - " + file2.getFilePath());
-                            } else {
-                                FilePairOutput filePairOutput = new FilePairOutput(filePair);
-                                filePairOutput.addIssueId(issue.getId());
-                                if ("Bug".equals(issue.getType())) {
-                                    filePairOutput.addDefectIssueId(issue.getId());
-                                }
-                                if (file1.getCommitId().equals(file2.getCommitId())) {
-                                    filePairOutput.addCommitId(file1.getCommitId());
-                                }
-                                filePairOutput.addCommitFile1Id(file1.getCommitId());
-                                filePairOutput.addCommitFile2Id(file2.getCommitId());
-                                pairFiles.put(filePair, filePairOutput);
-                                out.printLog("Paired file: " + file1.getFilePath() + " - " + file2.getFilePath());
-                            }
-                            numberPairFilesInIssue++;
-                        }
-                    }
-                }
-
-                numberFilePairs += numberPairFilesInIssue;
-                out.printLog("Issue pairs files: " + numberPairFilesInIssue);
-
+                pairFiles(commitedFiles, pairFiles, issue, allDefectIssues, allConsideredCommits);
             }
 
-            out.printLog("Number of pairs files: " + numberFilePairs);
             out.printLog("Result: " + pairFiles.size());
 
+            out.printLog("Index: " + index + "/" + subdividedIssuesCommits.size());
             out.printLog("Counting future defects...");
             final int total = pairFiles.keySet().size();
             int progressCountFutureDefects = 0;
             for (FilePair fileFile : pairFiles.keySet()) {
-                if (++progressCountFutureDefects % 10 == 0
+                if (++progressCountFutureDefects % 100 == 0
                         || progressCountFutureDefects == total) {
                     System.out.println(progressCountFutureDefects + "/" + total);
                 }
@@ -212,14 +200,14 @@ public class BichoPairOfFileGroupingByNumberOfIssuesServices extends AbstractBic
                 pairFiles.get(fileFile).addFutureIssuesId(allIssuesId);
             }
 
-            Set<Integer> allIssues = new HashSet<>();
+            Set<Integer> allConsideredIssues = new HashSet<>();
             for (Map.Entry<FilePair, FilePairOutput> entrySet : pairFiles.entrySet()) {
                 FilePairOutput value = entrySet.getValue();
-                allIssues.addAll(value.getIssuesId());
+                allConsideredIssues.addAll(value.getIssuesId());
             }
             // calculando o apriori
             out.printLog("Calculing apriori...");
-            out.printLog("Issues index " + index + " (x 100): " + allIssues.size());
+            out.printLog("Issues index " + index + " (x 100): " + allConsideredIssues.size());
             int totalApriori = pairFiles.size();
             int countApriori = 0;
 
@@ -237,7 +225,7 @@ public class BichoPairOfFileGroupingByNumberOfIssuesServices extends AbstractBic
                 FilePairOutput filePairOutput = pairFiles.get(fileFile);
 
                 FilePairApriori apriori = new FilePairApriori(file1Issues, file2Issues,
-                        filePairOutput.getIssuesIdWeight(), allIssues.size());
+                        filePairOutput.getIssuesIdWeight(), allConsideredIssues.size());
 
                 fileFile.orderFilePairByConfidence(apriori);
                 filePairOutput.setFilePairApriori(apriori);
@@ -251,7 +239,120 @@ public class BichoPairOfFileGroupingByNumberOfIssuesServices extends AbstractBic
             matrix.setAdditionalFilename(String.valueOf(index + 1));
             matrix.getParams().put("index", index);
             matricesToSave.add(matrix);
+
+            out.printLog("\n\n" + getRepository() + " " + index + "\n"
+                    + "Number of files (JAVA and XML): " + allFiles.size() + "\n"
+                    + "Number of files (JAVA): " + allJavaFiles.size() + "\n"
+                    + "Number of files (XML): " + allXmlFiles.size() + "\n"
+                    + "Number of ignored files !.java, !.xml, *Test.java: " + allFilteredFiles.size() + "\n"
+                    + "Number of ignored files *Test.java: " + allTestJavaFiles.size() + "\n"
+                    + "Number of file pairs: " + pairFileList.size() + "\n"
+                    + "Number of issues: " + allConsideredIssues.size() + "\n"
+                    + "Number of considered issues: " + allConsideredIssues.size() + "\n"
+                    + "Number of commits: " + allCommits.size() + "\n"
+                    + "Number of considered commits: " + allConsideredCommits.size() + "\n"
+                    + "Number of defect issues: " + allDefectIssues.size() + "\n"
+            );
+
+            log("\n\n" + getRepository() + " " + index + "\n"
+                    + "Number of files (JAVA and XML): " + allFiles.size() + "\n"
+                    + "Number of files (JAVA): " + allJavaFiles.size() + "\n"
+                    + "Number of files (XML): " + allXmlFiles.size() + "\n"
+                    + "Number of ignored files !.java, !.xml, *Test.java: " + allFilteredFiles.size() + "\n"
+                    + "Number of ignored files *Test.java: " + allTestJavaFiles.size() + "\n"
+                    + "Number of file pairs: " + pairFileList.size() + "\n"
+                    + "Number of issues: " + allConsideredIssues.size() + "\n"
+                    + "Number of considered issues: " + allConsideredIssues.size() + "\n"
+                    + "Number of commits: " + allCommits.size() + "\n"
+                    + "Number of considered commits: " + allConsideredCommits.size() + "\n"
+                    + "Number of defect issues: " + allDefectIssues.size() + "\n"
+            );
+            saveTop25Matrix(pairFileList, index);
         }
+    }
+
+    private void saveTop25Matrix(List<FilePairOutput> pairFileList, int index) {
+        // 25 arquivos distintos com maior confianÃ§a entre o par (coluna da esquerda)
+        final Set<FilePairOutput> distinctFileOfFilePairWithHigherConfidence = new LinkedHashSet<>(25);
+        final List<FilePairOutput> nodesTop25 = new ArrayList<>();
+        for (FilePairOutput node : pairFileList) {
+            distinctFileOfFilePairWithHigherConfidence.add(node);
+            nodesTop25.add(node);
+            if (distinctFileOfFilePairWithHigherConfidence.size() >= 25) {
+                break;
+            }
+        }
+
+        Set<Integer> totalIssues = new HashSet<>();
+        Set<Integer> totalCommits = new HashSet<>();
+        Set<Integer> totalCommitsFile1 = new HashSet<>();
+        Set<Integer> totalCommitsFile2 = new HashSet<>();
+        Set<Integer> totalDefects = new HashSet<>();
+        Set<Integer> totalFutureDefects = new HashSet<>();
+
+        Set<String> allFiles = new HashSet<>();
+        Set<String> allJavaFiles = new HashSet<>();
+        Set<String> allXmlFiles = new HashSet<>();
+        Set<String> allOtherFiles = new HashSet<>();
+
+        for (FilePairOutput node : nodesTop25) {
+            totalIssues.addAll(node.getIssuesId());
+            totalCommits.addAll(node.getCommitsId());
+
+            totalCommitsFile1.addAll(node.getCommitsFile1Id());
+            totalCommitsFile2.addAll(node.getCommitsFile2Id());
+
+            totalFutureDefects.addAll(node.getFutureDefectIssuesId());
+            totalDefects.add(node.getCommitsIdWeight());
+
+            final String file1 = node.getFilePair().getFile1();
+
+            allFiles.add(file1);
+            if (file1.endsWith(".java")) {
+                allJavaFiles.add(file1);
+            } else if (file1.endsWith(".xml")) {
+                allXmlFiles.add(file1);
+            } else {
+                allOtherFiles.add(file1);
+            }
+
+            final String file2 = node.getFilePair().getFile2();
+
+            allFiles.add(file2);
+            if (file2.endsWith(".java")) {
+                allJavaFiles.add(file2);
+            } else if (file2.endsWith(".xml")) {
+                allXmlFiles.add(file2);
+            } else {
+                allOtherFiles.add(file2);
+            }
+        }
+
+        FilePairOutput summary = new FilePairOutput(new FilePair("Summary", String.valueOf(allFiles.size())));
+        summary.addIssueId(totalIssues.size());
+        summary.addCommitId(totalCommits.size());
+        summary.addCommitFile1Id(totalCommitsFile1.size());
+        summary.addCommitFile2Id(totalCommitsFile2.size());
+        summary.addDefectIssueId(totalDefects.size());
+        summary.addFutureDefectIssuesId(totalFutureDefects.size());
+
+        log("\n\n" + getRepository() + " " + index + " top 25 \n"
+                + "Number of files: " + allFiles.size() + "\n"
+                + "Number of files (JAVA): " + allJavaFiles.size() + "\n"
+                + "Number of files (XML): " + allXmlFiles.size() + "\n"
+                + "Number of files (Others): " + allOtherFiles.size() + "\n"
+                + "Number of commits file 1: " + totalCommitsFile1.size() + "\n"
+                + "Number of commits file 2: " + totalCommitsFile2.size() + "\n"
+                + "Number of issues: " + totalIssues.size() + "\n"
+                + "Number of commits: " + totalCommits.size() + "\n"
+                + "Number of defect issues: " + totalDefects.size() + "\n"
+                + "Number of future defect issues: " + totalFutureDefects.size() + "\n\n"
+        );
+
+        EntityMatrix top25 = new EntityMatrix();
+        top25.setNodes(objectsToNodes(nodesTop25, FilePairOutput.getToStringHeader()));
+        top25.setAdditionalFilename("top 25");
+        matricesToSave.add(top25);
     }
 
     private void orderByFilePairSupportAndNumberOfDefects(final List<FilePairOutput> pairFileList) {

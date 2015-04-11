@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -31,6 +32,7 @@ public class BichoDAO {
 
     // order
     private final String ORDER_BY_FIX_DATE;
+    private final String ORDER_BY_COMMIT_DATE;
 
     // limiting
     private final String LIMIT_OFFSET = " LIMIT ? OFFSET ?";
@@ -51,6 +53,9 @@ public class BichoDAO {
     private final String SELECT_COMMIT_AND_FILES_BY_ISSUE;
     private final String SELECT_PAST_MAJOR_VERSION;
     private final String SELECT_FUTURE_MAJOR_VERSION;
+    private final String SELECT_ISSUE_REOPENED_AND_FIXED_DATE;
+
+    private final String ISSUE_BY_LIMIT_OFFSET_ORDER_BY_FIX_DATE;
 
     private final GenericBichoDAO dao;
 
@@ -85,40 +90,63 @@ public class BichoDAO {
                 = " AND i.id = ?";
 
         ORDER_BY_FIX_DATE
-                = " ORDER BY i.fixed_on";
+                = " ORDER BY i.fixed_on ASC";
+
+        ORDER_BY_COMMIT_DATE
+                = " ORDER BY com.date ASC";
 
         COUNT_FILES_PER_COMMITS = QueryUtils.getQueryForDatabase("SELECT s.id, s.num_files"
                 + "  FROM {0}_issues.issues_scmlog i2s"
                 + "  JOIN {0}_issues.issues i ON i.id = i2s.issue_id"
                 + "  JOIN {0}_issues.changes c ON c.issue_id = i.id"
                 + "  JOIN {0}_vcs.scmlog s ON s.id = i2s.scmlog_id"
+                + " WHERE s.date > i.submitted_on"
+                + "   AND s.date < i.fixed_on"
                 + "   AND s.num_files > 0", repository)
                 + FIXED_ISSUES_ONLY
                 + FILTER_BY_MAX_FILES_IN_COMMIT;
 
+        ISSUE_BY_LIMIT_OFFSET_ORDER_BY_FIX_DATE
+                = " INNER JOIN "
+                + " (SELECT DISTINCT i2.id "
+                + "    FROM {0}_issues.issues i2 "
+                + "    JOIN {0}_issues.changes c2 ON c2.issue_id = i2.id"
+                + "    JOIN {0}_issues.issues_scmlog i2s2 ON i2s2.issue_id = i2.id"
+                + "    JOIN {0}_vcs.scmlog s2 ON s2.id = i2s2.scmlog_id"
+                + "   WHERE i2.fixed_on IS NOT NULL"
+                + "     AND s2.date > i2.submitted_on"
+                + "     AND s2.date < i2.fixed_on"
+                + "     AND i2.resolution = \"Fixed\""
+                + "     AND c2.field = \"Resolution\""
+                + "     AND c2.new_value = i2.resolution"
+                + "     AND s2.num_files <= " + maxFilesPerCommit
+                + "     AND s2.num_files > 0 "
+                + "   ORDER BY i2.fixed_on "
+                + "   LIMIT ? OFFSET ?) AS i3 ON i3.id = i.id";
+
         SELECT_ALL_FIXED_ISSUES
-                = QueryUtils.getQueryForDatabase("SELECT i.id, i.type, s.id"
+                = QueryUtils.getQueryForDatabase("SELECT DISTINCT i.id, i.type, i.fixed_on, s.id"
                         + "  FROM {0}_issues.issues_scmlog i2s"
                         + "  JOIN {0}_issues.issues i ON i.id = i2s.issue_id"
-                        + "  JOIN {0}_issues.changes c ON c.issue_id = i.id"
                         + "  JOIN {0}_vcs.scmlog s ON s.id = i2s.scmlog_id"
+                        + ISSUE_BY_LIMIT_OFFSET_ORDER_BY_FIX_DATE
                         + " WHERE s.date > i.submitted_on"
-                        + "   AND s.num_files > 0", repository)
-                + FIXED_ISSUES_ONLY
-                + FILTER_BY_MAX_FILES_IN_COMMIT;
+                        + "   AND s.date < i.fixed_on"
+                        + "   AND s.num_files > 0", repository);
 
         SELECT_ALL_FIXED_ISSUES_LIMIT_OFFSET
                 = QueryUtils.getQueryForDatabase("SELECT DISTINCT(i.id) "
                         + "    FROM {0}_issues.issues i "
+                        + "    JOIN {0}_issues.changes c ON c.issue_id = i.id"
                         + "    JOIN {0}_issues.issues_scmlog i2s ON i2s.issue_id = i.id"
                         + "    JOIN {0}_vcs.scmlog s ON s.id = i2s.scmlog_id"
-                        + "   WHERE i.fixed_on IS NOT NULL"
+                        + ISSUE_BY_LIMIT_OFFSET_ORDER_BY_FIX_DATE
                         + " WHERE s.date > i.submitted_on"
+                        + "   AND s.date < i.fixed_on"
                         + "   AND s.num_files > 0", repository)
                 + FIXED_ISSUES_ONLY
                 + FILTER_BY_MAX_FILES_IN_COMMIT
-                + ORDER_BY_FIX_DATE
-                + "   LIMIT ? OFFSET ?";
+                + ORDER_BY_FIX_DATE;
 
         SELECT_ISSUES_BY_FIXED_DATE
                 = QueryUtils.getQueryForDatabase("SELECT i.id, s.id"
@@ -128,6 +156,7 @@ public class BichoDAO {
                         + "  JOIN {0}_vcs.scmlog s ON s.id = i2s.scmlog_id"
                         + " WHERE c.changed_on BETWEEN ? AND ?"
                         + "   AND s.date > i.submitted_on"
+                        + "   AND s.date < i.fixed_on"
                         + "   AND s.num_files > 0", repository)
                 + FIXED_ISSUES_ONLY
                 + FILTER_BY_MAX_FILES_IN_COMMIT;
@@ -140,6 +169,7 @@ public class BichoDAO {
                         + "  JOIN {0}_vcs.scmlog s ON s.id = i2s.scmlog_id"
                         + " WHERE c.changed_on BETWEEN ? AND ?"
                         + "   AND s.date > i.submitted_on"
+                        + "   AND s.date < i.fixed_on"
                         + "   AND s.num_files > 0", repository)
                 + FIXED_ISSUES_ONLY
                 + FILTER_BY_MAX_FILES_IN_COMMIT;
@@ -153,6 +183,7 @@ public class BichoDAO {
                         + "  JOIN {0}_vcs.scmlog s ON s.id = i2s.scmlog_id"
                         + " WHERE ifv.major_fix_version = ?"
                         + "   AND s.date > i.submitted_on"
+                        + "   AND s.date < i.fixed_on"
                         + "   AND s.num_files > 0", repository)
                 + FIXED_ISSUES_ONLY
                 + FILTER_BY_MAX_FILES_IN_COMMIT;
@@ -201,12 +232,15 @@ public class BichoDAO {
                         + "  JOIN {0}.commits com ON com.commit_id = i2s.scmlog_id"
                         + "  JOIN {0}.commits com2 ON com2.commit_id = i2s2.scmlog_id AND com.file_id <> com2.file_id"
                         + " WHERE com.date > i.submitted_on"
-                        + "   AND com2.date > i.submitted_on", repository)
+                        + "   AND com2.date > i.submitted_on"
+                        + "   AND com.date < i.fixed_on"
+                        + "   AND com2.date < i.fixed_on"
+                        , repository)
                 + FILTER_BY_MAX_FILES_IN_COMMIT;
 
         SELECT_COMMIT_AND_FILES_BY_ISSUE
                 = QueryUtils.getQueryForDatabase(
-                        "SELECT DISTINCT com.commit_id, com.file_path, p.id, p.name, p.email"
+                        "SELECT DISTINCT com.commit_id, com.file_path, p.id, p.name, p.email, com.date"
                         + "  FROM {0}_issues.issues i"
                         + "  JOIN {0}_issues.changes c ON c.issue_id = i.id"
                         + "  JOIN {0}_issues.issues_scmlog i2s ON i2s.issue_id = i.id"
@@ -215,7 +249,8 @@ public class BichoDAO {
                         + "  JOIN {0}_vcs.people p ON p.id = com.committer_id"
                         + " WHERE 1 = 1", repository)
                 + FILTER_BY_ISSUE_ID
-                + FILTER_BY_MAX_FILES_IN_COMMIT;
+                + FILTER_BY_MAX_FILES_IN_COMMIT
+                + ORDER_BY_COMMIT_DATE;
 
         SELECT_PAST_MAJOR_VERSION
                 = QueryUtils.getQueryForDatabase(
@@ -234,6 +269,24 @@ public class BichoDAO {
                         + "((SELECT MAX(ifvo2.version_order)"
                         + "   FROM {0}_issues.issues_fix_version_order ifvo2"
                         + "  WHERE ifvo2.major_fix_version = ?) + 1)", repository);
+
+        SELECT_ISSUE_REOPENED_AND_FIXED_DATE
+                = QueryUtils.getQueryForDatabase(
+                        "SELECT DISTINCT i.submitted_on, c.changed_on "
+                        + "  FROM {0}_issues.issues i"
+                        + "  JOIN {0}_issues.issues_ext_jira iej ON iej.issue_id = i.id"
+                        + "  JOIN {0}_issues.changes c ON c.issue_id = i.id"
+                        + "  JOIN {0}_issues.changes c2 ON c2.issue_id = iej.issue_id AND c2.changed_on = c.changed_on"
+                        + " WHERE i.id = ?"
+                        + "  AND ("
+                        + "        (c.field = \"Resolution\" AND c.old_value = \"Fixed\" AND c.new_value = \"\" AND c2.field = \"Status\" AND"
+                        + "        (c2.old_value = \"Resolved\" OR c2.old_value = \"Closed\") AND c2.new_value = \"Reopened\")"
+                        + "      OR"
+                        + "        (c.field = \"Resolution\" AND c.old_value = \"\" AND c.new_value = \"Fixed\" AND c2.field = \"Status\" AND "
+                        // + "        (c2.old_value = \"Reopened\" OR c2.old_value = \"Open\") AND"
+                        + "         (c2.new_value = \"Resolved\" OR c2.new_value = \"Closed\"))"
+                        + "      )" // reopened date
+                        + " ORDER BY c.changed_on", repository);
 
     }
 
@@ -331,10 +384,7 @@ public class BichoDAO {
         StringBuilder sql = new StringBuilder();
         sql.append(SELECT_ALL_FIXED_ISSUES);
 
-        sql.append(ORDER_BY_FIX_DATE);
-
         Integer offset = 0;
-        sql.append(LIMIT_OFFSET);
         selectParams.add(size);
         selectParams.add(offset);
 
@@ -347,9 +397,10 @@ public class BichoDAO {
             for (Object[] issueCommit : rawIssues) {
                 Integer issueId = (Integer) issueCommit[0];
                 String issueType = (String) issueCommit[1];
-                Integer commit = (Integer) issueCommit[2];
+                java.sql.Timestamp fixedOn = (java.sql.Timestamp) issueCommit[2];
+                Integer commit = (Integer) issueCommit[3];
 
-                Issue issue = new Issue(issueId, issueType);
+                Issue issue = new Issue(issueId, issueType, fixedOn);
                 if (issuesCommits.containsKey(issue)) {
                     issuesCommits.get(issue).add(commit);
                 } else {
@@ -360,14 +411,16 @@ public class BichoDAO {
             }
             dividedIssuesCommits.add(issuesCommits);
 
+            System.out.println("Size " + issuesCommits.size() + " offset " + offset);
             offset += size;
             params[1] = offset;
             rawIssues = dao.selectNativeWithParams(sql.toString(), params);
         }
+        System.out.println("Total divided by " + size + " = " + dividedIssuesCommits.size());
         return dividedIssuesCommits;
     }
 
-    public List<Integer> selectIssuesAndType(Integer size, Integer index) {
+    public Set<Integer> selectIssuesAndType(Integer size, Integer index) {
         List<Object> selectParams = new ArrayList<>();
 
         StringBuilder sql = new StringBuilder();
@@ -380,7 +433,7 @@ public class BichoDAO {
         final Object[] params = selectParams.toArray();
         List<Integer> issues = dao.selectNativeWithParams(sql.toString(), params);
 
-        return issues;
+        return new LinkedHashSet<>(issues);
     }
 
     public Map<Issue, List<Integer>> selectIssuesAndType(String version) {
@@ -519,10 +572,11 @@ public class BichoDAO {
             Integer committerId = (Integer) row[2];
             String committerName = (String) row[3];
             String committerEmail = (String) row[4];
+            java.sql.Timestamp commitDate = (java.sql.Timestamp) row[5];
 
             Committer committer = new Committer(committerId, committerName, committerEmail);
 
-            Commit commit = new Commit(commitId, committer);
+            Commit commit = new Commit(commitId, committer, new Date(commitDate.getTime()));
 
             if (commits.containsKey(commit)) {
                 commits.get(commit).getFiles().add(new File(fileName));
@@ -545,5 +599,34 @@ public class BichoDAO {
         String futureMajorVersion
                 = dao.selectNativeOneWithParams(SELECT_FUTURE_MAJOR_VERSION, new Object[]{version});
         return futureMajorVersion;
+    }
+
+    public List<Date[]> selectIssueOpenedPeriod(Integer issue) {
+
+        List<Object[]> issueReopenedFixedTimestamp
+                = dao.selectNativeWithParams(SELECT_ISSUE_REOPENED_AND_FIXED_DATE, new Object[]{issue});
+
+        List<Date[]> issueReopenedFixedDate = new ArrayList<>();
+
+        if (!issueReopenedFixedTimestamp.isEmpty()) {
+            Iterator<Object[]> iterator = issueReopenedFixedTimestamp.iterator();
+            Object[] timestamps = iterator.next();
+            final long openedTimestamp = ((java.sql.Timestamp) timestamps[0]).getTime();
+            final long firstFixedTimestamp = ((java.sql.Timestamp) timestamps[1]).getTime();
+            final Date[] openedFixedDate = new Date[]{new Date(openedTimestamp), new Date(firstFixedTimestamp)};
+            issueReopenedFixedDate.add(openedFixedDate);
+
+            while (iterator.hasNext()) { // issue has reopened?
+                final long reopenedTimestamp = ((java.sql.Timestamp) iterator.next()[1]).getTime();
+                try {
+                    final long fixedTimestamp = ((java.sql.Timestamp) iterator.next()[1]).getTime();
+                    final Date[] reopenedFixedDate = new Date[]{new Date(reopenedTimestamp), new Date(fixedTimestamp)};
+                    issueReopenedFixedDate.add(reopenedFixedDate);
+                } catch (Exception e) {
+                    System.out.println("Erro nas datas da Issue " + issue);
+                }
+            }
+        }
+        return issueReopenedFixedDate;
     }
 }

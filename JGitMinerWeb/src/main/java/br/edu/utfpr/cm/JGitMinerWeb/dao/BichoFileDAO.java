@@ -110,7 +110,9 @@ public class BichoFileDAO {
                 + "  JOIN {0}.commits com ON com.commit_id = i2s.scmlog_id";
 
         WHERE = " WHERE com.file_path = ?"
-                + "   AND com.date > i.submitted_on";
+                + "   AND com.date > i.submitted_on"
+                + "   AND com.date < i.fixed_on"
+                ;
 
         FILTER_BY_ISSUE
                 = " AND i.id = ? ";
@@ -275,8 +277,7 @@ public class BichoFileDAO {
                         + "  FROM {0}.commits com"
                         + "  JOIN {0}_vcs.scmlog s ON s.id = com.commit_id"
                         + " WHERE com.commit_id = ?", repository)
-                + FILTER_BY_MAX_FILES_IN_COMMIT
-                + FILTER_BY_JAVA_OR_XML_EXTENSION_AND_IS_NOT_TEST;
+                + FILTER_BY_MAX_FILES_IN_COMMIT;
 
         SELECT_COMMITTERS_OF_FILE_BY_DATE
                 = QueryUtils.getQueryForDatabase(
@@ -367,7 +368,7 @@ public class BichoFileDAO {
 
         SELECT_COMMIT_AND_FILES_BY_FILENAME_AND_ISSUE
                 = QueryUtils.getQueryForDatabase(
-                        "SELECT DISTINCT com.commit_id, com.file_path, p.id, p.name, p.email"
+                        "SELECT DISTINCT com.commit_id, com.file_path, p.id, p.name, p.email, com.date"
                         + FROM_TABLE
                         + "  JOIN {0}_vcs.people p ON p.id = s.committer_id"
                         + WHERE, repository)
@@ -377,12 +378,19 @@ public class BichoFileDAO {
 
         ISSUE_BY_LIMIT_OFFSET_ORDER_BY_FIX_DATE
                 = " INNER JOIN "
-                + " (SELECT i2.id "
+                + " (SELECT DISTINCT i2.id "
                 + "    FROM {0}_issues.issues i2 "
+                + "    JOIN {0}_issues.changes c2 ON c2.issue_id = i2.id"
                 + "    JOIN {0}_issues.issues_scmlog i2s2 ON i2s2.issue_id = i2.id"
                 + "    JOIN {0}_vcs.scmlog s2 ON s2.id = i2s2.scmlog_id"
                 + "   WHERE i2.fixed_on IS NOT NULL"
+                + "     AND s2.date > i2.submitted_on"
+                + "     AND s2.date < i2.fixed_on"
+                + "     AND i2.resolution = \"Fixed\""
+                + "     AND c2.field = \"Resolution\""
+                + "     AND c2.new_value = i2.resolution"
                 + "     AND s2.num_files <= " + maxFilePerCommit
+                + "     AND s2.num_files > 0 "
                 + "   ORDER BY i2.fixed_on "
                 + "   LIMIT ? OFFSET ?) AS i3 ON i3.id = i.id";
 
@@ -1403,10 +1411,11 @@ public class BichoFileDAO {
             Integer committerId = (Integer) row[2];
             String committerName = (String) row[3];
             String committerEmail = (String) row[4];
+            java.sql.Timestamp commitDate = (java.sql.Timestamp) row[5];
 
             Committer committer = new Committer(committerId, committerName, committerEmail);
 
-            Commit commit = new Commit(commitId, committer);
+            Commit commit = new Commit(commitId, committer, new Date(commitDate.getTime()));
 
             if (commits.containsKey(commit)) {
                 commits.get(commit).getFiles().add(new File(fileName));

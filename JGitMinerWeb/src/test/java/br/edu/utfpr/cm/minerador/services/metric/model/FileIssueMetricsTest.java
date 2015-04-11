@@ -1,6 +1,7 @@
 package br.edu.utfpr.cm.minerador.services.metric.model;
 
 import br.edu.utfpr.cm.minerador.services.metric.committer.Committer;
+import java.util.Date;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -23,8 +24,8 @@ public class FileIssueMetricsTest {
 
     @Test
     public void testEqualsTrue() {
-        FileIssueMetrics m = new FileIssueMetrics("A.java", "B.java", new Commit(1, new Committer(1, "Foo", "Bar")), new EmptyIssueMetrics());
-        FileIssueMetrics m2 = new FileIssueMetrics("A.java", "C.java", new Commit(1, new Committer(1, "Foo", "Bar")), new EmptyIssueMetrics());
+        FileIssueMetrics m = new FileIssueMetrics("A.java", "B.java", new Commit(1, new Committer(1, "Foo", "Bar"), new Date()), new EmptyIssueMetrics());
+        FileIssueMetrics m2 = new FileIssueMetrics("A.java", "C.java", new Commit(1, new Committer(1, "Foo", "Bar"), new Date()), new EmptyIssueMetrics());
         Assert.assertTrue(m.equals(m));
         Assert.assertTrue(m2.equals(m2));
         Assert.assertTrue(m.equals(m2));
@@ -33,8 +34,8 @@ public class FileIssueMetricsTest {
 
     @Test
     public void testEqualsFalse() {
-        FileIssueMetrics m = new FileIssueMetrics("A.java", "B.java", new Commit(1, new Committer(1, "Foo", "Bar")), new EmptyIssueMetrics());
-        FileIssueMetrics m2 = new FileIssueMetrics("A.java", "B.java", new Commit(2, new Committer(1, "Foo", "Bar")), new EmptyIssueMetrics());
+        FileIssueMetrics m = new FileIssueMetrics("A.java", "B.java", new Commit(1, new Committer(1, "Foo", "Bar"), new Date()), new EmptyIssueMetrics());
+        FileIssueMetrics m2 = new FileIssueMetrics("A.java", "B.java", new Commit(2, new Committer(1, "Foo", "Bar"), new Date()), new EmptyIssueMetrics());
         Assert.assertFalse(m.equals(m2));
         Assert.assertFalse(m2.equals(m));
     }
