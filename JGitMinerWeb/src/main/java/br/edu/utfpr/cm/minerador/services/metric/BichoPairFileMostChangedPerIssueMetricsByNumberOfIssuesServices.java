@@ -85,6 +85,7 @@ public class BichoPairFileMostChangedPerIssueMetricsByNumberOfIssuesServices ext
         // reducing access to database
         Cacher cacher = new Cacher(bichoFileDAO, bichoPairFileDAO);
 
+        // 25 pares I+J que mais foram alterados e que mais tiveram defeitos (bugs)
         Set<FilePair> top25 = getTop25Matrix(matrix.getNodes().get(0), matrixNodes, headerIndexesMap);
 
         Set<Integer> issues = bichoDAO.selectIssuesAndType(quantity, analysisIndex);//getIntegerSetFromMatrix(matrixNodes, headerIndexesMap.get("issuesId"));
@@ -97,12 +98,13 @@ public class BichoPairFileMostChangedPerIssueMetricsByNumberOfIssuesServices ext
         CommitterFileMetricsCalculator committerFileMetricsCalculator = new CommitterFileMetricsCalculator(bichoFileDAO);
 
         final Set<Committer> majorContributorsInPreviousVersion = new HashSet<>();
-        final Map<String, Double> ownerExperience = new HashMap<>(25);
-        final Map<Committer, CommitterFileMetrics> committerFileMetricsList = new HashMap<>();
+        final Map<String, Double> ownerExperienceInPreviousVersionMap = new HashMap<>(25);
+        final Map<CommitterFileMetrics, CommitterFileMetrics> committerFileMetricsList = new HashMap<>();
         // calcule committer experience for each top 25 files in previous version
         for (FilePair filePair : top25) {
             final String filename = filePair.getFileName();
 
+            // committers do arquivo I
             final Set<Committer> fileCommittersInPreviousVersion
                     = bichoFileDAO.selectCommitters(filename, issues);
 
@@ -115,15 +117,15 @@ public class BichoPairFileMostChangedPerIssueMetricsByNumberOfIssuesServices ext
                 } else {
                     committerFileMetrics = new EmptyCommitterFileMetrics();
                 }
-                committerFileMetricsList.put(committer, committerFileMetrics);
+                committerFileMetricsList.put(committerFileMetrics, committerFileMetrics);
                 if (committerFileMetrics.getOwnership() > 0.05) { // maior que 5% = major
                     majorContributorsInPreviousVersion.add(committer);
                 }
 
-                if (ownerExperience.containsKey(filename)) {
-                    ownerExperience.put(filename, Math.max(committerFileMetrics.getExperience(), ownerExperience.get(filename)));
+                if (ownerExperienceInPreviousVersionMap.containsKey(filename)) {
+                    ownerExperienceInPreviousVersionMap.put(filename, Math.max(committerFileMetrics.getExperience(), ownerExperienceInPreviousVersionMap.get(filename)));
                 } else {
-                    ownerExperience.put(filename, committerFileMetrics.getExperience());
+                    ownerExperienceInPreviousVersionMap.put(filename, committerFileMetrics.getExperience());
                 }
             }
         }
@@ -164,10 +166,10 @@ public class BichoPairFileMostChangedPerIssueMetricsByNumberOfIssuesServices ext
                     final CommitMetrics commitMetrics = new CommitMetrics(commitInIssue);
 
                     final CommitterFileMetrics committerFileMetrics;
-
-                    if (committerFileMetricsList.containsKey(commitInIssue.getCommiter())) {
+                    final CommitterFileMetrics committerFileInAnalysis = new CommitterFileMetrics(commitInIssue.getCommiter(), file, 0, 0);
+                    if (committerFileMetricsList.containsKey(committerFileInAnalysis)) {
                         // committer already commits the file
-                        committerFileMetrics = committerFileMetricsList.get(commitInIssue.getCommiter());
+                        committerFileMetrics = committerFileMetricsList.get(committerFileInAnalysis);
                     } else {
                         // committer does not commit the file yet (i.e. first commit of committer)
                         committerFileMetrics = new EmptyCommitterFileMetrics();
@@ -212,21 +214,19 @@ public class BichoPairFileMostChangedPerIssueMetricsByNumberOfIssuesServices ext
 
                         final CodeChurn fileCodeChurn = bichoFileDAO.calculeAddDelChanges(filename, issue, commitInIssue.getId(), issues);
 
-                        // pair file age in release interval (days)
+                        // file age in release interval (days)
                         final int ageRelease = bichoFileDAO.calculeFileAgeInDays(filename, issue, issues);
 
-                        // pair file cummulative age: from first commit until previous (past) release
-                        final int ageTotal = bichoFileDAO.calculeTotalFileAgeInDays(filename, issue, issues);
+                        // file cummulative age: from first commit until previous (past) release
+                        final int ageTotal = bichoFileDAO.calculeTotalFileAgeInDays(filename, issue);
+                        final double ownerExperienceInPreviousVersion = ownerExperienceInPreviousVersionMap.get(filename);
 
-                        fileIssueMetrics.addMetrics(
-                                // majorContributors
+                        fileIssueMetrics.addMetrics(// majorContributors
                                 BooleanUtils.toInteger(majorContributorsInPreviousVersion.contains(commitInIssue.getCommiter())),
                                 // ownerExperience,
-                                ownerExperience.get(filename),
+                                ownerExperienceInPreviousVersion == Double.NaN ? 0.0d : ownerExperienceInPreviousVersion,
                                 // sameOwnership
                                 BooleanUtils.toInteger(sameOwnership),
-                                // number of distinct files in commit
-                                filesInCommit.size(),
                                 // committers, totalCommitters, commits, totalCommits,
                                 totalCommitters, totalCommits,
                                 // pairFileCodeChurn.getAdditionsNormalized(), pairFileCodeChurn.getDeletionsNormalized(), pairFileCodeChurn.getChanges()

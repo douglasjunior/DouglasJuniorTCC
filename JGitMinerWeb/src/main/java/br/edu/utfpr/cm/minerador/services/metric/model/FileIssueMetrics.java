@@ -21,10 +21,9 @@ public class FileIssueMetrics extends FileMetrics {
             + CommitMetrics.HEADER
             + CommitterFileMetrics.HEADER
             // metricas de commit
-            + "isMajorContributor;" // committer é principal colaborador do arquivo
-            + "ownerExperience;" // experiencia do owner na versao anterior
-            + "sameOwnership;" // total de arquivos modificados no commit
-            + "files;" // total de arquivos modificados no commit
+            + "pv_isMajorContributor;" // committer é principal colaborador do arquivo
+            + "pv_ownerExperience;" // experiencia do owner na versao anterior
+            + "sameOwnership;" // 1 = ownership da release é igual ao da release anterior
 //            + "committers;" // committers na release
             + "pv_totalCommitters;" // committers desde o começo ate a data final da relese
 //            + "commits;" // commits do par de arquivos na release

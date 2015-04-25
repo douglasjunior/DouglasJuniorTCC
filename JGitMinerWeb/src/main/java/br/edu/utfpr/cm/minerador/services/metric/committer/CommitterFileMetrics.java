@@ -35,11 +35,11 @@ public class CommitterFileMetrics {
     }
 
     public double getOwnership() {
-        return ownership;
+        return ownership == Double.NaN ? 0 : ownership;
     }
 
     public double getExperience() {
-        return experience;
+        return experience == Double.NaN ? 0 : experience;
     }
 
     @Override
@@ -70,7 +70,7 @@ public class CommitterFileMetrics {
 
     @Override
     public String toString() {
-        return ownership + ";"
-                + experience + ";";
+        return (ownership == Double.NaN ? 0.0d : ownership) + ";"
+                + (experience == Double.NaN ? 0.0d : experience) + ";";
     }
 }

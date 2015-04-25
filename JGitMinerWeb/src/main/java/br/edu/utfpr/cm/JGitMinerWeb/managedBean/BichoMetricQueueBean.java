@@ -157,6 +157,13 @@ public class BichoMetricQueueBean implements Serializable {
         List<EntityMatrix> matrices = (List<EntityMatrix>) JsfUtil.getObjectFromSession(LIST);
         Collections.sort(matrices, new MatrixComparator());
         List<String> versions = new BichoDAO(bichoDao, matrix.getRepository(), null).selectFixVersionOrdered();
+        List<String> toRemove = new ArrayList<>();
+        for (String version : versions) {
+            if (version.endsWith("top 25")) {
+                toRemove.add(version);
+            }
+        }
+        versions.removeAll(toRemove);
         for (EntityMatrix matrix : matrices) {
             if (matrix.toString().endsWith("top 25")) {
                 continue;
@@ -182,10 +189,20 @@ public class BichoMetricQueueBean implements Serializable {
             if (matrix.toString().endsWith("top 25")) {
                 continue;
             }
+//            if (!matrix.toString().endsWith(" 2")
+//                    && !matrix.toString().endsWith(" 1")) {
+//                continue;
+//            }
             indexes.add(Integer.valueOf(String.valueOf(matrix.getParams().get("index"))));
         }
 
         for (EntityMatrix matrix : matrices) {
+            if (matrix.toString().endsWith("top 25")) {
+                continue;
+            }
+//            if (!matrix.toString().endsWith(" 2")) {
+//                continue;
+//            }
             for (Integer index : indexes) {
                 Map<Object, Object> params = new LinkedHashMap<>();
                 params.put("matrix", matrix);

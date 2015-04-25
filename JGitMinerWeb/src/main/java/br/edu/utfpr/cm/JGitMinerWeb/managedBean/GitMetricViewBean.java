@@ -156,9 +156,17 @@ public class GitMetricViewBean implements Serializable {
             zos.setLevel(9);
             String project = "All";
             Set<String> files = new HashSet<>();
-
+            Set<String> downloaded = new HashSet<>();
             for (EntityMetric metric : getMetrics()) {
-                System.out.println("Metric " + metric + " tem nodes: " + metric.getNodes().size());
+                final String metricName = metric.toString();
+                // download lasts metrics
+                if (downloaded.contains(metricName)) {
+                    continue;
+                } else {
+                    downloaded.add(metricName);
+                }
+
+                System.out.println("Metric " + metricName + " tem nodes: " + metric.getNodes().size());
 
                 if (metric.getNodes().size() == 1) {
                     continue;
@@ -184,9 +192,9 @@ public class GitMetricViewBean implements Serializable {
                     for (EntityMetricNode node : metric.getNodes()) {
                         String line = node.toString();
                         if (line.endsWith(";")) { // prevents error weka/r, remove last ;
-                            csv.append(line.substring(0, line.length() - 1));
+                            csv.append(line.replaceAll("NaN", "0.0").substring(0, line.length() - 1));
                         } else {
-                            csv.append(line);
+                            csv.append(line.replaceAll("NaN", "0.0"));
                         }
                         csv.append("\r\n");
                     }

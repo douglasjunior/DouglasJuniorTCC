@@ -1185,7 +1185,9 @@ public class BichoFileDAO {
     public long calculeCommits(String file, String user, Integer index, Integer quantity) {
         return calculeCommitsByIndex(file, user, null, index, quantity, null);
     }
-
+    public static void main(String[] args) {
+        System.out.println(new BichoFileDAO(null, "derby", 20).COUNT_COMMITS_BY_FILE_NAME_AND_LIMIT_OFFSET);
+    }
     public long calculeCommitsByIndex(
             String file, String user, Integer issue, Integer index, Integer quantity,
             Collection<Integer> issues) {
@@ -1326,7 +1328,7 @@ public class BichoFileDAO {
         return age.getDays();
     }
 
-    public int calculeTotalFileAgeInDays(String filename, Integer issue, Set<Integer> issues) {
+    public int calculeTotalFileAgeInDays(String filename, Integer issue) {
         List<Object> selectParams = new ArrayList<>();
 
         StringBuilder sql = new StringBuilder();
@@ -1339,7 +1341,7 @@ public class BichoFileDAO {
             sql.append(FILTER_BY_BEFORE_ISSUE_FIX_DATE_OF_ISSUE_ID);
             selectParams.add(issue);
         }
-        filterByIssues(issues, sql);
+//        filterByIssues(issues, sql);
 
         List<Object[]> minMaxDateList = dao.selectNativeWithParams(sql.toString(), selectParams.toArray());
         Object[] minMaxDate = minMaxDateList.get(0);
