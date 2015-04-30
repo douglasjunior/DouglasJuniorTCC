@@ -9,10 +9,11 @@ import br.edu.utfpr.cm.JGitMinerWeb.util.OutLog;
 import br.edu.utfpr.cm.JGitMinerWeb.util.Util;
 import br.edu.utfpr.cm.minerador.services.matrix.model.FilePair;
 import br.edu.utfpr.cm.minerador.services.matrix.model.FilePairApriori;
-import br.edu.utfpr.cm.minerador.services.matrix.model.FilePairOutput;
+import br.edu.utfpr.cm.minerador.services.matrix.model.FilePairAprioriOutput;
 import br.edu.utfpr.cm.minerador.services.matrix.model.FilePath;
 import br.edu.utfpr.cm.minerador.services.matrix.model.Issue;
 import br.edu.utfpr.cm.minerador.services.metric.Cacher;
+import br.edu.utfpr.cm.minerador.services.metric.model.Commit;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -86,7 +87,7 @@ public class BichoPairOfFileInFixVersionServices extends AbstractBichoMatrixServ
         String version = getVersion();
         String futureVersion = getFutureVersion();
 
-        Map<FilePair, FilePairOutput> pairFiles = new HashMap<>();
+        Map<FilePair, FilePairAprioriOutput> pairFiles = new HashMap<>();
 //        Set<FilePath> allDistinctFiles = new HashSet<>();
 
 //        Pattern fileToConsiders = null;
@@ -107,12 +108,12 @@ public class BichoPairOfFileInFixVersionServices extends AbstractBichoMatrixServ
         Set<FilePath> allXmlFiles = new HashSet<>();
         Set<FilePath> allFilteredFiles = new HashSet<>();
 
-        Set<Integer> allCommits = new HashSet<>();
+        Set<Commit> allCommits = new HashSet<>();
         Set<Integer> allConsideredCommits = new HashSet<>();
         Set<Integer> allDefectIssues = new HashSet<>();
 
         // select a issue/pullrequest commenters
-        Map<Issue, List<Integer>> issuesConsideredCommits = bichoDAO.selectIssuesAndType(version);
+        Map<Issue, List<Commit>> issuesConsideredCommits = bichoDAO.selectIssuesAndType(version);
         Set<Issue> allIssues = issuesConsideredCommits.keySet();
         
         out.printLog("Issues (filtered): " + issuesConsideredCommits.size());
@@ -123,13 +124,13 @@ public class BichoPairOfFileInFixVersionServices extends AbstractBichoMatrixServ
         // combina em pares todos os arquivos commitados em uma issue
         final int totalIssues = issuesConsideredCommits.size();
         int progressFilePairing = 0;
-        for (Map.Entry<Issue, List<Integer>> entrySet : issuesConsideredCommits.entrySet()) {
+        for (Map.Entry<Issue, List<Commit>> entrySet : issuesConsideredCommits.entrySet()) {
             if (++progressFilePairing % 100 == 0
                     || progressFilePairing == totalIssues) {
                 System.out.println(progressFilePairing + "/" + totalIssues);
             }
             Issue issue = entrySet.getKey();
-            List<Integer> commits = entrySet.getValue();
+            List<Commit> commits = entrySet.getValue();
 
             out.printLog("Issue #" + issue);
             out.printLog(count++ + " of the " + issuesConsideredCommits.size());
@@ -139,10 +140,10 @@ public class BichoPairOfFileInFixVersionServices extends AbstractBichoMatrixServ
 
             // monta os pares com os arquivos de todos os commits da issue
             List<FilePath> commitedFiles = new ArrayList<>();
-            for (Integer commit : commits) {
+            for (Commit commit : commits) {
 
                 // select name of commited files
-                List<FilePath> files = bichoFileDAO.selectFilesByCommitId(commit);
+                List<FilePath> files = bichoFileDAO.selectFilesByCommitId(commit.getId());
 
                 allFiles.addAll(files);
 
@@ -202,8 +203,8 @@ public class BichoPairOfFileInFixVersionServices extends AbstractBichoMatrixServ
         }
 
         Set<Integer> allConsideredIssues = new HashSet<>();
-        for (Map.Entry<FilePair, FilePairOutput> entrySet : pairFiles.entrySet()) {
-            FilePairOutput value = entrySet.getValue();
+        for (Map.Entry<FilePair, FilePairAprioriOutput> entrySet : pairFiles.entrySet()) {
+            FilePairAprioriOutput value = entrySet.getValue();
             allConsideredIssues.addAll(value.getIssuesId());
         }
         // calculando o apriori
@@ -212,7 +213,7 @@ public class BichoPairOfFileInFixVersionServices extends AbstractBichoMatrixServ
         int totalApriori = pairFiles.size();
         int countApriori = 0;
 
-        final List<FilePairOutput> pairFileList = new ArrayList<>();
+        final List<FilePairAprioriOutput> pairFileList = new ArrayList<>();
 
         for (FilePair fileFile : pairFiles.keySet()) {
             if (++countApriori % 100 == 0
@@ -223,7 +224,7 @@ public class BichoPairOfFileInFixVersionServices extends AbstractBichoMatrixServ
             Long file1Issues = cacher.calculeNumberOfIssues(fileFile.getFile1(), version);
             Long file2Issues = cacher.calculeNumberOfIssues(fileFile.getFile2(), version);
 
-            FilePairOutput filePairOutput = pairFiles.get(fileFile);
+            FilePairAprioriOutput filePairOutput = pairFiles.get(fileFile);
 
             FilePairApriori apriori = new FilePairApriori(file1Issues, file2Issues,
                     filePairOutput.getIssuesIdWeight(), allConsideredIssues.size());
@@ -236,7 +237,7 @@ public class BichoPairOfFileInFixVersionServices extends AbstractBichoMatrixServ
         oderByFilePairSupportAndNumberOfDefects(pairFileList);
 
         EntityMatrix matrix = new EntityMatrix();
-        matrix.setNodes(objectsToNodes(pairFileList, FilePairOutput.getToStringHeader()));
+        matrix.setNodes(objectsToNodes(pairFileList, FilePairAprioriOutput.getToStringHeader()));
         matricesToSave.add(matrix);
 
         out.printLog("\n\n" + getRepository() + " " + version + "\n"
@@ -270,11 +271,11 @@ public class BichoPairOfFileInFixVersionServices extends AbstractBichoMatrixServ
         saveTop25Matrix(pairFileList);
     }
 
-    private void saveTop25Matrix(List<FilePairOutput> pairFileList) {
+    private void saveTop25Matrix(List<FilePairAprioriOutput> pairFileList) {
         // 25 arquivos distintos com maior confianÃ§a entre o par (coluna da esquerda)
-        final Set<FilePairOutput> distinctFileOfFilePairWithHigherConfidence = new LinkedHashSet<>(25);
-        final List<FilePairOutput> nodesTop25 = new ArrayList<>();
-        for (FilePairOutput node : pairFileList) {
+        final Set<FilePairAprioriOutput> distinctFileOfFilePairWithHigherConfidence = new LinkedHashSet<>(25);
+        final List<FilePairAprioriOutput> nodesTop25 = new ArrayList<>();
+        for (FilePairAprioriOutput node : pairFileList) {
             distinctFileOfFilePairWithHigherConfidence.add(node);
             nodesTop25.add(node);
             if (distinctFileOfFilePairWithHigherConfidence.size() >= 25) {
@@ -294,7 +295,7 @@ public class BichoPairOfFileInFixVersionServices extends AbstractBichoMatrixServ
         Set<String> allXmlFiles = new HashSet<>();
         Set<String> allOtherFiles = new HashSet<>();
 
-        for (FilePairOutput node : nodesTop25) {
+        for (FilePairAprioriOutput node : nodesTop25) {
             totalIssues.addAll(node.getIssuesId());
             totalCommits.addAll(node.getCommitsId());
 
@@ -327,7 +328,7 @@ public class BichoPairOfFileInFixVersionServices extends AbstractBichoMatrixServ
             }
         }
 
-        FilePairOutput summary = new FilePairOutput(new FilePair("Summary", String.valueOf(allFiles.size())));
+        FilePairAprioriOutput summary = new FilePairAprioriOutput(new FilePair("Summary", String.valueOf(allFiles.size())));
         summary.addIssueId(totalIssues.size());
         summary.addCommitId(totalCommits.size());
         summary.addCommitFile1Id(totalCommitsFile1.size());
@@ -349,23 +350,23 @@ public class BichoPairOfFileInFixVersionServices extends AbstractBichoMatrixServ
         );
 
         EntityMatrix top25 = new EntityMatrix();
-        top25.setNodes(objectsToNodes(nodesTop25, FilePairOutput.getToStringHeader()));
+        top25.setNodes(objectsToNodes(nodesTop25, FilePairAprioriOutput.getToStringHeader()));
         top25.setAdditionalFilename("top 25");
         matricesToSave.add(top25);
     }
 
-    private void oderByFilePairSupportAndNumberOfDefects(final List<FilePairOutput> pairFileList) {
+    private void oderByFilePairSupportAndNumberOfDefects(final List<FilePairAprioriOutput> pairFileList) {
         // order by number of defects (lower priority)
         orderByNumberOfDefects(pairFileList);
         // order by support (higher priority)
         orderByFilePairSupport(pairFileList);
     }
 
-    private void orderByFilePairSupport(final List<FilePairOutput> pairFileList) {
-        Collections.sort(pairFileList, new Comparator<FilePairOutput>() {
+    private void orderByFilePairSupport(final List<FilePairAprioriOutput> pairFileList) {
+        Collections.sort(pairFileList, new Comparator<FilePairAprioriOutput>() {
 
             @Override
-            public int compare(FilePairOutput o1, FilePairOutput o2) {
+            public int compare(FilePairAprioriOutput o1, FilePairAprioriOutput o2) {
                 FilePairApriori apriori1 = o1.getFilePairApriori();
                 FilePairApriori apriori2 = o2.getFilePairApriori();
                 if (apriori1.getSupportFilePair() > apriori2.getSupportFilePair()) {
@@ -378,11 +379,11 @@ public class BichoPairOfFileInFixVersionServices extends AbstractBichoMatrixServ
         });
     }
 
-    private void orderByNumberOfDefects(final List<FilePairOutput> pairFileList) {
-        Collections.sort(pairFileList, new Comparator<FilePairOutput>() {
+    private void orderByNumberOfDefects(final List<FilePairAprioriOutput> pairFileList) {
+        Collections.sort(pairFileList, new Comparator<FilePairAprioriOutput>() {
 
             @Override
-            public int compare(FilePairOutput o1, FilePairOutput o2) {
+            public int compare(FilePairAprioriOutput o1, FilePairAprioriOutput o2) {
                 final int defectIssuesIdWeight1 = o1.getFutureDefectIssuesIdWeight();
                 final int defectIssuesIdWeight2 = o2.getFutureDefectIssuesIdWeight();
                 if (defectIssuesIdWeight1 > defectIssuesIdWeight2) {

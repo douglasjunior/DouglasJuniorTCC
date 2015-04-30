@@ -531,6 +531,24 @@ public class BichoPairFileDAO {
         return filePairIssues;
     }
 
+    public Map<String, Set<Integer>> selectIssues(
+            String file, String file2, String version) {
+
+        List<Object> selectParams = new ArrayList<>();
+
+        StringBuilder sql = new StringBuilder();
+        sql.append(SELECT_ISSUES_AND_TYPE_BY_FILE_NAME);
+        selectParams.add(file);
+        selectParams.add(file2);
+
+        sql.append(FILTER_BY_ISSUE_FIX_MAJOR_VERSION);
+        selectParams.add(version);
+
+        List<Object[]> filePairIssues = dao.selectNativeWithParams(sql.toString(), selectParams.toArray());
+
+        return rawIssuesAndTypesToIssuesAndTypesMap(filePairIssues);
+    }
+
     public Map<String, Set<Integer>> selectIssues(String file, String file2, Set<Issue> issues) {
         List<Object> selectParams = new ArrayList<>();
 
@@ -543,6 +561,10 @@ public class BichoPairFileDAO {
 
         List<Object[]> filePairIssues = dao.selectNativeWithParams(sql.toString(), selectParams.toArray());
 
+        return rawIssuesAndTypesToIssuesAndTypesMap(filePairIssues);
+    }
+
+    public Map<String, Set<Integer>> rawIssuesAndTypesToIssuesAndTypesMap(List<Object[]> filePairIssues) throws NumberFormatException {
         Map<String, Set<Integer>> issuesAndTypes = new HashMap<>();
         for (Object[] filePairIssue : filePairIssues) {
             Integer issueId = Integer.valueOf(String.valueOf(filePairIssue[0]));

@@ -29,6 +29,7 @@ public class BichoDAO {
     private final String FILTER_BY_ISSUE_FIX_MAJOR_VERSION;
     private final String FILTER_BY_ISSUE_FIX_DATE;
     private final String FILTER_BY_ISSUE_ID;
+    private final String FILTER_BY_ONLY_REOPENED_ISSUES;
 
     // order
     private final String ORDER_BY_FIX_DATE;
@@ -88,6 +89,9 @@ public class BichoDAO {
 
         FILTER_BY_ISSUE_ID
                 = " AND i.id = ?";
+
+        FILTER_BY_ONLY_REOPENED_ISSUES
+                = " AND i.reopened_times > 0";
 
         ORDER_BY_FIX_DATE
                 = " ORDER BY i.fixed_on ASC";
@@ -175,7 +179,7 @@ public class BichoDAO {
                 + FILTER_BY_MAX_FILES_IN_COMMIT;
 
         SELECT_ISSUES_AND_TYPE_BY_FIXED_MAJOR_VERSION
-                = QueryUtils.getQueryForDatabase("SELECT DISTINCT i.id, i.type, s.id"
+                = QueryUtils.getQueryForDatabase("SELECT DISTINCT i.id, i.type, s.id, s.date"
                         + "  FROM {0}_issues.issues_scmlog i2s"
                         + "  JOIN {0}_issues.issues i ON i.id = i2s.issue_id"
                         + "  JOIN {0}_issues.issues_fix_version ifv ON ifv.issue_id = i2s.issue_id"
@@ -436,7 +440,7 @@ public class BichoDAO {
         return new LinkedHashSet<>(issues);
     }
 
-    public Map<Issue, List<Integer>> selectIssuesAndType(String version) {
+    public Map<Issue, List<Commit>> selectIssuesAndType(String version) {
         List<Object> selectParams = new ArrayList<>();
 
         StringBuilder sql = new StringBuilder();
@@ -446,18 +450,36 @@ public class BichoDAO {
 
         List<Object[]> rawIssues = dao.selectNativeWithParams(sql.toString(), selectParams.toArray());
 
-        Map<Issue, List<Integer>> issuesCommits = new LinkedHashMap<>(rawIssues.size());
+        return rawIssuesAndCommitsToMap(rawIssues);
+    }
+
+    public Map<Issue, List<Commit>> selectReopenedIssuesAndType(String version) {
+        List<Object> selectParams = new ArrayList<>();
+
+        StringBuilder sql = new StringBuilder();
+        sql.append(SELECT_ISSUES_AND_TYPE_BY_FIXED_MAJOR_VERSION);
+        sql.append(FILTER_BY_ONLY_REOPENED_ISSUES);
+        selectParams.add(version);
+
+        List<Object[]> rawIssues = dao.selectNativeWithParams(sql.toString(), selectParams.toArray());
+
+        return rawIssuesAndCommitsToMap(rawIssues);
+    }
+
+    private Map<Issue, List<Commit>> rawIssuesAndCommitsToMap(List<Object[]> rawIssues) {
+        Map<Issue, List<Commit>> issuesCommits = new LinkedHashMap<>(rawIssues.size());
         for (Object[] issueCommit : rawIssues) {
             Integer issueId = (Integer) issueCommit[0];
             String issueType = (String) issueCommit[1];
             Integer commit = (Integer) issueCommit[2];
+            Date commitDate = (java.sql.Timestamp) issueCommit[3];
 
             Issue issue = new Issue(issueId, issueType);
             if (issuesCommits.containsKey(issue)) {
-                issuesCommits.get(issue).add(commit);
+                issuesCommits.get(issue).add(new Commit(commit, null, commitDate));
             } else {
-                List<Integer> commits = new ArrayList<>();
-                commits.add(commit);
+                List<Commit> commits = new ArrayList<>();
+                commits.add(new Commit(commit, null, commitDate));
                 issuesCommits.put(issue, commits);
             }
         }
@@ -601,6 +623,13 @@ public class BichoDAO {
         return futureMajorVersion;
     }
 
+    /**
+     * Seleciona data de abertura e da 1a correcao + data de reabertura e
+     * correcao para cada vez que a issue foi reaberta
+     *
+     * @param issue
+     * @return
+     */
     public List<Date[]> selectIssueOpenedPeriod(Integer issue) {
 
         List<Object[]> issueReopenedFixedTimestamp

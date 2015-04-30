@@ -9,7 +9,7 @@ import br.edu.utfpr.cm.JGitMinerWeb.util.OutLog;
 import br.edu.utfpr.cm.JGitMinerWeb.util.Util;
 import br.edu.utfpr.cm.minerador.services.matrix.model.FilePair;
 import br.edu.utfpr.cm.minerador.services.matrix.model.FilePairApriori;
-import br.edu.utfpr.cm.minerador.services.matrix.model.FilePairOutput;
+import br.edu.utfpr.cm.minerador.services.matrix.model.FilePairAprioriOutput;
 import br.edu.utfpr.cm.minerador.services.matrix.model.FilePath;
 import br.edu.utfpr.cm.minerador.services.metric.Cacher;
 import java.util.ArrayList;
@@ -87,7 +87,7 @@ public class BichoPairOfFileInDateServices extends AbstractBichoMatrixServices {
         Date futureBeginDate = getFutureBeginDate();
         Date futureEndDate = getFutureEndDate();
 
-        Map<FilePair, FilePairOutput> pairFiles = new HashMap<>();
+        Map<FilePair, FilePairAprioriOutput> pairFiles = new HashMap<>();
 
 //        Pattern fileToConsiders = null;
 //        if (getFilesToConsiders() != null && !getFilesToConsiders().isEmpty()) {
@@ -140,7 +140,7 @@ public class BichoPairOfFileInDateServices extends AbstractBichoMatrixServices {
                     FilePath file2 = commitedFiles.get(j);
                     if (!file1.getFilePath().equals(file2.getFilePath())) {
                         FilePair filePair = new FilePair(file1.getFilePath(), file2.getFilePath());
-                        FilePairOutput filePairOutput = new FilePairOutput(filePair);
+                        FilePairAprioriOutput filePairOutput = new FilePairAprioriOutput(filePair);
                         if (pairFiles.containsKey(filePair)) {
                             pairFiles.get(filePair).addIssueId(issue);
                         } else {
@@ -178,7 +178,7 @@ public class BichoPairOfFileInDateServices extends AbstractBichoMatrixServices {
         int totalApriori = pairFiles.size();
         int countApriori = 0;
 
-        final List<FilePairOutput> pairFileList = new ArrayList<>();
+        final List<FilePairAprioriOutput> pairFileList = new ArrayList<>();
 
         for (FilePair fileFile : pairFiles.keySet()) {
             if (countApriori++ % 100 == 0) {
@@ -195,7 +195,7 @@ public class BichoPairOfFileInDateServices extends AbstractBichoMatrixServices {
                             fileFile.getFile2(),
                             beginDate, endDate);
 
-            FilePairOutput filePairOutput = pairFiles.get(fileFile);
+            FilePairAprioriOutput filePairOutput = pairFiles.get(fileFile);
 
             FilePairApriori apriori = new FilePairApriori(file1Issues, file2Issues,
                     filePairOutput.getIssuesIdWeight(), allIssuesInPeriod);
@@ -206,7 +206,7 @@ public class BichoPairOfFileInDateServices extends AbstractBichoMatrixServices {
         }
 
         EntityMatrix matrix = new EntityMatrix();
-        matrix.setNodes(objectsToNodes(pairFileList, FilePairOutput.getToStringHeader()));
+        matrix.setNodes(objectsToNodes(pairFileList, FilePairAprioriOutput.getToStringHeader()));
         matricesToSave.add(matrix);
     }
 

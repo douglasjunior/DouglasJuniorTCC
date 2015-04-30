@@ -6,12 +6,14 @@ import br.edu.utfpr.cm.JGitMinerWeb.model.matrix.EntityMatrixNode;
 import br.edu.utfpr.cm.JGitMinerWeb.util.OutLog;
 import br.edu.utfpr.cm.minerador.services.AbstractBichoServices;
 import br.edu.utfpr.cm.minerador.services.matrix.model.FilePair;
+import br.edu.utfpr.cm.minerador.services.matrix.model.FilePairAprioriOutput;
 import br.edu.utfpr.cm.minerador.services.matrix.model.FilePairOutput;
 import br.edu.utfpr.cm.minerador.services.matrix.model.FilePath;
 import br.edu.utfpr.cm.minerador.services.matrix.model.Issue;
 import java.io.FileWriter;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -53,28 +55,28 @@ public abstract class AbstractBichoMatrixServices extends AbstractBichoServices 
         return nodes;
     }
 
-    protected void pairFiles(List<FilePath> commitedFiles, Map<FilePair, FilePairOutput> pairFiles, Issue issue, Set<Integer> allDefectIssues, Set<Integer> allConsideredCommits) {
+    protected void pairFiles(List<FilePath> commitedFiles, Map<FilePair, FilePairAprioriOutput> pairFiles, Issue issue, Set<Integer> allDefectIssues, Set<Integer> allConsideredCommits) {
         for (int i = 0; i < commitedFiles.size(); i++) {
             FilePath file1 = commitedFiles.get(i);
             for (int j = i + 1; j < commitedFiles.size(); j++) {
                 FilePath file2 = commitedFiles.get(j);
                 if (!file1.getFilePath().equals(file2.getFilePath())) {
                     FilePair filePair = new FilePair(file1.getFilePath(), file2.getFilePath());
-                    FilePairOutput filePairOutput;
+                    FilePairAprioriOutput filePairOutput;
 
-                    if (pairFiles.containsKey(filePair)) {
-                        filePairOutput = pairFiles.get(filePair);
-                    } else {
-                        filePairOutput = new FilePairOutput(filePair);
-                        pairFiles.put(filePair, filePairOutput);
-                    }
+                        if (pairFiles.containsKey(filePair)) {
+                            filePairOutput = pairFiles.get(filePair);
+                        } else {
+                            filePairOutput = new FilePairAprioriOutput(filePair);
+                            pairFiles.put(filePair, filePairOutput);
+                        }
 
-                    filePairOutput.addIssueId(issue.getId());
+                        filePairOutput.addIssueId(issue.getId());
 
-                    if ("Bug".equals(issue.getType())) {
-                        filePairOutput.addDefectIssueId(issue.getId());
-                        allDefectIssues.add(issue.getId());
-                    }
+                        if ("Bug".equals(issue.getType())) {
+                            filePairOutput.addDefectIssueId(issue.getId());
+                            allDefectIssues.add(issue.getId());
+                        }
 
                     filePairOutput.addCommitId(file1.getCommitId());
                     filePairOutput.addCommitId(file2.getCommitId());
@@ -84,6 +86,51 @@ public abstract class AbstractBichoMatrixServices extends AbstractBichoServices 
 
                     allConsideredCommits.add(file1.getCommitId());
                     allConsideredCommits.add(file2.getCommitId());
+                }
+            }
+        }
+    }
+
+    protected void pairFiles(Map<Integer, Set<FilePath>> commitedFilesByIndex, Map<FilePair, FilePairOutput> pairFiles, Issue issue, Set<Integer> allDefectIssues, Set<Integer> allConsideredCommits) {
+        List<Integer> openIndexes = new ArrayList<>(commitedFilesByIndex.keySet());
+        Collections.sort(openIndexes);
+        for (int openIndex = 0; openIndex < openIndexes.size(); openIndex++) {
+            if ((openIndex + 1) >= openIndexes.size()) {
+                break;
+            }
+
+            Set<FilePath> commitedFilesI = commitedFilesByIndex.get(openIndex);
+            Set<FilePath> commitedFilesJ = commitedFilesByIndex.get(openIndex + 1);
+
+            for (FilePath fileI : commitedFilesI) {
+                for (FilePath fileJ : commitedFilesJ) {
+                    if (!fileI.getFilePath().equals(fileJ.getFilePath())) {
+                        FilePair filePair = new FilePair(fileI.getFilePath(), fileJ.getFilePath());
+                        FilePairOutput filePairOutput;
+
+                        if (pairFiles.containsKey(filePair)) {
+                            filePairOutput = pairFiles.get(filePair);
+                        } else {
+                            filePairOutput = new FilePairOutput(filePair);
+                            pairFiles.put(filePair, filePairOutput);
+                        }
+
+                        filePairOutput.addIssueId(issue.getId());
+
+                        if ("Bug".equals(issue.getType())) {
+                            filePairOutput.addDefectIssueId(issue.getId());
+                            allDefectIssues.add(issue.getId());
+                        }
+
+                        filePairOutput.addCommitId(fileI.getCommitId());
+                        filePairOutput.addCommitId(fileJ.getCommitId());
+
+                        filePairOutput.addCommitFile1Id(fileI.getCommitId());
+                        filePairOutput.addCommitFile2Id(fileJ.getCommitId());
+
+                        allConsideredCommits.add(fileI.getCommitId());
+                        allConsideredCommits.add(fileJ.getCommitId());
+                    }
                 }
             }
         }

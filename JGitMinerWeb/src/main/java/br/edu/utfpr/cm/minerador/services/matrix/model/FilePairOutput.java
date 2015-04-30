@@ -12,15 +12,14 @@ import java.util.Set;
  */
 public class FilePairOutput {
 
-    private final FilePair filePair;
-    private final Set<Integer> issuesId;
-    private final Set<Integer> commitsId;
-    private final Set<Integer> commitsFile1Id;
-    private final Set<Integer> commitsFile2Id;
-    private final Set<Integer> defectIssuesId;
-    private final Set<Integer> futureIssuesId;
-    private final Set<Integer> futureDefectIssuesId;
-    private FilePairApriori filePairApriori;
+    protected final FilePair filePair;
+    protected final Set<Integer> issuesId;
+    protected final Set<Integer> commitsId;
+    protected final Set<Integer> commitsFile1Id;
+    protected final Set<Integer> commitsFile2Id;
+    protected final Set<Integer> defectIssuesId;
+    protected final Set<Integer> futureIssuesId;
+    protected final Set<Integer> futureDefectIssuesId;
 
     public FilePairOutput(FilePair filePair) {
         this.filePair = filePair;
@@ -35,14 +34,6 @@ public class FilePairOutput {
 
     public FilePair getFilePair() {
         return filePair;
-    }
-
-    public void setFilePairApriori(FilePairApriori filePairApriori) {
-        this.filePairApriori = filePairApriori;
-    }
-
-    public FilePairApriori getFilePairApriori() {
-        return filePairApriori;
     }
 
     public Set<Integer> getCommitsId() {
@@ -144,7 +135,7 @@ public class FilePairOutput {
         if (getClass() != obj.getClass()) {
             return false;
         }
-        final FilePairOutput other = (FilePairOutput) obj;
+        final FilePairAprioriOutput other = (FilePairAprioriOutput) obj;
         return Objects.equals(this.filePair, other.filePair);
     }
 
@@ -157,7 +148,8 @@ public class FilePairOutput {
     @Override
     public String toString() {
         StringBuilder toString = new StringBuilder();
-        toString.append(filePair.toString(filePairApriori));
+
+        toString.append(filePair.toString());
 
         appendInteger(toString, issuesId.size());
         appendSetInteger(toString, issuesId);
@@ -180,9 +172,23 @@ public class FilePairOutput {
         appendInteger(toString, futureIssuesId.size());
         appendSetInteger(toString, futureIssuesId);
 
-        toString.append(filePairApriori.toString());
-
         return toString.toString();
+    }
+
+    protected void appendInteger(StringBuilder toString, Integer integer) {
+        toString.append(integer).append(';');
+    }
+
+    protected void appendSetInteger(StringBuilder toString, Set<Integer> set) {
+        boolean appendComma = false;
+        for (Integer integer : set) {
+            if (appendComma) {
+                toString.append(',');
+            }
+            toString.append(integer);
+            appendComma = true;
+        }
+        toString.append(';');
     }
 
     public static String getToStringHeader() {
@@ -193,23 +199,6 @@ public class FilePairOutput {
                 + "commitsFile2;commitsFile2Id;"
                 + "defectIssues;defectIssuesId;"
                 + "futureDefectIssues;futureDefectIssuesId;"
-                + "futureIssues;futureIssuesId;"
-                + FilePairApriori.getToStringHeader();
-    }
-
-    private void appendInteger(StringBuilder toString, Integer integer) {
-        toString.append(integer).append(';');
-    }
-
-    private void appendSetInteger(StringBuilder toString, Set<Integer> set) {
-        boolean appendComma = false;
-        for (Integer integer : set) {
-            if (appendComma) {
-                toString.append(',');
-            }
-            toString.append(integer);
-            appendComma = true;
-        }
-        toString.append(';');
+                + "futureIssues;futureIssuesId;";
     }
 }

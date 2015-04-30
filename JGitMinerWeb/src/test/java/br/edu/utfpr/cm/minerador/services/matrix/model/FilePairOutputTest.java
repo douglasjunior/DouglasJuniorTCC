@@ -11,7 +11,7 @@ public class FilePairOutputTest {
 
     @Test
     public void testToStringBA() {
-        FilePairOutput filePairOutput = new FilePairOutput(new FilePair("A", "B"));
+        FilePairAprioriOutput filePairOutput = new FilePairAprioriOutput(new FilePair("A", "B"));
         filePairOutput.setFilePairApriori(new FilePairApriori(2, 4, 2, 8));
         filePairOutput.addIssueId(1);
         filePairOutput.addIssueId(2);
@@ -25,7 +25,7 @@ public class FilePairOutputTest {
 
     @Test
     public void testToStringAB() {
-        FilePairOutput filePairOutput = new FilePairOutput(new FilePair("B", "A"));
+        FilePairAprioriOutput filePairOutput = new FilePairAprioriOutput(new FilePair("B", "A"));
         filePairOutput.setFilePairApriori(new FilePairApriori(2, 4, 2, 8));
         filePairOutput.addIssueId(1);
         filePairOutput.addIssueId(2);
@@ -49,7 +49,7 @@ public class FilePairOutputTest {
                 + "futureIssues;futureIssuesId;"
                 + "fileIssues;file2Issues;issues;allIssues;supportFile;supportFile2;"
                 + "supportFilePair;confidence;confidence2;lift;conviction;conviction2;",
-                FilePairOutput.getToStringHeader()
+                FilePairAprioriOutput.getToStringHeader()
         );
     }
 }
