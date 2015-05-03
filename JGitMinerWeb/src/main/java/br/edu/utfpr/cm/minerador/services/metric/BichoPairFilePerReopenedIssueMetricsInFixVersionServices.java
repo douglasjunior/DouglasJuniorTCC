@@ -80,10 +80,14 @@ public class BichoPairFilePerReopenedIssueMetricsInFixVersionServices extends Ab
         final BichoDAO bichoDAO = new BichoDAO(dao, repository, maxFilePerCommit);
         final BichoFileDAO bichoFileDAO = new BichoFileDAO(dao, repository, maxFilePerCommit);
         final BichoPairFileDAO bichoPairFileDAO = new BichoPairFileDAO(dao, repository, maxFilePerCommit);
-        final Long issuesSize = bichoDAO
-                .calculeNumberOfIssues(fixVersion, true);
+        final Long issuesSize = bichoDAO.calculeNumberOfIssues(fixVersion, true);
 
         final String pastMajorVersion = bichoDAO.selectPastMajorVersion(fixVersion);
+
+        // join metrics of previous version until issue in version analysed
+        List<String> versionsToAnalyse = new ArrayList<>();
+        versionsToAnalyse.add(pastMajorVersion);
+        versionsToAnalyse.add(fixVersion);
 
         System.out.println("Number of all pull requests: " + issuesSize);
 
@@ -92,23 +96,25 @@ public class BichoPairFilePerReopenedIssueMetricsInFixVersionServices extends Ab
 
         // cache for optimization number of pull requests where file is in,
         // reducing access to database
-        Cacher cacher = new Cacher(bichoFileDAO, bichoPairFileDAO);
+        final Cacher cacher = new Cacher(bichoFileDAO, bichoPairFileDAO);
 
-        Set<FilePair> top25 = getTop25Matrix(matrix.getNodes().get(0), matrixNodes, headerIndexesMap);
+        final Set<FilePair> pairFilesInReopenedIssues = getMatrix(matrixNodes, headerIndexesMap);
 
         CommitterFileMetricsCalculator committerFileMetricsCalculator = new CommitterFileMetricsCalculator(bichoFileDAO);
 
         final Set<Committer> majorContributorsInPreviousVersion = new HashSet<>();
         final Map<String, Double> ownerExperience = new HashMap<>(25);
         final Map<Committer, CommitterFileMetrics> committerFileMetricsList = new HashMap<>();
+
+        for (String version : versionsToAnalyse) {
         // calcule committer experience for each top 25 files in previous version
-        for (FilePair filePair : top25) {
+        for (FilePair filePair : pairFilesInReopenedIssues) {
             final String filename = filePair.getFileName();
 
             final Set<Committer> fileCommittersInPreviousVersion
                     = bichoFileDAO.selectCommitters(filename, fixVersion);
 
-            for (Committer committer : fileCommittersInPreviousVersion) {
+            fileCommittersInPreviousVersion.parallelStream().map((committer) -> {
                 CommitterFileMetrics committerFileMetrics;
                 if (pastMajorVersion != null) {
                     committerFileMetrics
@@ -121,18 +127,17 @@ public class BichoPairFilePerReopenedIssueMetricsInFixVersionServices extends Ab
                 if (committerFileMetrics.getOwnership() > 0.05) { // maior que 5% = major
                     majorContributorsInPreviousVersion.add(committer);
                 }
-
+                return committerFileMetrics;
+            }).forEach((committerFileMetrics) -> {
                 if (ownerExperience.containsKey(filename)) {
                     ownerExperience.put(filename, Math.max(committerFileMetrics.getExperience(), ownerExperience.get(filename)));
                 } else {
                     ownerExperience.put(filename, committerFileMetrics.getExperience());
                 }
-            }
+            });
         }
 
-        // separa o top 10 em A + qualquerarquivo
-        int rank = 1;
-        for (FilePair filePair : top25) {
+        for (FilePair filePair : pairFilesInReopenedIssues) {
             final Set<FileIssueMetrics> allFileChanges = new LinkedHashSet<>();
 
             // par analisado
@@ -147,7 +152,7 @@ public class BichoPairFilePerReopenedIssueMetricsInFixVersionServices extends Ab
             for (Integer issue : issueWhereFileChanged) {
 
                 if (progress++ % 100 == 0 || progress == totalProgress) {
-                    System.out.println("Rank " + rank + " - " + progress + "/" + totalProgress);
+                    System.out.println("Progress: " + progress + "/" + totalProgress);
                 }
 
                 final IssueMetrics issueMetrics = cacher.calculeIssueMetrics(issue);
@@ -312,45 +317,34 @@ public class BichoPairFilePerReopenedIssueMetricsInFixVersionServices extends Ab
                                 futureDefects, futureIssues
                         );
 
-                        if (fileIssueMetrics.getChangedAfterReopened() == 1) {
-                            System.out.println("changedAfterReopened = " + getRepository() + " " + getVersion() + " rank " + rank + " (" + matrix.toString() + ")");
-                            out.printLog("changedAfterReopened = " + getRepository() + " " + getVersion() + " rank " + rank + " (" + matrix.toString() + ")");
-                        }
                         allFileChanges.add(fileIssueMetrics);
+
+                        if (version.equals(fixVersion) && fileIssueMetrics.getChanged() == 1) {
+                            EntityMetric metrics3 = new EntityMetric();
+                            metrics3.setNodes(objectsToNodes(allFileChanges, FileIssueMetrics.HEADER));
+                            metrics3.setAdditionalFilename("issue " + issue++ + " " + getAdditionalFilename());
+                            saveMetrics(metrics3);
+                        }
                     }
                 }
             }
-
-            EntityMetric metrics3 = new EntityMetric();
-            metrics3.setNodes(objectsToNodes(allFileChanges, FileIssueMetrics.HEADER));
-            metrics3.setAdditionalFilename("rank " + rank++ + " " + getAdditionalFilename());
-            saveMetrics(metrics3);
+            }
         }
     }
 
-    private Set<FilePair> getTop25Matrix(final EntityMatrixNode headerNode, final List<EntityMatrixNode> matrixNodes, final Map<String, Integer> header) {
+    private Set<FilePair> getMatrix(final List<EntityMatrixNode> matrixNodes, final Map<String, Integer> header) {
         // 25 arquivos distintos com maior confiança entre o par (coluna da esquerda)
         final int file1Index = header.get("file1");
         final int file2Index = header.get("file2");
 
-        final Set<FilePair> distinctFileOfFilePairWithHigherConfidence = new LinkedHashSet<>(25);
-        final List<EntityMatrixNode> nodesTop25 = new ArrayList<>();
-        for (EntityMatrixNode node : matrixNodes) {
-            final String[] lineValues = MatrixUtils.separateValues(node);
-
-            FilePair filePair = new FilePair(lineValues[file1Index], lineValues[file2Index]);
-
-            distinctFileOfFilePairWithHigherConfidence.add(filePair);
-            nodesTop25.add(node);
-            if (distinctFileOfFilePairWithHigherConfidence.size() >= 25) {
-                break;
-            }
-        }
-
-        EntityMetric top25 = new EntityMetric();
-        top25.setNodes(objectsToNodes(nodesTop25, headerNode.toString()));
-        top25.setAdditionalFilename("top 25");
-        saveMetrics(top25);
+        final Set<FilePair> distinctFileOfFilePairWithHigherConfidence = new LinkedHashSet<>(matrixNodes.size());
+        matrixNodes.parallelStream()
+                .map(node -> MatrixUtils.separateValues(node))
+                .map(lineValues -> new FilePair(lineValues[file1Index], lineValues[file2Index]))
+                .forEach((filePair) -> {
+                    distinctFileOfFilePairWithHigherConfidence.add(filePair);
+                }
+                );
 
         return distinctFileOfFilePairWithHigherConfidence;
     }
