@@ -302,8 +302,6 @@ public class BichoPairFileMostChangedPerIssueMetricsInFixVersionServices extends
                                 ownerExperience.get(filename),
                                 // sameOwnership
                                 BooleanUtils.toInteger(sameOwnership),
-                                // number of distinct files in commit
-                                filesInCommit.size(),
                                 // committers, totalCommitters, commits, totalCommits,
                                 totalCommitters, totalCommits,
                                 // pairFileCodeChurn.getAdditionsNormalized(), pairFileCodeChurn.getDeletionsNormalized(), pairFileCodeChurn.getChanges()
