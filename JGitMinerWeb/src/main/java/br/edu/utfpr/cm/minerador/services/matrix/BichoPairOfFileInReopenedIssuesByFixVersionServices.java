@@ -9,13 +9,16 @@ import br.edu.utfpr.cm.JGitMinerWeb.util.OutLog;
 import br.edu.utfpr.cm.JGitMinerWeb.util.Util;
 import static br.edu.utfpr.cm.minerador.services.matrix.AbstractBichoMatrixServices.objectsToNodes;
 import br.edu.utfpr.cm.minerador.services.matrix.model.FilePair;
+import br.edu.utfpr.cm.minerador.services.matrix.model.FilePairApriori;
+import br.edu.utfpr.cm.minerador.services.matrix.model.FilePairAprioriOutput;
 import br.edu.utfpr.cm.minerador.services.matrix.model.FilePairOutput;
 import br.edu.utfpr.cm.minerador.services.matrix.model.FilePath;
 import br.edu.utfpr.cm.minerador.services.matrix.model.Issue;
+import br.edu.utfpr.cm.minerador.services.metric.Cacher;
 import br.edu.utfpr.cm.minerador.services.metric.model.Commit;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -86,7 +89,7 @@ public class BichoPairOfFileInReopenedIssuesByFixVersionServices extends Abstrac
         String version = getVersion();
         String futureVersion = getFutureVersion();
 
-        Map<FilePair, FilePairOutput> pairFiles = new LinkedHashMap<>();
+        Map<FilePair, FilePairAprioriOutput> pairFiles = new LinkedHashMap<>();
 //        Set<FilePath> allDistinctFiles = new HashSet<>();
 
 //        Pattern fileToConsiders = null;
@@ -120,6 +123,7 @@ public class BichoPairOfFileInReopenedIssuesByFixVersionServices extends Abstrac
         out.printLog("Issues (filtered): " + issuesConsideredCommits.size());
 
         int count = 1;
+        Cacher cacher = new Cacher(bichoFileDAO);
 
         // combina em pares todos os arquivos commitados em uma issue
         final int totalIssues = issuesConsideredCommits.size();
@@ -143,16 +147,16 @@ public class BichoPairOfFileInReopenedIssuesByFixVersionServices extends Abstrac
             List<Date[]> openedAndFixedDatePeriod = bichoDAO.selectIssueOpenedPeriod(issue.getId());
 
 //            List<Date[]> intervalAtLeastOfOneDay = new ArrayList<>();
-            // verifica se intervalo entre os periodos é maior que 1 dia, para evitar vies
+            // verifica se intervalo entre os periodos Ã© maior que 1 dia, para evitar vies
             for (Date[] openedAndFixedDatePeriod1 : openedAndFixedDatePeriod) {
                 LocalDateTime opened = new LocalDateTime(openedAndFixedDatePeriod1[0].getTime());
                 LocalDateTime fixed = new LocalDateTime(openedAndFixedDatePeriod1[1].getTime());
-                // ignora a issue se houver um intervalo menor que 1 dia entre a abertura e a correção.
+                // ignora a issue se houver um intervalo menor que 1 dia entre a abertura e a correÃ§Ã£o.
                 if (Days.daysBetween(opened, fixed).getDays() < 1) {
                     allIssuesIgnored.add(issue.getId());
                     continue issue;
                 }
-                // considerar pelo menos 2 quando há 3 aberturas e 1 invalida
+                // considerar pelo menos 2 quando hÃ¡ 3 aberturas e 1 invalida
                 // ou juntar 2 em 1 ????
 //                else {
 //                    intervalAtLeastOfOneDay.add(openedAndFixedDatePeriod1);
@@ -238,15 +242,44 @@ public class BichoPairOfFileInReopenedIssuesByFixVersionServices extends Abstrac
         }
 
         Set<Integer> allConsideredIssues = new HashSet<>();
-        for (Map.Entry<FilePair, FilePairOutput> entrySet : pairFiles.entrySet()) {
+        for (Map.Entry<FilePair, FilePairAprioriOutput> entrySet : pairFiles.entrySet()) {
             FilePairOutput value = entrySet.getValue();
             allConsideredIssues.addAll(value.getIssuesId());
         }
+        // calculando o apriori
+        out.printLog("Calculing apriori...");
+        out.printLog("Issues considered in version " + version + ": " + allConsideredIssues.size());
+        int totalApriori = pairFiles.size();
+        int countApriori = 0;
 
-        Collection<FilePairOutput> pairFileList = pairFiles.values();
+        final List<FilePairAprioriOutput> pairFileList = new ArrayList<>();
+
+        for (FilePair fileFile : pairFiles.keySet()) {
+            if (++countApriori % 100 == 0 || countApriori == totalApriori) {
+                System.out.println(countApriori + "/" + totalApriori);
+            }
+
+            Long file1Issues = cacher.calculeNumberOfIssues(fileFile.getFile1(), version);
+            Long file2Issues = cacher.calculeNumberOfIssues(fileFile.getFile2(), version);
+
+            FilePairAprioriOutput filePairOutput = pairFiles.get(fileFile);
+
+            FilePairApriori apriori = new FilePairApriori(file1Issues, file2Issues,
+                    filePairOutput.getIssuesIdWeight(), allConsideredIssues.size());
+
+            // minimum confidence is 0.5, ignore if less than 0.5
+            if (apriori.getHigherConfidence() < 0.5) {
+                continue;
+            }
+
+            fileFile.orderFilePairByConfidence(apriori);
+            filePairOutput.setFilePairApriori(apriori);
+
+            pairFileList.add(filePairOutput);
+        }
 
         EntityMatrix matrix = new EntityMatrix();
-        matrix.setNodes(objectsToNodes(pairFileList, FilePairOutput.getToStringHeader()));
+        matrix.setNodes(objectsToNodes(pairFileList, FilePairAprioriOutput.getToStringHeader()));
         matricesToSave.add(matrix);
 
         out.printLog("\n\n" + getRepository() + " " + version + "\n"
@@ -282,7 +315,7 @@ public class BichoPairOfFileInReopenedIssuesByFixVersionServices extends Abstrac
         System.out.println(Arrays.toString(allIssuesIgnored.toArray()));
     }
 
-    public void countFutureIssues(Map<FilePair, FilePairOutput> pairFiles, BichoPairFileDAO bichoPairFileDAO, String futureVersion) {
+    public void countFutureIssues(Map<FilePair, FilePairAprioriOutput> pairFiles, BichoPairFileDAO bichoPairFileDAO, String futureVersion) {
         final int total = pairFiles.keySet().size();
         int progressCountFutureDefects = 0;
         for (FilePair fileFile : pairFiles.keySet()) {

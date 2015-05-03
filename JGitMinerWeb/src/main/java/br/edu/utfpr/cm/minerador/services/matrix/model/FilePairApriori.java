@@ -96,6 +96,14 @@ public class FilePairApriori {
         return file2HasGreaterConfidence;
     }
 
+    public double getHigherConfidence() {
+        if (file2HasGreaterConfidence) {
+            return confidence2;
+        } else {
+            return confidence;
+        }
+    }
+
     @Override
     public String toString() {
         if (file2HasGreaterConfidence) {

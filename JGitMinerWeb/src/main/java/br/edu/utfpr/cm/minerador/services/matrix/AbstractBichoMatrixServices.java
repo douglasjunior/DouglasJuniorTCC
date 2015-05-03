@@ -7,7 +7,6 @@ import br.edu.utfpr.cm.JGitMinerWeb.util.OutLog;
 import br.edu.utfpr.cm.minerador.services.AbstractBichoServices;
 import br.edu.utfpr.cm.minerador.services.matrix.model.FilePair;
 import br.edu.utfpr.cm.minerador.services.matrix.model.FilePairAprioriOutput;
-import br.edu.utfpr.cm.minerador.services.matrix.model.FilePairOutput;
 import br.edu.utfpr.cm.minerador.services.matrix.model.FilePath;
 import br.edu.utfpr.cm.minerador.services.matrix.model.Issue;
 import java.io.FileWriter;
@@ -91,7 +90,7 @@ public abstract class AbstractBichoMatrixServices extends AbstractBichoServices 
         }
     }
 
-    protected void pairFiles(Map<Integer, Set<FilePath>> commitedFilesByIndex, Map<FilePair, FilePairOutput> pairFiles, Issue issue, Set<Integer> allDefectIssues, Set<Integer> allConsideredCommits) {
+    protected void pairFiles(Map<Integer, Set<FilePath>> commitedFilesByIndex, Map<FilePair, FilePairAprioriOutput> pairFiles, Issue issue, Set<Integer> allDefectIssues, Set<Integer> allConsideredCommits) {
         List<Integer> openIndexes = new ArrayList<>(commitedFilesByIndex.keySet());
         Collections.sort(openIndexes);
         for (int openIndex = 0; openIndex < openIndexes.size(); openIndex++) {
@@ -106,12 +105,12 @@ public abstract class AbstractBichoMatrixServices extends AbstractBichoServices 
                 for (FilePath fileJ : commitedFilesJ) {
                     if (!fileI.getFilePath().equals(fileJ.getFilePath())) {
                         FilePair filePair = new FilePair(fileI.getFilePath(), fileJ.getFilePath());
-                        FilePairOutput filePairOutput;
+                        FilePairAprioriOutput filePairOutput;
 
                         if (pairFiles.containsKey(filePair)) {
                             filePairOutput = pairFiles.get(filePair);
                         } else {
-                            filePairOutput = new FilePairOutput(filePair);
+                            filePairOutput = new FilePairAprioriOutput(filePair);
                             pairFiles.put(filePair, filePairOutput);
                         }
 
