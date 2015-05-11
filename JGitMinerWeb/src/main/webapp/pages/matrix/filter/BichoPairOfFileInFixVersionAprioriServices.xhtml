@@ -1,0 +1,37 @@
+<div xmlns="http://www.w3.org/1999/xhtml"
+     xmlns:h="http://java.sun.com/jsf/html" 
+     xmlns:p="http://primefaces.org/ui">
+
+    <h:panelGrid columns="2" cellspacing="10" cellpadding="0">
+        <h:outputText value="Version: " />
+        <p:inputText value="#{bean.paramValue['version']}" id="version" size="20" />
+
+        <h:outputText value="Future Version: " />
+        <p:inputText value="#{bean.paramValue['futureVersion']}" id="futureVersion" size="20" />
+
+        <h:outputText value="Minimum files per commit: " />
+        <p:inputText value="#{bean.paramValue['minFilesPerCommit']}" id="minFilesPerCommit" type="number" size="20" />
+
+        <h:outputText value="Maximum files per commit: " />
+        <p:inputText value="#{bean.paramValue['maxFilesPerCommit']}" id="maxFilesPerCommit" type="number" size="20" />
+
+        <h:outputLabel value="Considers only merged pull request?" for="mergedOnly" />
+        <p:selectBooleanCheckbox value="#{bean.paramValue['mergedOnly']}" id="mergedOnly" />
+
+        <h:outputLabel value="Filename" for="filename" />
+        <p:inputText value="#{bean.paramValue['filename']}" id="filename" size="20" />
+
+    </h:panelGrid>
+
+    <p:accordionPanel activeIndex="999" style="width:80%">
+        <p:tab title="Files to ignore: (click to open)">
+            <p:inputTextarea value="#{bean.paramValue['filesToIgnore']}" id="filesToIgnore"
+                             style="width:100%" rows="20" autoResize="autoResize"  />
+        </p:tab>
+        <p:tab title="Files to considers: (click to open)">
+            <p:inputTextarea value="#{bean.paramValue['filesToConsiders']}" id="filesToConsiders"
+                             style="width:100%" rows="20" autoResize="autoResize"  />
+        </p:tab>
+    </p:accordionPanel>
+</div>
+
