@@ -9,7 +9,7 @@ import br.edu.utfpr.cm.JGitMinerWeb.model.matrix.EntityMatrix;
 import br.edu.utfpr.cm.JGitMinerWeb.model.matrix.EntityMatrixNode;
 import br.edu.utfpr.cm.JGitMinerWeb.model.metric.EntityMetric;
 import br.edu.utfpr.cm.JGitMinerWeb.util.OutLog;
-import br.edu.utfpr.cm.minerador.services.matrix.BichoPairOfFileInReopenedIssuesByFixVersionServices;
+import br.edu.utfpr.cm.minerador.services.matrix.BichoPairOfFileInFixVersionServices;
 import static br.edu.utfpr.cm.minerador.services.metric.AbstractBichoMetricServices.objectsToNodes;
 import br.edu.utfpr.cm.minerador.services.metric.committer.Committer;
 import br.edu.utfpr.cm.minerador.services.metric.committer.CommitterFileMetrics;
@@ -40,15 +40,15 @@ import org.apache.commons.lang3.BooleanUtils;
  *
  * @author Rodrigo T. Kuroda
  */
-public class BichoPairFilePerReopenedIssueMetricsInFixVersionServices extends AbstractBichoMetricServices {
+public class BichoPairFileMinConfidencePerIssueMetricsInFixVersionServices extends AbstractBichoMetricServices {
 
     private String repository;
 
-    public BichoPairFilePerReopenedIssueMetricsInFixVersionServices() {
+    public BichoPairFileMinConfidencePerIssueMetricsInFixVersionServices() {
         super();
     }
 
-    public BichoPairFilePerReopenedIssueMetricsInFixVersionServices(GenericBichoDAO dao, GenericDao genericDao, EntityMatrix matrix, Map<Object, Object> params, OutLog out) {
+    public BichoPairFileMinConfidencePerIssueMetricsInFixVersionServices(GenericBichoDAO dao, GenericDao genericDao, EntityMatrix matrix, Map<Object, Object> params, OutLog out) {
         super(dao, genericDao, matrix, params, out);
     }
 
@@ -71,7 +71,7 @@ public class BichoPairFilePerReopenedIssueMetricsInFixVersionServices extends Ab
     @Override
     public void run() {
         repository = getRepository();
-        final String versionInAnalysis = getVersion();
+        final String fixVersion = getVersion();
         final String futureVersion = getFutureVersion();
 
         out.printLog("Iniciado cálculo da métrica de matriz com " + getMatrix().getNodes().size() + " nodes. Parametros: " + params);
@@ -80,14 +80,10 @@ public class BichoPairFilePerReopenedIssueMetricsInFixVersionServices extends Ab
         final BichoDAO bichoDAO = new BichoDAO(dao, repository, maxFilePerCommit);
         final BichoFileDAO bichoFileDAO = new BichoFileDAO(dao, repository, maxFilePerCommit);
         final BichoPairFileDAO bichoPairFileDAO = new BichoPairFileDAO(dao, repository, maxFilePerCommit);
-        final Long issuesSize = bichoDAO.calculeNumberOfIssues(versionInAnalysis, true);
+        final Long issuesSize = bichoDAO
+                .calculeNumberOfIssues(fixVersion, true);
 
-        final String pastMajorVersion = bichoDAO.selectPastMajorVersion(versionInAnalysis);
-
-        // join metrics of previous version until issue in version analysed
-        List<String> versionsToAnalyse = new ArrayList<>();
-        versionsToAnalyse.add(pastMajorVersion);
-        versionsToAnalyse.add(versionInAnalysis);
+        final String pastMajorVersion = bichoDAO.selectPastMajorVersion(fixVersion);
 
         System.out.println("Number of all pull requests: " + issuesSize);
 
@@ -96,64 +92,48 @@ public class BichoPairFilePerReopenedIssueMetricsInFixVersionServices extends Ab
 
         // cache for optimization number of pull requests where file is in,
         // reducing access to database
-        final Cacher cacher = new Cacher(bichoFileDAO, bichoPairFileDAO);
+        Cacher cacher = new Cacher(bichoFileDAO, bichoPairFileDAO);
 
-        final Set<FilePair> pairFilesInReopenedIssues = getMatrix(matrixNodes, headerIndexesMap);
+        Set<FilePair> top25filePairWithConfidenceAtLeast05 = getTop25MatrixWithMinConfidence(matrix.getNodes().get(0), matrixNodes, headerIndexesMap);
 
         CommitterFileMetricsCalculator committerFileMetricsCalculator = new CommitterFileMetricsCalculator(bichoFileDAO);
 
-        final Map<String, Set<Committer>> majorContributorsInPreviousVersion = new HashMap<>();
-        final Map<String, Map<String, Double>> ownerExperience = new HashMap<>();
-        final Map<String, Map<Committer, CommitterFileMetrics>> committerFileMetricsList = new HashMap<>();
+        final Set<Committer> majorContributorsInPreviousVersion = new HashSet<>();
+        final Map<String, Double> ownerExperience = new HashMap<>(25);
+        final Map<Committer, CommitterFileMetrics> committerFileMetricsList = new HashMap<>();
+        // calcule committer experience for each top 25 files in previous version
+        for (FilePair filePair : top25filePairWithConfidenceAtLeast05) {
+            final String filename = filePair.getFileName();
 
-        // calcule committer experience for each files in previous version
-        for (FilePair filePair : pairFilesInReopenedIssues) {
-            for (String fixVersion : versionsToAnalyse) {
-                final String previousVersion = bichoDAO.selectPastMajorVersion(fixVersion);
-                final String filename = filePair.getFileName();
+            final Set<Committer> fileCommittersInPreviousVersion
+                    = bichoFileDAO.selectCommitters(filename, fixVersion);
 
-                final Set<Committer> fileCommittersInPreviousVersion
-                        = bichoFileDAO.selectCommitters(filename, previousVersion);
+            for (Committer committer : fileCommittersInPreviousVersion) {
+                CommitterFileMetrics committerFileMetrics;
+                if (pastMajorVersion != null) {
+                    committerFileMetrics
+                            = committerFileMetricsCalculator.calculeForVersion(
+                                    filename, committer, pastMajorVersion);
+                } else {
+                    committerFileMetrics = new EmptyCommitterFileMetrics();
+                }
+                committerFileMetricsList.put(committer, committerFileMetrics);
+                if (committerFileMetrics.getOwnership() > 0.05) { // maior que 5% = major
+                    majorContributorsInPreviousVersion.add(committer);
+                }
 
-                fileCommittersInPreviousVersion.parallelStream().map((committer) -> {
-                    CommitterFileMetrics committerFileMetrics;
-                    if (pastMajorVersion != null) {
-                        committerFileMetrics
-                                = committerFileMetricsCalculator.calculeForVersion(
-                                        filename, committer, pastMajorVersion);
-                    } else {
-                        committerFileMetrics = new EmptyCommitterFileMetrics();
-                    }
-                    // metrics are from previous version, but the key is the current version in analysis
-                    if (!committerFileMetricsList.containsKey(fixVersion)) {
-                        committerFileMetricsList.put(fixVersion, new HashMap<>());
-                    }
-                    if (!majorContributorsInPreviousVersion.containsKey(fixVersion)) {
-                        majorContributorsInPreviousVersion.put(fixVersion, new HashSet<>());
-                    }
-
-                    committerFileMetricsList.get(fixVersion).put(committer, committerFileMetrics);
-                    if (committerFileMetrics.getOwnership() > 0.05) { // maior que 5% = major
-                        majorContributorsInPreviousVersion.get(fixVersion).add(committer);
-                    }
-                    return committerFileMetrics;
-                }).forEach((committerFileMetrics) -> {
-                    if (!ownerExperience.containsKey(fixVersion)) {
-                        ownerExperience.put(fixVersion, new HashMap<>());
-                    }
-                    final Map<String, Double> currentOwnerExperience = ownerExperience.get(fixVersion);
-                    if (currentOwnerExperience.containsKey(filename)) {
-                        currentOwnerExperience.put(filename, Math.max(committerFileMetrics.getExperience(), currentOwnerExperience.get(filename)));
-                    } else {
-                        currentOwnerExperience.put(filename, committerFileMetrics.getExperience());
-                    }
-                });
+                if (ownerExperience.containsKey(filename)) {
+                    ownerExperience.put(filename, Math.max(committerFileMetrics.getExperience(), ownerExperience.get(filename)));
+                } else {
+                    ownerExperience.put(filename, committerFileMetrics.getExperience());
+                }
             }
         }
 
-        for (FilePair filePair : pairFilesInReopenedIssues) {
+        // separa o top 10 em A + qualquerarquivo
+        int rank = 1;
+        for (FilePair filePair : top25filePairWithConfidenceAtLeast05) {
             final Set<FileIssueMetrics> allFileChanges = new LinkedHashSet<>();
-            for (String fixVersion : versionsToAnalyse) {
 
             // par analisado
             final String filename = filePair.getFileName(); // arquivo principal
@@ -167,7 +147,7 @@ public class BichoPairFilePerReopenedIssueMetricsInFixVersionServices extends Ab
             for (Integer issue : issueWhereFileChanged) {
 
                 if (progress++ % 100 == 0 || progress == totalProgress) {
-                    System.out.println("Progress: " + progress + "/" + totalProgress);
+                    System.out.println("Rank " + rank + " - " + progress + "/" + totalProgress);
                 }
 
                 final IssueMetrics issueMetrics = cacher.calculeIssueMetrics(issue);
@@ -212,47 +192,6 @@ public class BichoPairFilePerReopenedIssueMetricsInFixVersionServices extends Ab
                     // metricas do arquivo com maior confiança, somente
                     final FileIssueMetrics fileIssueMetrics = new FileIssueMetrics(filename, filename2, commitInIssue, issueMetrics);
 
-                    if (filesInCommit.contains(file2)) { // se houve commit do arquivo 2, então o par mudou
-                        int currentCommitIndex = -1;
-                        for (int i = 0; i < openedFixedDateList.size(); i++) {
-                            final Date[] openedFixedDate = openedFixedDateList.get(i);
-                            final Date opened = openedFixedDate[0];
-                            final Date fixed = openedFixedDate[1];
-                            final Date commitDate = commitInIssue.getCommitDate();
-                            if (commitDate.after(opened) // commit foi entre a data de reabertura e correcao
-                                    && commitDate.before(fixed)) {
-                                currentCommitIndex = i;
-                                break;
-                            }
-                        }
-
-                        // precisa verificar antes se o arquivo B foi commitado (vide if anterior)
-                        if (issueMetrics.getReopenedTimes() > 0
-                                && currentCommitIndex > 0) { // se foi reaberto, verificar se arquivo B (do par A-B) mudou depois da reabertura
-
-                            // verifica se o arquivo A foi commitado exclusivamente antes, entre abertura/reabertura e correcao
-                            boolean fileACommitedExclusivelyInPastFix = true;
-                            for (int i = 0; i < currentCommitIndex; i++) {
-                                Set<File> filesCommitedInIndex = cummulativeFilesCommittedInIssue.get(i);
-                                if (filesCommitedInIndex != null
-                                        && !filesCommitedInIndex.contains(file) // arquivo A deve ter sido commitado exclusivamente entre a abertura/reabertura e correcao
-                                        || filesCommitedInIndex.contains(file2)) {
-                                    fileACommitedExclusivelyInPastFix = false;
-                                    break;
-                                }
-                            }
-
-                            if (fileACommitedExclusivelyInPastFix) {
-                                Set<File> filesCommitedInCurrentIndex = cummulativeFilesCommittedInIssue.get(currentCommitIndex);
-                                // deve ter sido feito commit exclusivamente do arquivo B no periodo (abertura/reabertura e correcao) corrente
-                                if (!filesCommitedInCurrentIndex.contains(file)
-                                        && filesCommitedInCurrentIndex.contains(file2)) {
-                                    fileIssueMetrics.setFileBChangedAfterReopened(1);
-                                }
-                            }
-                        }
-                    }
-
                     if (!commitInIssue.getFiles().contains(file)) {
                         continue;
                     }
@@ -262,9 +201,9 @@ public class BichoPairFilePerReopenedIssueMetricsInFixVersionServices extends Ab
 
                     final CommitterFileMetrics committerFileMetrics;
 
-                    if (committerFileMetricsList.get(fixVersion).containsKey(commitInIssue.getCommiter())) {
+                    if (committerFileMetricsList.containsKey(commitInIssue.getCommiter())) {
                         // committer already commits the file
-                        committerFileMetrics = committerFileMetricsList.get(fixVersion).get(commitInIssue.getCommiter());
+                        committerFileMetrics = committerFileMetricsList.get(commitInIssue.getCommiter());
                     } else {
                         // committer does not commit the file yet (i.e. first commit of committer)
                         committerFileMetrics = new EmptyCommitterFileMetrics();
@@ -314,12 +253,12 @@ public class BichoPairFilePerReopenedIssueMetricsInFixVersionServices extends Ab
 
                         // pair file cummulative age: from first commit until previous (past) release
                         final int ageTotal = bichoFileDAO.calculeTotalFileAgeInDays(filename, issue, fixVersion);
-                        final Double ownerExperienceInPreviousVersion = ownerExperience.get(fixVersion).get(filename);
 
-                        fileIssueMetrics.addMetrics(// majorContributors
-                                BooleanUtils.toInteger(majorContributorsInPreviousVersion.get(fixVersion).contains(commitInIssue.getCommiter())),
+                        fileIssueMetrics.addMetrics(
+                                // majorContributors
+                                BooleanUtils.toInteger(majorContributorsInPreviousVersion.contains(commitInIssue.getCommiter())),
                                 // ownerExperience,
-                                ownerExperienceInPreviousVersion == null ? 0.0d : ownerExperienceInPreviousVersion,
+                                ownerExperience.get(filename),
                                 // sameOwnership
                                 BooleanUtils.toInteger(sameOwnership),
                                 // committers, totalCommitters, commits, totalCommits,
@@ -332,48 +271,53 @@ public class BichoPairFilePerReopenedIssueMetricsInFixVersionServices extends Ab
                                 futureDefects, futureIssues
                         );
 
-                        if (versionInAnalysis.equals(fixVersion) && fileIssueMetrics.getChanged() == 1) {
-                            EntityMetric train = new EntityMetric();
-                            train.setNodes(objectsToNodes(allFileChanges, FileIssueMetrics.HEADER));
-                            train.setAdditionalFilename(fixVersion + "_" + issue + "/" + filePair.toStringNameOnly() + "/train.csv");
-                            saveMetrics(train);
-
-                            fileIssueMetrics.unchanged();
-
-                            EntityMetric testFalse = new EntityMetric();
-                            testFalse.setNodes(objectsToNodes(fileIssueMetrics, FileIssueMetrics.HEADER));
-                            testFalse.setAdditionalFilename(fixVersion + "_" + issue + "/" + filePair.toStringNameOnly() + "/test_false.csv");
-                            saveMetrics(testFalse);
-
-                            fileIssueMetrics.changed();
-
-                            EntityMetric testTrue = new EntityMetric();
-                            testTrue.setNodes(objectsToNodes(fileIssueMetrics, FileIssueMetrics.HEADER));
-                            testTrue.setAdditionalFilename(fixVersion + "_" + issue + "/" + filePair.toStringNameOnly() + "/test_true.csv");
-                            saveMetrics(testTrue);
+                        if (fileIssueMetrics.getChangedAfterReopened() == 1) {
+                            System.out.println("changedAfterReopened = " + getRepository() + " " + getVersion() + " rank " + rank + " (" + matrix.toString() + ")");
+                            out.printLog("changedAfterReopened = " + getRepository() + " " + getVersion() + " rank " + rank + " (" + matrix.toString() + ")");
                         }
-
                         allFileChanges.add(fileIssueMetrics);
                     }
                 }
             }
-            }
+
+            EntityMetric metrics3 = new EntityMetric();
+            metrics3.setNodes(objectsToNodes(allFileChanges, FileIssueMetrics.HEADER));
+            metrics3.setAdditionalFilename("rank " + rank++ + " " + getAdditionalFilename());
+            saveMetrics(metrics3);
         }
     }
 
-    private Set<FilePair> getMatrix(final List<EntityMatrixNode> matrixNodes, final Map<String, Integer> header) {
+    private Set<FilePair> getTop25MatrixWithMinConfidence(final EntityMatrixNode headerNode, final List<EntityMatrixNode> matrixNodes, final Map<String, Integer> header) {
         // 25 arquivos distintos com maior confiança entre o par (coluna da esquerda)
         final int file1Index = header.get("file1");
         final int file2Index = header.get("file2");
+        final int confidenceIndex = header.get("confidence");
+        final int confidence2Index = header.get("confidence2");
 
-        final Set<FilePair> distinctFileOfFilePairWithHigherConfidence = new LinkedHashSet<>(matrixNodes.size());
-        matrixNodes.parallelStream()
-                .map(node -> MatrixUtils.separateValues(node))
-                .map(lineValues -> new FilePair(lineValues[file1Index], lineValues[file2Index]))
-                .forEach((filePair) -> {
-                    distinctFileOfFilePairWithHigherConfidence.add(filePair);
-                }
-                );
+        final Set<FilePair> distinctFileOfFilePairWithHigherConfidence = new LinkedHashSet<>(25);
+        final List<EntityMatrixNode> nodesTop25 = new ArrayList<>();
+        for (EntityMatrixNode node : matrixNodes) {
+            final String[] lineValues = MatrixUtils.separateValues(node);
+
+            // the higher confidence needs to be at least 0.5
+            if (Double.valueOf(lineValues[confidenceIndex]) < 0.5
+                    && Double.valueOf(lineValues[confidence2Index]) < 0.5) {
+                continue;
+            }
+
+            FilePair filePair = new FilePair(lineValues[file1Index], lineValues[file2Index]);
+
+            distinctFileOfFilePairWithHigherConfidence.add(filePair);
+            nodesTop25.add(node);
+            if (distinctFileOfFilePairWithHigherConfidence.size() >= 25) {
+                break;
+            }
+        }
+
+        EntityMetric top25 = new EntityMetric();
+        top25.setNodes(objectsToNodes(nodesTop25, headerNode.toString()));
+        top25.setAdditionalFilename("top 25");
+        saveMetrics(top25);
 
         return distinctFileOfFilePairWithHigherConfidence;
     }
@@ -422,7 +366,7 @@ public class BichoPairFilePerReopenedIssueMetricsInFixVersionServices extends Ab
 
     @Override
     public List<String> getAvailableMatricesPermitted() {
-        return Arrays.asList(BichoPairOfFileInReopenedIssuesByFixVersionServices.class.getName());
+        return Arrays.asList(BichoPairOfFileInFixVersionServices.class.getName());
     }
 
     private String getRepository() {

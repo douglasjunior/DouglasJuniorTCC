@@ -136,6 +136,10 @@ public class FileMetrics {
         changed = 1;
     }
 
+    public void unchanged() {
+        changed = 0;
+    }
+
     public int getChanged() {
         return changed;
     }

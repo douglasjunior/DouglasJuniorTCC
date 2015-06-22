@@ -34,7 +34,7 @@ public class FileIssueMetrics extends FileMetrics {
             + "futureDefects;" // numero de defeitos do primeiro arquivo na proxima versao
             + "futureIssues;" // numero de issues do arquivo na proxima versao
             + "isFilePairChanged;" // o par mudou nesse commit? 0 = não, 1 = sim
-            + "changedAfterReopened" // index (1a reabertura, 2a, 3a e assim sucessivamente) onde o arquivo B foi alterado após a issue ter sido reaberta
+            //+ "changedAfterReopened" // index (1a reabertura, 2a, 3a e assim sucessivamente) onde o arquivo B foi alterado após a issue ter sido reaberta
             ;
 
     public static final Map<String, Integer> headerIndexes;
@@ -144,7 +144,7 @@ public class FileIssueMetrics extends FileMetrics {
             sb.append(m).append(";");
         }
         sb.append(getChanged());
-        sb.append(";").append(changedAfterReopened);
+        //sb.append(";").append(changedAfterReopened);
         return sb.toString();
     }
 

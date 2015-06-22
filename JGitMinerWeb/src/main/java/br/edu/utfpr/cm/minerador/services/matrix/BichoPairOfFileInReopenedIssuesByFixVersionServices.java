@@ -314,27 +314,4 @@ public class BichoPairOfFileInReopenedIssuesByFixVersionServices extends Abstrac
 
         System.out.println(Arrays.toString(allIssuesIgnored.toArray()));
     }
-
-    public void countFutureIssues(Map<FilePair, FilePairAprioriOutput> pairFiles, BichoPairFileDAO bichoPairFileDAO, String futureVersion) {
-        final int total = pairFiles.keySet().size();
-        int progressCountFutureDefects = 0;
-        for (FilePair fileFile : pairFiles.keySet()) {
-            if (++progressCountFutureDefects % 100 == 0
-                    || progressCountFutureDefects == total) {
-                System.out.println(progressCountFutureDefects + "/" + total);
-            }
-            Map<String, Set<Integer>> futureIssues = bichoPairFileDAO.selectIssues(
-                    fileFile.getFile1(), fileFile.getFile2(),
-                    futureVersion);
-            final FilePairOutput pairFile = pairFiles.get(fileFile);
-            Set<Integer> bugs = futureIssues.get("Bug");
-            if (bugs != null) {
-                pairFile.addFutureDefectIssuesId(bugs);
-            }
-            for (Set<Integer> issue : futureIssues.values()) {
-                pairFile.addFutureIssuesId(issue);
-            }
-        }
-    }
-
 }

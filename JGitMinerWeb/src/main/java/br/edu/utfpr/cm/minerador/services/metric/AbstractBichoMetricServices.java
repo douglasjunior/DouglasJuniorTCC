@@ -65,6 +65,13 @@ public abstract class AbstractBichoMetricServices extends AbstractBichoServices 
         return nodes;
     }
 
+    protected static List<EntityMetricNode> objectsToNodes(Object value, String header) {
+        List<EntityMetricNode> nodes = new ArrayList<>();
+        nodes.add(new EntityMetricNode(header));
+        nodes.add(new EntityMetricNode(value.toString()));
+        return nodes;
+    }
+
     /**
      * @return List the names of "classes services" available matrices allowed for this metric.
      */

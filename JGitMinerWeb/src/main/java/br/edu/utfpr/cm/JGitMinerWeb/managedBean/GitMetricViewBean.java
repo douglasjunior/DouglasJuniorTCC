@@ -149,7 +149,7 @@ public class GitMetricViewBean implements Serializable {
         }
     }
 
-    public void downloadAllCSVNotEmptyInFolder() {
+    public void downloadAllCSVNotEmptyInFolderCustom() {
         try {
             ByteArrayOutputStream zipBytes = new ByteArrayOutputStream();
             ZipOutputStream zos = new ZipOutputStream(zipBytes);
@@ -203,6 +203,56 @@ public class GitMetricViewBean implements Serializable {
                     zos.write(csv.toString().getBytes());
                     zos.closeEntry();
                     files.add(path);
+                }
+            }
+            zos.close();
+            download(project + ".zip", "application/zip", zipBytes.toByteArray());
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            JsfUtil.addErrorMessage(ex.toString());
+        }
+    }
+
+    public void downloadAllCSVNotEmptyInFolder() {
+        try {
+            ByteArrayOutputStream zipBytes = new ByteArrayOutputStream();
+            ZipOutputStream zos = new ZipOutputStream(zipBytes);
+            zos.setLevel(9);
+            String project = "All";
+            Set<String> files = new HashSet<>();
+            Set<String> downloaded = new HashSet<>();
+            for (EntityMetric metric : getMetrics()) {
+                final String metricName = metric.toString();
+                // download lasts metrics
+                if (downloaded.contains(metricName)) {
+                    continue;
+                } else {
+                    downloaded.add(metricName);
+                }
+
+                System.out.println("Metric " + metricName + " tem nodes: " + metric.getNodes().size());
+
+                if (metric.getNodes().size() == 1) {
+                    continue;
+                }
+                String fileName = generateFileName(metric);
+
+                if (!files.contains(fileName)) {
+                    StringBuilder csv = new StringBuilder();
+                    for (EntityMetricNode node : metric.getNodes()) {
+                        String line = node.toString();
+                        if (line.endsWith(";")) { // prevents error weka/r, remove last ;
+                            csv.append(line.replaceAll("NaN", "0.0").substring(0, line.length() - 1));
+                        } else {
+                            csv.append(line.replaceAll("NaN", "0.0"));
+                        }
+                        csv.append("\r\n");
+                    }
+                    ZipEntry ze = new ZipEntry(fileName);
+                    zos.putNextEntry(ze);
+                    zos.write(csv.toString().getBytes());
+                    zos.closeEntry();
+                    files.add(fileName);
                 }
             }
             zos.close();

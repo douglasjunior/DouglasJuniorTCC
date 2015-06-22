@@ -5,6 +5,7 @@ import br.edu.utfpr.cm.JGitMinerWeb.dao.BichoFileDAO;
 import br.edu.utfpr.cm.JGitMinerWeb.dao.BichoPairFileDAO;
 import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericBichoDAO;
 import br.edu.utfpr.cm.JGitMinerWeb.model.matrix.EntityMatrix;
+import br.edu.utfpr.cm.JGitMinerWeb.model.matrix.EntityMatrixNode;
 import br.edu.utfpr.cm.JGitMinerWeb.util.OutLog;
 import br.edu.utfpr.cm.JGitMinerWeb.util.Util;
 import br.edu.utfpr.cm.minerador.services.matrix.model.FilePair;
@@ -195,7 +196,7 @@ public class BichoPairOfFileInFixVersionAprioriServices extends AbstractBichoMat
         orderByFilePairSupportAndConfidence(pairFileList);
 
         EntityMatrix matrix = new EntityMatrix();
-        matrix.setNodes(objectsToNodes(pairFileList, FilePairAprioriOutput.getToStringHeaderAprioriOnly()));
+        matrix.setNodes(objectsToNodes(pairFileList, FilePairAprioriOutput.getToStringHeader()));
         matricesToSave.add(matrix);
 
         out.printLog("\n\n" + getRepository() + " " + version + "\n"
@@ -226,7 +227,16 @@ public class BichoPairOfFileInFixVersionAprioriServices extends AbstractBichoMat
                 + "Number of defect issues: " + allDefectIssues.size() + "\n"
         );
 
-        saveTop25Matrix(pairFileList);
+//        saveTop25Matrix(pairFileList);
+    }
+
+    protected static List<EntityMatrixNode> objectsToNodes(List<FilePairAprioriOutput> list, String header) {
+        List<EntityMatrixNode> nodes = new ArrayList<>();
+        nodes.add(new EntityMatrixNode(header));
+        for (FilePairAprioriOutput value : list) {
+            nodes.add(new EntityMatrixNode(value.toString()));
+        }
+        return nodes;
     }
 
     private List<FilePath> filterAndAggregateAllFileOfIssue(List<Commit> commits, BichoFileDAO bichoFileDAO, Set<FilePath> allFiles, Set<FilePath> allTestJavaFiles, Set<FilePath> allFilteredFiles, Set<FilePath> allJavaFiles, Set<FilePath> allXmlFiles) {

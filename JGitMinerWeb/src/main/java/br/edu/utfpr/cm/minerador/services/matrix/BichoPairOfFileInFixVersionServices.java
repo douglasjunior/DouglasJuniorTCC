@@ -138,34 +138,8 @@ public class BichoPairOfFileInFixVersionServices extends AbstractBichoMatrixServ
             out.printLog(commits.size() + " commits references the issue");
             allCommits.addAll(commits);
 
-            // monta os pares com os arquivos de todos os commits da issue
-            List<FilePath> commitedFiles = new ArrayList<>();
-            for (Commit commit : commits) {
-
-                // select name of commited files
-                List<FilePath> files = bichoFileDAO.selectFilesByCommitId(commit.getId());
-
-                allFiles.addAll(files);
-
-                out.printLog(files.size() + " files in commit #" + commit);
-                for (FilePath file : files) {
-                    if (file.getFilePath().endsWith("Test.java")
-                            || file.getFilePath().toLowerCase().endsWith("_test.java")) {
-                        allTestJavaFiles.add(file);
-                        allFilteredFiles.add(file);
-                    } else if (!file.getFilePath().endsWith(".java")
-                            && !file.getFilePath().endsWith(".xml")) {
-                        allFilteredFiles.add(file);
-                    } else {
-                        if (file.getFilePath().endsWith(".java")) {
-                            allJavaFiles.add(file);
-                        } else if (file.getFilePath().endsWith(".xml")) {
-                            allXmlFiles.add(file);
-                        }
-                        commitedFiles.add(file);
-                    }
-                }
-            }
+            List<FilePath> commitedFiles
+                    = filterAndAggregateAllFileOfIssue(commits, bichoFileDAO, allFiles, allTestJavaFiles, allFilteredFiles, allJavaFiles, allXmlFiles);
 
             // empty
             if (commitedFiles.isEmpty()) {
@@ -269,6 +243,38 @@ public class BichoPairOfFileInFixVersionServices extends AbstractBichoMatrixServ
         );
 
         saveTop25Matrix(pairFileList);
+    }
+
+    private List<FilePath> filterAndAggregateAllFileOfIssue(List<Commit> commits, BichoFileDAO bichoFileDAO, Set<FilePath> allFiles, Set<FilePath> allTestJavaFiles, Set<FilePath> allFilteredFiles, Set<FilePath> allJavaFiles, Set<FilePath> allXmlFiles) {
+        // monta os pares com os arquivos de todos os commits da issue
+        List<FilePath> commitedFiles = new ArrayList<>();
+        for (Commit commit : commits) {
+
+            // select name of commited files
+            List<FilePath> files = bichoFileDAO.selectFilesByCommitId(commit.getId());
+
+            allFiles.addAll(files);
+
+            out.printLog(files.size() + " files in commit #" + commit.getId());
+            for (FilePath file : files) {
+                if (file.getFilePath().endsWith("Test.java")
+                        || file.getFilePath().toLowerCase().endsWith("_test.java")) {
+                    allTestJavaFiles.add(file);
+                    allFilteredFiles.add(file);
+                } else if (!file.getFilePath().endsWith(".java")
+                        && !file.getFilePath().endsWith(".xml")) {
+                    allFilteredFiles.add(file);
+                } else {
+                    if (file.getFilePath().endsWith(".java")) {
+                        allJavaFiles.add(file);
+                    } else if (file.getFilePath().endsWith(".xml")) {
+                        allXmlFiles.add(file);
+                    }
+                    commitedFiles.add(file);
+                }
+            }
+        }
+        return commitedFiles;
     }
 
     private void saveTop25Matrix(List<FilePairAprioriOutput> pairFileList) {

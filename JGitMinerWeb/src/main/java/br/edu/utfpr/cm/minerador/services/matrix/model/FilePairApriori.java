@@ -134,8 +134,22 @@ public class FilePairApriori {
                 + conviction2 + SEPARATOR;
     }
 
+    public String toStringPairFileApriori() {
+
+        if (file2HasGreaterConfidence) {
+            return supportFilePair + SEPARATOR
+                    + confidence2 + SEPARATOR;
+        }
+        return supportFilePair + SEPARATOR
+                + confidence + SEPARATOR;
+    }
+
     public static String getToStringHeader() {
         return "fileIssues;file2Issues;issues;allIssues;supportFile;supportFile2;"
                 + "supportFilePair;confidence;confidence2;lift;conviction;conviction2;";
+    }
+
+    public static String getToStringHeaderPairFileApriori() {
+        return "supportFilePair;confidenceFilePair;";
     }
 }

@@ -4,7 +4,6 @@ import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericDao;
 import br.edu.utfpr.cm.JGitMinerWeb.model.matrix.EntityMatrix;
 import br.edu.utfpr.cm.JGitMinerWeb.model.matrix.EntityMatrixNode;
 import br.edu.utfpr.cm.JGitMinerWeb.util.JsfUtil;
-import br.edu.utfpr.cm.minerador.services.matrix.AbstractBichoMatrixServices;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -134,8 +133,6 @@ public class GitMatrixViewBean implements Serializable {
                 System.out.println("Matrix " + matrix + " tem nodes: " + matrix.getNodes().size());
 
                 String fileName = generateFileName(matrix) + ".csv";
-
-                AbstractBichoMatrixServices services = AbstractBichoMatrixServices.createInstance(matrix.getClassServicesName());
 
                 StringBuilder csv = new StringBuilder();
 

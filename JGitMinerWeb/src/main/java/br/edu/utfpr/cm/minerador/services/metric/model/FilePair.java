@@ -59,4 +59,12 @@ public class FilePair {
     public String toString() {
         return fileName + ";" + fileName2 + ";";
     }
+
+    public String toStringNameOnly() {
+        return getFilenameOnly(fileName) + ";" + getFilenameOnly(fileName2);
+    }
+
+    private String getFilenameOnly(String path) {
+        return path.substring(path.lastIndexOf('/') + 1, path.length());
+    }
 }

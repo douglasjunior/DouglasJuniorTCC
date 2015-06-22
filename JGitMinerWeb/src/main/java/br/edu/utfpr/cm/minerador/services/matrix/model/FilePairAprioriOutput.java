@@ -51,6 +51,11 @@ public class FilePairAprioriOutput extends FilePairOutput {
 
         return toString.toString();
     }
+
+    public String toStringAprioriOnly() {
+        return filePair.toString(filePairApriori) + filePairApriori.toStringPairFileApriori();
+    }
+
     public static String getToStringHeader() {
         return FilePair.getToStringHeader()
                 + "issues;issuesId;"
@@ -61,5 +66,10 @@ public class FilePairAprioriOutput extends FilePairOutput {
                 + "futureDefectIssues;futureDefectIssuesId;"
                 + "futureIssues;futureIssuesId;"
                 + FilePairApriori.getToStringHeader();
+    }
+
+    public static String getToStringHeaderAprioriOnly() {
+        return FilePair.getToStringHeader()
+                + FilePairApriori.getToStringHeaderPairFileApriori();
     }
 }

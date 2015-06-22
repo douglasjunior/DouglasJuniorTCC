@@ -159,6 +159,32 @@ public class BichoMatrixQueueBean implements Serializable {
         params = new LinkedHashMap<>();
     }
 
+    public void queueAllProjects() {
+        if (params.isEmpty()) {
+            out.printLog("Params is empty.");
+            return;
+        }
+        List<String> projects = new BichoDAO(dao, repositoryId, null).listAllProjects();
+        for (String project : projects) {
+            Map<Object, Object> params = new LinkedHashMap<>();
+            params.putAll(this.params);
+            if (!params.containsKey("minFilesPerCommit")) {
+                params.put("minFilesPerCommit", 1);
+            }
+            if (!params.containsKey("maxFilesPerCommit")) {
+                params.put("maxFilesPerCommit", 20);
+            }
+            if (!params.containsKey("mergedOnly")) {
+                params.put("mergedOnly", true);
+            }
+            params.put("project", project);
+            params.put("filename", project);
+            paramsQueue.add(params);
+            out.printLog("Queued params: " + params);
+        }
+        params = new LinkedHashMap<>();
+    }
+
     public void showQueue() {
         out.printLog("Queued params: ");
         for (Map<Object, Object> queuedParams : paramsQueue) {
@@ -204,7 +230,13 @@ public class BichoMatrixQueueBean implements Serializable {
             progress.addAndGet(1);
             final double fraction = 99.0d / paramsQueue.size();
             for (final Map<Object, Object> params : paramsQueue) {
-                
+                final Object project = params.get("project");
+                String projectName;
+                if (project != null) {
+                    projectName = project.toString();
+                } else {
+                    projectName = repositoryId;
+                }
                 out.resetLog();
                 final List<EntityMatrix> matricesToSave = new ArrayList<>();
 
@@ -212,7 +244,7 @@ public class BichoMatrixQueueBean implements Serializable {
                 out.printLog("Params: " + params);
                 out.printLog("");
 
-                final AbstractBichoMatrixServices netServices = createMatrixServiceInstance(matricesToSave, params);
+                final AbstractBichoMatrixServices netServices = createMatrixServiceInstance(matricesToSave, params, projectName);
 
                 Thread process = new Thread(netServices) {
 
@@ -233,7 +265,7 @@ public class BichoMatrixQueueBean implements Serializable {
                                 entityMatrix.setStarted(started);
                                 params.put("additionalFilename", entityMatrix.getAdditionalFilename());
                                 entityMatrix.getParams().putAll(params);
-                                entityMatrix.setRepository(repositoryId);
+                                entityMatrix.setRepository(projectName);
                                 entityMatrix.setClassServicesName(serviceClass.getName());
                                 entityMatrix.setLog(out.getLog().toString());
                                 for (EntityMatrixNode node : entityMatrix.getNodes()) {
@@ -305,9 +337,9 @@ public class BichoMatrixQueueBean implements Serializable {
         return cls;
     }
 
-    private AbstractBichoMatrixServices createMatrixServiceInstance(List<EntityMatrix> matricesToSave, Map<Object, Object> params) {
+    private AbstractBichoMatrixServices createMatrixServiceInstance(List<EntityMatrix> matricesToSave, Map<Object, Object> params, String repository) {
         try {
-            return (AbstractBichoMatrixServices) serviceClass.getConstructor(GenericBichoDAO.class, String.class, List.class, Map.class, OutLog.class).newInstance(dao, repositoryId, matricesToSave, params, out);
+            return (AbstractBichoMatrixServices) serviceClass.getConstructor(GenericBichoDAO.class, String.class, List.class, Map.class, OutLog.class).newInstance(dao, repository, matricesToSave, params, out);
         } catch (Exception ex) {
             ex.printStackTrace();
         }

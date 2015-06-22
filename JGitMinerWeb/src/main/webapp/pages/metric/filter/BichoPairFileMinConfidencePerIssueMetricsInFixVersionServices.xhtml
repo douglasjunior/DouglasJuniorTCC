@@ -1,0 +1,17 @@
+<div xmlns="http://www.w3.org/1999/xhtml"
+     xmlns:h="http://java.sun.com/jsf/html"
+     xmlns:p="http://primefaces.org/ui">
+    
+    <h:panelGrid columns="2" cellpadding="5" columnClasses="col">
+        <h:outputLabel value="Version: " for="version" />
+        <p:inputText value="#{bean.paramValue['version']}" id="version" size="20" />
+
+        <h:outputLabel value="Future Version: " for="futureVersion" />
+        <p:inputText value="#{bean.paramValue['futureVersion']}" id="futureVersion" size="20" />
+
+        <h:outputLabel value="Filename" for="filename" />
+        <p:inputText value="#{bean.paramValue['filename']}" id="filename" size="20" />
+    </h:panelGrid>
+    
+</div>
+

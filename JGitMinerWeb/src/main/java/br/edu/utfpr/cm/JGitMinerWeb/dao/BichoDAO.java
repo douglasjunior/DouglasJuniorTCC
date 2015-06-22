@@ -658,4 +658,12 @@ public class BichoDAO {
         }
         return issueReopenedFixedDate;
     }
+
+    public List<String> listAllProjects() {
+        return dao.selectNativeWithParams(
+                "SELECT distinct(replace(replace(schema_name, '_vcs', ''), '_issues', '')) "
+                + "  FROM information_schema.schemata "
+                + " WHERE schema_name  LIKE '%_vcs'"
+                + "    OR schema_name LIKE '%_issues'", new Object[]{});
+    }
 }

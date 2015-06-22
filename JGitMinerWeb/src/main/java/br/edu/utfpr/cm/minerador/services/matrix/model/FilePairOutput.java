@@ -175,6 +175,10 @@ public class FilePairOutput {
         return toString.toString();
     }
 
+    public String toStringPairFile() {
+        return filePair.toString();
+    }
+
     protected void appendInteger(StringBuilder toString, Integer integer) {
         toString.append(integer).append(';');
     }
