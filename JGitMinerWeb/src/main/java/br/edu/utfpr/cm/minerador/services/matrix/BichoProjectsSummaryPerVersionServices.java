@@ -2,24 +2,26 @@ package br.edu.utfpr.cm.minerador.services.matrix;
 
 import br.edu.utfpr.cm.JGitMinerWeb.dao.BichoDAO;
 import br.edu.utfpr.cm.JGitMinerWeb.dao.BichoFileDAO;
-import br.edu.utfpr.cm.JGitMinerWeb.dao.BichoPairFileDAO;
 import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericBichoDAO;
 import br.edu.utfpr.cm.JGitMinerWeb.model.matrix.EntityMatrix;
 import br.edu.utfpr.cm.JGitMinerWeb.model.matrix.EntityMatrixNode;
 import br.edu.utfpr.cm.JGitMinerWeb.util.OutLog;
 import br.edu.utfpr.cm.JGitMinerWeb.util.Util;
 import br.edu.utfpr.cm.minerador.services.matrix.model.FilePair;
-import br.edu.utfpr.cm.minerador.services.matrix.model.FilePairApriori;
 import br.edu.utfpr.cm.minerador.services.matrix.model.FilePairAprioriOutput;
 import br.edu.utfpr.cm.minerador.services.matrix.model.FilePath;
 import br.edu.utfpr.cm.minerador.services.matrix.model.Issue;
-import br.edu.utfpr.cm.minerador.services.metric.Cacher;
+import br.edu.utfpr.cm.minerador.services.matrix.model.Project;
+import br.edu.utfpr.cm.minerador.services.matrix.model.ProjectVersion;
+import br.edu.utfpr.cm.minerador.services.matrix.model.ProjectVersionSummary;
+import br.edu.utfpr.cm.minerador.services.matrix.model.Version;
 import br.edu.utfpr.cm.minerador.services.metric.model.Commit;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -84,13 +86,14 @@ public class BichoProjectsSummaryPerVersionServices extends AbstractBichoMatrixS
 
         BichoDAO bichoDAO = new BichoDAO(dao, getRepository(), getMaxFilesPerCommit());
         BichoFileDAO bichoFileDAO = new BichoFileDAO(dao, getRepository(), getMaxFilesPerCommit());
-        BichoPairFileDAO bichoPairFileDAO = new BichoPairFileDAO(dao, getRepository(), getMaxFilesPerCommit());
 
-        final Map<FilePair, Integer[]> pairFilesOccurrencesPerVersion = new HashMap<>();
         final List<String> fixVersionOrdered = bichoDAO.selectFixVersionOrdered();
-        final int totalFixVersion = fixVersionOrdered.size();
+        final Set<ProjectVersionSummary> projectSummary = new LinkedHashSet<>();
 
         for (String version : fixVersionOrdered) {
+
+            ProjectVersion projectVersion = new ProjectVersion(new Project(getRepository()), new Version(version));
+            ProjectVersionSummary summaryVersion = new ProjectVersionSummary(projectVersion);
 
             Map<FilePair, FilePairAprioriOutput> pairFiles = new HashMap<>();
 
@@ -114,7 +117,6 @@ public class BichoProjectsSummaryPerVersionServices extends AbstractBichoMatrixS
             out.printLog("Issues (filtered): " + issuesConsideredCommits.size());
 
             int count = 1;
-            Cacher cacher = new Cacher(bichoFileDAO);
 
             // combina em pares todos os arquivos commitados em uma issue
             final int totalIssues = issuesConsideredCommits.size();
@@ -149,66 +151,12 @@ public class BichoProjectsSummaryPerVersionServices extends AbstractBichoMatrixS
 
                 pairFiles(commitedFiles, pairFiles, issue, allDefectIssues, allConsideredCommits);
 
+                summaryVersion.addIssue(issue);
+                summaryVersion.addCommit(commits);
+                summaryVersion.addFilePair(pairFiles.keySet());
             }
 
-            out.printLog("Result: " + pairFiles.size());
-
-            Set<Integer> allConsideredIssues = new HashSet<>();
-            for (Map.Entry<FilePair, FilePairAprioriOutput> entrySet : pairFiles.entrySet()) {
-                FilePairAprioriOutput value = entrySet.getValue();
-                allConsideredIssues.addAll(value.getIssuesId());
-            }
-            // calculando o apriori
-            out.printLog("Calculing apriori...");
-            out.printLog("Issues considered in version " + version + ": " + allConsideredIssues.size());
-            int totalApriori = pairFiles.size();
-            int countApriori = 0;
-
-            final List<FilePairAprioriOutput> pairFileList = new ArrayList<>();
-
-            for (FilePair fileFile : pairFiles.keySet()) {
-                if (++countApriori % 100 == 0
-                        || countApriori == totalApriori) {
-                    System.out.println(countApriori + "/" + totalApriori);
-                }
-
-                Long file1Issues = cacher.calculeNumberOfIssues(fileFile.getFile1(), version);
-                Long file2Issues = cacher.calculeNumberOfIssues(fileFile.getFile2(), version);
-
-                FilePairAprioriOutput filePairOutput = pairFiles.get(fileFile);
-
-                FilePairApriori apriori = new FilePairApriori(file1Issues, file2Issues,
-                        filePairOutput.getIssuesIdWeight(), allConsideredIssues.size());
-
-                fileFile.orderFilePairByConfidence(apriori);
-                filePairOutput.setFilePairApriori(apriori);
-
-                pairFileList.add(filePairOutput);
-            }
-
-            for (Map.Entry<FilePair, FilePairAprioriOutput> entrySet1 : pairFiles.entrySet()) {
-                final FilePair key = entrySet1.getKey();
-                final int occurrences = entrySet1.getValue().getIssuesId().size();
-                final int indexOfVersion = fixVersionOrdered.indexOf(version);
-
-                if (pairFilesOccurrencesPerVersion.containsKey(key)) {
-                    final Integer[] quantity = pairFilesOccurrencesPerVersion.get(key);
-                    if (quantity[indexOfVersion] == null) {
-                        quantity[indexOfVersion] = occurrences;
-                    } else {
-                        quantity[indexOfVersion] += occurrences;
-                    }
-                } else {
-                    final Integer[] quantity = new Integer[totalFixVersion];
-                    quantity[indexOfVersion] = occurrences;
-                    pairFilesOccurrencesPerVersion.put(key, quantity);
-                }
-            }
-
-//            EntityMatrix matrix = new EntityMatrix();
-//            matrix.setNodes(objectsToNodes(pairFileList, FilePairAprioriOutput.getToStringHeaderAprioriOnly()));
-//            matrix.setNodes(objectsToNodes(pairFilesOccurrencesPerVersion, fixVersionOrdered));
-//            matricesToSave.add(matrix);
+            projectSummary.add(summaryVersion);
 
             out.printLog("\n\n" + getRepository() + " " + version + "\n"
                     + "Number of files (JAVA and XML): " + allFiles.size() + "\n"
@@ -216,9 +164,9 @@ public class BichoProjectsSummaryPerVersionServices extends AbstractBichoMatrixS
                     + "Number of files (XML): " + allXmlFiles.size() + "\n"
                     + "Number of ignored files !.java, !.xml, *Test.java: " + allFilteredFiles.size() + "\n"
                     + "Number of ignored files *Test.java: " + allTestJavaFiles.size() + "\n"
-                    + "Number of file pairs: " + pairFileList.size() + "\n"
+                    + "Number of file pairs: " + summaryVersion.filePairsSize() + "\n"
                     + "Number of issues: " + allIssues.size() + "\n"
-                    + "Number of considered issues: " + allConsideredIssues.size() + "\n"
+                    + "Number of considered issues: " + summaryVersion.issuesSize() + "\n"
                     + "Number of commits: " + allCommits.size() + "\n"
                     + "Number of considered commits: " + allConsideredCommits.size() + "\n"
                     + "Number of defect issues: " + allDefectIssues.size() + "\n"
@@ -230,9 +178,9 @@ public class BichoProjectsSummaryPerVersionServices extends AbstractBichoMatrixS
                     + "Number of files (XML): " + allXmlFiles.size() + "\n"
                     + "Number of ignored files !.java, !.xml, *Test.java: " + allFilteredFiles.size() + "\n"
                     + "Number of ignored files *Test.java: " + allTestJavaFiles.size() + "\n"
-                    + "Number of file pairs: " + pairFileList.size() + "\n"
+                    + "Number of file pairs: " + summaryVersion.filePairsSize() + "\n"
                     + "Number of issues: " + allIssues.size() + "\n"
-                    + "Number of considered issues: " + allConsideredIssues.size() + "\n"
+                    + "Number of considered issues: " + summaryVersion.issuesSize() + "\n"
                     + "Number of commits: " + allCommits.size() + "\n"
                     + "Number of considered commits: " + allConsideredCommits.size() + "\n"
                     + "Number of defect issues: " + allDefectIssues.size() + "\n"
@@ -242,7 +190,7 @@ public class BichoProjectsSummaryPerVersionServices extends AbstractBichoMatrixS
 
         EntityMatrix matrix = new EntityMatrix();
 //        matrix.setNodes(objectsToNodes(pairFileList, FilePairAprioriOutput.getToStringHeaderAprioriOnly()));
-        matrix.setNodes(objectsToNodes(pairFilesOccurrencesPerVersion, fixVersionOrdered));
+        matrix.setNodes(objectsToNodes(projectSummary, "Project;Version;Issues;Commits;Pairs of File"));
         matricesToSave.add(matrix);
     }
 
