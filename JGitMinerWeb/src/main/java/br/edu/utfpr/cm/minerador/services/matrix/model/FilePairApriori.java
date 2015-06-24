@@ -104,6 +104,16 @@ public class FilePairApriori {
         }
     }
 
+    public boolean hasMinMaxConfidence(double minConfidence, double maxConfidence) {
+        final double higherConfidence = getHigherConfidence();
+        return minConfidence <= higherConfidence && maxConfidence >= higherConfidence;
+    }
+
+    public boolean hasMinMaxSupport(double minSupport, double maxSupport) {
+        final double higherSupport = getSupportFilePair();
+        return minSupport <= higherSupport && maxSupport >= higherSupport;
+    }
+
     @Override
     public String toString() {
         if (file2HasGreaterConfidence) {

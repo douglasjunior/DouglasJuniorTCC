@@ -2,12 +2,13 @@ package br.edu.utfpr.cm.minerador.services.matrix;
 
 import br.edu.utfpr.cm.JGitMinerWeb.dao.BichoDAO;
 import br.edu.utfpr.cm.JGitMinerWeb.dao.BichoFileDAO;
+import br.edu.utfpr.cm.JGitMinerWeb.dao.BichoPairFileDAO;
 import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericBichoDAO;
 import br.edu.utfpr.cm.JGitMinerWeb.model.matrix.EntityMatrix;
-import br.edu.utfpr.cm.JGitMinerWeb.model.matrix.EntityMatrixNode;
 import br.edu.utfpr.cm.JGitMinerWeb.util.OutLog;
 import br.edu.utfpr.cm.JGitMinerWeb.util.Util;
 import br.edu.utfpr.cm.minerador.services.matrix.model.FilePair;
+import br.edu.utfpr.cm.minerador.services.matrix.model.FilePairApriori;
 import br.edu.utfpr.cm.minerador.services.matrix.model.FilePairAprioriOutput;
 import br.edu.utfpr.cm.minerador.services.matrix.model.FilePath;
 import br.edu.utfpr.cm.minerador.services.matrix.model.Issue;
@@ -15,6 +16,7 @@ import br.edu.utfpr.cm.minerador.services.matrix.model.Project;
 import br.edu.utfpr.cm.minerador.services.matrix.model.ProjectVersion;
 import br.edu.utfpr.cm.minerador.services.matrix.model.ProjectVersionSummary;
 import br.edu.utfpr.cm.minerador.services.matrix.model.Version;
+import br.edu.utfpr.cm.minerador.services.metric.Cacher;
 import br.edu.utfpr.cm.minerador.services.metric.model.Commit;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -52,10 +54,6 @@ public class BichoProjectsSummaryPerVersionServices extends AbstractBichoMatrixS
         return Util.stringToInteger(params.get("minFilesPerCommit") + "");
     }
 
-    private boolean isOnlyFixed() {
-        return "true".equalsIgnoreCase(params.get("mergedOnly") + "");
-    }
-
     public List<String> getFilesToIgnore() {
         return getStringLinesParam("filesToIgnore", true, false);
     }
@@ -64,12 +62,20 @@ public class BichoProjectsSummaryPerVersionServices extends AbstractBichoMatrixS
         return getStringLinesParam("filesToConsiders", true, false);
     }
 
-    public String getVersion() {
-        return getStringParam("version");
+    private Double getMinSupport() {
+        return Util.stringToDouble(params.get("minSupport") + "");
     }
 
-    public String getFutureVersion() {
-        return getStringParam("futureVersion");
+    private Double getMaxSupport() {
+        return Util.stringToDouble(params.get("maxSupport") + "");
+    }
+
+    private Double getMinConfidence() {
+        return Util.stringToDouble(params.get("minConfidence") + "");
+    }
+
+    private Double getMaxConfidence() {
+        return Util.stringToDouble(params.get("maxConfidence") + "");
     }
 
     @Override
@@ -80,12 +86,20 @@ public class BichoProjectsSummaryPerVersionServices extends AbstractBichoMatrixS
             throw new IllegalArgumentException("Parameter repository must be informed.");
         }
 
+        Double minSupport = getMinSupport();
+        Double maxSupport = getMaxSupport();
+        Double minConfidence = getMinConfidence();
+        Double maxConfidence = getMaxConfidence();
+        boolean hasSupportFilter = minSupport != null && maxSupport != null;
+        boolean hasConfidenceFilter = minConfidence != null && maxConfidence != null;
+
         log("\n --------------- "
                 + new SimpleDateFormat("dd/MM/yyyy HH:mm:ss").format(new Date())
                 + "\n --------------- \n");
 
         BichoDAO bichoDAO = new BichoDAO(dao, getRepository(), getMaxFilesPerCommit());
         BichoFileDAO bichoFileDAO = new BichoFileDAO(dao, getRepository(), getMaxFilesPerCommit());
+        BichoPairFileDAO bichoPairFileDAO = new BichoPairFileDAO(dao, getRepository(), getMaxFilesPerCommit());
 
         final List<String> fixVersionOrdered = bichoDAO.selectFixVersionOrdered();
         final Set<ProjectVersionSummary> projectSummary = new LinkedHashSet<>();
@@ -150,10 +164,45 @@ public class BichoProjectsSummaryPerVersionServices extends AbstractBichoMatrixS
                 out.printLog("Number of files commited and related with issue: " + commitedFiles.size());
 
                 pairFiles(commitedFiles, pairFiles, issue, allDefectIssues, allConsideredCommits);
+            }
 
-                summaryVersion.addIssue(issue);
-                summaryVersion.addCommit(commits);
-                summaryVersion.addFilePair(pairFiles.keySet());
+            Set<Integer> allConsideredIssues = new HashSet<>();
+            for (Map.Entry<FilePair, FilePairAprioriOutput> entrySet : pairFiles.entrySet()) {
+                FilePairAprioriOutput value = entrySet.getValue();
+                allConsideredIssues.addAll(value.getIssuesId());
+            }
+
+            if (hasConfidenceFilter || hasSupportFilter) {
+                System.out.println("Calculing apriori...");
+                Cacher cacher = new Cacher(bichoFileDAO, bichoPairFileDAO);
+                for (FilePair fileFile : pairFiles.keySet()) {
+                    Long file1Issues = cacher.calculeNumberOfIssues(fileFile.getFile1(), version);
+                    Long file2Issues = cacher.calculeNumberOfIssues(fileFile.getFile2(), version);
+
+                    FilePairAprioriOutput filePairOutput = pairFiles.get(fileFile);
+
+                    FilePairApriori apriori = new FilePairApriori(file1Issues, file2Issues,
+                            filePairOutput.getIssuesIdWeight(), allConsideredIssues.size());
+
+                    fileFile.orderFilePairByConfidence(apriori);
+                    filePairOutput.setFilePairApriori(apriori);
+
+                    if (apriori.hasMinMaxConfidence(minConfidence, maxConfidence)
+                            && apriori.hasMinMaxSupport(minSupport, maxSupport)) {
+                        summaryVersion.addIssue(filePairOutput.getIssues());
+                        summaryVersion.addCommit(filePairOutput.getCommits());
+                        summaryVersion.addFilePair(fileFile);
+                    }
+
+                }
+            } else {
+                for (FilePair fileFile : pairFiles.keySet()) {
+                    FilePairAprioriOutput filePairOutput = pairFiles.get(fileFile);
+                    summaryVersion.addIssue(filePairOutput.getIssues());
+                    summaryVersion.addCommit(filePairOutput.getCommits());
+                    summaryVersion.addFilePair(fileFile);
+
+                }
             }
 
             projectSummary.add(summaryVersion);
@@ -189,29 +238,8 @@ public class BichoProjectsSummaryPerVersionServices extends AbstractBichoMatrixS
         }
 
         EntityMatrix matrix = new EntityMatrix();
-//        matrix.setNodes(objectsToNodes(pairFileList, FilePairAprioriOutput.getToStringHeaderAprioriOnly()));
         matrix.setNodes(objectsToNodes(projectSummary, "Project;Version;Issues;Commits;Pairs of File"));
         matricesToSave.add(matrix);
-    }
-
-    protected static List<EntityMatrixNode> objectsToNodes(final Map<FilePair, Integer[]> list, final List<String> versions) {
-        List<EntityMatrixNode> nodes = new ArrayList<>();
-        StringBuilder header = new StringBuilder("file1;file2");
-        for (String version : versions) {
-            header.append(";").append(version);
-        }
-        nodes.add(new EntityMatrixNode(header.toString()));
-
-        for (Map.Entry<FilePair, Integer[]> entrySet : list.entrySet()) {
-            FilePair filePair = entrySet.getKey();
-            Integer[] value = entrySet.getValue();
-            StringBuilder row = new StringBuilder(filePair.toString());
-            for (Integer ocurrencesQuantity : value) {
-                row.append(ocurrencesQuantity == null ? 0 : ocurrencesQuantity).append(";");
-            }
-            nodes.add(new EntityMatrixNode(row.toString()));
-        }
-        return nodes;
     }
 
     private List<FilePath> filterAndAggregateAllFileOfIssue(List<Commit> commits, BichoFileDAO bichoFileDAO, Set<FilePath> allFiles, Set<FilePath> allTestJavaFiles, Set<FilePath> allFilteredFiles, Set<FilePath> allJavaFiles, Set<FilePath> allXmlFiles) {

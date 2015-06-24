@@ -11,6 +11,7 @@ import br.edu.utfpr.cm.minerador.services.matrix.model.FilePairAprioriOutput;
 import br.edu.utfpr.cm.minerador.services.matrix.model.FilePairOutput;
 import br.edu.utfpr.cm.minerador.services.matrix.model.FilePath;
 import br.edu.utfpr.cm.minerador.services.matrix.model.Issue;
+import br.edu.utfpr.cm.minerador.services.metric.model.Commit;
 import java.io.FileWriter;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -66,22 +67,26 @@ public abstract class AbstractBichoMatrixServices extends AbstractBichoServices 
                     FilePair filePair = new FilePair(file1.getFilePath(), file2.getFilePath());
                     FilePairAprioriOutput filePairOutput;
 
-                        if (pairFiles.containsKey(filePair)) {
-                            filePairOutput = pairFiles.get(filePair);
-                        } else {
-                            filePairOutput = new FilePairAprioriOutput(filePair);
-                            pairFiles.put(filePair, filePairOutput);
-                        }
+                    if (pairFiles.containsKey(filePair)) {
+                        filePairOutput = pairFiles.get(filePair);
+                    } else {
+                        filePairOutput = new FilePairAprioriOutput(filePair);
+                        pairFiles.put(filePair, filePairOutput);
+                    }
 
-                        filePairOutput.addIssueId(issue.getId());
+                    filePairOutput.addIssueId(issue.getId());
+                    filePairOutput.addIssue(issue);
 
-                        if ("Bug".equals(issue.getType())) {
-                            filePairOutput.addDefectIssueId(issue.getId());
-                            allDefectIssues.add(issue.getId());
-                        }
+                    if ("Bug".equals(issue.getType())) {
+                        filePairOutput.addDefectIssueId(issue.getId());
+                        allDefectIssues.add(issue.getId());
+                    }
 
                     filePairOutput.addCommitId(file1.getCommitId());
                     filePairOutput.addCommitId(file2.getCommitId());
+                    // TODO refactor, replace CommitId with Commit
+                    filePairOutput.addCommit(new Commit(file1.getCommitId(), null, null));
+                    filePairOutput.addCommit(new Commit(file2.getCommitId(), null, null));
 
                     filePairOutput.addCommitFile1Id(file1.getCommitId());
                     filePairOutput.addCommitFile2Id(file2.getCommitId());

@@ -1,5 +1,6 @@
 package br.edu.utfpr.cm.minerador.services.matrix.model;
 
+import br.edu.utfpr.cm.minerador.services.metric.model.Commit;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -13,6 +14,9 @@ import java.util.Set;
 public class FilePairOutput {
 
     protected final FilePair filePair;
+    protected final Set<Issue> issues;
+    protected final Set<Commit> commits;
+    // TODO Remove and replace with objects
     protected final Set<Integer> issuesId;
     protected final Set<Integer> commitsId;
     protected final Set<Integer> commitsFile1Id;
@@ -23,6 +27,8 @@ public class FilePairOutput {
 
     public FilePairOutput(FilePair filePair) {
         this.filePair = filePair;
+        this.issues = new HashSet<>();
+        this.commits = new HashSet<>();
         this.issuesId = new HashSet<>();
         this.commitsId = new HashSet<>();
         this.commitsFile1Id = new HashSet<>();
@@ -36,12 +42,20 @@ public class FilePairOutput {
         return filePair;
     }
 
+    public Set<Commit> getCommits() {
+        return Collections.unmodifiableSet(commits);
+    }
+
     public Set<Integer> getCommitsId() {
         return Collections.unmodifiableSet(commitsId);
     }
 
     public int getCommitsIdWeight() {
         return commitsId.size();
+    }
+
+    public int getCommitsWeight() {
+        return commits.size();
     }
 
     public Set<Integer> getCommitsFile1Id() {
@@ -60,12 +74,20 @@ public class FilePairOutput {
         return commitsFile2Id.size();
     }
 
+    public Set<Issue> getIssues() {
+        return Collections.unmodifiableSet(issues);
+    }
+
     public Set<Integer> getIssuesId() {
         return Collections.unmodifiableSet(issuesId);
     }
 
     public int getIssuesIdWeight() {
         return issuesId.size();
+    }
+
+    public int getIssuesWeight() {
+        return issues.size();
     }
 
     public Set<Integer> getDefectIssuesId() {
@@ -86,6 +108,14 @@ public class FilePairOutput {
 
     public void addCommitId(Integer commitId) {
         this.commitsId.add(commitId);
+    }
+
+    public void addIssue(Issue issue) {
+        this.issues.add(issue);
+    }
+
+    public void addCommit(Commit commit) {
+        this.commits.add(commit);
     }
 
     public void addCommitFile1Id(Integer commitId) {
@@ -151,11 +181,11 @@ public class FilePairOutput {
 
         toString.append(filePair.toString());
 
-        appendInteger(toString, issuesId.size());
-        appendSetInteger(toString, issuesId);
+        appendInteger(toString, issues.size());
+        appendSetObject(toString, issues);
 
-        appendInteger(toString, commitsId.size());
-        appendSetInteger(toString, commitsId);
+        appendInteger(toString, commits.size());
+        appendSetObject(toString, commits);
 
         appendInteger(toString, commitsFile1Id.size());
         appendSetInteger(toString, commitsFile1Id);
@@ -190,6 +220,18 @@ public class FilePairOutput {
                 toString.append(',');
             }
             toString.append(integer);
+            appendComma = true;
+        }
+        toString.append(';');
+    }
+
+    protected void appendSetObject(StringBuilder toString, Set<?> set) {
+        boolean appendComma = false;
+        for (Object object : set) {
+            if (appendComma) {
+                toString.append(',');
+            }
+            toString.append(object);
             appendComma = true;
         }
         toString.append(';');

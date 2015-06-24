@@ -10,6 +10,18 @@
         <h:outputText value="Maximum files per commit: " />
         <p:inputText value="#{bean.paramValue['maxFilesPerCommit']}" id="maxFilesPerCommit" type="number" size="20" />
 
+        <h:outputText value="Minimum support: " />
+        <p:inputText value="#{bean.paramValue['minSupport']}" id="minSupport" size="20" />
+
+        <h:outputText value="Maximum support: " />
+        <p:inputText value="#{bean.paramValue['maxSupport']}" id="maxSupport" size="20" />
+
+        <h:outputText value="Minimum confidence: " />
+        <p:inputText value="#{bean.paramValue['minConfidence']}" id="minConfidence" size="20" />
+
+        <h:outputText value="Maximum confidence: " />
+        <p:inputText value="#{bean.paramValue['maxConfidence']}" id="maxConfidence" size="20" />
+
         <h:outputLabel value="Filename" for="filename" />
         <p:inputText value="#{bean.paramValue['filename']}" id="filename" size="20" />
 

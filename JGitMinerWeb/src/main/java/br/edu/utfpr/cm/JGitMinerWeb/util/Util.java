@@ -34,6 +34,7 @@ import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import javax.imageio.ImageIO;
 import org.apache.commons.collections15.Transformer;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  *
@@ -188,6 +189,14 @@ public class Util {
         } catch (Exception ex) {
             ex.printStackTrace();
             return 0.0;
+        }
+    }
+
+    public static Double stringToDouble(String value) {
+        if (StringUtils.isBlank(value)) {
+            return null;
+        } else {
+            return Double.valueOf(value);
         }
     }
 

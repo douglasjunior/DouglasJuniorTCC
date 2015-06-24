@@ -39,7 +39,7 @@ public class Issue implements Comparable<Issue> {
 
     @Override
     public String toString() {
-        return "ID=" + id + " Type=" + type;
+        return id.toString();
     }
 
     @Override
@@ -62,6 +62,7 @@ public class Issue implements Comparable<Issue> {
 
     /**
      * Order by fix date ascendant (older to newer)
+     * @param other Another Issue
      */
     @Override
     public int compareTo(Issue other) {
