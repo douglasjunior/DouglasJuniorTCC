@@ -235,11 +235,17 @@ public class BichoProjectsSummaryPerVersionServices extends AbstractBichoMatrixS
                     + "Number of defect issues: " + allDefectIssues.size() + "\n"
             );
 
+            EntityMatrix matrixApriori = new EntityMatrix();
+            matrixApriori.setNodes(objectsToNodes(pairFiles.values(), FilePairAprioriOutput.getToStringHeader()));
+            matrixApriori.setAdditionalFilename(version);
+            matricesToSave.add(matrixApriori);
         }
 
-        EntityMatrix matrix = new EntityMatrix();
-        matrix.setNodes(objectsToNodes(projectSummary, "Project;Version;Issues;Commits;Pairs of File"));
-        matricesToSave.add(matrix);
+        EntityMatrix matrixSummary = new EntityMatrix();
+        matrixSummary.setNodes(objectsToNodes(projectSummary, "Project;Version;Issues;Commits;Pairs of File"));
+        matrixSummary.setAdditionalFilename("summary");
+        matricesToSave.add(matrixSummary);
+
     }
 
     private List<FilePath> filterAndAggregateAllFileOfIssue(List<Commit> commits, BichoFileDAO bichoFileDAO, Set<FilePath> allFiles, Set<FilePath> allTestJavaFiles, Set<FilePath> allFilteredFiles, Set<FilePath> allJavaFiles, Set<FilePath> allXmlFiles) {
