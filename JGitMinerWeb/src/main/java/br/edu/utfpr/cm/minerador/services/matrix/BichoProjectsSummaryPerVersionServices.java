@@ -11,6 +11,7 @@ import br.edu.utfpr.cm.minerador.services.matrix.model.FilePair;
 import br.edu.utfpr.cm.minerador.services.matrix.model.FilePairApriori;
 import br.edu.utfpr.cm.minerador.services.matrix.model.FilePairAprioriOutput;
 import br.edu.utfpr.cm.minerador.services.matrix.model.FilePath;
+import br.edu.utfpr.cm.minerador.services.matrix.model.FilterByApriori;
 import br.edu.utfpr.cm.minerador.services.matrix.model.Issue;
 import br.edu.utfpr.cm.minerador.services.matrix.model.Project;
 import br.edu.utfpr.cm.minerador.services.matrix.model.ProjectVersion;
@@ -86,6 +87,10 @@ public class BichoProjectsSummaryPerVersionServices extends AbstractBichoMatrixS
             throw new IllegalArgumentException("Parameter repository must be informed.");
         }
 
+        // TODO parametrizar
+        // TODO confirmar/verificar de acordo com a planilha
+        final Set<FilterByApriori> filters = FilterByApriori.getSuggestedFilters();
+
         Double minSupport = getMinSupport();
         Double maxSupport = getMaxSupport();
         Double minConfidence = getMinConfidence();
@@ -107,7 +112,7 @@ public class BichoProjectsSummaryPerVersionServices extends AbstractBichoMatrixS
         for (String version : fixVersionOrdered) {
 
             ProjectVersion projectVersion = new ProjectVersion(new Project(getRepository()), new Version(version));
-            ProjectVersionSummary summaryVersion = new ProjectVersionSummary(projectVersion);
+            ProjectVersionSummary summaryVersion = new ProjectVersionSummary(projectVersion, filters);
 
             Map<FilePair, FilePairAprioriOutput> pairFiles = new HashMap<>();
 
@@ -187,12 +192,13 @@ public class BichoProjectsSummaryPerVersionServices extends AbstractBichoMatrixS
                     fileFile.orderFilePairByConfidence(apriori);
                     filePairOutput.setFilePairApriori(apriori);
 
-                    if (apriori.hasMinMaxConfidence(minConfidence, maxConfidence)
-                            && apriori.hasMinMaxSupport(minSupport, maxSupport)) {
+//                    if (apriori.hasMinMaxConfidence(minConfidence, maxConfidence)
+//                            && apriori.hasMinMaxSupport(minSupport, maxSupport)) {
                         summaryVersion.addIssue(filePairOutput.getIssues());
                         summaryVersion.addCommit(filePairOutput.getCommits());
                         summaryVersion.addFilePair(fileFile);
-                    }
+                    summaryVersion.addFilePairApriori(apriori);
+//                    }
 
                 }
             } else {
@@ -242,7 +248,7 @@ public class BichoProjectsSummaryPerVersionServices extends AbstractBichoMatrixS
         }
 
         EntityMatrix matrixSummary = new EntityMatrix();
-        matrixSummary.setNodes(objectsToNodes(projectSummary, "Project;Version;Issues;Commits;Pairs of File"));
+        matrixSummary.setNodes(objectsToNodes(projectSummary, ProjectVersionSummary.getHeader() + ";" + projectSummary.iterator().next().getFilePairsAprioriStatistics().getDynamicHeader()));
         matrixSummary.setAdditionalFilename("summary");
         matricesToSave.add(matrixSummary);
 

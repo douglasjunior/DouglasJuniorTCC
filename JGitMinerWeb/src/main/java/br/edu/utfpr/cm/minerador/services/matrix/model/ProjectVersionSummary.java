@@ -16,12 +16,22 @@ public class ProjectVersionSummary {
     private final Set<Issue> issues;
     private final Set<Commit> commits;
     private final Set<FilePair> filePairs;
+    private final FilePairAprioriStatistics filePairsAprioriStatistics;
 
     public ProjectVersionSummary(ProjectVersion projectVersion) {
         this.projectVersion = projectVersion;
         this.issues = new LinkedHashSet<>();
         this.commits = new LinkedHashSet<>();
         this.filePairs = new LinkedHashSet<>();
+        this.filePairsAprioriStatistics = new FilePairAprioriStatistics();
+    }
+
+    public ProjectVersionSummary(ProjectVersion projectVersion, Set<FilterByApriori> filters) {
+        this.projectVersion = projectVersion;
+        this.issues = new LinkedHashSet<>();
+        this.commits = new LinkedHashSet<>();
+        this.filePairs = new LinkedHashSet<>();
+        this.filePairsAprioriStatistics = new FilePairAprioriStatistics(filters);
     }
 
     public ProjectVersion getProjectVersion() {
@@ -52,6 +62,14 @@ public class ProjectVersionSummary {
         return this.filePairs.addAll(filePairs);
     }
 
+    public boolean addFilePairApriori(FilePairApriori filePairApriori) {
+        return filePairsAprioriStatistics.addFilePairApriori(filePairApriori);
+    }
+
+    public boolean addFilePairApriori(Collection<FilePairApriori> filePairsApriori) {
+        return this.filePairsAprioriStatistics.addFilePairApriori(filePairsApriori);
+    }
+
     public int issuesSize() {
         return issues.size();
     }
@@ -62,6 +80,10 @@ public class ProjectVersionSummary {
 
     public int filePairsSize() {
         return filePairs.size();
+    }
+
+    public FilePairAprioriStatistics getFilePairsAprioriStatistics() {
+        return filePairsAprioriStatistics;
     }
 
     @Override
@@ -88,6 +110,15 @@ public class ProjectVersionSummary {
 
     @Override
     public String toString() {
-        return projectVersion.toString() + ";" + issues.size() + ";" + commits.size() + ";" + filePairs.size();
+        StringBuilder sb = new StringBuilder();
+        return sb.append(projectVersion.toString()).append(";")
+                .append(issues.size()).append(";")
+                .append(commits.size()).append(";")
+                .append(filePairs.size()).append(";")
+                .append(filePairsAprioriStatistics).toString();
+    }
+
+    public static String getHeader() {
+        return "Project;Version;Issues;Commits;Pairs of File;" + FilePairAprioriStatistics.getHeader();
     }
 }

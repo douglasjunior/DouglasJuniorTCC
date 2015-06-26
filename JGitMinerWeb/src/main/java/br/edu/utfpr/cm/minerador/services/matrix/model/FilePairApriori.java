@@ -104,6 +104,11 @@ public class FilePairApriori {
         }
     }
 
+    public boolean fits(FilterByApriori aprioriFilter) {
+        return hasMinMaxConfidence(aprioriFilter.getMinConfidence(), aprioriFilter.getMaxConfidence())
+                && hasMinMaxSupport(aprioriFilter.getMinSupport(), aprioriFilter.getMaxSupport());
+    }
+
     public boolean hasMinMaxConfidence(double minConfidence, double maxConfidence) {
         final double higherConfidence = getHigherConfidence();
         return minConfidence <= higherConfidence && maxConfidence >= higherConfidence;
