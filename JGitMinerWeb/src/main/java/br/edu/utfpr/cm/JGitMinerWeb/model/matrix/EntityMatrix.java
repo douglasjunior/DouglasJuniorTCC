@@ -178,9 +178,9 @@ public class EntityMatrix implements InterfaceEntity, Startable {
         if (filename != null) {
             final Object additionalFilename = params.get("additionalFilename");
             if (additionalFilename != null) {
-                return StringUtils.capitalize(repository) + " " + filename + additionalFilename;
+                return filename + " " + additionalFilename;
             }
-            return StringUtils.capitalize(repository) + " " + filename;
+            return filename.toString();
         } else {
             return "(" + id + ") " + repository + " - " + getClassServicesSingleName();
         }

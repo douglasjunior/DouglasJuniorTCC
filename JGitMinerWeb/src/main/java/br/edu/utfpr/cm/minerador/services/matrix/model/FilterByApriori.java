@@ -1,6 +1,7 @@
 package br.edu.utfpr.cm.minerador.services.matrix.model;
 
 import java.util.LinkedHashSet;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -10,22 +11,42 @@ import java.util.Set;
  */
 public class FilterByApriori {
 
-    private final double minSupport;
-    private final double maxSupport;
-    private final double minConfidence;
-    private final double maxConfidence;
+    private final Double minSupport;
+    private final Double maxSupport;
+    private final Double minConfidence;
+    private final Double maxConfidence;
+    // minimum issues where co-change (file pair) appears
+    private final Integer minIssues;
+    private final Integer maxIssues;
 
     /**
      * Creates a filter with zero as value for minimum support and confidence.
      *
-     * @param maxSupport
-     * @param maxConfidence
+     * @param minSupport
+     * @param minConfidence
      */
-    public FilterByApriori(double maxSupport, double maxConfidence) {
-        this.minSupport = 0.0d;
-        this.maxSupport = maxSupport;
-        this.minConfidence = 0.0d;
-        this.maxConfidence = maxConfidence;
+    public FilterByApriori(Double minSupport, Double minConfidence) {
+        this.minSupport = minSupport;
+        this.maxSupport = null;
+        this.minConfidence = minConfidence;
+        this.maxConfidence = null;
+        this.minIssues = null;
+        this.maxIssues = null;
+    }
+
+    /**
+     * Creates a filter with zero as value for minimum support and confidence.
+     *
+     * @param minSupport
+     * @param minConfidence
+     */
+    public FilterByApriori(Double minSupport, Double minConfidence, Integer minIssues) {
+        this.minSupport = minSupport;
+        this.maxSupport = null;
+        this.minConfidence = minConfidence;
+        this.maxConfidence = null;
+        this.minIssues = minIssues;
+        this.maxIssues = null;
     }
 
     /**
@@ -37,50 +58,66 @@ public class FilterByApriori {
      * @param minConfidence
      * @param maxConfidence
      */
-    public FilterByApriori(double minSupport, double maxSupport, double minConfidence, double maxConfidence) {
+    public FilterByApriori(Double minSupport, Double maxSupport, Double minConfidence, Double maxConfidence, Integer minIssues, Integer maxIssues) {
         this.minSupport = minSupport;
         this.maxSupport = maxSupport;
         this.minConfidence = minConfidence;
         this.maxConfidence = maxConfidence;
+        this.minIssues = minIssues;
+        this.maxIssues = maxIssues;
     }
 
-    public double getMinSupport() {
+    public Double getMinSupport() {
         return minSupport;
     }
 
-    public double getMaxSupport() {
+    public Double getMaxSupport() {
         return maxSupport;
     }
 
-    public double getMinConfidence() {
+    public Double getMinConfidence() {
         return minConfidence;
     }
 
-    public double getMaxConfidence() {
+    public Double getMaxConfidence() {
         return maxConfidence;
+    }
+
+    public Integer getMinIssues() {
+        return minIssues;
+    }
+
+    public Integer getMaxIssues() {
+        return maxIssues;
     }
 
     public static Set<FilterByApriori> getSuggestedFilters() {
         Set<FilterByApriori> filters = new LinkedHashSet<>();
-        filters.add(new FilterByApriori(0.01d, 0.1d));
-        filters.add(new FilterByApriori(0.01d, 0.5d));
-        filters.add(new FilterByApriori(0.01d, 0.8d));
-        filters.add(new FilterByApriori(0.03d, 0.1d));
-        filters.add(new FilterByApriori(0.03d, 0.5d));
-        filters.add(new FilterByApriori(0.03d, 0.8d));
-        filters.add(new FilterByApriori(0.05d, 0.1d));
-        filters.add(new FilterByApriori(0.05d, 0.5d));
-        filters.add(new FilterByApriori(0.05d, 0.8d));
+//        filters.add(new FilterByApriori(0.01d, 0.1d));
+//        filters.add(new FilterByApriori(0.01d, 0.5d));
+//        filters.add(new FilterByApriori(0.01d, 0.8d));
+//        filters.add(new FilterByApriori(0.03d, 0.1d));
+//        filters.add(new FilterByApriori(0.03d, 0.5d));
+//        filters.add(new FilterByApriori(0.03d, 0.8d));
+//        filters.add(new FilterByApriori(0.05d, 0.1d));
+//        filters.add(new FilterByApriori(0.05d, 0.5d));
+//        filters.add(new FilterByApriori(0.05d, 0.8d));
+
+        // TODO
+        filters.add(new FilterByApriori(null, 0.9d, 3));
+        filters.add(new FilterByApriori(0.02d, 0.8d));
         return filters;
     }
 
     @Override
     public int hashCode() {
-        int hash = 7;
-        hash = 41 * hash + (int) (Double.doubleToLongBits(this.minSupport) ^ (Double.doubleToLongBits(this.minSupport) >>> 32));
-        hash = 41 * hash + (int) (Double.doubleToLongBits(this.maxSupport) ^ (Double.doubleToLongBits(this.maxSupport) >>> 32));
-        hash = 41 * hash + (int) (Double.doubleToLongBits(this.minConfidence) ^ (Double.doubleToLongBits(this.minConfidence) >>> 32));
-        hash = 41 * hash + (int) (Double.doubleToLongBits(this.maxConfidence) ^ (Double.doubleToLongBits(this.maxConfidence) >>> 32));
+        int hash = 3;
+        hash = 71 * hash + Objects.hashCode(this.minSupport);
+        hash = 71 * hash + Objects.hashCode(this.maxSupport);
+        hash = 71 * hash + Objects.hashCode(this.minConfidence);
+        hash = 71 * hash + Objects.hashCode(this.maxConfidence);
+        hash = 71 * hash + Objects.hashCode(this.minIssues);
+        hash = 71 * hash + Objects.hashCode(this.maxIssues);
         return hash;
     }
 
@@ -93,19 +130,26 @@ public class FilterByApriori {
             return false;
         }
         final FilterByApriori other = (FilterByApriori) obj;
-        if (Double.doubleToLongBits(this.minSupport) != Double.doubleToLongBits(other.minSupport)) {
+        if (!Objects.equals(this.minSupport, other.minSupport)) {
             return false;
         }
-        if (Double.doubleToLongBits(this.maxSupport) != Double.doubleToLongBits(other.maxSupport)) {
+        if (!Objects.equals(this.maxSupport, other.maxSupport)) {
             return false;
         }
-        if (Double.doubleToLongBits(this.minConfidence) != Double.doubleToLongBits(other.minConfidence)) {
+        if (!Objects.equals(this.minConfidence, other.minConfidence)) {
             return false;
         }
-        if (Double.doubleToLongBits(this.maxConfidence) != Double.doubleToLongBits(other.maxConfidence)) {
+        if (!Objects.equals(this.maxConfidence, other.maxConfidence)) {
+            return false;
+        }
+        if (!Objects.equals(this.minIssues, other.minIssues)) {
+            return false;
+        }
+        if (!Objects.equals(this.maxIssues, other.maxIssues)) {
             return false;
         }
         return true;
     }
+
 
 }

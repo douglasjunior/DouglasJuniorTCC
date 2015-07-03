@@ -52,7 +52,7 @@ public class FilePairAprioriStatistics {
         boolean added = filePairsApriori.add(filePairApriori);
         if (added) {
             supportStatistics.addValue(filePairApriori.getSupportFilePair());
-            confidenceStatistics.addValue(filePairApriori.getHigherConfidence());
+            confidenceStatistics.addValue(filePairApriori.getHighestConfidence());
             for (FilterByApriori aprioriFilter : aprioriFilters) {
                 if (filePairApriori.fits(aprioriFilter)) {
                     countByFilter.get(aprioriFilter).incrementAndGet();
@@ -114,23 +114,65 @@ public class FilePairAprioriStatistics {
         return "Median Support;Max Support;Min Support;Median Confidence;Max Confidence;Min Confidence";
     }
 
+    /**
+     * [min[-max][|min[-max][|min[-max]]]]
+     *
+     * @return
+     */
     public String getDynamicHeader() {
         StringBuilder sb = new StringBuilder();
         for (FilterByApriori aprioriFilter : aprioriFilters) {
             if (sb.length() > 0) {
                 sb.append(";");
             }
-            if (aprioriFilter.getMinSupport() > 0.0d) {
-                sb.append(aprioriFilter.getMinSupport()).append("-");
+            if (aprioriFilter.getMinIssues() != null) {
+                sb.append(aprioriFilter.getMinIssues());
             }
-            sb.append(aprioriFilter.getMaxSupport());
 
-            sb.append("|");
-
-            if (aprioriFilter.getMinConfidence() > 0.0d) {
-                sb.append(aprioriFilter.getMinConfidence()).append("-");
+            // support (by issues or by percentage)
+            if (aprioriFilter.getMaxIssues() != null) {
+                if (aprioriFilter.getMinIssues() != null) {
+                    sb.append("-");
+                }
+                sb.append(aprioriFilter.getMaxIssues());
             }
-            sb.append(aprioriFilter.getMaxConfidence());
+
+            if ((aprioriFilter.getMaxIssues() != null
+                    || aprioriFilter.getMinIssues() != null)
+                    && (aprioriFilter.getMinSupport() != null
+                    || aprioriFilter.getMaxSupport() != null
+                    || aprioriFilter.getMinConfidence() != null
+                    || aprioriFilter.getMaxConfidence() != null)) {
+                sb.append("|");
+            }
+
+            if (aprioriFilter.getMinSupport() != null) {
+                sb.append(aprioriFilter.getMinSupport());
+            }
+            if (aprioriFilter.getMaxSupport() != null) {
+                if (aprioriFilter.getMinSupport() != null) {
+                    sb.append("-");
+                }
+                sb.append(aprioriFilter.getMaxSupport());
+            }
+
+            if ((aprioriFilter.getMinSupport() != null
+                    || aprioriFilter.getMaxSupport() != null)
+                    && (aprioriFilter.getMinConfidence() != null
+                    || aprioriFilter.getMaxConfidence() != null)) {
+                sb.append("|");
+            }
+
+            // confidence by percentage
+            if (aprioriFilter.getMinConfidence() != null) {
+                sb.append(aprioriFilter.getMinConfidence());
+            }
+            if (aprioriFilter.getMaxConfidence() != null) {
+                if (aprioriFilter.getMinConfidence() != null) {
+                    sb.append("-");
+                }
+                sb.append(aprioriFilter.getMaxConfidence());
+            }
         }
         return sb.toString();
     }

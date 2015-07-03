@@ -21,6 +21,7 @@ public class FilePairApriori {
     private final double conviction;
     private final double conviction2;
     private final boolean file2HasGreaterConfidence;
+    private final double highestConfidence;
 
     public FilePairApriori(long fileIssues, long file2Issues, long filePairIssues, long allIssues) {
         this.fileIssues = fileIssues;
@@ -39,8 +40,10 @@ public class FilePairApriori {
 
         if (confidence2 > confidence) {
             this.file2HasGreaterConfidence = true;
+            this.highestConfidence = confidence2;
         } else {
             this.file2HasGreaterConfidence = false;
+            this.highestConfidence = confidence;
         }
     }
 
@@ -96,27 +99,96 @@ public class FilePairApriori {
         return file2HasGreaterConfidence;
     }
 
-    public double getHigherConfidence() {
-        if (file2HasGreaterConfidence) {
-            return confidence2;
-        } else {
-            return confidence;
-        }
+    public double getHighestConfidence() {
+        return highestConfidence;
+    }
+
+    public boolean hasMinIssues(int minIssues) {
+        return minIssues <= issues;
+    }
+
+    public boolean hasMaxIssues(int maxIssues) {
+        return maxIssues >= issues;
+    }
+
+    public boolean hasMinSupport(Double minSupport) {
+        return minSupport <= supportFilePair;
+    }
+
+    public boolean hasMaxSupport(Double maxSupport) {
+        return maxSupport >= supportFilePair;
+    }
+
+    public boolean hasMinConfidence(Double minConfidence) {
+        return minConfidence <= highestConfidence;
+    }
+
+    public boolean hasMaxConfidence(Double maxConfidence) {
+        return maxConfidence >= highestConfidence;
     }
 
     public boolean fits(FilterByApriori aprioriFilter) {
         return hasMinMaxConfidence(aprioriFilter.getMinConfidence(), aprioriFilter.getMaxConfidence())
-                && hasMinMaxSupport(aprioriFilter.getMinSupport(), aprioriFilter.getMaxSupport());
+                && hasMinMaxSupport(aprioriFilter.getMinSupport(), aprioriFilter.getMaxSupport())
+                && hasMinMaxIssues(aprioriFilter.getMinIssues(), aprioriFilter.getMaxIssues());
     }
 
-    public boolean hasMinMaxConfidence(double minConfidence, double maxConfidence) {
-        final double higherConfidence = getHigherConfidence();
-        return minConfidence <= higherConfidence && maxConfidence >= higherConfidence;
+    /**
+     * Returns true if: 1) min <= confidence <= max; or 2) min is null and
+     * issues <= max; or 3) max is null and min <= issues; or 4) min and max are
+     * null.
+     *
+     * @param minConfidence
+     * @param maxConfidence
+     * @return
+     */
+    public boolean hasMinMaxConfidence(Double minConfidence, Double maxConfidence) {
+        if (minConfidence != null && maxConfidence != null) {
+            return hasMinConfidence(minConfidence) && hasMaxConfidence(maxConfidence);
+        } else if (minConfidence != null) {
+            return hasMinConfidence(minConfidence);
+        } else if (maxConfidence != null) {
+            return hasMaxConfidence(maxConfidence);
+        }
+        return true;
     }
 
-    public boolean hasMinMaxSupport(double minSupport, double maxSupport) {
-        final double higherSupport = getSupportFilePair();
-        return minSupport <= higherSupport && maxSupport >= higherSupport;
+    /**
+     * Returns true if: 1) min <= support <= max; or 2) min is null and issues
+     * <= max; or 3) max is null and min <= issues; or 4) min and max are null.
+     *
+     * @param minSupport
+     * @param maxSupport
+     * @return
+     */
+    public boolean hasMinMaxSupport(Double minSupport, Double maxSupport) {
+        if (minSupport != null && maxSupport != null) {
+            return hasMinSupport(minSupport) && hasMaxSupport(maxSupport);
+        } else if (minSupport != null) {
+            return hasMinSupport(minSupport);
+        } else if (maxSupport != null) {
+            return hasMaxSupport(maxSupport);
+        }
+        return true;
+    }
+
+    /**
+     * Returns true if: 1) min <= issues <= max; or 2) min is null and issues <=
+     * max; or 3) max is null and min <= issues; or 4) min and max are null.
+     *
+     * @param minIssues
+     * @param maxIssues
+     * @return
+     */
+    public boolean hasMinMaxIssues(Integer minIssues, Integer maxIssues) {
+        if (minIssues != null && maxIssues != null) {
+            return hasMinIssues(minIssues) && hasMaxIssues(maxIssues);
+        } else if (minIssues != null) {
+            return hasMinIssues(minIssues);
+        } else if (maxIssues != null) {
+            return hasMaxIssues(maxIssues);
+        }
+        return true;
     }
 
     @Override

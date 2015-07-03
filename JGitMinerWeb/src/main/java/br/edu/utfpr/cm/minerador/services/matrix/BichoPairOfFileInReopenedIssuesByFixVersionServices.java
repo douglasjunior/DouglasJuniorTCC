@@ -268,7 +268,7 @@ public class BichoPairOfFileInReopenedIssuesByFixVersionServices extends Abstrac
                     filePairOutput.getIssuesIdWeight(), allConsideredIssues.size());
 
             // minimum confidence is 0.5, ignore if less than 0.5
-            if (apriori.getHigherConfidence() < 0.5) {
+            if (apriori.getHighestConfidence() < 0.5) {
                 continue;
             }
 

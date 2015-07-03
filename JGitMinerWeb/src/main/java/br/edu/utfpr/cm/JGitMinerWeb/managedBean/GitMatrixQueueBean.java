@@ -179,10 +179,17 @@ public class GitMatrixQueueBean implements Serializable {
                                 out.setCurrentProcess("Iniciando salvamento dos dados gerados.");
                                 dao.clearCache(false);
                                 for (EntityMatrix entityMatrix : matricesToSave) {
-                                    out.printLog("Salvando matriz com " + entityMatrix.getNodes().size() + " registros. Parametros: " + entityMatrix.getParams());
                                     entityMatrix.setStarted(started);
                                     entityMatrix.getParams().putAll(params);
-                                    entityMatrix.setRepository(repository + "");
+                                    if (entityMatrix.getRepository() != null) {
+                                        entityMatrix.getParams().put("filename", entityMatrix.getRepository());
+                                    }
+                                    if (entityMatrix.getAdditionalFilename() != null) {
+                                        entityMatrix.getParams().put("additionalFilename", entityMatrix.getAdditionalFilename());
+                                    }
+                                    if (entityMatrix.getRepository() == null) {
+                                        entityMatrix.setRepository(repository + "");
+                                    }
                                     entityMatrix.setClassServicesName(serviceClass.getName());
                                     entityMatrix.setLog(out.getLog().toString());
                                     for (EntityMatrixNode node : entityMatrix.getNodes()) {
@@ -190,10 +197,11 @@ public class GitMatrixQueueBean implements Serializable {
                                     }
                                     entityMatrix.setStoped(new Date());
                                     entityMatrix.setComplete(true);
+
+                                    out.printLog("Salvando matriz com " + entityMatrix.getNodes().size() + " registros. Parametros: " + entityMatrix.getParams() + " (" + entityMatrix.toString() + ")");
                                     dao.insert(entityMatrix);
                                     out.printLog("");
                                     dao.clearCache(true);
-                                    System.gc();
                                 }
                                 out.printLog("Salvamento dos dados concluído!");
                             }
@@ -211,7 +219,6 @@ public class GitMatrixQueueBean implements Serializable {
                             }
                             progress += fraction / 2;
                             initialized = false;
-                            System.gc();
                         }
                     }
                 };
