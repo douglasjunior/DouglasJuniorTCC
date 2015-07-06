@@ -8,17 +8,17 @@ import java.util.Objects;
  *
  * @author Rodrigo T. Kuroda
  */
-public class GroupFilePairReleaseOcurrenceByQuantity {
+public class FilterFilePairByReleaseOcurrence {
 
     private final Integer minQuantity;
     private final Integer maxQuantity;
 
-    public GroupFilePairReleaseOcurrenceByQuantity(int minQuantity) {
+    public FilterFilePairByReleaseOcurrence(int minQuantity) {
         this.minQuantity = minQuantity;
         this.maxQuantity = null;
     }
 
-    public GroupFilePairReleaseOcurrenceByQuantity(int minQuantity, int maxQuantity) {
+    public FilterFilePairByReleaseOcurrence(int minQuantity, int maxQuantity) {
         this.minQuantity = minQuantity;
         this.maxQuantity = maxQuantity;
     }
@@ -32,24 +32,25 @@ public class GroupFilePairReleaseOcurrenceByQuantity {
     }
 
     public boolean fits(FilePairReleasesOccurenceCounter counter) {
-        if (minQuantity.equals(maxQuantity)) {
-            if (minQuantity.equals(counter.getReleasesOcurrences())) {
+        final int releasesOcurrences = counter.getReleasesOcurrences();
+        if (minQuantity != null && minQuantity.equals(maxQuantity)) {
+            if (minQuantity.equals(releasesOcurrences)) {
                 return true;
             }
         } else {
             if (minQuantity != null && maxQuantity != null) {
-                if (minQuantity <= counter.getReleasesOcurrences()
-                        && maxQuantity >= counter.getReleasesOcurrences()) {
+                if (minQuantity <= releasesOcurrences
+                        && maxQuantity >= releasesOcurrences) {
                     return true;
                 }
 
             } else if (minQuantity != null) {
-                if (minQuantity <= counter.getReleasesOcurrences()) {
+                if (minQuantity <= releasesOcurrences) {
                     return true;
                 }
 
             } else if (maxQuantity != null) {
-                if (maxQuantity >= counter.getReleasesOcurrences()) {
+                if (maxQuantity >= releasesOcurrences) {
                     return true;
                 }
 
@@ -58,13 +59,12 @@ public class GroupFilePairReleaseOcurrenceByQuantity {
         return false;
     }
 
-    public static List<GroupFilePairReleaseOcurrenceByQuantity> getSuggestion() {
-        return Arrays.asList(
-                new GroupFilePairReleaseOcurrenceByQuantity[]{
-                    new GroupFilePairReleaseOcurrenceByQuantity(2, 2),
-                    new GroupFilePairReleaseOcurrenceByQuantity(3, 3),
-                    new GroupFilePairReleaseOcurrenceByQuantity(4, 4),
-                    new GroupFilePairReleaseOcurrenceByQuantity(5)
+    public static List<FilterFilePairByReleaseOcurrence> getSuggestion() {
+        return Arrays.asList(new FilterFilePairByReleaseOcurrence[]{
+            new FilterFilePairByReleaseOcurrence(2, 2),
+            new FilterFilePairByReleaseOcurrence(3, 3),
+            new FilterFilePairByReleaseOcurrence(4, 4),
+            new FilterFilePairByReleaseOcurrence(5)
                 });
     }
 
@@ -84,7 +84,7 @@ public class GroupFilePairReleaseOcurrenceByQuantity {
         if (getClass() != obj.getClass()) {
             return false;
         }
-        final GroupFilePairReleaseOcurrenceByQuantity other = (GroupFilePairReleaseOcurrenceByQuantity) obj;
+        final FilterFilePairByReleaseOcurrence other = (FilterFilePairByReleaseOcurrence) obj;
         if (!Objects.equals(this.minQuantity, other.minQuantity)) {
             return false;
         }
