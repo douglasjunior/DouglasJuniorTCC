@@ -1,0 +1,30 @@
+<div xmlns="http://www.w3.org/1999/xhtml"
+     xmlns:h="http://java.sun.com/jsf/html" 
+     xmlns:p="http://primefaces.org/ui">
+
+    <h:panelGrid columns="2" cellspacing="10" cellpadding="0">
+
+        <h:outputText value="Minimum files per commit: " />
+        <p:inputText value="#{bean.paramValue['minFilesPerCommit']}" id="minFilesPerCommit" type="number" size="20" />
+
+        <h:outputText value="Maximum files per commit: " />
+        <p:inputText value="#{bean.paramValue['maxFilesPerCommit']}" id="maxFilesPerCommit" type="number" size="20" />
+
+        <h:outputText value="Minimum support: " />
+        <p:inputText value="#{bean.paramValue['minSupport']}" id="minSupport" size="20" />
+
+        <h:outputText value="Maximum support: " />
+        <p:inputText value="#{bean.paramValue['maxSupport']}" id="maxSupport" size="20" />
+
+        <h:outputText value="Minimum confidence: " />
+        <p:inputText value="#{bean.paramValue['minConfidence']}" id="minConfidence" size="20" />
+
+        <h:outputText value="Maximum confidence: " />
+        <p:inputText value="#{bean.paramValue['maxConfidence']}" id="maxConfidence" size="20" />
+
+        <h:outputLabel value="Filename" for="filename" />
+        <p:inputText value="#{bean.paramValue['filename']}" id="filename" size="20" />
+
+    </h:panelGrid>
+</div>
+

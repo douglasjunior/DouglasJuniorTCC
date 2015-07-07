@@ -59,7 +59,7 @@ public class FilterFilePairByReleaseOcurrence {
         return false;
     }
 
-    public static List<FilterFilePairByReleaseOcurrence> getSuggestion() {
+    public static List<FilterFilePairByReleaseOcurrence> getSuggestedFilters() {
         return Arrays.asList(new FilterFilePairByReleaseOcurrence[]{
             new FilterFilePairByReleaseOcurrence(2, 2),
             new FilterFilePairByReleaseOcurrence(3, 3),
@@ -92,6 +92,23 @@ public class FilterFilePairByReleaseOcurrence {
             return false;
         }
         return true;
+    }
+
+    @Override
+    public String toString() {
+        if (minQuantity != null && maxQuantity != null) {
+            if (minQuantity.equals(maxQuantity)) {
+                return "in " + minQuantity + " releases";
+            } else {
+                return "in " + minQuantity + "-" + maxQuantity + " releases";
+            }
+        } else if (minQuantity != null) {
+            return ">= " + minQuantity + " releases";
+        } else if (maxQuantity != null) {
+            return "<= " + maxQuantity + " releases";
+        }
+
+        return "";
     }
 
 }

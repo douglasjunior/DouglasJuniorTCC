@@ -2,7 +2,6 @@ package br.edu.utfpr.cm.minerador.services.matrix.model;
 
 import java.util.Collection;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -14,11 +13,19 @@ public class FilePairOcurrencesGroup {
 
     private final Map<FilterFilePairByReleaseOcurrence, AtomicInteger> groupingCount;
 
-    public FilePairOcurrencesGroup(List<FilterFilePairByReleaseOcurrence> groupingList) {
+    public FilePairOcurrencesGroup() {
         this.groupingCount = new LinkedHashMap<>();
-        for (FilterFilePairByReleaseOcurrence grouping : groupingList) {
+    }
+
+    public FilePairOcurrencesGroup(Collection<FilterFilePairByReleaseOcurrence> filterList) {
+        this.groupingCount = new LinkedHashMap<>();
+        for (FilterFilePairByReleaseOcurrence grouping : filterList) {
             groupingCount.put(grouping, new AtomicInteger());
         }
+    }
+
+    public void addFilterFilePair(FilterFilePairByReleaseOcurrence filter) {
+        groupingCount.put(filter, new AtomicInteger());
     }
 
     public int getQuantity(FilterFilePairByReleaseOcurrence filter) {
@@ -41,4 +48,32 @@ public class FilePairOcurrencesGroup {
             }
         }
     }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        for (Map.Entry<FilterFilePairByReleaseOcurrence, AtomicInteger> entrySet : groupingCount.entrySet()) {
+            AtomicInteger value = entrySet.getValue();
+            if (sb.length() > 0) {
+                sb.append(";");
+            }
+            sb.append(value.get());
+        }
+
+        return sb.toString();
+    }
+
+    public String getDynamicHeader() {
+        StringBuilder sb = new StringBuilder();
+        for (Map.Entry<FilterFilePairByReleaseOcurrence, AtomicInteger> entrySet : groupingCount.entrySet()) {
+            FilterFilePairByReleaseOcurrence key = entrySet.getKey();
+
+            if (sb.length() > 0) {
+                sb.append(";");
+            }
+            sb.append(key);
+        }
+        return sb.toString();
+    }
+
 }

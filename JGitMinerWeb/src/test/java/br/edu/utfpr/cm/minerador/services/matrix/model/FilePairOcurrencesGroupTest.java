@@ -13,7 +13,7 @@ public class FilePairOcurrencesGroupTest {
 
     @Test
     public void testGroupFilePairs() {
-        final List<FilterFilePairByReleaseOcurrence> filterSuggestion = new ArrayList<>(FilterFilePairByReleaseOcurrence.getSuggestion());
+        final List<FilterFilePairByReleaseOcurrence> filterSuggestion = new ArrayList<>(FilterFilePairByReleaseOcurrence.getSuggestedFilters());
         filterSuggestion.add(new FilterFilePairByReleaseOcurrence(2, 3));
         FilePairOcurrencesGroup group = new FilePairOcurrencesGroup(filterSuggestion);
 
@@ -43,11 +43,13 @@ public class FilePairOcurrencesGroupTest {
         filePairOcurrencesCounter.add(de);
 
         group.groupFilePairs(filePairOcurrencesCounter);
-        Assert.assertEquals(2, group.getQuantity(new FilterFilePairByReleaseOcurrence(3, 3)));
         Assert.assertEquals(1, group.getQuantity(new FilterFilePairByReleaseOcurrence(2, 2)));
-        Assert.assertEquals(3, group.getQuantity(new FilterFilePairByReleaseOcurrence(2, 3)));
+        Assert.assertEquals(2, group.getQuantity(new FilterFilePairByReleaseOcurrence(3, 3)));
         Assert.assertEquals(1, group.getQuantity(new FilterFilePairByReleaseOcurrence(4, 4)));
         Assert.assertEquals(0, group.getQuantity(new FilterFilePairByReleaseOcurrence(5)));
+        Assert.assertEquals(3, group.getQuantity(new FilterFilePairByReleaseOcurrence(2, 3)));
+        Assert.assertEquals("1;2;1;0;3", group.toString());
+        Assert.assertEquals("in 2 releases;in 3 releases;in 4 releases;>= 5 releases;in 2-3 releases", group.getDynamicHeader());
 
     }
 

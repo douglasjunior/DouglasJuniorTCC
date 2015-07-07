@@ -1,8 +1,8 @@
 package br.edu.utfpr.cm.minerador.services.matrix.model;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
 
 /**
  *
@@ -11,11 +11,11 @@ import java.util.Objects;
 public class FilePairReleasesOccurenceCounter {
 
     private final FilePair filePair;
-    private final List<String> releasesOcurrences;
+    private final Set<String> releasesOcurrences;
 
     public FilePairReleasesOccurenceCounter(FilePair filePair) {
         this.filePair = filePair;
-        this.releasesOcurrences = new ArrayList<>();
+        this.releasesOcurrences = new HashSet<>();
     }
 
     public FilePair getFilePair() {
