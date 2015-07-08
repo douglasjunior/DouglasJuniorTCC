@@ -2,7 +2,6 @@ package br.edu.utfpr.cm.minerador.services.matrix;
 
 import br.edu.utfpr.cm.JGitMinerWeb.dao.BichoDAO;
 import br.edu.utfpr.cm.JGitMinerWeb.dao.BichoFileDAO;
-import br.edu.utfpr.cm.JGitMinerWeb.dao.BichoPairFileDAO;
 import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericBichoDAO;
 import br.edu.utfpr.cm.JGitMinerWeb.model.matrix.EntityMatrix;
 import br.edu.utfpr.cm.JGitMinerWeb.util.OutLog;
@@ -13,7 +12,7 @@ import br.edu.utfpr.cm.minerador.services.matrix.model.FilePath;
 import br.edu.utfpr.cm.minerador.services.matrix.model.FilterFilePairByReleaseOcurrence;
 import br.edu.utfpr.cm.minerador.services.matrix.model.Issue;
 import br.edu.utfpr.cm.minerador.services.matrix.model.Project;
-import br.edu.utfpr.cm.minerador.services.matrix.model.ProjectVersionFilePairReleaseOcurrence;
+import br.edu.utfpr.cm.minerador.services.matrix.model.ProjectFilePairReleaseOcurrence;
 import br.edu.utfpr.cm.minerador.services.metric.model.Commit;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -95,19 +94,16 @@ public class BichoProjectsFilePairReleaseOccurenceServices extends AbstractBicho
         log("\n --------------- "
                 + new SimpleDateFormat("dd/MM/yyyy HH:mm:ss").format(new Date())
                 + "\n --------------- \n");
-        final Set<ProjectVersionFilePairReleaseOcurrence> releaseOccurrences = new LinkedHashSet<>();
+        final Set<ProjectFilePairReleaseOcurrence> releaseOccurrences = new LinkedHashSet<>();
 
         for (String project : getSelectedProjects()) {
 
             BichoDAO bichoDAO = new BichoDAO(dao, project, getMaxFilesPerCommit());
             BichoFileDAO bichoFileDAO = new BichoFileDAO(dao, project, getMaxFilesPerCommit());
-            BichoPairFileDAO bichoPairFileDAO = new BichoPairFileDAO(dao, project, getMaxFilesPerCommit());
 
             final List<String> fixVersionOrdered = bichoDAO.selectFixVersionOrdered();
 
-            ProjectVersionFilePairReleaseOcurrence projectVersionFilePairReleaseOcurrence = new ProjectVersionFilePairReleaseOcurrence(new Project(project), filters);
-
-            projectVersionFilePairReleaseOcurrence.addVersions(fixVersionOrdered);
+            ProjectFilePairReleaseOcurrence projectVersionFilePairReleaseOcurrence = new ProjectFilePairReleaseOcurrence(new Project(project), filters);
 
             for (String version : fixVersionOrdered) {
 
@@ -128,6 +124,11 @@ public class BichoProjectsFilePairReleaseOccurenceServices extends AbstractBicho
 
                 // select a issue/pullrequest commenters
                 Map<Issue, List<Commit>> issuesConsideredCommits = bichoDAO.selectIssuesAndType(version);
+
+                if (issuesConsideredCommits.isEmpty()) {
+                    continue;
+                }
+
                 Set<Issue> allIssues = issuesConsideredCommits.keySet();
 
                 out.printLog("Issues (filtered): " + issuesConsideredCommits.size());
@@ -168,8 +169,14 @@ public class BichoProjectsFilePairReleaseOccurenceServices extends AbstractBicho
                     pairFiles(commitedFiles, pairFiles, issue, allDefectIssues, allConsideredCommits);
                 }
 
+                if (pairFiles.isEmpty()) {
+                    continue;
+                }
+
                 projectVersionFilePairReleaseOcurrence.addFilePair(pairFiles.keySet());
                 projectVersionFilePairReleaseOcurrence.addVersionForFilePair(pairFiles.keySet(), version);
+
+                projectVersionFilePairReleaseOcurrence.addVersion(version);
             }
             if (summaryRepositoryName.length() > 0) {
                 summaryRepositoryName.append(", ");
@@ -180,7 +187,7 @@ public class BichoProjectsFilePairReleaseOccurenceServices extends AbstractBicho
         }
 
         EntityMatrix matrixSummary = new EntityMatrix();
-        matrixSummary.setNodes(objectsToNodes(releaseOccurrences, ProjectVersionFilePairReleaseOcurrence.getHeader() + ";" + releaseOccurrences.iterator().next().getFilePairOcurrencesGroup().getDynamicHeader()));
+        matrixSummary.setNodes(objectsToNodes(releaseOccurrences, ProjectFilePairReleaseOcurrence.getHeader() + ";" + releaseOccurrences.iterator().next().getFilePairOcurrencesGroup().getDynamicHeader()));
         matrixSummary.setRepository(summaryRepositoryName.toString());
         matrixSummary.setAdditionalFilename("summary");
         matricesToSave.add(matrixSummary);

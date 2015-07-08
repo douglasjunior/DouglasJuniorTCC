@@ -4,13 +4,14 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 /**
  *
  * @author Rodrigo T. Kuroda
  */
-public class ProjectVersionFilePairReleaseOcurrence {
+public class ProjectFilePairReleaseOcurrence {
 
     public static String getHeader() {
         return "Project;# Versions;# Distinct Cochanges";
@@ -22,7 +23,7 @@ public class ProjectVersionFilePairReleaseOcurrence {
     private final Map<FilePair, FilePairReleasesOccurenceCounter> filePairReleasesOccurenceCounter;
     private final FilePairOcurrencesGroup filePairOcurrencesGroup;
 
-    public ProjectVersionFilePairReleaseOcurrence(Project project, Collection<FilterFilePairByReleaseOcurrence> filterOccurrences) {
+    public ProjectFilePairReleaseOcurrence(Project project, Collection<FilterFilePairByReleaseOcurrence> filterOccurrences) {
         this.project = project;
         this.versions = new HashSet<>();
         this.cochanges = new HashSet<>();
@@ -34,6 +35,10 @@ public class ProjectVersionFilePairReleaseOcurrence {
         for (String version : versions) {
             this.versions.add(new Version(version));
         }
+    }
+
+    public void addVersion(String version) {
+        this.versions.add(new Version(version));
     }
 
     public boolean addFilePair(FilePair filePair) {
@@ -72,6 +77,28 @@ public class ProjectVersionFilePairReleaseOcurrence {
 
     public FilePairOcurrencesGroup getFilePairOcurrencesGroup() {
         return filePairOcurrencesGroup;
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 89 * hash + Objects.hashCode(this.project);
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final ProjectFilePairReleaseOcurrence other = (ProjectFilePairReleaseOcurrence) obj;
+        if (!Objects.equals(this.project, other.project)) {
+            return false;
+        }
+        return true;
     }
 
     @Override
