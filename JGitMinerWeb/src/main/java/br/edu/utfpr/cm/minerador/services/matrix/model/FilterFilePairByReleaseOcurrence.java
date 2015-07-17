@@ -32,7 +32,7 @@ public class FilterFilePairByReleaseOcurrence {
     }
 
     public boolean fits(FilePairReleasesOccurenceCounter counter) {
-        final int releasesOcurrences = counter.getReleasesOcurrences();
+        final int releasesOcurrences = counter.getVersionsOcurrencesSize();
         if (minQuantity != null && minQuantity.equals(maxQuantity)) {
             if (minQuantity.equals(releasesOcurrences)) {
                 return true;
@@ -51,6 +51,34 @@ public class FilterFilePairByReleaseOcurrence {
 
             } else if (maxQuantity != null) {
                 if (maxQuantity >= releasesOcurrences) {
+                    return true;
+                }
+
+            }
+        }
+        return false;
+    }
+
+    public boolean fitsVersionSequenceOccurrences(final FilePairReleasesOccurenceCounter counter, final int minOccurrencesInOneVersion) {
+        final int releasesSequenceOcurrences = counter.getMaxVersionsSequenceOcurrences(minOccurrencesInOneVersion);
+        if (minQuantity != null && minQuantity.equals(maxQuantity)) {
+            if (minQuantity.equals(releasesSequenceOcurrences)) {
+                return true;
+            }
+        } else {
+            if (minQuantity != null && maxQuantity != null) {
+                if (minQuantity <= releasesSequenceOcurrences
+                        && maxQuantity >= releasesSequenceOcurrences) {
+                    return true;
+                }
+
+            } else if (minQuantity != null) {
+                if (minQuantity <= releasesSequenceOcurrences) {
+                    return true;
+                }
+
+            } else if (maxQuantity != null) {
+                if (maxQuantity >= releasesSequenceOcurrences) {
                     return true;
                 }
 

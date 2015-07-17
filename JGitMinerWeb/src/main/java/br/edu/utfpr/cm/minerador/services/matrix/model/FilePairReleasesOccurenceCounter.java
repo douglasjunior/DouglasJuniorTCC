@@ -1,8 +1,13 @@
 package br.edu.utfpr.cm.minerador.services.matrix.model;
 
-import java.util.HashSet;
+import br.edu.utfpr.cm.minerador.services.util.VersionUtil;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  *
@@ -11,23 +16,65 @@ import java.util.Set;
 public class FilePairReleasesOccurenceCounter {
 
     private final FilePair filePair;
-    private final Set<String> releasesOcurrences;
+    private final Map<Version, AtomicInteger> releasesOcurrences;
+    private final List<Version> allVersions;
 
     public FilePairReleasesOccurenceCounter(FilePair filePair) {
         this.filePair = filePair;
-        this.releasesOcurrences = new HashSet<>();
+        this.releasesOcurrences = new LinkedHashMap<>();
+        this.allVersions = new ArrayList<>();
+
+        for (Version version : allVersions) {
+            final AtomicInteger counter = new AtomicInteger();
+            releasesOcurrences.put(version, counter);
+        }
+    }
+
+    public FilePairReleasesOccurenceCounter(FilePair filePair, List<Version> allVersions) {
+        this.filePair = filePair;
+        this.releasesOcurrences = new LinkedHashMap<>();
+        this.allVersions = allVersions;
+
+        for (Version version : allVersions) {
+            final AtomicInteger counter = new AtomicInteger();
+            releasesOcurrences.put(version, counter);
+        }
     }
 
     public FilePair getFilePair() {
         return filePair;
     }
 
-    public int getReleasesOcurrences() {
+    public int getVersionsOcurrencesSize() {
         return releasesOcurrences.size();
     }
 
-    public boolean addReleaseOcurrence(String release) {
-        return releasesOcurrences.add(release);
+    public Set<Version> getVersionsOcurrences() {
+        return releasesOcurrences.keySet();
+    }
+
+    public int getMaxVersionsSequenceOcurrences(final int minOccurrencesInOneVersion) {
+        return VersionUtil.getMaxVersionSequence(releasesOcurrences, allVersions, minOccurrencesInOneVersion).size();
+    }
+
+    public boolean hasAtLeastOccurrencesInOneVersion(int minOccurrencesInOneVersion) {
+        for (Map.Entry<Version, AtomicInteger> entrySet : releasesOcurrences.entrySet()) {
+            AtomicInteger value = entrySet.getValue();
+            if (value.get() >= minOccurrencesInOneVersion) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public int addVersionOccurrence(Version release) {
+        if (releasesOcurrences.containsKey(release)) {
+            return releasesOcurrences.get(release).incrementAndGet();
+        } else {
+            final AtomicInteger count = new AtomicInteger();
+            releasesOcurrences.put(release, count);
+            return count.incrementAndGet();
+        }
     }
 
     @Override

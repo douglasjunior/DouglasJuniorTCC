@@ -16,6 +16,7 @@ public class ProjectVersionSummary {
     private final Set<Issue> issues;
     private final Set<Commit> commits;
     private final Set<FilePair> filePairs;
+    private final Set<FilePair> filePairsWithAtLeastTwoOccurrencesInAnyVersion;
     private final FilePairAprioriStatistics filePairsAprioriStatistics;
 
     public ProjectVersionSummary(ProjectVersion projectVersion) {
@@ -23,6 +24,7 @@ public class ProjectVersionSummary {
         this.issues = new LinkedHashSet<>();
         this.commits = new LinkedHashSet<>();
         this.filePairs = new LinkedHashSet<>();
+        this.filePairsWithAtLeastTwoOccurrencesInAnyVersion = new LinkedHashSet<>();
         this.filePairsAprioriStatistics = new FilePairAprioriStatistics();
     }
 
@@ -31,6 +33,7 @@ public class ProjectVersionSummary {
         this.issues = new LinkedHashSet<>();
         this.commits = new LinkedHashSet<>();
         this.filePairs = new LinkedHashSet<>();
+        this.filePairsWithAtLeastTwoOccurrencesInAnyVersion = new LinkedHashSet<>();
         this.filePairsAprioriStatistics = new FilePairAprioriStatistics(filters);
     }
 
@@ -62,6 +65,10 @@ public class ProjectVersionSummary {
         return this.filePairs.addAll(filePairs);
     }
 
+    public boolean addFilePairWithAtLeastTwoOccurrencesInAnyVersion(FilePair filePair) {
+        return filePairsWithAtLeastTwoOccurrencesInAnyVersion.add(filePair);
+    }
+
     public boolean addFilePairApriori(FilePairApriori filePairApriori) {
         return filePairsAprioriStatistics.addFilePairApriori(filePairApriori);
     }
@@ -84,6 +91,10 @@ public class ProjectVersionSummary {
 
     public FilePairAprioriStatistics getFilePairsAprioriStatistics() {
         return filePairsAprioriStatistics;
+    }
+
+    public Set<FilePair> getFilePairs() {
+        return filePairs;
     }
 
     @Override
@@ -115,10 +126,11 @@ public class ProjectVersionSummary {
                 .append(issues.size()).append(";")
                 .append(commits.size()).append(";")
                 .append(filePairs.size()).append(";")
+                .append(filePairsWithAtLeastTwoOccurrencesInAnyVersion.size()).append(";")
                 .append(filePairsAprioriStatistics).toString();
     }
 
     public static String getHeader() {
-        return "Project;Version;Issues;Commits;Pairs of File;" + FilePairAprioriStatistics.getHeader();
+        return "Project;Version;Issues;Commits;Cochange>=1;Cochange>=2;" + FilePairAprioriStatistics.getHeader();
     }
 }

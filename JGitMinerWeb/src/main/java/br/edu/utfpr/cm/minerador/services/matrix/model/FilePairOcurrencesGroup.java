@@ -2,6 +2,7 @@ package br.edu.utfpr.cm.minerador.services.matrix.model;
 
 import java.util.Collection;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -39,11 +40,26 @@ public class FilePairOcurrencesGroup {
         groupingCount.get(filter).incrementAndGet();
     }
 
-    public void groupFilePairs(Collection<FilePairReleasesOccurenceCounter> counters) {
+    public void groupFilePairs(Collection<FilePairReleasesOccurenceCounter> counters, int minOccurrencesInAnyVersion) {
         for (FilePairReleasesOccurenceCounter counter : counters) {
-            for (FilterFilePairByReleaseOcurrence group : groupingCount.keySet()) {
-                if (group.fits(counter)) {
-                    increment(group);
+            if (counter.hasAtLeastOccurrencesInOneVersion(minOccurrencesInAnyVersion)) {
+                for (FilterFilePairByReleaseOcurrence group : groupingCount.keySet()) {
+                    if (group.fits(counter)) {
+                        increment(group);
+                    }
+                }
+            }
+        }
+    }
+
+    public void groupFilePairs(List<Version> allVersions,
+            Collection<FilePairReleasesOccurenceCounter> counters, int minOccurrencesInAnyVersion) {
+        for (FilePairReleasesOccurenceCounter counter : counters) {
+            if (counter.hasAtLeastOccurrencesInOneVersion(minOccurrencesInAnyVersion)) {
+                for (FilterFilePairByReleaseOcurrence group : groupingCount.keySet()) {
+                    if (group.fitsVersionSequenceOccurrences(counter, minOccurrencesInAnyVersion)) {
+                        increment(group);
+                    }
                 }
             }
         }

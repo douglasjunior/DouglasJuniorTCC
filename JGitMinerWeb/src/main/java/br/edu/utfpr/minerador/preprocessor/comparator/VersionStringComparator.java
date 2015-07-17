@@ -1,19 +1,18 @@
 package br.edu.utfpr.minerador.preprocessor.comparator;
 
-import br.edu.utfpr.cm.minerador.services.matrix.model.Version;
 import java.util.Comparator;
 
 /**
  *
  * @author Rodrigo T. Kuroda
  */
-public class VersionComparator implements Comparator<Version> {
+public class VersionStringComparator implements Comparator<String> {
 
     @Override
-    public int compare(Version o1, Version o2) {
+    public int compare(String o1, String o2) {
 
-        String[] version1 = o1.getVersion().split("[.]");
-        String[] version2 = o2.getVersion().split("[.]");
+        String[] version1 = o1.split("[.]");
+        String[] version2 = o2.split("[.]");
 
         int length = version1.length;
         if (version2.length < version1.length) {

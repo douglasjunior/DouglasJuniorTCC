@@ -13,7 +13,9 @@ import br.edu.utfpr.cm.minerador.services.matrix.model.FilterFilePairByReleaseOc
 import br.edu.utfpr.cm.minerador.services.matrix.model.Issue;
 import br.edu.utfpr.cm.minerador.services.matrix.model.Project;
 import br.edu.utfpr.cm.minerador.services.matrix.model.ProjectFilePairReleaseOcurrence;
+import br.edu.utfpr.cm.minerador.services.matrix.model.Version;
 import br.edu.utfpr.cm.minerador.services.metric.model.Commit;
+import br.edu.utfpr.cm.minerador.services.util.VersionUtil;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -26,7 +28,8 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * 
+ * Report 3 - Projects Pairs of File Versions Occurrences
+  *
  * @author Rodrigo Kuroda
  */
 public class BichoProjectsFilePairReleaseOccurenceServices extends AbstractBichoMatrixServices {
@@ -75,6 +78,10 @@ public class BichoProjectsFilePairReleaseOccurenceServices extends AbstractBicho
         return Util.stringToDouble(params.get("maxConfidence") + "");
     }
 
+    private int getMinOccurencesInAnyVersion() {
+        return 2; //Util.stringToInteger(params.get("minOccurrencesInEachVersion") + "");
+    }
+
     @Override
     public void run() {
         System.out.println(params);
@@ -88,6 +95,7 @@ public class BichoProjectsFilePairReleaseOccurenceServices extends AbstractBicho
         Double maxSupport = getMaxSupport();
         Double minConfidence = getMinConfidence();
         Double maxConfidence = getMaxConfidence();
+        int minOccurrencesInAnyVersion = getMinOccurencesInAnyVersion();
         boolean hasSupportFilter = minSupport != null && maxSupport != null;
         boolean hasConfidenceFilter = minConfidence != null && maxConfidence != null;
 
@@ -103,10 +111,13 @@ public class BichoProjectsFilePairReleaseOccurenceServices extends AbstractBicho
 
             final List<String> fixVersionOrdered = bichoDAO.selectFixVersionOrdered();
 
-            ProjectFilePairReleaseOcurrence projectVersionFilePairReleaseOcurrence = new ProjectFilePairReleaseOcurrence(new Project(project), filters);
+            final ProjectFilePairReleaseOcurrence projectVersionFilePairReleaseOcurrence
+                    = new ProjectFilePairReleaseOcurrence(new Project(project),
+                            VersionUtil.listStringToListVersion(fixVersionOrdered),
+                            minOccurrencesInAnyVersion, filters);
 
-            for (String version : fixVersionOrdered) {
-
+            for (String versionString : fixVersionOrdered) {
+                Version version = new Version(versionString);
                 Map<FilePair, FilePairAprioriOutput> pairFiles = new HashMap<>();
 
                 out.printLog("Maximum files per commit: " + getMaxFilesPerCommit());
@@ -123,7 +134,7 @@ public class BichoProjectsFilePairReleaseOccurenceServices extends AbstractBicho
                 Set<Integer> allDefectIssues = new HashSet<>();
 
                 // select a issue/pullrequest commenters
-                Map<Issue, List<Commit>> issuesConsideredCommits = bichoDAO.selectIssuesAndType(version);
+                Map<Issue, List<Commit>> issuesConsideredCommits = bichoDAO.selectIssuesAndType(versionString);
 
                 if (issuesConsideredCommits.isEmpty()) {
                     continue;
@@ -175,7 +186,6 @@ public class BichoProjectsFilePairReleaseOccurenceServices extends AbstractBicho
 
                 projectVersionFilePairReleaseOcurrence.addFilePair(pairFiles.keySet());
                 projectVersionFilePairReleaseOcurrence.addVersionForFilePair(pairFiles.keySet(), version);
-
                 projectVersionFilePairReleaseOcurrence.addVersion(version);
             }
             if (summaryRepositoryName.length() > 0) {

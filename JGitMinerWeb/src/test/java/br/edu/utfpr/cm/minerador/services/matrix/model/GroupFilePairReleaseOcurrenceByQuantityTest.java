@@ -14,13 +14,13 @@ public class GroupFilePairReleaseOcurrenceByQuantityTest {
         final FilterFilePairByReleaseOcurrence group = new FilterFilePairByReleaseOcurrence(2, 2);
         FilePairReleasesOccurenceCounter counter = new FilePairReleasesOccurenceCounter(new FilePair("A", "B"));
 
-        counter.addReleaseOcurrence("1.0");
+        counter.addVersionOccurrence(new Version("1.0"));
         Assert.assertFalse(group.fits(counter));
 
-        counter.addReleaseOcurrence("1.1");
+        counter.addVersionOccurrence(new Version("1.1"));
         Assert.assertTrue(group.fits(counter));
 
-        counter.addReleaseOcurrence("1.2");
+        counter.addVersionOccurrence(new Version("1.2"));
         Assert.assertFalse(group.fits(counter));
     }
 
@@ -28,16 +28,16 @@ public class GroupFilePairReleaseOcurrenceByQuantityTest {
     public void testFitsMinMaxOcurrence() {
         final FilterFilePairByReleaseOcurrence group = new FilterFilePairByReleaseOcurrence(2, 3);
         FilePairReleasesOccurenceCounter counter = new FilePairReleasesOccurenceCounter(new FilePair("A", "B"));
-        counter.addReleaseOcurrence("1.0");
+        counter.addVersionOccurrence(new Version("1.0"));
         Assert.assertFalse(group.fits(counter));
 
-        counter.addReleaseOcurrence("1.1");
+        counter.addVersionOccurrence(new Version("1.1"));
         Assert.assertTrue(group.fits(counter));
 
-        counter.addReleaseOcurrence("1.2");
+        counter.addVersionOccurrence(new Version("1.2"));
         Assert.assertTrue(group.fits(counter));
 
-        counter.addReleaseOcurrence("1.3");
+        counter.addVersionOccurrence(new Version("1.3"));
         Assert.assertFalse(group.fits(counter));
     }
 
@@ -47,16 +47,16 @@ public class GroupFilePairReleaseOcurrenceByQuantityTest {
 
         FilePairReleasesOccurenceCounter counter = new FilePairReleasesOccurenceCounter(new FilePair("A", "B"));
 
-        counter.addReleaseOcurrence("1.0");
+        counter.addVersionOccurrence(new Version("1.0"));
         Assert.assertFalse(group.fits(counter));
 
-        counter.addReleaseOcurrence("1.1");
+        counter.addVersionOccurrence(new Version("1.1"));
         Assert.assertFalse(group.fits(counter));
 
-        counter.addReleaseOcurrence("1.2");
+        counter.addVersionOccurrence(new Version("1.2"));
         Assert.assertTrue(new FilterFilePairByReleaseOcurrence(3).fits(counter));
 
-        counter.addReleaseOcurrence("1.3");
+        counter.addVersionOccurrence(new Version("1.3"));
         Assert.assertTrue(new FilterFilePairByReleaseOcurrence(3).fits(counter));
     }
 

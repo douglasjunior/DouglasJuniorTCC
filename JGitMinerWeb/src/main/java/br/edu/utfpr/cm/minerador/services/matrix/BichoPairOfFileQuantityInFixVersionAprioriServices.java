@@ -27,7 +27,8 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * 
+ * Report 1 - Projects Pair of File per Version
+ *
  * @author Rodrigo Kuroda
  */
 public class BichoPairOfFileQuantityInFixVersionAprioriServices extends AbstractBichoMatrixServices {
@@ -76,6 +77,7 @@ public class BichoPairOfFileQuantityInFixVersionAprioriServices extends Abstract
     public void run() {
         System.out.println(params);
 
+        final int minOccurrencesInOneVersion = 2;
         if (getRepository() == null) {
             throw new IllegalArgumentException("Parameter repository must be informed.");
         }
@@ -242,9 +244,26 @@ public class BichoPairOfFileQuantityInFixVersionAprioriServices extends Abstract
 
         }
 
+        Map<FilePair, Integer[]> filteredOccurrencesPerVersion = new HashMap<>();
+        if (minOccurrencesInOneVersion > 1) {
+            nextPairFile:
+            for (Map.Entry<FilePair, Integer[]> entrySet : pairFilesOccurrencesPerVersion.entrySet()) {
+                FilePair key = entrySet.getKey();
+                Integer[] occurrencesPerVesion = entrySet.getValue();
+                for (Integer occurrences : occurrencesPerVesion) {
+                    if (occurrences != null && occurrences > minOccurrencesInOneVersion) {
+                        filteredOccurrencesPerVersion.put(key, occurrencesPerVesion);
+                        continue nextPairFile;
+                    }
+                }
+            }
+        } else {
+            filteredOccurrencesPerVersion = pairFilesOccurrencesPerVersion;
+        }
+
         EntityMatrix matrix = new EntityMatrix();
 //        matrix.setNodes(objectsToNodes(pairFileList, FilePairAprioriOutput.getToStringHeaderAprioriOnly()));
-        matrix.setNodes(objectsToNodes(pairFilesOccurrencesPerVersion, fixVersionOrdered));
+        matrix.setNodes(objectsToNodes(filteredOccurrencesPerVersion, fixVersionOrdered));
         matricesToSave.add(matrix);
     }
 
