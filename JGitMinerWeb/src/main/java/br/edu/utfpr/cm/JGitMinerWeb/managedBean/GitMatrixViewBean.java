@@ -222,6 +222,6 @@ public class GitMatrixViewBean implements Serializable {
     }
 
     private String generateFileName(EntityMatrix matrix) {
-        return matrix.toString();
+        return matrix.getDownloadFileName();
     }
 }

@@ -3,12 +3,12 @@ package br.edu.utfpr.cm.minerador.services.matrix.model;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  *
@@ -23,17 +23,17 @@ public class ProjectFilePairReleaseOcurrence {
     private final Project project;
     private final Set<Version> versions;
     private final Set<Version> maxVersionsSequence;
-    private final Set<FilePair> cochanges;
+    private final Map<FilePair, AtomicInteger> filePairs;
     private final Map<FilePair, FilePairReleasesOccurenceCounter> filePairReleasesOccurenceCounter;
     private final FilePairOcurrencesGroup filePairOcurrencesGroup;
     private final int minOccurrencesInEachVersion;
-    private List<Version> allVersions;
+    private final List<Version> allVersions;
 
     public ProjectFilePairReleaseOcurrence(Project project, List<Version> allVersions, Collection<FilterFilePairByReleaseOcurrence> filtersOccurrences) {
         this.project = project;
         this.versions = new LinkedHashSet<>();
         this.maxVersionsSequence = new LinkedHashSet<>();
-        this.cochanges = new HashSet<>();
+        this.filePairs = new HashMap<>();
         this.filePairOcurrencesGroup = new FilePairOcurrencesGroup(filtersOccurrences);
         this.filePairReleasesOccurenceCounter = new HashMap<>();
         this.minOccurrencesInEachVersion = 0;
@@ -46,7 +46,7 @@ public class ProjectFilePairReleaseOcurrence {
         this.minOccurrencesInEachVersion = minOccurrencesInEachVersion;
         this.versions = new LinkedHashSet<>();
         this.maxVersionsSequence = new LinkedHashSet<>();
-        this.cochanges = new HashSet<>();
+        this.filePairs = new HashMap<>();
         this.filePairOcurrencesGroup = new FilePairOcurrencesGroup(filtersOccurrences);
         this.filePairReleasesOccurenceCounter = new HashMap<>();
     }
@@ -61,12 +61,18 @@ public class ProjectFilePairReleaseOcurrence {
         this.versions.add(version);
     }
 
-    public boolean addFilePair(FilePair filePair) {
-        return cochanges.add(filePair);
+    public void addFilePair(FilePair filePair) {
+        if (filePairs.containsKey(filePair)) {
+            filePairs.get(filePair).incrementAndGet();
+        } else {
+            filePairs.put(filePair, new AtomicInteger(1));
+        }
     }
 
-    public boolean addFilePair(Collection<FilePair> filePair) {
-        return cochanges.addAll(filePair);
+    public void addFilePair(Collection<FilePair> filePairs) {
+        for (FilePair filePair : filePairs) {
+            addFilePair(filePair);
+        }
     }
 
     public int addVersionForFilePair(FilePair filePair, Version version) {
@@ -91,16 +97,29 @@ public class ProjectFilePairReleaseOcurrence {
         }
     }
 
-    public Map<FilePair, FilePairReleasesOccurenceCounter> getFilePairReleasesOccurenceCounter() {
-        return filePairReleasesOccurenceCounter;
+    public boolean hasMinimumOccurrencesInOneVersion(FilePair filePair) {
+        return filePairReleasesOccurenceCounter.get(filePair).hasAtLeastOccurrencesInOneVersion(minOccurrencesInEachVersion);
+    }
+
+    /**
+     * Number of pair file changes
+     *
+     * @param filePair
+     * @return
+     */
+    public int getOccurrences(FilePair filePair) {
+        if (filePairs.containsKey(filePair)) {
+            return filePairs.get(filePair).get();
+        }
+        return 0;
+    }
+
+    public boolean hasMinimumOccurrences(FilePair filePair) {
+        return getOccurrences(filePair) >= minOccurrencesInEachVersion;
     }
 
     public FilePairOcurrencesGroup getFilePairOcurrencesGroup() {
         return filePairOcurrencesGroup;
-    }
-
-    public Set<Version> getVersions() {
-        return versions;
     }
 
     @Override
@@ -130,9 +149,9 @@ public class ProjectFilePairReleaseOcurrence {
         StringBuilder sb = new StringBuilder();
         sb.append(project).append(";");
         sb.append(versions.size()).append(";");
-        sb.append(cochanges.size());
+        sb.append(filePairs.size());
         if (!filePairReleasesOccurenceCounter.isEmpty()) {
-            filePairOcurrencesGroup.groupFilePairs(new ArrayList<>(getVersions()), filePairReleasesOccurenceCounter.values(), minOccurrencesInEachVersion);
+            filePairOcurrencesGroup.groupFilePairs(new ArrayList<>(versions), filePairReleasesOccurenceCounter.values(), minOccurrencesInEachVersion);
             sb.append(";").append(filePairOcurrencesGroup.toString());
         }
         return sb.toString();

@@ -53,8 +53,17 @@ public class FilePairReleasesOccurenceCounter {
         return releasesOcurrences.keySet();
     }
 
+    public int getMaxVersionsSequenceOcurrences() {
+        return getMaxVersionsSequenceOcurrences(1);
+    }
+
     public int getMaxVersionsSequenceOcurrences(final int minOccurrencesInOneVersion) {
         return VersionUtil.getMaxVersionSequence(releasesOcurrences, allVersions, minOccurrencesInOneVersion).size();
+    }
+
+    public boolean hasAtLeastOccurrencesInVersion(Version version, int minOccurrencesInVersion) {
+        AtomicInteger value = releasesOcurrences.get(version);
+        return value.get() >= minOccurrencesInVersion;
     }
 
     public boolean hasAtLeastOccurrencesInOneVersion(int minOccurrencesInOneVersion) {

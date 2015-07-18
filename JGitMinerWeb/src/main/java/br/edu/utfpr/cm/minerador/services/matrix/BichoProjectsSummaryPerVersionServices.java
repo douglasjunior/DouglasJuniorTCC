@@ -10,7 +10,6 @@ import br.edu.utfpr.cm.JGitMinerWeb.util.Util;
 import br.edu.utfpr.cm.minerador.services.matrix.model.FilePair;
 import br.edu.utfpr.cm.minerador.services.matrix.model.FilePairApriori;
 import br.edu.utfpr.cm.minerador.services.matrix.model.FilePairAprioriOutput;
-import br.edu.utfpr.cm.minerador.services.matrix.model.FilePairReleasesOccurenceCounter;
 import br.edu.utfpr.cm.minerador.services.matrix.model.FilePath;
 import br.edu.utfpr.cm.minerador.services.matrix.model.FilterByApriori;
 import br.edu.utfpr.cm.minerador.services.matrix.model.FilterFilePairByReleaseOcurrence;
@@ -103,7 +102,7 @@ public class BichoProjectsSummaryPerVersionServices extends AbstractBichoMatrixS
         Double maxSupport = getMaxSupport();
         Double minConfidence = getMinConfidence();
         Double maxConfidence = getMaxConfidence();
-        int minOccurrencesInAnyVersion = getMinOccurencesInAnyVersion();
+        int minOccurrencesInSomeVersion = getMinOccurencesInAnyVersion();
         boolean hasSupportFilter = minSupport != null && maxSupport != null;
         boolean hasConfidenceFilter = minConfidence != null && maxConfidence != null;
 
@@ -114,13 +113,16 @@ public class BichoProjectsSummaryPerVersionServices extends AbstractBichoMatrixS
 
         for (String project : getSelectedProjects()) {
 
+            final Map<FilePair, Integer[]> pairFilesOccurrencesPerVersion = new HashMap<>();
             BichoDAO bichoDAO = new BichoDAO(dao, project, getMaxFilesPerCommit());
             BichoFileDAO bichoFileDAO = new BichoFileDAO(dao, project, getMaxFilesPerCommit());
             BichoPairFileDAO bichoPairFileDAO = new BichoPairFileDAO(dao, project, getMaxFilesPerCommit());
 
             final List<String> fixVersionOrdered = bichoDAO.selectFixVersionOrdered();
             final List<Version> allVersions = VersionUtil.listStringToListVersion(fixVersionOrdered);
-            final ProjectFilePairReleaseOcurrence projectVersionFilePairReleaseOcurrence = new ProjectFilePairReleaseOcurrence(new Project(project), allVersions, minOccurrencesInAnyVersion, filtersOccurrences);
+            final ProjectFilePairReleaseOcurrence projectVersionFilePairReleaseOcurrence = new ProjectFilePairReleaseOcurrence(new Project(project), allVersions, minOccurrencesInSomeVersion, filtersOccurrences);
+
+            final Set<ProjectVersionSummary> projectVersionsSummary = new LinkedHashSet<>(); // cummulative versions summary for project
 
             for (String versionString : fixVersionOrdered) {
 
@@ -227,6 +229,7 @@ public class BichoProjectsSummaryPerVersionServices extends AbstractBichoMatrixS
                 }
 
                 projectSummary.add(summaryVersion);
+                projectVersionsSummary.add(summaryVersion);
 
                 out.printLog("\n\n" + project + " " + version + "\n"
                         + "Number of files (JAVA and XML): " + allFiles.size() + "\n"
@@ -259,27 +262,23 @@ public class BichoProjectsSummaryPerVersionServices extends AbstractBichoMatrixS
                 projectVersionFilePairReleaseOcurrence.addFilePair(pairFiles.keySet());
                 projectVersionFilePairReleaseOcurrence.addVersionForFilePair(pairFiles.keySet(), version);
                 projectVersionFilePairReleaseOcurrence.addVersion(version);
+
+                for (FilePair filePair : summaryVersion.getFilePairs()) {
+                    if (projectVersionFilePairReleaseOcurrence.hasMinimumOccurrences(filePair)) {
+                        summaryVersion.addFilePairWithAtLeastTwoOccurrencesInAnyVersion(filePair);
+                    }
+                }
             }
             if (summaryRepositoryName.length() > 0) {
                 summaryRepositoryName.append(", ");
             }
             summaryRepositoryName.append(project);
-
-            // count pairs of file with at least two occurence in one version
-            for (ProjectVersionSummary summary : projectSummary) {
-                for (FilePair filePair : summary.getFilePairs()) {
-                    final Map<FilePair, FilePairReleasesOccurenceCounter> filePairReleasesOccurenceCounter = projectVersionFilePairReleaseOcurrence.getFilePairReleasesOccurenceCounter();
-                    if (filePairReleasesOccurenceCounter.get(filePair).hasAtLeastOccurrencesInOneVersion(minOccurrencesInAnyVersion)) {
-                        summary.addFilePairWithAtLeastTwoOccurrencesInAnyVersion(filePair);
-                    }
-                }
-            }
         }
 
         EntityMatrix matrixSummary = new EntityMatrix();
         matrixSummary.setNodes(objectsToNodes(projectSummary, ProjectVersionSummary.getHeader() + ";" + projectSummary.iterator().next().getFilePairsAprioriStatistics().getDynamicHeader()));
         matrixSummary.setRepository(summaryRepositoryName.toString());
-        matrixSummary.setAdditionalFilename("summary");
+        matrixSummary.getParams().put("filename", "summary");
         matricesToSave.add(matrixSummary);
 
     }

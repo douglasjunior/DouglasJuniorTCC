@@ -189,15 +189,15 @@ public class EntityMatrix implements InterfaceEntity, Startable {
     @Override
     public String getDownloadFileName() {
         final Object filename = params.get("filename");
-        if (filename != null) {
+        if (filename != null && StringUtils.isNotBlank(filename.toString())) {
 
             final Object additionalFilename = params.get("additionalFilename");
             if (additionalFilename != null) {
-                return StringUtils.capitalize(repository) + " " + filename + additionalFilename;
+                return repository + " " + filename + additionalFilename;
             }
-            return StringUtils.capitalize(repository) + " " + filename;
+            return repository + " " + filename;
         } else {
-            return this.repository + "-" + this.started;
+            return this.repository;
         }
     }
 

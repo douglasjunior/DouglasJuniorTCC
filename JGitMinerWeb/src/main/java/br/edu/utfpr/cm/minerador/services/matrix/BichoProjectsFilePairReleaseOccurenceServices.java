@@ -199,7 +199,7 @@ public class BichoProjectsFilePairReleaseOccurenceServices extends AbstractBicho
         EntityMatrix matrixSummary = new EntityMatrix();
         matrixSummary.setNodes(objectsToNodes(releaseOccurrences, ProjectFilePairReleaseOcurrence.getHeader() + ";" + releaseOccurrences.iterator().next().getFilePairOcurrencesGroup().getDynamicHeader()));
         matrixSummary.setRepository(summaryRepositoryName.toString());
-        matrixSummary.setAdditionalFilename("summary");
+        matrixSummary.getParams().put("filename", "summary");
         matricesToSave.add(matrixSummary);
 
     }

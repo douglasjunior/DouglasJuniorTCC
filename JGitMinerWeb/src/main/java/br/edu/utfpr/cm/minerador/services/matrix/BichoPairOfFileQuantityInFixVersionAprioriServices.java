@@ -251,7 +251,7 @@ public class BichoPairOfFileQuantityInFixVersionAprioriServices extends Abstract
                 FilePair key = entrySet.getKey();
                 Integer[] occurrencesPerVesion = entrySet.getValue();
                 for (Integer occurrences : occurrencesPerVesion) {
-                    if (occurrences != null && occurrences > minOccurrencesInOneVersion) {
+                    if (occurrences != null && occurrences >= minOccurrencesInOneVersion) {
                         filteredOccurrencesPerVersion.put(key, occurrencesPerVesion);
                         continue nextPairFile;
                     }
@@ -264,6 +264,8 @@ public class BichoPairOfFileQuantityInFixVersionAprioriServices extends Abstract
         EntityMatrix matrix = new EntityMatrix();
 //        matrix.setNodes(objectsToNodes(pairFileList, FilePairAprioriOutput.getToStringHeaderAprioriOnly()));
         matrix.setNodes(objectsToNodes(filteredOccurrencesPerVersion, fixVersionOrdered));
+        matrix.getParams().put("filename", "cochanges per version");
+        matrix.getParams().put("minIssueInAtLeastOneVersion", minOccurrencesInOneVersion);
         matricesToSave.add(matrix);
     }
 

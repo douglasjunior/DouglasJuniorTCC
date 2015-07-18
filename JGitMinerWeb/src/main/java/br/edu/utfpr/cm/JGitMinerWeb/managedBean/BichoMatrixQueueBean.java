@@ -264,7 +264,14 @@ public class BichoMatrixQueueBean implements Serializable {
                                 out.printLog("Salvando matriz com " + entityMatrix.getNodes().size() + " registros. Parametros: " + entityMatrix.getParams());
                                 entityMatrix.setStarted(started);
                                 params.put("additionalFilename", entityMatrix.getAdditionalFilename());
-                                entityMatrix.getParams().putAll(params);
+                                for (Map.Entry<Object, Object> entrySet : params.entrySet()) {
+                                    Object key = entrySet.getKey();
+                                    Object value = entrySet.getValue();
+
+                                    if (!entityMatrix.getParams().containsKey(key)) {
+                                        entityMatrix.getParams().put(key, value);
+                                    }
+                                }
                                 entityMatrix.setRepository(projectName);
                                 entityMatrix.setClassServicesName(serviceClass.getName());
                                 entityMatrix.setLog(out.getLog().toString());
