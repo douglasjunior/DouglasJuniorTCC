@@ -52,12 +52,24 @@ public class FilePairOcurrencesGroup {
         }
     }
 
+    /**
+     * Count the quantity of file pair of each filter (group/classification)
+     * specified in constructor.
+     *
+     * @param allVersions
+     * @param counters The counters of each file pair to classify based on
+     * filters.
+     * @param minOccurrencesInOneVersion Minimum occurrences of file pair in
+     * version to considers in a sequence of versions.
+     */
     public void groupFilePairs(List<Version> allVersions,
-            Collection<FilePairReleasesOccurenceCounter> counters, int minOccurrencesInAnyVersion) {
+            Collection<FilePairReleasesOccurenceCounter> counters, int minOccurrencesInOneVersion) {
         for (FilePairReleasesOccurenceCounter counter : counters) {
-            if (counter.hasAtLeastOccurrencesInOneVersion(minOccurrencesInAnyVersion)) {
+            // optimization: check if file pair was changed in some version with the minimum occurrences
+            if (counter.hasAtLeastOccurrencesInOneVersion(minOccurrencesInOneVersion)) {
+                // checking which group the file pair is, based on its number of change sequence through versions
                 for (FilterFilePairByReleaseOcurrence group : groupingCount.keySet()) {
-                    if (group.fitsVersionSequenceOccurrences(counter, minOccurrencesInAnyVersion)) {
+                    if (group.fitsVersionSequenceOccurrences(counter, minOccurrencesInOneVersion)) {
                         increment(group);
                     }
                 }

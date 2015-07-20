@@ -12,6 +12,16 @@ import java.util.Set;
  */
 public class ProjectVersionSummary {
 
+    public static String getHeader() {
+        return "Project;" // Project analysed
+                + "Version;" // Version of Project analysed
+                + "Issues;" // Number of issues
+                + "Commits;" // Number of commits
+                + "Cochange>=1;" // Number of file pairs with minimum one occurrences in issues (e.g. all file pair)
+                + "Cochange>=2;" // Number of file pairs with minimum two occurrences in issues
+                + FilePairAprioriStatistics.getHeader();
+    }
+
     private final ProjectVersion projectVersion;
     private final Set<Issue> issues;
     private final Set<Commit> commits;
@@ -128,9 +138,5 @@ public class ProjectVersionSummary {
                 .append(filePairs.size()).append(";")
                 .append(filePairsWithAtLeastTwoOccurrencesInAnyVersion.size()).append(";")
                 .append(filePairsAprioriStatistics).toString();
-    }
-
-    public static String getHeader() {
-        return "Project;Version;Issues;Commits;Cochange>=1;Cochange>=2;" + FilePairAprioriStatistics.getHeader();
     }
 }

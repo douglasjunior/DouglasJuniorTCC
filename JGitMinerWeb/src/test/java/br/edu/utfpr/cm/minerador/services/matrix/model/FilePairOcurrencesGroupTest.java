@@ -151,6 +151,4 @@ public class FilePairOcurrencesGroupTest {
         Assert.assertEquals("in 2 releases;in 3 releases;in 4 releases;>= 5 releases;in 2-3 releases", group.getDynamicHeader());
 
     }
-
-    // TODO Testes para o fitsVersionSequenceOccurrences
 }

@@ -17,6 +17,9 @@ public class FilePairReleasesOccurenceCounter {
 
     private final FilePair filePair;
     private final Map<Version, AtomicInteger> releasesOcurrences;
+    /**
+     * For determine the maximum sequence of version
+     */
     private final List<Version> allVersions;
 
     public FilePairReleasesOccurenceCounter(FilePair filePair) {
@@ -57,10 +60,30 @@ public class FilePairReleasesOccurenceCounter {
         return getMaxVersionsSequenceOcurrences(1);
     }
 
+    /**
+     * Returns the maximum sequence of versions with minimum occurrences in each
+     * version. For example, suppose the file pair AB changed 1 time in version
+     * 1.0 and 2 times in versions 1.1. If the minimum occurrence is 2, then the
+     * maximum sequence will 1 (i.e. AB occurred 2 times only in version 1.1).
+     *
+     * @param minOccurrencesInOneVersion The minimum occurrences to considers a
+     * version.
+     * @return the quantity of maximum sequence.
+     */
     public int getMaxVersionsSequenceOcurrences(final int minOccurrencesInOneVersion) {
         return VersionUtil.getMaxVersionSequence(releasesOcurrences, allVersions, minOccurrencesInOneVersion).size();
     }
 
+    /**
+     * Returns if this file pair has the minimum occurrences in specified
+     * version.
+     *
+     * @param version Version to check the minimum occurrence
+     * @param minOccurrencesInVersion The number of minimum occurrence in
+     * version
+     * @return true if the occurrences greater than or equal to (>=) minimum
+     * occurrences specified, otherwise false.
+     */
     public boolean hasAtLeastOccurrencesInVersion(Version version, int minOccurrencesInVersion) {
         AtomicInteger value = releasesOcurrences.get(version);
         return value.get() >= minOccurrencesInVersion;
@@ -76,13 +99,22 @@ public class FilePairReleasesOccurenceCounter {
         return false;
     }
 
-    public int addVersionOccurrence(Version release) {
+    public void addVersionOccurrence(Version release) {
         if (releasesOcurrences.containsKey(release)) {
-            return releasesOcurrences.get(release).incrementAndGet();
+            releasesOcurrences.get(release).incrementAndGet();
         } else {
             final AtomicInteger count = new AtomicInteger();
+            count.incrementAndGet();
             releasesOcurrences.put(release, count);
-            return count.incrementAndGet();
+        }
+    }
+
+    public void addVersionOccurrence(Version release, int quantity) {
+        if (releasesOcurrences.containsKey(release)) {
+            releasesOcurrences.get(release).addAndGet(quantity);
+        } else {
+            final AtomicInteger count = new AtomicInteger(quantity);
+            releasesOcurrences.put(release, count);
         }
     }
 

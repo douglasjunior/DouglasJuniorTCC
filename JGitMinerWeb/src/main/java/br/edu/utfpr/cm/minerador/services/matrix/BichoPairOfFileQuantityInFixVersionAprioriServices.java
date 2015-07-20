@@ -17,6 +17,7 @@ import br.edu.utfpr.cm.minerador.services.metric.Cacher;
 import br.edu.utfpr.cm.minerador.services.metric.model.Commit;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
@@ -78,195 +79,194 @@ public class BichoPairOfFileQuantityInFixVersionAprioriServices extends Abstract
         System.out.println(params);
 
         final int minOccurrencesInOneVersion = 2;
-        if (getRepository() == null) {
-            throw new IllegalArgumentException("Parameter repository must be informed.");
-        }
 
         log("\n --------------- "
                 + new SimpleDateFormat("dd/MM/yyyy HH:mm:ss").format(new Date())
                 + "\n --------------- \n");
+        for (String project : getSelectedProjects()) {
+            BichoDAO bichoDAO = new BichoDAO(dao, project, getMaxFilesPerCommit());
+            BichoFileDAO bichoFileDAO = new BichoFileDAO(dao, project, getMaxFilesPerCommit());
+            BichoPairFileDAO bichoPairFileDAO = new BichoPairFileDAO(dao, project, getMaxFilesPerCommit());
 
-        BichoDAO bichoDAO = new BichoDAO(dao, getRepository(), getMaxFilesPerCommit());
-        BichoFileDAO bichoFileDAO = new BichoFileDAO(dao, getRepository(), getMaxFilesPerCommit());
-        BichoPairFileDAO bichoPairFileDAO = new BichoPairFileDAO(dao, getRepository(), getMaxFilesPerCommit());
+            final Map<FilePair, Integer[]> pairFilesOccurrencesPerVersion = new HashMap<>();
+            final List<String> fixVersionOrdered = bichoDAO.selectFixVersionOrdered();
+            final int totalFixVersion = fixVersionOrdered.size();
 
-        final Map<FilePair, Integer[]> pairFilesOccurrencesPerVersion = new HashMap<>();
-        final List<String> fixVersionOrdered = bichoDAO.selectFixVersionOrdered();
-        final int totalFixVersion = fixVersionOrdered.size();
+            for (String version : fixVersionOrdered) {
 
-        for (String version : fixVersionOrdered) {
+                Map<FilePair, FilePairAprioriOutput> pairFiles = new HashMap<>();
 
-            Map<FilePair, FilePairAprioriOutput> pairFiles = new HashMap<>();
+                out.printLog("Maximum files per commit: " + getMaxFilesPerCommit());
+                out.printLog("Minimum files per commit: " + getMinFilesPerCommit());
 
-            out.printLog("Maximum files per commit: " + getMaxFilesPerCommit());
-            out.printLog("Minimum files per commit: " + getMinFilesPerCommit());
+                Set<FilePath> allFiles = new HashSet<>();
+                Set<FilePath> allTestJavaFiles = new HashSet<>();
+                Set<FilePath> allJavaFiles = new HashSet<>();
+                Set<FilePath> allXmlFiles = new HashSet<>();
+                Set<FilePath> allFilteredFiles = new HashSet<>();
 
-            Set<FilePath> allFiles = new HashSet<>();
-            Set<FilePath> allTestJavaFiles = new HashSet<>();
-            Set<FilePath> allJavaFiles = new HashSet<>();
-            Set<FilePath> allXmlFiles = new HashSet<>();
-            Set<FilePath> allFilteredFiles = new HashSet<>();
+                Set<Commit> allCommits = new HashSet<>();
+                Set<Integer> allConsideredCommits = new HashSet<>();
+                Set<Integer> allDefectIssues = new HashSet<>();
 
-            Set<Commit> allCommits = new HashSet<>();
-            Set<Integer> allConsideredCommits = new HashSet<>();
-            Set<Integer> allDefectIssues = new HashSet<>();
+                // select a issue/pullrequest commenters
+                Map<Issue, List<Commit>> issuesConsideredCommits = bichoDAO.selectIssuesAndType(version);
+                Set<Issue> allIssues = issuesConsideredCommits.keySet();
 
-            // select a issue/pullrequest commenters
-            Map<Issue, List<Commit>> issuesConsideredCommits = bichoDAO.selectIssuesAndType(version);
-            Set<Issue> allIssues = issuesConsideredCommits.keySet();
+                out.printLog("Issues (filtered): " + issuesConsideredCommits.size());
 
-            out.printLog("Issues (filtered): " + issuesConsideredCommits.size());
+                int count = 1;
+                Cacher cacher = new Cacher(bichoFileDAO);
 
-            int count = 1;
-            Cacher cacher = new Cacher(bichoFileDAO);
+                // combina em pares todos os arquivos commitados em uma issue
+                final int totalIssues = issuesConsideredCommits.size();
+                int progressFilePairing = 0;
+                for (Map.Entry<Issue, List<Commit>> entrySet : issuesConsideredCommits.entrySet()) {
+                    if (++progressFilePairing % 100 == 0
+                            || progressFilePairing == totalIssues) {
+                        System.out.println(progressFilePairing + "/" + totalIssues);
+                    }
+                    Issue issue = entrySet.getKey();
+                    List<Commit> commits = entrySet.getValue();
 
-            // combina em pares todos os arquivos commitados em uma issue
-            final int totalIssues = issuesConsideredCommits.size();
-            int progressFilePairing = 0;
-            for (Map.Entry<Issue, List<Commit>> entrySet : issuesConsideredCommits.entrySet()) {
-                if (++progressFilePairing % 100 == 0
-                        || progressFilePairing == totalIssues) {
-                    System.out.println(progressFilePairing + "/" + totalIssues);
-                }
-                Issue issue = entrySet.getKey();
-                List<Commit> commits = entrySet.getValue();
+                    out.printLog("Issue #" + issue);
+                    out.printLog(count++ + " of the " + issuesConsideredCommits.size());
 
-                out.printLog("Issue #" + issue);
-                out.printLog(count++ + " of the " + issuesConsideredCommits.size());
+                    out.printLog(commits.size() + " commits references the issue");
+                    allCommits.addAll(commits);
 
-                out.printLog(commits.size() + " commits references the issue");
-                allCommits.addAll(commits);
+                    List<FilePath> commitedFiles
+                            = filterAndAggregateAllFileOfIssue(commits, bichoFileDAO, allFiles, allTestJavaFiles, allFilteredFiles, allJavaFiles, allXmlFiles);
 
-                List<FilePath> commitedFiles
-                        = filterAndAggregateAllFileOfIssue(commits, bichoFileDAO, allFiles, allTestJavaFiles, allFilteredFiles, allJavaFiles, allXmlFiles);
+                    // empty
+                    if (commitedFiles.isEmpty()) {
+                        out.printLog("No file commited for issue #" + issue);
+                        continue;
+                    } else if (commitedFiles.size() == 1) {
+                        out.printLog("One file only commited for issue #" + issue);
+                        continue;
 
-                // empty
-                if (commitedFiles.isEmpty()) {
-                    out.printLog("No file commited for issue #" + issue);
-                    continue;
-                } else if (commitedFiles.size() == 1) {
-                    out.printLog("One file only commited for issue #" + issue);
-                    continue;
+                    }
+                    out.printLog("Number of files commited and related with issue: " + commitedFiles.size());
 
-                }
-                out.printLog("Number of files commited and related with issue: " + commitedFiles.size());
+                    pairFiles(commitedFiles, pairFiles, issue, allDefectIssues, allConsideredCommits);
 
-                pairFiles(commitedFiles, pairFiles, issue, allDefectIssues, allConsideredCommits);
-
-            }
-
-            out.printLog("Result: " + pairFiles.size());
-
-            Set<Integer> allConsideredIssues = new HashSet<>();
-            for (Map.Entry<FilePair, FilePairAprioriOutput> entrySet : pairFiles.entrySet()) {
-                FilePairAprioriOutput value = entrySet.getValue();
-                allConsideredIssues.addAll(value.getIssuesId());
-            }
-            // calculando o apriori
-            out.printLog("Calculing apriori...");
-            out.printLog("Issues considered in version " + version + ": " + allConsideredIssues.size());
-            int totalApriori = pairFiles.size();
-            int countApriori = 0;
-
-            final List<FilePairAprioriOutput> pairFileList = new ArrayList<>();
-
-            for (FilePair fileFile : pairFiles.keySet()) {
-                if (++countApriori % 100 == 0
-                        || countApriori == totalApriori) {
-                    System.out.println(countApriori + "/" + totalApriori);
                 }
 
-                Long file1Issues = cacher.calculeNumberOfIssues(fileFile.getFile1(), version);
-                Long file2Issues = cacher.calculeNumberOfIssues(fileFile.getFile2(), version);
+                out.printLog("Result: " + pairFiles.size());
 
-                FilePairAprioriOutput filePairOutput = pairFiles.get(fileFile);
+                Set<Integer> allConsideredIssues = new HashSet<>();
+                for (Map.Entry<FilePair, FilePairAprioriOutput> entrySet : pairFiles.entrySet()) {
+                    FilePairAprioriOutput value = entrySet.getValue();
+                    allConsideredIssues.addAll(value.getIssuesId());
+                }
+                // calculando o apriori
+                out.printLog("Calculing apriori...");
+                out.printLog("Issues considered in version " + version + ": " + allConsideredIssues.size());
+                int totalApriori = pairFiles.size();
+                int countApriori = 0;
 
-                FilePairApriori apriori = new FilePairApriori(file1Issues, file2Issues,
-                        filePairOutput.getIssuesIdWeight(), allConsideredIssues.size());
+                final List<FilePairAprioriOutput> pairFileList = new ArrayList<>();
 
-                fileFile.orderFilePairByConfidence(apriori);
-                filePairOutput.setFilePairApriori(apriori);
+                for (FilePair fileFile : pairFiles.keySet()) {
+                    if (++countApriori % 100 == 0
+                            || countApriori == totalApriori) {
+                        System.out.println(countApriori + "/" + totalApriori);
+                    }
 
-                pairFileList.add(filePairOutput);
-            }
+                    Long file1Issues = cacher.calculeNumberOfIssues(fileFile.getFile1(), version);
+                    Long file2Issues = cacher.calculeNumberOfIssues(fileFile.getFile2(), version);
 
-            for (Map.Entry<FilePair, FilePairAprioriOutput> entrySet1 : pairFiles.entrySet()) {
-                final FilePair key = entrySet1.getKey();
-                final int occurrences = entrySet1.getValue().getIssuesId().size();
-                final int indexOfVersion = fixVersionOrdered.indexOf(version);
+                    FilePairAprioriOutput filePairOutput = pairFiles.get(fileFile);
 
-                if (pairFilesOccurrencesPerVersion.containsKey(key)) {
-                    final Integer[] quantity = pairFilesOccurrencesPerVersion.get(key);
-                    if (quantity[indexOfVersion] == null) {
-                        quantity[indexOfVersion] = occurrences;
+                    FilePairApriori apriori = new FilePairApriori(file1Issues, file2Issues,
+                            filePairOutput.getIssuesIdWeight(), allConsideredIssues.size());
+
+                    fileFile.orderFilePairByConfidence(apriori);
+                    filePairOutput.setFilePairApriori(apriori);
+
+                    pairFileList.add(filePairOutput);
+                }
+
+                for (Map.Entry<FilePair, FilePairAprioriOutput> entrySet1 : pairFiles.entrySet()) {
+                    final FilePair key = entrySet1.getKey();
+                    final int occurrences = entrySet1.getValue().getIssuesId().size();
+                    final int indexOfVersion = fixVersionOrdered.indexOf(version);
+
+                    if (pairFilesOccurrencesPerVersion.containsKey(key)) {
+                        final Integer[] quantity = pairFilesOccurrencesPerVersion.get(key);
+                        if (quantity[indexOfVersion] == null) {
+                            quantity[indexOfVersion] = occurrences;
+                        } else {
+                            quantity[indexOfVersion] += occurrences;
+                        }
                     } else {
-                        quantity[indexOfVersion] += occurrences;
-                    }
-                } else {
-                    final Integer[] quantity = new Integer[totalFixVersion];
-                    quantity[indexOfVersion] = occurrences;
-                    pairFilesOccurrencesPerVersion.put(key, quantity);
-                }
-            }
-
-//            EntityMatrix matrix = new EntityMatrix();
-//            matrix.setNodes(objectsToNodes(pairFileList, FilePairAprioriOutput.getToStringHeaderAprioriOnly()));
-//            matrix.setNodes(objectsToNodes(pairFilesOccurrencesPerVersion, fixVersionOrdered));
-//            matricesToSave.add(matrix);
-
-            out.printLog("\n\n" + getRepository() + " " + version + "\n"
-                    + "Number of files (JAVA and XML): " + allFiles.size() + "\n"
-                    + "Number of files (JAVA): " + allJavaFiles.size() + "\n"
-                    + "Number of files (XML): " + allXmlFiles.size() + "\n"
-                    + "Number of ignored files !.java, !.xml, *Test.java: " + allFilteredFiles.size() + "\n"
-                    + "Number of ignored files *Test.java: " + allTestJavaFiles.size() + "\n"
-                    + "Number of file pairs: " + pairFileList.size() + "\n"
-                    + "Number of issues: " + allIssues.size() + "\n"
-                    + "Number of considered issues: " + allConsideredIssues.size() + "\n"
-                    + "Number of commits: " + allCommits.size() + "\n"
-                    + "Number of considered commits: " + allConsideredCommits.size() + "\n"
-                    + "Number of defect issues: " + allDefectIssues.size() + "\n"
-            );
-
-            log("\n\n" + getRepository() + " " + version + "\n"
-                    + "Number of files (JAVA and XML): " + allFiles.size() + "\n"
-                    + "Number of files (JAVA): " + allJavaFiles.size() + "\n"
-                    + "Number of files (XML): " + allXmlFiles.size() + "\n"
-                    + "Number of ignored files !.java, !.xml, *Test.java: " + allFilteredFiles.size() + "\n"
-                    + "Number of ignored files *Test.java: " + allTestJavaFiles.size() + "\n"
-                    + "Number of file pairs: " + pairFileList.size() + "\n"
-                    + "Number of issues: " + allIssues.size() + "\n"
-                    + "Number of considered issues: " + allConsideredIssues.size() + "\n"
-                    + "Number of commits: " + allCommits.size() + "\n"
-                    + "Number of considered commits: " + allConsideredCommits.size() + "\n"
-                    + "Number of defect issues: " + allDefectIssues.size() + "\n"
-            );
-
-        }
-
-        Map<FilePair, Integer[]> filteredOccurrencesPerVersion = new HashMap<>();
-        if (minOccurrencesInOneVersion > 1) {
-            nextPairFile:
-            for (Map.Entry<FilePair, Integer[]> entrySet : pairFilesOccurrencesPerVersion.entrySet()) {
-                FilePair key = entrySet.getKey();
-                Integer[] occurrencesPerVesion = entrySet.getValue();
-                for (Integer occurrences : occurrencesPerVesion) {
-                    if (occurrences != null && occurrences >= minOccurrencesInOneVersion) {
-                        filteredOccurrencesPerVersion.put(key, occurrencesPerVesion);
-                        continue nextPairFile;
+                        final Integer[] quantity = new Integer[totalFixVersion];
+                        quantity[indexOfVersion] = occurrences;
+                        pairFilesOccurrencesPerVersion.put(key, quantity);
                     }
                 }
-            }
-        } else {
-            filteredOccurrencesPerVersion = pairFilesOccurrencesPerVersion;
-        }
 
-        EntityMatrix matrix = new EntityMatrix();
-//        matrix.setNodes(objectsToNodes(pairFileList, FilePairAprioriOutput.getToStringHeaderAprioriOnly()));
-        matrix.setNodes(objectsToNodes(filteredOccurrencesPerVersion, fixVersionOrdered));
-        matrix.getParams().put("filename", "cochanges per version");
-        matrix.getParams().put("minIssueInAtLeastOneVersion", minOccurrencesInOneVersion);
-        matricesToSave.add(matrix);
+    //            EntityMatrix matrix = new EntityMatrix();
+                //            matrix.setNodes(objectsToNodes(pairFileList, FilePairAprioriOutput.getToStringHeaderAprioriOnly()));
+                //            matrix.setNodes(objectsToNodes(pairFilesOccurrencesPerVersion, fixVersionOrdered));
+                //            matricesToSave.add(matrix);
+
+                out.printLog("\n\n" + project + " " + version + "\n"
+                        + "Number of files (JAVA and XML): " + allFiles.size() + "\n"
+                        + "Number of files (JAVA): " + allJavaFiles.size() + "\n"
+                        + "Number of files (XML): " + allXmlFiles.size() + "\n"
+                        + "Number of ignored files !.java, !.xml, *Test.java: " + allFilteredFiles.size() + "\n"
+                        + "Number of ignored files *Test.java: " + allTestJavaFiles.size() + "\n"
+                        + "Number of file pairs: " + pairFileList.size() + "\n"
+                        + "Number of issues: " + allIssues.size() + "\n"
+                        + "Number of considered issues: " + allConsideredIssues.size() + "\n"
+                        + "Number of commits: " + allCommits.size() + "\n"
+                        + "Number of considered commits: " + allConsideredCommits.size() + "\n"
+                        + "Number of defect issues: " + allDefectIssues.size() + "\n"
+                );
+
+                log("\n\n" + project + " " + version + "\n"
+                        + "Number of files (JAVA and XML): " + allFiles.size() + "\n"
+                        + "Number of files (JAVA): " + allJavaFiles.size() + "\n"
+                        + "Number of files (XML): " + allXmlFiles.size() + "\n"
+                        + "Number of ignored files !.java, !.xml, *Test.java: " + allFilteredFiles.size() + "\n"
+                        + "Number of ignored files *Test.java: " + allTestJavaFiles.size() + "\n"
+                        + "Number of file pairs: " + pairFileList.size() + "\n"
+                        + "Number of issues: " + allIssues.size() + "\n"
+                        + "Number of considered issues: " + allConsideredIssues.size() + "\n"
+                        + "Number of commits: " + allCommits.size() + "\n"
+                        + "Number of considered commits: " + allConsideredCommits.size() + "\n"
+                        + "Number of defect issues: " + allDefectIssues.size() + "\n"
+                );
+
+            }
+
+            Map<FilePair, Integer[]> filteredOccurrencesPerVersion = new HashMap<>();
+            if (minOccurrencesInOneVersion > 1) {
+                nextPairFile:
+                for (Map.Entry<FilePair, Integer[]> entrySet : pairFilesOccurrencesPerVersion.entrySet()) {
+                    FilePair key = entrySet.getKey();
+                    Integer[] occurrencesPerVesion = entrySet.getValue();
+                    for (Integer occurrences : occurrencesPerVesion) {
+                        if (occurrences != null && occurrences >= minOccurrencesInOneVersion) {
+                            filteredOccurrencesPerVersion.put(key, occurrencesPerVesion);
+                            continue nextPairFile;
+                        }
+                    }
+                }
+            } else {
+                filteredOccurrencesPerVersion = pairFilesOccurrencesPerVersion;
+            }
+
+            EntityMatrix matrix = new EntityMatrix();
+            //        matrix.setNodes(objectsToNodes(pairFileList, FilePairAprioriOutput.getToStringHeaderAprioriOnly()));
+            matrix.setNodes(objectsToNodes(filteredOccurrencesPerVersion, fixVersionOrdered));
+            matrix.setRepository(project);
+            matrix.getParams().put("filename", "cochanges per version");
+            matrix.getParams().put("minIssueInAtLeastOneVersion", minOccurrencesInOneVersion);
+            matricesToSave.add(matrix);
+        }
     }
 
     protected static List<EntityMatrixNode> objectsToNodes(final Map<FilePair, Integer[]> list, final List<String> versions) {
@@ -375,5 +375,20 @@ public class BichoPairOfFileQuantityInFixVersionAprioriServices extends Abstract
                 return 0;
             }
         });
+    }
+
+    // TODO parameterize
+    private List<String> getSelectedProjects() {
+        return Arrays.asList(new String[]{
+            "camel",
+            "cassandra",
+            "cloudstack",
+            "cxf",
+            "derby",
+            "hadoop",
+            "hbase",
+            "hive",
+            "lucene",
+            "solr",});
     }
 }

@@ -2,11 +2,13 @@ package br.edu.utfpr.cm.minerador.services.matrix;
 
 import br.edu.utfpr.cm.JGitMinerWeb.dao.BichoDAO;
 import br.edu.utfpr.cm.JGitMinerWeb.dao.BichoFileDAO;
+import br.edu.utfpr.cm.JGitMinerWeb.dao.BichoPairFileDAO;
 import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericBichoDAO;
 import br.edu.utfpr.cm.JGitMinerWeb.model.matrix.EntityMatrix;
 import br.edu.utfpr.cm.JGitMinerWeb.util.OutLog;
 import br.edu.utfpr.cm.JGitMinerWeb.util.Util;
 import br.edu.utfpr.cm.minerador.services.matrix.model.FilePair;
+import br.edu.utfpr.cm.minerador.services.matrix.model.FilePairApriori;
 import br.edu.utfpr.cm.minerador.services.matrix.model.FilePairAprioriOutput;
 import br.edu.utfpr.cm.minerador.services.matrix.model.FilePath;
 import br.edu.utfpr.cm.minerador.services.matrix.model.FilterFilePairByReleaseOcurrence;
@@ -14,6 +16,7 @@ import br.edu.utfpr.cm.minerador.services.matrix.model.Issue;
 import br.edu.utfpr.cm.minerador.services.matrix.model.Project;
 import br.edu.utfpr.cm.minerador.services.matrix.model.ProjectFilePairReleaseOcurrence;
 import br.edu.utfpr.cm.minerador.services.matrix.model.Version;
+import br.edu.utfpr.cm.minerador.services.metric.Cacher;
 import br.edu.utfpr.cm.minerador.services.metric.model.Commit;
 import br.edu.utfpr.cm.minerador.services.util.VersionUtil;
 import java.text.SimpleDateFormat;
@@ -79,7 +82,7 @@ public class BichoProjectsFilePairReleaseOccurenceServices extends AbstractBicho
     }
 
     private int getMinOccurencesInAnyVersion() {
-        return 2; //Util.stringToInteger(params.get("minOccurrencesInEachVersion") + "");
+        return 1; //Util.stringToInteger(params.get("minOccurrencesInEachVersion") + "");
     }
 
     @Override
@@ -95,6 +98,7 @@ public class BichoProjectsFilePairReleaseOccurenceServices extends AbstractBicho
         Double maxSupport = getMaxSupport();
         Double minConfidence = getMinConfidence();
         Double maxConfidence = getMaxConfidence();
+        int minFilePairOccurrences = 1;//TODO parametrizar
         int minOccurrencesInAnyVersion = getMinOccurencesInAnyVersion();
         boolean hasSupportFilter = minSupport != null && maxSupport != null;
         boolean hasConfidenceFilter = minConfidence != null && maxConfidence != null;
@@ -108,13 +112,14 @@ public class BichoProjectsFilePairReleaseOccurenceServices extends AbstractBicho
 
             BichoDAO bichoDAO = new BichoDAO(dao, project, getMaxFilesPerCommit());
             BichoFileDAO bichoFileDAO = new BichoFileDAO(dao, project, getMaxFilesPerCommit());
+            BichoPairFileDAO bichoPairFileDAO = new BichoPairFileDAO(dao, project, getMaxFilesPerCommit());
 
             final List<String> fixVersionOrdered = bichoDAO.selectFixVersionOrdered();
 
             final ProjectFilePairReleaseOcurrence projectVersionFilePairReleaseOcurrence
                     = new ProjectFilePairReleaseOcurrence(new Project(project),
                             VersionUtil.listStringToListVersion(fixVersionOrdered),
-                            minOccurrencesInAnyVersion, filters);
+                            minFilePairOccurrences, minOccurrencesInAnyVersion, filters);
 
             for (String versionString : fixVersionOrdered) {
                 Version version = new Version(versionString);
@@ -184,9 +189,40 @@ public class BichoProjectsFilePairReleaseOccurenceServices extends AbstractBicho
                     continue;
                 }
 
-                projectVersionFilePairReleaseOcurrence.addFilePair(pairFiles.keySet());
-                projectVersionFilePairReleaseOcurrence.addVersionForFilePair(pairFiles.keySet(), version);
-                projectVersionFilePairReleaseOcurrence.addVersion(version);
+                Set<Integer> allConsideredIssues = new HashSet<>();
+                for (Map.Entry<FilePair, FilePairAprioriOutput> entrySet : pairFiles.entrySet()) {
+                    FilePairAprioriOutput value = entrySet.getValue();
+                    allConsideredIssues.addAll(value.getIssuesId());
+                }
+
+                Cacher cacher = new Cacher(bichoFileDAO, bichoPairFileDAO);
+                for (FilePair fileFile : pairFiles.keySet()) {
+                    Long file1Issues = cacher.calculeNumberOfIssues(fileFile.getFile1(), version.getVersion());
+                    Long file2Issues = cacher.calculeNumberOfIssues(fileFile.getFile2(), version.getVersion());
+
+                    FilePairAprioriOutput filePairOutput = pairFiles.get(fileFile);
+
+                    FilePairApriori apriori = new FilePairApriori(file1Issues, file2Issues,
+                            filePairOutput.getIssuesIdWeight(), allConsideredIssues.size());
+
+                    fileFile.orderFilePairByConfidence(apriori);
+                    filePairOutput.setFilePairApriori(apriori);
+                }
+
+
+                for (Map.Entry<FilePair, FilePairAprioriOutput> entrySet : pairFiles.entrySet()) {
+                    FilePair filePair = entrySet.getKey();
+                    FilePairAprioriOutput value = entrySet.getValue();
+                    final FilePairApriori apriori = value.getFilePairApriori();
+                    if (apriori.hasMinIssues(3)
+                            && apriori.hasMinConfidence(0.9)) {
+//                    if (apriori.hasMinSupport(0.02)
+//                            && apriori.hasMinConfidence(0.8)) {
+//                    if (value.getIssues().size() >= 2) {
+                        projectVersionFilePairReleaseOcurrence.addVersionForFilePair(filePair, version, value.getIssues().size());
+                    }
+                }
+//                 projectVersionFilePairReleaseOcurrence.getFilePairReleasesOccurenceCounter().get(new FilePair("camel-core/src/main/java/org/apache/camel/management/CamelNamingStrategy.java", "camel-core/src/main/java/org/apache/camel/impl/DefaultCamelContext.java"));
             }
             if (summaryRepositoryName.length() > 0) {
                 summaryRepositoryName.append(", ");

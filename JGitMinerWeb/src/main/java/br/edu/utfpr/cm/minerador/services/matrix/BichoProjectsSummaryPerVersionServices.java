@@ -102,6 +102,7 @@ public class BichoProjectsSummaryPerVersionServices extends AbstractBichoMatrixS
         Double maxSupport = getMaxSupport();
         Double minConfidence = getMinConfidence();
         Double maxConfidence = getMaxConfidence();
+        int minFilePairOccurrences = 2;
         int minOccurrencesInSomeVersion = getMinOccurencesInAnyVersion();
         boolean hasSupportFilter = minSupport != null && maxSupport != null;
         boolean hasConfidenceFilter = minConfidence != null && maxConfidence != null;
@@ -113,14 +114,15 @@ public class BichoProjectsSummaryPerVersionServices extends AbstractBichoMatrixS
 
         for (String project : getSelectedProjects()) {
 
-            final Map<FilePair, Integer[]> pairFilesOccurrencesPerVersion = new HashMap<>();
             BichoDAO bichoDAO = new BichoDAO(dao, project, getMaxFilesPerCommit());
             BichoFileDAO bichoFileDAO = new BichoFileDAO(dao, project, getMaxFilesPerCommit());
             BichoPairFileDAO bichoPairFileDAO = new BichoPairFileDAO(dao, project, getMaxFilesPerCommit());
 
             final List<String> fixVersionOrdered = bichoDAO.selectFixVersionOrdered();
             final List<Version> allVersions = VersionUtil.listStringToListVersion(fixVersionOrdered);
-            final ProjectFilePairReleaseOcurrence projectVersionFilePairReleaseOcurrence = new ProjectFilePairReleaseOcurrence(new Project(project), allVersions, minOccurrencesInSomeVersion, filtersOccurrences);
+            final ProjectFilePairReleaseOcurrence projectVersionFilePairReleaseOcurrence
+                    = new ProjectFilePairReleaseOcurrence(new Project(project), allVersions,
+                            minFilePairOccurrences, minOccurrencesInSomeVersion, filtersOccurrences);
 
             final Set<ProjectVersionSummary> projectVersionsSummary = new LinkedHashSet<>(); // cummulative versions summary for project
 
@@ -259,9 +261,11 @@ public class BichoProjectsSummaryPerVersionServices extends AbstractBichoMatrixS
                         + "Number of defect issues: " + allDefectIssues.size() + "\n"
                 );
 
-                projectVersionFilePairReleaseOcurrence.addFilePair(pairFiles.keySet());
-                projectVersionFilePairReleaseOcurrence.addVersionForFilePair(pairFiles.keySet(), version);
-                projectVersionFilePairReleaseOcurrence.addVersion(version);
+                for (Map.Entry<FilePair, FilePairAprioriOutput> entrySet : pairFiles.entrySet()) {
+                    FilePair filePair = entrySet.getKey();
+                    FilePairAprioriOutput value = entrySet.getValue();
+                    projectVersionFilePairReleaseOcurrence.addVersionForFilePair(filePair, version, value.getIssues().size());
+                }
 
                 for (FilePair filePair : summaryVersion.getFilePairs()) {
                     if (projectVersionFilePairReleaseOcurrence.hasMinimumOccurrences(filePair)) {

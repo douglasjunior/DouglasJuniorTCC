@@ -272,7 +272,9 @@ public class BichoMatrixQueueBean implements Serializable {
                                         entityMatrix.getParams().put(key, value);
                                     }
                                 }
-                                entityMatrix.setRepository(projectName);
+                                if (entityMatrix.getRepository() == null) {
+                                    entityMatrix.setRepository(projectName);
+                                }
                                 entityMatrix.setClassServicesName(serviceClass.getName());
                                 entityMatrix.setLog(out.getLog().toString());
                                 for (EntityMatrixNode node : entityMatrix.getNodes()) {
