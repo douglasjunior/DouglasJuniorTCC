@@ -1185,9 +1185,7 @@ public class BichoFileDAO {
     public long calculeCommits(String file, String user, Integer index, Integer quantity) {
         return calculeCommitsByIndex(file, user, null, index, quantity, null);
     }
-    public static void main(String[] args) {
-        System.out.println(new BichoFileDAO(null, "derby", 20).COUNT_COMMITS_BY_FILE_NAME_AND_LIMIT_OFFSET);
-    }
+
     public long calculeCommitsByIndex(
             String file, String user, Integer issue, Integer index, Integer quantity,
             Collection<Integer> issues) {

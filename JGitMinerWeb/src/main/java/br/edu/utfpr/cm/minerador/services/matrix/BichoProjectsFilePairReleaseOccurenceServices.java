@@ -10,17 +10,13 @@ import br.edu.utfpr.cm.JGitMinerWeb.util.Util;
 import br.edu.utfpr.cm.minerador.services.matrix.model.FilePair;
 import br.edu.utfpr.cm.minerador.services.matrix.model.FilePairApriori;
 import br.edu.utfpr.cm.minerador.services.matrix.model.FilePairAprioriOutput;
-import br.edu.utfpr.cm.minerador.services.matrix.model.FilePath;
 import br.edu.utfpr.cm.minerador.services.matrix.model.FilterFilePairByReleaseOcurrence;
-import br.edu.utfpr.cm.minerador.services.matrix.model.Issue;
 import br.edu.utfpr.cm.minerador.services.matrix.model.Project;
 import br.edu.utfpr.cm.minerador.services.matrix.model.ProjectFilePairReleaseOcurrence;
 import br.edu.utfpr.cm.minerador.services.matrix.model.Version;
 import br.edu.utfpr.cm.minerador.services.metric.Cacher;
-import br.edu.utfpr.cm.minerador.services.metric.model.Commit;
 import br.edu.utfpr.cm.minerador.services.util.VersionUtil;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
@@ -81,8 +77,8 @@ public class BichoProjectsFilePairReleaseOccurenceServices extends AbstractBicho
         return Util.stringToDouble(params.get("maxConfidence") + "");
     }
 
-    private int getMinOccurencesInAnyVersion() {
-        return 1; //Util.stringToInteger(params.get("minOccurrencesInEachVersion") + "");
+    private int getMinOccurencesInVersion() {
+        return 1; //Util.stringToInteger(params.get("minOccurrencesInVersion") + "");
     }
 
     @Override
@@ -98,10 +94,8 @@ public class BichoProjectsFilePairReleaseOccurenceServices extends AbstractBicho
         Double maxSupport = getMaxSupport();
         Double minConfidence = getMinConfidence();
         Double maxConfidence = getMaxConfidence();
-        int minFilePairOccurrences = 1;//TODO parametrizar
-        int minOccurrencesInAnyVersion = getMinOccurencesInAnyVersion();
-        boolean hasSupportFilter = minSupport != null && maxSupport != null;
-        boolean hasConfidenceFilter = minConfidence != null && maxConfidence != null;
+        int minFilePairOccurrences = 1; //TODO parametrizar
+        int minOccurrencesInVersion = getMinOccurencesInVersion();
 
         log("\n --------------- "
                 + new SimpleDateFormat("dd/MM/yyyy HH:mm:ss").format(new Date())
@@ -119,76 +113,20 @@ public class BichoProjectsFilePairReleaseOccurenceServices extends AbstractBicho
             final ProjectFilePairReleaseOcurrence projectVersionFilePairReleaseOcurrence
                     = new ProjectFilePairReleaseOcurrence(new Project(project),
                             VersionUtil.listStringToListVersion(fixVersionOrdered),
-                            minFilePairOccurrences, minOccurrencesInAnyVersion, filters);
+                            minFilePairOccurrences, minOccurrencesInVersion, filters);
 
             for (String versionString : fixVersionOrdered) {
                 Version version = new Version(versionString);
-                Map<FilePair, FilePairAprioriOutput> pairFiles = new HashMap<>();
 
                 out.printLog("Maximum files per commit: " + getMaxFilesPerCommit());
                 out.printLog("Minimum files per commit: " + getMinFilesPerCommit());
 
-                Set<FilePath> allFiles = new HashSet<>();
-                Set<FilePath> allTestJavaFiles = new HashSet<>();
-                Set<FilePath> allJavaFiles = new HashSet<>();
-                Set<FilePath> allXmlFiles = new HashSet<>();
-                Set<FilePath> allFilteredFiles = new HashSet<>();
-
-                Set<Commit> allCommits = new HashSet<>();
-                Set<Integer> allConsideredCommits = new HashSet<>();
-                Set<Integer> allDefectIssues = new HashSet<>();
-
-                // select a issue/pullrequest commenters
-                Map<Issue, List<Commit>> issuesConsideredCommits = bichoDAO.selectIssuesAndType(versionString);
-
-                if (issuesConsideredCommits.isEmpty()) {
-                    continue;
-                }
-
-                Set<Issue> allIssues = issuesConsideredCommits.keySet();
-
-                out.printLog("Issues (filtered): " + issuesConsideredCommits.size());
-
-                int count = 1;
-
-                // combina em pares todos os arquivos commitados em uma issue
-                final int totalIssues = issuesConsideredCommits.size();
-                int progressFilePairing = 0;
-                for (Map.Entry<Issue, List<Commit>> entrySet : issuesConsideredCommits.entrySet()) {
-                    if (++progressFilePairing % 100 == 0
-                            || progressFilePairing == totalIssues) {
-                        System.out.println(progressFilePairing + "/" + totalIssues);
-                    }
-                    Issue issue = entrySet.getKey();
-                    List<Commit> commits = entrySet.getValue();
-
-                    out.printLog("Issue #" + issue);
-                    out.printLog(count++ + " of the " + issuesConsideredCommits.size());
-
-                    out.printLog(commits.size() + " commits references the issue");
-                    allCommits.addAll(commits);
-
-                    List<FilePath> commitedFiles
-                            = filterAndAggregateAllFileOfIssue(commits, bichoFileDAO, allFiles, allTestJavaFiles, allFilteredFiles, allJavaFiles, allXmlFiles);
-
-                    // empty
-                    if (commitedFiles.isEmpty()) {
-                        out.printLog("No file commited for issue #" + issue);
-                        continue;
-                    } else if (commitedFiles.size() == 1) {
-                        out.printLog("One file only commited for issue #" + issue);
-                        continue;
-
-                    }
-                    out.printLog("Number of files commited and related with issue: " + commitedFiles.size());
-
-                    pairFiles(commitedFiles, pairFiles, issue, allDefectIssues, allConsideredCommits);
-                }
+                final Map<FilePair, FilePairAprioriOutput> pairFiles = new HashMap<>();
+                identifyFilePairs(pairFiles, bichoDAO, versionString, bichoFileDAO);
 
                 if (pairFiles.isEmpty()) {
                     continue;
                 }
-
                 Set<Integer> allConsideredIssues = new HashSet<>();
                 for (Map.Entry<FilePair, FilePairAprioriOutput> entrySet : pairFiles.entrySet()) {
                     FilePairAprioriOutput value = entrySet.getValue();
@@ -208,7 +146,6 @@ public class BichoProjectsFilePairReleaseOccurenceServices extends AbstractBicho
                     fileFile.orderFilePairByConfidence(apriori);
                     filePairOutput.setFilePairApriori(apriori);
                 }
-
 
                 for (Map.Entry<FilePair, FilePairAprioriOutput> entrySet : pairFiles.entrySet()) {
                     FilePair filePair = entrySet.getKey();
@@ -235,41 +172,10 @@ public class BichoProjectsFilePairReleaseOccurenceServices extends AbstractBicho
         EntityMatrix matrixSummary = new EntityMatrix();
         matrixSummary.setNodes(objectsToNodes(releaseOccurrences, ProjectFilePairReleaseOcurrence.getHeader() + ";" + releaseOccurrences.iterator().next().getFilePairOcurrencesGroup().getDynamicHeader()));
         matrixSummary.setRepository(summaryRepositoryName.toString());
-        matrixSummary.getParams().put("filename", "summary");
+        matrixSummary.getParams().put("filename", "Projects summary");
+        matrixSummary.getParams().put("minOccurrencesInVersion", minOccurrencesInVersion);
         matricesToSave.add(matrixSummary);
 
-    }
-
-    private List<FilePath> filterAndAggregateAllFileOfIssue(List<Commit> commits, BichoFileDAO bichoFileDAO, Set<FilePath> allFiles, Set<FilePath> allTestJavaFiles, Set<FilePath> allFilteredFiles, Set<FilePath> allJavaFiles, Set<FilePath> allXmlFiles) {
-        // monta os pares com os arquivos de todos os commits da issue
-        List<FilePath> commitedFiles = new ArrayList<>();
-        for (Commit commit : commits) {
-
-            // select name of commited files
-            List<FilePath> files = bichoFileDAO.selectFilesByCommitId(commit.getId());
-
-            allFiles.addAll(files);
-
-            out.printLog(files.size() + " files in commit #" + commit.getId());
-            for (FilePath file : files) {
-                if (file.getFilePath().endsWith("Test.java")
-                        || file.getFilePath().toLowerCase().endsWith("_test.java")) {
-                    allTestJavaFiles.add(file);
-                    allFilteredFiles.add(file);
-                } else if (!file.getFilePath().endsWith(".java")
-                        && !file.getFilePath().endsWith(".xml")) {
-                    allFilteredFiles.add(file);
-                } else {
-                    if (file.getFilePath().endsWith(".java")) {
-                        allJavaFiles.add(file);
-                    } else if (file.getFilePath().endsWith(".xml")) {
-                        allXmlFiles.add(file);
-                    }
-                    commitedFiles.add(file);
-                }
-            }
-        }
-        return commitedFiles;
     }
 
     // TODO parameterize

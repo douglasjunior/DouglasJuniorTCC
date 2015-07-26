@@ -175,10 +175,8 @@ public class ProjectFilePairReleaseOcurrence {
         sb.append(project).append(";");
         sb.append(versions.size()).append(";");
         sb.append(filePairs.size());
-        if (!filePairReleasesOccurenceCounter.isEmpty()) {
-            filePairOcurrencesGroup.groupFilePairs(new ArrayList<>(versions), filePairReleasesOccurenceCounter.values(), minOccurrencesInEachVersion);
-            sb.append(";").append(filePairOcurrencesGroup.toString());
-        }
+        filePairOcurrencesGroup.groupFilePairs(new ArrayList<>(versions), filePairReleasesOccurenceCounter.values(), minOccurrencesInEachVersion);
+        sb.append(";").append(filePairOcurrencesGroup.toString());
         return sb.toString();
     }
 

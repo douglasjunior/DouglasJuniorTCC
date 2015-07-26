@@ -109,6 +109,16 @@ public class FilterByApriori {
         return filters;
     }
 
+    public static Set<FilterByApriori> getFiltersForExperiment1() {
+        Set<FilterByApriori> filters = new LinkedHashSet<>();
+
+        filters.add(new FilterByApriori(null, null, 0.5d, 0.7d, null, 3));
+        filters.add(new FilterByApriori(null, null, 0.7d, 0.9d, null, 3));
+        filters.add(new FilterByApriori(null, null, 0.9d, 1.0d, null, 3));
+
+        return filters;
+    }
+
     @Override
     public int hashCode() {
         int hash = 3;

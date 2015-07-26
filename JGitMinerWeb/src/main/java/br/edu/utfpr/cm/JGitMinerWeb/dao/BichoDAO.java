@@ -129,7 +129,7 @@ public class BichoDAO {
                 + "   LIMIT ? OFFSET ?) AS i3 ON i3.id = i.id";
 
         SELECT_ALL_FIXED_ISSUES
-                = QueryUtils.getQueryForDatabase("SELECT DISTINCT i.id, i.type, i.fixed_on, s.id"
+                = QueryUtils.getQueryForDatabase("SELECT DISTINCT i.id, i.type, i.fixed_on, s.id, s.date"
                         + "  FROM {0}_issues.issues_scmlog i2s"
                         + "  JOIN {0}_issues.issues i ON i.id = i2s.issue_id"
                         + "  JOIN {0}_vcs.scmlog s ON s.id = i2s.scmlog_id"
@@ -179,7 +179,7 @@ public class BichoDAO {
                 + FILTER_BY_MAX_FILES_IN_COMMIT;
 
         SELECT_ISSUES_AND_TYPE_BY_FIXED_MAJOR_VERSION
-                = QueryUtils.getQueryForDatabase("SELECT DISTINCT i.id, i.type, s.id, s.date"
+                = QueryUtils.getQueryForDatabase("SELECT DISTINCT i.id, i.type, i.fixed_on, s.id, s.date"
                         + "  FROM {0}_issues.issues_scmlog i2s"
                         + "  JOIN {0}_issues.issues i ON i.id = i2s.issue_id"
                         + "  JOIN {0}_issues.issues_fix_version ifv ON ifv.issue_id = i2s.issue_id"
@@ -382,7 +382,7 @@ public class BichoDAO {
         return issuesCommits;
     }
 
-    public List<Map<Issue, List<Integer>>> selectAllIssuesAndTypeSubdividedBy(Integer size) {
+    public List<Map<Issue, List<Commit>>> selectAllIssuesAndTypeSubdividedBy(Integer size) {
         List<Object> selectParams = new ArrayList<>();
 
         StringBuilder sql = new StringBuilder();
@@ -393,26 +393,11 @@ public class BichoDAO {
         selectParams.add(offset);
 
         final Object[] params = selectParams.toArray();
-        List<Map<Issue, List<Integer>>> dividedIssuesCommits = new ArrayList<>();
+        List<Map<Issue, List<Commit>>> dividedIssuesCommits = new ArrayList<>();
         List<Object[]> rawIssues = dao.selectNativeWithParams(sql.toString(), params);
 
         while (!rawIssues.isEmpty() && rawIssues.get(0)[0] != null) {
-            Map<Issue, List<Integer>> issuesCommits = new LinkedHashMap<>();
-            for (Object[] issueCommit : rawIssues) {
-                Integer issueId = (Integer) issueCommit[0];
-                String issueType = (String) issueCommit[1];
-                java.sql.Timestamp fixedOn = (java.sql.Timestamp) issueCommit[2];
-                Integer commit = (Integer) issueCommit[3];
-
-                Issue issue = new Issue(issueId, issueType, fixedOn);
-                if (issuesCommits.containsKey(issue)) {
-                    issuesCommits.get(issue).add(commit);
-                } else {
-                    List<Integer> commits = new ArrayList<>();
-                    commits.add(commit);
-                    issuesCommits.put(issue, commits);
-                }
-            }
+            Map<Issue, List<Commit>> issuesCommits = rawIssuesAndCommitsToMap(rawIssues);
             dividedIssuesCommits.add(issuesCommits);
 
             System.out.println("Size " + issuesCommits.size() + " offset " + offset);
@@ -471,10 +456,11 @@ public class BichoDAO {
         for (Object[] issueCommit : rawIssues) {
             Integer issueId = (Integer) issueCommit[0];
             String issueType = (String) issueCommit[1];
-            Integer commit = (Integer) issueCommit[2];
-            Date commitDate = (java.sql.Timestamp) issueCommit[3];
+            java.sql.Timestamp fixedOn = (java.sql.Timestamp) issueCommit[2];
+            Integer commit = (Integer) issueCommit[3];
+            Date commitDate = (java.sql.Timestamp) issueCommit[4];
 
-            Issue issue = new Issue(issueId, issueType);
+            Issue issue = new Issue(issueId, issueType, fixedOn);
             if (issuesCommits.containsKey(issue)) {
                 issuesCommits.get(issue).add(new Commit(commit, null, commitDate));
             } else {

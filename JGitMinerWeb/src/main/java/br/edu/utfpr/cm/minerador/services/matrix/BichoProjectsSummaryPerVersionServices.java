@@ -10,20 +10,16 @@ import br.edu.utfpr.cm.JGitMinerWeb.util.Util;
 import br.edu.utfpr.cm.minerador.services.matrix.model.FilePair;
 import br.edu.utfpr.cm.minerador.services.matrix.model.FilePairApriori;
 import br.edu.utfpr.cm.minerador.services.matrix.model.FilePairAprioriOutput;
-import br.edu.utfpr.cm.minerador.services.matrix.model.FilePath;
 import br.edu.utfpr.cm.minerador.services.matrix.model.FilterByApriori;
 import br.edu.utfpr.cm.minerador.services.matrix.model.FilterFilePairByReleaseOcurrence;
-import br.edu.utfpr.cm.minerador.services.matrix.model.Issue;
 import br.edu.utfpr.cm.minerador.services.matrix.model.Project;
 import br.edu.utfpr.cm.minerador.services.matrix.model.ProjectFilePairReleaseOcurrence;
 import br.edu.utfpr.cm.minerador.services.matrix.model.ProjectVersion;
 import br.edu.utfpr.cm.minerador.services.matrix.model.ProjectVersionSummary;
 import br.edu.utfpr.cm.minerador.services.matrix.model.Version;
 import br.edu.utfpr.cm.minerador.services.metric.Cacher;
-import br.edu.utfpr.cm.minerador.services.metric.model.Commit;
 import br.edu.utfpr.cm.minerador.services.util.VersionUtil;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
@@ -84,7 +80,7 @@ public class BichoProjectsSummaryPerVersionServices extends AbstractBichoMatrixS
         return Util.stringToDouble(params.get("maxConfidence") + "");
     }
 
-    private int getMinOccurencesInAnyVersion() {
+    private int getMinOccurencesInVersion() {
         return 2; //Util.stringToInteger(params.get("minOccurrencesInEachVersion") + "");
     }
 
@@ -98,14 +94,14 @@ public class BichoProjectsSummaryPerVersionServices extends AbstractBichoMatrixS
         final Set<FilterByApriori> filters = FilterByApriori.getSuggestedFilters();
         final List<FilterFilePairByReleaseOcurrence> filtersOccurrences = FilterFilePairByReleaseOcurrence.getSuggestedFilters();
 
-        Double minSupport = getMinSupport();
-        Double maxSupport = getMaxSupport();
-        Double minConfidence = getMinConfidence();
-        Double maxConfidence = getMaxConfidence();
+//        Double minSupport = getMinSupport();
+//        Double maxSupport = getMaxSupport();
+//        Double minConfidence = getMinConfidence();
+//        Double maxConfidence = getMaxConfidence();
         int minFilePairOccurrences = 2;
-        int minOccurrencesInSomeVersion = getMinOccurencesInAnyVersion();
-        boolean hasSupportFilter = minSupport != null && maxSupport != null;
-        boolean hasConfidenceFilter = minConfidence != null && maxConfidence != null;
+        int minOccurrencesInVersion = getMinOccurencesInVersion();
+//        boolean hasSupportFilter = minSupport != null && maxSupport != null;
+//        boolean hasConfidenceFilter = minConfidence != null && maxConfidence != null;
 
         log("\n --------------- "
                 + new SimpleDateFormat("dd/MM/yyyy HH:mm:ss").format(new Date())
@@ -122,7 +118,7 @@ public class BichoProjectsSummaryPerVersionServices extends AbstractBichoMatrixS
             final List<Version> allVersions = VersionUtil.listStringToListVersion(fixVersionOrdered);
             final ProjectFilePairReleaseOcurrence projectVersionFilePairReleaseOcurrence
                     = new ProjectFilePairReleaseOcurrence(new Project(project), allVersions,
-                            minFilePairOccurrences, minOccurrencesInSomeVersion, filtersOccurrences);
+                            minFilePairOccurrences, minOccurrencesInVersion, filtersOccurrences);
 
             final Set<ProjectVersionSummary> projectVersionsSummary = new LinkedHashSet<>(); // cummulative versions summary for project
 
@@ -133,62 +129,11 @@ public class BichoProjectsSummaryPerVersionServices extends AbstractBichoMatrixS
                 ProjectVersion projectVersion = new ProjectVersion(new Project(project), version);
                 ProjectVersionSummary summaryVersion = new ProjectVersionSummary(projectVersion, filters);
 
-                Map<FilePair, FilePairAprioriOutput> pairFiles = new HashMap<>();
-
                 out.printLog("Maximum files per commit: " + getMaxFilesPerCommit());
                 out.printLog("Minimum files per commit: " + getMinFilesPerCommit());
 
-                Set<FilePath> allFiles = new HashSet<>();
-                Set<FilePath> allTestJavaFiles = new HashSet<>();
-                Set<FilePath> allJavaFiles = new HashSet<>();
-                Set<FilePath> allXmlFiles = new HashSet<>();
-                Set<FilePath> allFilteredFiles = new HashSet<>();
-
-                Set<Commit> allCommits = new HashSet<>();
-                Set<Integer> allConsideredCommits = new HashSet<>();
-                Set<Integer> allDefectIssues = new HashSet<>();
-
-                // select a issue/pullrequest commenters
-                Map<Issue, List<Commit>> issuesConsideredCommits = bichoDAO.selectIssuesAndType(version.getVersion());
-                Set<Issue> allIssues = issuesConsideredCommits.keySet();
-
-                out.printLog("Issues (filtered): " + issuesConsideredCommits.size());
-
-                int count = 1;
-
-                // combina em pares todos os arquivos commitados em uma issue
-                final int totalIssues = issuesConsideredCommits.size();
-                int progressFilePairing = 0;
-                for (Map.Entry<Issue, List<Commit>> entrySet : issuesConsideredCommits.entrySet()) {
-                    if (++progressFilePairing % 100 == 0
-                            || progressFilePairing == totalIssues) {
-                        System.out.println(progressFilePairing + "/" + totalIssues);
-                    }
-                    Issue issue = entrySet.getKey();
-                    List<Commit> commits = entrySet.getValue();
-
-                    out.printLog("Issue #" + issue);
-                    out.printLog(count++ + " of the " + issuesConsideredCommits.size());
-
-                    out.printLog(commits.size() + " commits references the issue");
-                    allCommits.addAll(commits);
-
-                    List<FilePath> commitedFiles
-                            = filterAndAggregateAllFileOfIssue(commits, bichoFileDAO, allFiles, allTestJavaFiles, allFilteredFiles, allJavaFiles, allXmlFiles);
-
-                    // empty
-                    if (commitedFiles.isEmpty()) {
-                        out.printLog("No file commited for issue #" + issue);
-                        continue;
-                    } else if (commitedFiles.size() == 1) {
-                        out.printLog("One file only commited for issue #" + issue);
-                        continue;
-
-                    }
-                    out.printLog("Number of files commited and related with issue: " + commitedFiles.size());
-
-                    pairFiles(commitedFiles, pairFiles, issue, allDefectIssues, allConsideredCommits);
-                }
+                final Map<FilePair, FilePairAprioriOutput> pairFiles = new HashMap<>();
+                identifyFilePairs(pairFiles, bichoDAO, versionString, bichoFileDAO);
 
                 Set<Integer> allConsideredIssues = new HashSet<>();
                 for (Map.Entry<FilePair, FilePairAprioriOutput> entrySet : pairFiles.entrySet()) {
@@ -196,70 +141,32 @@ public class BichoProjectsSummaryPerVersionServices extends AbstractBichoMatrixS
                     allConsideredIssues.addAll(value.getIssuesId());
                 }
 
-                if (hasConfidenceFilter || hasSupportFilter) {
-                    System.out.println("Calculing apriori...");
-                    Cacher cacher = new Cacher(bichoFileDAO, bichoPairFileDAO);
-                    for (FilePair fileFile : pairFiles.keySet()) {
-                        Long file1Issues = cacher.calculeNumberOfIssues(fileFile.getFile1(), version.getVersion());
-                        Long file2Issues = cacher.calculeNumberOfIssues(fileFile.getFile2(), version.getVersion());
+                System.out.println("Calculing apriori...");
+                Cacher cacher = new Cacher(bichoFileDAO, bichoPairFileDAO);
+                for (FilePair fileFile : pairFiles.keySet()) {
+                    Long file1Issues = cacher.calculeNumberOfIssues(fileFile.getFile1(), version.getVersion());
+                    Long file2Issues = cacher.calculeNumberOfIssues(fileFile.getFile2(), version.getVersion());
 
-                        FilePairAprioriOutput filePairOutput = pairFiles.get(fileFile);
+                    FilePairAprioriOutput filePairOutput = pairFiles.get(fileFile);
 
-                        FilePairApriori apriori = new FilePairApriori(file1Issues, file2Issues,
-                                filePairOutput.getIssuesIdWeight(), allConsideredIssues.size());
+                    FilePairApriori apriori = new FilePairApriori(file1Issues, file2Issues,
+                            filePairOutput.getIssuesIdWeight(), allConsideredIssues.size());
 
-                        fileFile.orderFilePairByConfidence(apriori);
-                        filePairOutput.setFilePairApriori(apriori);
+                    fileFile.orderFilePairByConfidence(apriori);
+                    filePairOutput.setFilePairApriori(apriori);
 
-    //                    if (apriori.hasMinMaxConfidence(minConfidence, maxConfidence)
-                        //                            && apriori.hasMinMaxSupport(minSupport, maxSupport)) {
-                        summaryVersion.addIssue(filePairOutput.getIssues());
-                        summaryVersion.addCommit(filePairOutput.getCommits());
-                        summaryVersion.addFilePair(fileFile);
-                        summaryVersion.addFilePairApriori(apriori);
-                        //                    }
+//                    if (apriori.hasMinMaxConfidence(minConfidence, maxConfidence)
+                    //                            && apriori.hasMinMaxSupport(minSupport, maxSupport)) {
+                    summaryVersion.addIssue(filePairOutput.getIssues());
+                    summaryVersion.addCommit(filePairOutput.getCommits());
+                    summaryVersion.addFilePair(fileFile);
+                    summaryVersion.addFilePairApriori(apriori);
+                    //                    }
 
-                    }
-                } else {
-                    for (FilePair fileFile : pairFiles.keySet()) {
-                        FilePairAprioriOutput filePairOutput = pairFiles.get(fileFile);
-                        summaryVersion.addIssue(filePairOutput.getIssues());
-                        summaryVersion.addCommit(filePairOutput.getCommits());
-                        summaryVersion.addFilePair(fileFile);
-
-                    }
                 }
 
                 projectSummary.add(summaryVersion);
                 projectVersionsSummary.add(summaryVersion);
-
-                out.printLog("\n\n" + project + " " + version + "\n"
-                        + "Number of files (JAVA and XML): " + allFiles.size() + "\n"
-                        + "Number of files (JAVA): " + allJavaFiles.size() + "\n"
-                        + "Number of files (XML): " + allXmlFiles.size() + "\n"
-                        + "Number of ignored files !.java, !.xml, *Test.java: " + allFilteredFiles.size() + "\n"
-                        + "Number of ignored files *Test.java: " + allTestJavaFiles.size() + "\n"
-                        + "Number of file pairs: " + summaryVersion.filePairsSize() + "\n"
-                        + "Number of issues: " + allIssues.size() + "\n"
-                        + "Number of considered issues: " + summaryVersion.issuesSize() + "\n"
-                        + "Number of commits: " + allCommits.size() + "\n"
-                        + "Number of considered commits: " + allConsideredCommits.size() + "\n"
-                        + "Number of defect issues: " + allDefectIssues.size() + "\n"
-                );
-
-                log("\n\n" + project + " " + version + "\n"
-                        + "Number of files (JAVA and XML): " + allFiles.size() + "\n"
-                        + "Number of files (JAVA): " + allJavaFiles.size() + "\n"
-                        + "Number of files (XML): " + allXmlFiles.size() + "\n"
-                        + "Number of ignored files !.java, !.xml, *Test.java: " + allFilteredFiles.size() + "\n"
-                        + "Number of ignored files *Test.java: " + allTestJavaFiles.size() + "\n"
-                        + "Number of file pairs: " + summaryVersion.filePairsSize() + "\n"
-                        + "Number of issues: " + allIssues.size() + "\n"
-                        + "Number of considered issues: " + summaryVersion.issuesSize() + "\n"
-                        + "Number of commits: " + allCommits.size() + "\n"
-                        + "Number of considered commits: " + allConsideredCommits.size() + "\n"
-                        + "Number of defect issues: " + allDefectIssues.size() + "\n"
-                );
 
                 for (Map.Entry<FilePair, FilePairAprioriOutput> entrySet : pairFiles.entrySet()) {
                     FilePair filePair = entrySet.getKey();
@@ -285,38 +192,6 @@ public class BichoProjectsSummaryPerVersionServices extends AbstractBichoMatrixS
         matrixSummary.getParams().put("filename", "summary");
         matricesToSave.add(matrixSummary);
 
-    }
-
-    private List<FilePath> filterAndAggregateAllFileOfIssue(List<Commit> commits, BichoFileDAO bichoFileDAO, Set<FilePath> allFiles, Set<FilePath> allTestJavaFiles, Set<FilePath> allFilteredFiles, Set<FilePath> allJavaFiles, Set<FilePath> allXmlFiles) {
-        // monta os pares com os arquivos de todos os commits da issue
-        List<FilePath> commitedFiles = new ArrayList<>();
-        for (Commit commit : commits) {
-
-            // select name of commited files
-            List<FilePath> files = bichoFileDAO.selectFilesByCommitId(commit.getId());
-
-            allFiles.addAll(files);
-
-            out.printLog(files.size() + " files in commit #" + commit.getId());
-            for (FilePath file : files) {
-                if (file.getFilePath().endsWith("Test.java")
-                        || file.getFilePath().toLowerCase().endsWith("_test.java")) {
-                    allTestJavaFiles.add(file);
-                    allFilteredFiles.add(file);
-                } else if (!file.getFilePath().endsWith(".java")
-                        && !file.getFilePath().endsWith(".xml")) {
-                    allFilteredFiles.add(file);
-                } else {
-                    if (file.getFilePath().endsWith(".java")) {
-                        allJavaFiles.add(file);
-                    } else if (file.getFilePath().endsWith(".xml")) {
-                        allXmlFiles.add(file);
-                    }
-                    commitedFiles.add(file);
-                }
-            }
-        }
-        return commitedFiles;
     }
 
     // TODO parameterize
