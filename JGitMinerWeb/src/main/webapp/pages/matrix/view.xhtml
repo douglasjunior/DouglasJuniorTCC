@@ -27,6 +27,10 @@
                     <h:outputText value="#{matrix.repository}" />
                 </p:column>
 
+                <p:column headerText="Matrix">
+                    <h:outputText value="#{matrix.toString()}" />
+                </p:column>
+
                 <p:column headerText="Class Service">
                     <h:outputText value="#{matrix.classServicesSingleName}" />
                 </p:column>
@@ -49,7 +53,7 @@
 
                 <p:column headerText="Download Files">
                     <p:commandButton action="#{gitMatrixViewBean.downloadLOG(matrix)}" ajax="false" value="Log"/>
-                    <p:commandButton action="#{gitMatrixViewBean.downloadCSV(matrix)}" ajax="false" value="CSV" title="#{matrix.downloadFileName}"/>
+                    <p:commandButton action="#{gitMatrixViewBean.downloadCSV(matrix)}" ajax="false" value="CSV" title="#{matrix.toString()}"/>
                     <p:commandButton action="#{gitMatrixViewBean.downloadAllCSVOfOneVersion(matrix.toString())}" ajax="false" value="All CSV" title="#{matrix}"/>
                     <p:commandButton action="#{gitMatrixViewBean.downloadParams(matrix)}"  ajax="false" value="Params"/>
                 </p:column>

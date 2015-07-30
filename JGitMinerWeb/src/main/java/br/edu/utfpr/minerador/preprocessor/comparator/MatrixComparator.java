@@ -12,8 +12,8 @@ public class MatrixComparator implements Comparator<EntityMatrix> {
     @Override
     public int compare(EntityMatrix o1, EntityMatrix o2) {
 
-        String[] version1 = o1.toString().split(" ")[1].split("[.]");
-        String[] version2 = o2.toString().split(" ")[1].split("[.]");
+        String[] version1 = o1.getParams().get("version").toString().split("[.]");
+        String[] version2 = o2.getParams().get("version").toString().split("[.]");
 
         int length = version1.length;
         if (version2.length > version1.length) {

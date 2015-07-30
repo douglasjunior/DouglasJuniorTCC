@@ -116,6 +116,14 @@ public class FilterByApriori {
         filters.add(new FilterByApriori(null, null, 0.7d, 0.9d, null, 3));
         filters.add(new FilterByApriori(null, null, 0.9d, 1.0d, null, 3));
 
+        filters.add(new FilterByApriori(null, null, 0.5d, 0.7d, null, 5));
+        filters.add(new FilterByApriori(null, null, 0.7d, 0.9d, null, 5));
+        filters.add(new FilterByApriori(null, null, 0.9d, 1.0d, null, 5));
+
+        filters.add(new FilterByApriori(null, null, 0.5d, 0.7d, null, 7));
+        filters.add(new FilterByApriori(null, null, 0.7d, 0.9d, null, 7));
+        filters.add(new FilterByApriori(null, null, 0.9d, 1.0d, null, 7));
+
         return filters;
     }
 
@@ -161,5 +169,50 @@ public class FilterByApriori {
         return true;
     }
 
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+
+        if (minIssues != null) {
+            sb.append("Min issues ").append(minIssues);
+        }
+
+        if (maxIssues != null) {
+            if (sb.length() > 0) {
+                sb.append(", ");
+            }
+            sb.append("Min issues ").append(maxIssues);
+        }
+
+        if (minSupport != null) {
+            if (sb.length() > 0) {
+                sb.append(", ");
+            }
+            sb.append("Min support ").append(minSupport);
+        }
+
+        if (maxSupport != null) {
+            if (sb.length() > 0) {
+                sb.append(", ");
+            }
+            sb.append("Max support ").append(maxSupport);
+        }
+
+        if (minConfidence != null) {
+            if (sb.length() > 0) {
+                sb.append(", ");
+            }
+            sb.append("Min confidence ").append(minConfidence);
+        }
+
+        if (maxConfidence != null) {
+            if (sb.length() > 0) {
+                sb.append(", ");
+            }
+            sb.append("Max confidence ").append(maxConfidence);
+        }
+
+        return sb.toString();
+    }
 
 }

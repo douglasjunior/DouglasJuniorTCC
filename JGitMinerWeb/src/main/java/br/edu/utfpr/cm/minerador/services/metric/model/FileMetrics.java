@@ -2,6 +2,8 @@ package br.edu.utfpr.cm.minerador.services.metric.model;
 
 import br.edu.utfpr.cm.JGitMinerWeb.util.Util;
 import br.edu.utfpr.cm.minerador.services.matrix.model.FilePairApriori;
+import br.edu.utfpr.cm.minerador.services.metric.committer.CommitterFileMetrics;
+import br.edu.utfpr.cm.minerador.services.metric.socialnetwork.NetworkMetrics;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -64,6 +66,9 @@ public class FileMetrics {
 
     private final File file;
     private FilePairApriori filePairApriori;
+    private NetworkMetrics networkMetrics;
+    private CommitMetrics commitMetrics;
+    private CommitterFileMetrics committerFileMetrics;
     private final List<Double> metrics;
     private int changed = 0;
 
@@ -84,6 +89,30 @@ public class FileMetrics {
 
     public void setFilePairApriori(FilePairApriori filePairApriori) {
         this.filePairApriori = filePairApriori;
+    }
+
+    public NetworkMetrics getNetworkMetrics() {
+        return networkMetrics;
+    }
+
+    public void setNetworkMetrics(NetworkMetrics networkMetrics) {
+        this.networkMetrics = networkMetrics;
+    }
+
+    public CommitMetrics getCommitMetrics() {
+        return commitMetrics;
+    }
+
+    public void setCommitMetrics(CommitMetrics commitMetrics) {
+        this.commitMetrics = commitMetrics;
+    }
+
+    public CommitterFileMetrics getCommitterFileMetrics() {
+        return committerFileMetrics;
+    }
+
+    public void setCommitterFileMetrics(CommitterFileMetrics committerFileMetrics) {
+        this.committerFileMetrics = committerFileMetrics;
     }
 
     public File getFile() {

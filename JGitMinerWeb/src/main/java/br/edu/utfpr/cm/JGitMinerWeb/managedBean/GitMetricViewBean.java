@@ -158,34 +158,27 @@ public class GitMetricViewBean implements Serializable {
             Set<String> files = new HashSet<>();
             Set<String> downloaded = new HashSet<>();
             for (EntityMetric metric : getMetrics()) {
-                final String metricName = metric.toString();
+//                final String metricName = metric.toString();
                 // download lasts metrics
-                if (downloaded.contains(metricName)) {
-                    continue;
-                } else {
-                    downloaded.add(metricName);
-                }
+//                if (downloaded.contains(metricName)) {
+//                    continue;
+//                } else {
+//                    downloaded.add(metricName);
+//                }
 
-                System.out.println("Metric " + metricName + " tem nodes: " + metric.getNodes().size());
 
                 if (metric.getNodes().size() == 1) {
                     continue;
                 }
-                String fileName = (generateFileName(metric) + ".csv").replace("  ", " ");
-                String[] nameParts = fileName.replace(".csv", "").split(" ");
-
-                project = nameParts[0];
-                String version = nameParts[1].replace(".", "_");
+                project = metric.getParams().get("project").toString();
+                String version = metric.getParams().get("versionInAnalysis").toString();
+                String aprioriFilter = metric.getParams().get("aprioriFilter").toString();
                 String projectVersion = project + " " + version;
-                String path;
-                if (nameParts.length == 5) {
-                    path = projectVersion + "/" + fileName;
-                } else {
-                    String rank = nameParts[3] + " " + nameParts[4].replace("v", "");
-                    path = projectVersion + "/" + rank + "/"
-                            + "train_" + version
-                            + "_test_" + nameParts[5].replace("v", "").replace(".", "_") + ".csv";
-                }
+                String rank = metric.getParams().get("rank").toString();
+                String trainOrTest = metric.getParams().get("additionalFilename").toString();
+                String path = aprioriFilter + "/" + projectVersion + "/" + rank + "/" + trainOrTest + ".csv";
+
+                System.out.println("Metric " + path + " tem nodes: " + metric.getNodes().size());
 
                 if (!files.contains(path)) {
                     StringBuilder csv = new StringBuilder();

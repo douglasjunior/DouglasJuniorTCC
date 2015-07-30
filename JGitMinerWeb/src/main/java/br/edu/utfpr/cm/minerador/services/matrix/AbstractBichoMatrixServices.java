@@ -14,6 +14,8 @@ import br.edu.utfpr.cm.minerador.services.matrix.model.FilePairOutput;
 import br.edu.utfpr.cm.minerador.services.matrix.model.FilePath;
 import br.edu.utfpr.cm.minerador.services.matrix.model.Issue;
 import br.edu.utfpr.cm.minerador.services.metric.model.Commit;
+import br.edu.utfpr.cm.minerador.services.util.OrderFilePairAprioriOutputByConfidence;
+import br.edu.utfpr.cm.minerador.services.util.OrderFilePairAprioriOutputBySupport;
 import java.io.FileWriter;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -326,4 +328,21 @@ public abstract class AbstractBichoMatrixServices extends AbstractBichoServices 
         return commitedFiles;
     }
 
+    protected void orderByFilePairSupportAndConfidence(final List<FilePairAprioriOutput> pairFileList) {
+        orderByFilePairSupport(pairFileList);
+        orderByFilePairConfidence(pairFileList);
+    }
+
+    protected void orderByFilePairConfidenceAndSupport(final List<FilePairAprioriOutput> pairFileList) {
+        orderByFilePairConfidence(pairFileList);
+        orderByFilePairSupport(pairFileList);
+    }
+
+    protected void orderByFilePairSupport(final List<FilePairAprioriOutput> pairFileList) {
+        Collections.sort(pairFileList, new OrderFilePairAprioriOutputBySupport());
+    }
+
+    protected void orderByFilePairConfidence(final List<FilePairAprioriOutput> pairFileList) {
+        Collections.sort(pairFileList, new OrderFilePairAprioriOutputByConfidence());
+    }
 }

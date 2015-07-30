@@ -59,7 +59,7 @@
                     <p:commandButton action="#{gitMetricViewBean.downloadLOG(metric)}" ajax="false" value="Log"/>
                     <p:commandButton action="#{gitMetricViewBean.downloadCSV(metric)}" ajax="false" value="CSV" title="#{metric}"/>
                     <p:commandButton action="#{gitMetricViewBean.downloadAllCSVOfOneVersion(metric.matrix.toString())}" ajax="false" value="All CSV" title="#{metric}"/>
-                    <p:commandButton action="#{gitMetricViewBean.downloadParams(metric)}"  ajax="false" value="Params"/>
+                    <p:commandButton action="#{gitMetricViewBean.downloadParams(metric)}"  ajax="false" value="Params" title="#{metric.params}"/>
                 </p:column>
 
                 <p:column headerText="Options">

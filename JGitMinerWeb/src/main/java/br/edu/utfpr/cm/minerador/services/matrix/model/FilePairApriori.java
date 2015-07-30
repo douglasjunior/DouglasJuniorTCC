@@ -116,7 +116,7 @@ public class FilePairApriori {
     }
 
     public boolean hasMaxSupport(Double maxSupport) {
-        return maxSupport >= supportFilePair;
+        return maxSupport > supportFilePair;
     }
 
     public boolean hasMinConfidence(Double minConfidence) {
@@ -124,7 +124,7 @@ public class FilePairApriori {
     }
 
     public boolean hasMaxConfidence(Double maxConfidence) {
-        return maxConfidence >= highestConfidence;
+        return maxConfidence > highestConfidence;
     }
 
     public boolean fits(FilterByApriori aprioriFilter) {
@@ -134,9 +134,8 @@ public class FilePairApriori {
     }
 
     /**
-     * Returns true if: 1) min <= confidence <= max; or 2) min is null and
-     * issues <= max; or 3) max is null and min <= issues; or 4) min and max are
-     * null.
+     * Returns true if: 1) min <= confidence < max; or 2) min is null and issues
+     * < max; or 3) max is null and min <= issues; or 4) min and max are null.
      *
      * @param minConfidence
      * @param maxConfidence
@@ -154,8 +153,8 @@ public class FilePairApriori {
     }
 
     /**
-     * Returns true if: 1) min <= support <= max; or 2) min is null and issues
-     * <= max; or 3) max is null and min <= issues; or 4) min and max are null.
+     * Returns true if: 1) min <= support < max; or 2) min is null and issues
+     * < max; or 3) max is null and min <= issues; or 4) min and max are null.
      *
      * @param minSupport
      * @param maxSupport
@@ -173,7 +172,7 @@ public class FilePairApriori {
     }
 
     /**
-     * Returns true if: 1) min <= issues <= max; or 2) min is null and issues <=
+     * Returns true if: 1) min <= issues < max; or 2) min is null and issues <
      * max; or 3) max is null and min <= issues; or 4) min and max are null.
      *
      * @param minIssues

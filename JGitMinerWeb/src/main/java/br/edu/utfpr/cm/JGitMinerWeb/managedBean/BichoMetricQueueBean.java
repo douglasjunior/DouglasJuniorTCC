@@ -24,6 +24,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
 import javax.ejb.EJB;
 import javax.enterprise.context.SessionScoped;
 import javax.inject.Named;
@@ -151,6 +152,89 @@ public class BichoMetricQueueBean implements Serializable {
             paramsQueue.add(params);
         }
         params = new LinkedHashMap<>();
+    }
+
+    public void queueAllForCurrentAndFutureVersion() {
+        List<EntityMatrix> matrices = (List<EntityMatrix>) JsfUtil.getObjectFromSession(LIST);
+        Collections.sort(matrices.stream().filter(m -> !m.toString().contains("summary")).collect(Collectors.toList()), new MatrixComparator());
+        final BichoDAO bichoDAO = new BichoDAO(bichoDao, matrix.getRepository(), null);
+        for (EntityMatrix matrix : matrices) {
+            if (matrix.toString().contains("summary")) {
+                continue;
+            }
+            String project = (String) matrix.getParams().get("project");
+
+            String version = (String) matrix.getParams().get("version");
+            String aprioriFilter = (String) matrix.getParams().get("aprioriFilter");
+            String futureVersion = bichoDAO.selectFutureMajorVersion(version);
+
+            Map<Object, Object> trainParams = new LinkedHashMap<>();
+            trainParams.put("matrix", matrix);
+            trainParams.put("versionInAnalysis", version);
+            trainParams.put("version", version);
+            trainParams.put("filename", project + " " + version);
+            trainParams.put("futureVersion", futureVersion);
+            trainParams.put("additionalFilename", "train");
+            trainParams.put("project", project);
+            trainParams.put("aprioriFilter", aprioriFilter);
+
+            out.printLog("Train params: " + trainParams);
+            paramsQueue.add(trainParams);
+
+            String futureFutureVersion = bichoDAO.selectFutureMajorVersion(version);
+
+            Map<Object, Object> testParams = new LinkedHashMap<>();
+            testParams.put("matrix", matrix);
+            testParams.put("versionInAnalysis", version);
+            testParams.put("version", futureVersion);
+            testParams.put("filename", project + " " + futureVersion);
+            testParams.put("futureVersion", futureFutureVersion);
+            testParams.put("additionalFilename", "test");
+            testParams.put("project", project);
+            testParams.put("aprioriFilter", aprioriFilter);
+
+            out.printLog("Test params: " + testParams);
+            paramsQueue.add(testParams);
+        }
+        params = new LinkedHashMap<>();
+    }
+
+    public void queueForCurrentAndFutureVersion() {
+        final BichoDAO bichoDAO = new BichoDAO(bichoDao, matrix.getRepository(), null);
+
+        String project = (String) matrix.getParams().get("project");
+
+        String version = (String) matrix.getParams().get("version");
+        String aprioriFilter = (String) matrix.getParams().get("aprioriFilter");
+        String futureVersion = bichoDAO.selectFutureMajorVersion(version);
+
+        Map<Object, Object> trainParams = new LinkedHashMap<>();
+        trainParams.put("matrix", matrix);
+        trainParams.put("versionInAnalysis", version);
+        trainParams.put("version", version);
+        trainParams.put("filename", project + " " + version);
+        trainParams.put("futureVersion", futureVersion);
+        trainParams.put("additionalFilename", "train");
+        trainParams.put("project", project);
+        trainParams.put("aprioriFilter", aprioriFilter);
+
+        out.printLog("Train params: " + trainParams);
+        paramsQueue.add(trainParams);
+
+        String futureFutureVersion = bichoDAO.selectFutureMajorVersion(version);
+
+        Map<Object, Object> testParams = new LinkedHashMap<>();
+        testParams.put("matrix", matrix);
+        testParams.put("versionInAnalysis", version);
+        testParams.put("version", futureVersion);
+        testParams.put("filename", project + " " + futureVersion);
+        testParams.put("futureVersion", futureFutureVersion);
+        testParams.put("additionalFilename", "test");
+        trainParams.put("project", project);
+        trainParams.put("aprioriFilter", aprioriFilter);
+
+        out.printLog("Test params: " + testParams);
+        paramsQueue.add(testParams);
     }
 
     public void queueAllForAllVersion() {

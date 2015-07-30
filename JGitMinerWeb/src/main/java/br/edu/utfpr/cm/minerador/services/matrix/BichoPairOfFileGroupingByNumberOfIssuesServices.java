@@ -270,23 +270,6 @@ public class BichoPairOfFileGroupingByNumberOfIssuesServices extends AbstractBic
         orderByFilePairSupport(pairFileList);
     }
 
-    private void orderByFilePairSupport(final List<FilePairAprioriOutput> pairFileList) {
-        Collections.sort(pairFileList, new Comparator<FilePairAprioriOutput>() {
-
-            @Override
-            public int compare(FilePairAprioriOutput o1, FilePairAprioriOutput o2) {
-                FilePairApriori apriori1 = o1.getFilePairApriori();
-                FilePairApriori apriori2 = o2.getFilePairApriori();
-                if (apriori1.getSupportFilePair() > apriori2.getSupportFilePair()) {
-                    return -1;
-                } else if (apriori1.getSupportFilePair() < apriori2.getSupportFilePair()) {
-                    return 1;
-                }
-                return 0;
-            }
-        });
-    }
-
     private void orderByNumberOfDefects(final List<FilePairAprioriOutput> pairFileList) {
         Collections.sort(pairFileList, new Comparator<FilePairAprioriOutput>() {
 

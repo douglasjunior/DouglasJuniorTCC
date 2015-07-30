@@ -36,28 +36,54 @@
             <br />
             <br />
 
-            <p:commandButton widgetVar="queueButtonVar" actionListener="#{bichoMetricQueueBean.queue()}" value="Queue"
+            <p:commandButton widgetVar="queueButtonVar" 
+                             actionListener="#{bichoMetricQueueBean.queue()}"
+                             value="Queue"
                              update="logTextArea" />
 
-            <p:commandButton widgetVar="queueAllButtonVar" actionListener="#{bichoMetricQueueBean.queueAll()}" value="Queue All"
+            <p:commandButton widgetVar="queueAllButtonVar" 
+                             actionListener="#{bichoMetricQueueBean.queueAll()}"
+                             value="Queue All"
                              update="logTextArea" />
 
-            <p:commandButton widgetVar="queueAllButtonVar" actionListener="#{bichoMetricQueueBean.queueAllForAllMatrixIndex()}" value="Queue All For All Indexes"
+            <p:commandButton widgetVar="queueAllForAllMatrixButtonVar"
+                             actionListener="#{bichoMetricQueueBean.queueAllForAllMatrixIndex()}"
+                             value="Queue For Future Indexes"
                              update="logTextArea" />
 
-            <p:commandButton widgetVar="queueAllButtonVar" actionListener="#{bichoMetricQueueBean.queueAllForAllVersion()}" value="Queue All For All Version"
+            <p:commandButton widgetVar="queueForCurrentAndFutureButtonVar"
+                             actionListener="#{bichoMetricQueueBean.queueForCurrentAndFutureVersion()}"
+                             value="Queue For Current and Future Version"
                              update="logTextArea" />
 
-            <p:commandButton widgetVar="removeLastFromQueueButtonVar" actionListener="#{bichoMetricQueueBean.removeLastFromQueue()}" value="Remove Last"
+            <p:commandButton widgetVar="queueAllForCurrentAndFutureButtonVar"
+                             actionListener="#{bichoMetricQueueBean.queueAllForCurrentAndFutureVersion()}"
+                             value="Queue All For Current and Future Version"
                              update="logTextArea" />
 
-            <p:commandButton widgetVar="removeLastFromQueueButtonVar" actionListener="#{bichoMetricQueueBean.removeFirstFromQueue()}" value="Remove First"
+            <p:commandButton widgetVar="queueAllButtonVar" 
+                             actionListener="#{bichoMetricQueueBean.queueAllForAllVersion()}"
+                             value="Queue All For All Version"
                              update="logTextArea" />
 
-            <p:commandButton widgetVar="showQueueButtonVar" actionListener="#{bichoMetricQueueBean.showQueue()}" value="Show Queue"
+            <p:commandButton widgetVar="removeLastFromQueueButtonVar" 
+                             actionListener="#{bichoMetricQueueBean.removeLastFromQueue()}"
+                             value="Remove Last"
                              update="logTextArea" />
 
-            <p:commandButton widgetVar="clearQueueButtonVar" actionListener="#{bichoMetricQueueBean.clearQueue()}" value="Clear Queue"
+            <p:commandButton widgetVar="removeFirstFromQueueButtonVar" 
+                             actionListener="#{bichoMetricQueueBean.removeFirstFromQueue()}"
+                             value="Remove First"
+                             update="logTextArea" />
+
+            <p:commandButton widgetVar="showQueueButtonVar" 
+                             actionListener="#{bichoMetricQueueBean.showQueue()}"
+                             value="Show Queue"
+                             update="logTextArea" />
+
+            <p:commandButton widgetVar="clearQueueButtonVar" 
+                             actionListener="#{bichoMetricQueueBean.clearQueue()}"
+                             value="Clear Queue"
                              update="logTextArea" />
 
             <p:commandButton widgetVar="startQueueButtonVar" actionListener="#{bichoMetricQueueBean.startQueue()}" value="Start Queue"

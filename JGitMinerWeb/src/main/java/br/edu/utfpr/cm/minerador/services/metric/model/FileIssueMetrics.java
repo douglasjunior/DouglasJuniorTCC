@@ -53,9 +53,6 @@ public class FileIssueMetrics extends FileMetrics {
     private final FileIssue fileIssue;
     private final String file2;
     private final IssueMetrics issueMetrics;
-    private NetworkMetrics networkMetrics;
-    private CommitMetrics commitMetrics;
-    private CommitterFileMetrics committerFileMetrics;
     private int changedAfterReopened;
 
     public FileIssueMetrics(String file, String file2, IssueMetrics issueMetrics, double... metrics) {
@@ -86,30 +83,6 @@ public class FileIssueMetrics extends FileMetrics {
         this.fileIssue = new FileIssue(getFile(), issue);
     }
 
-    public NetworkMetrics getNetworkMetrics() {
-        return networkMetrics;
-    }
-
-    public void setNetworkMetrics(NetworkMetrics networkMetrics) {
-        this.networkMetrics = networkMetrics;
-    }
-
-    public CommitMetrics getCommitMetrics() {
-        return commitMetrics;
-    }
-
-    public void setCommitMetrics(CommitMetrics commitMetrics) {
-        this.commitMetrics = commitMetrics;
-    }
-
-    public CommitterFileMetrics getCommitterFileMetrics() {
-        return committerFileMetrics;
-    }
-
-    public void setCommitterFileMetrics(CommitterFileMetrics committerFileMetrics) {
-        this.committerFileMetrics = committerFileMetrics;
-    }
-
     public String getHeader() {
         return HEADER;
     }
@@ -136,9 +109,9 @@ public class FileIssueMetrics extends FileMetrics {
         sb.append(fileIssue)
                 .append(file2).append(";")
                 .append(issueMetrics)
-                .append(networkMetrics)
-                .append(commitMetrics)
-                .append(committerFileMetrics);
+                .append(getNetworkMetrics())
+                .append(getCommitMetrics())
+                .append(getCommitterFileMetrics());
 
         for (double m : getMetrics()) {
             sb.append(m).append(";");

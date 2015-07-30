@@ -10,6 +10,7 @@ import br.edu.utfpr.cm.JGitMinerWeb.model.matrix.EntityMatrixNode;
 import br.edu.utfpr.cm.JGitMinerWeb.model.metric.EntityMetric;
 import br.edu.utfpr.cm.JGitMinerWeb.util.OutLog;
 import br.edu.utfpr.cm.minerador.services.matrix.BichoPairOfFileInFixVersionServices;
+import br.edu.utfpr.cm.minerador.services.matrix.BichoProjectsFilePairReleaseOccurenceServices;
 import static br.edu.utfpr.cm.minerador.services.metric.AbstractBichoMetricServices.objectsToNodes;
 import br.edu.utfpr.cm.minerador.services.metric.committer.Committer;
 import br.edu.utfpr.cm.minerador.services.metric.committer.CommitterFileMetrics;
@@ -72,7 +73,7 @@ public class BichoPairFileMostChangedPerIssueMetricsInFixVersionServices extends
     public void run() {
         repository = getRepository();
         final String fixVersion = getVersion();
-        final String futureVersion = getFutureVersion();
+        final String futureVersion;
 
         out.printLog("Iniciado cálculo da métrica de matriz com " + getMatrix().getNodes().size() + " nodes. Parametros: " + params);
 
@@ -84,6 +85,11 @@ public class BichoPairFileMostChangedPerIssueMetricsInFixVersionServices extends
                 .calculeNumberOfIssues(fixVersion, true);
 
         final String pastMajorVersion = bichoDAO.selectPastMajorVersion(fixVersion);
+        if (getFutureVersion() != null) {
+            futureVersion = getFutureVersion();
+        } else {
+            futureVersion = bichoDAO.selectFutureMajorVersion(fixVersion);;
+        }
 
         System.out.println("Number of all pull requests: " + issuesSize);
 
@@ -355,6 +361,25 @@ public class BichoPairFileMostChangedPerIssueMetricsInFixVersionServices extends
         return distinctFileOfFilePairWithHigherConfidence;
     }
 
+    private Set<FilePair> getMatrix(final EntityMatrixNode headerNode, final List<EntityMatrixNode> matrixNodes, final Map<String, Integer> header) {
+        // 25 arquivos distintos com maior confiança entre o par (coluna da esquerda)
+        final int file1Index = header.get("file1");
+        final int file2Index = header.get("file2");
+
+        final Set<FilePair> distinctFileOfFilePairWithHigherConfidence = new LinkedHashSet<>();
+        final List<EntityMatrixNode> nodes = new ArrayList<>();
+        for (EntityMatrixNode node : matrixNodes) {
+            final String[] lineValues = MatrixUtils.separateValues(node);
+
+            FilePair filePair = new FilePair(lineValues[file1Index], lineValues[file2Index]);
+
+            distinctFileOfFilePairWithHigherConfidence.add(filePair);
+            nodes.add(node);
+        }
+
+        return distinctFileOfFilePairWithHigherConfidence;
+    }
+
     public String getHeadCSV() {
         return "file;file2;issue;"
                 + "issueType;issuePriority;issueAssignedTo;issueSubmittedBy;"
@@ -399,7 +424,8 @@ public class BichoPairFileMostChangedPerIssueMetricsInFixVersionServices extends
 
     @Override
     public List<String> getAvailableMatricesPermitted() {
-        return Arrays.asList(BichoPairOfFileInFixVersionServices.class.getName());
+        return Arrays.asList(BichoPairOfFileInFixVersionServices.class.getName(),
+                BichoProjectsFilePairReleaseOccurenceServices.class.getName());
     }
 
     private String getRepository() {
