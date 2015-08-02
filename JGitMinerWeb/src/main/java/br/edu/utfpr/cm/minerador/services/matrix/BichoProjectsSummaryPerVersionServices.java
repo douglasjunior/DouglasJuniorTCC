@@ -118,7 +118,8 @@ public class BichoProjectsSummaryPerVersionServices extends AbstractBichoMatrixS
             final List<Version> allVersions = VersionUtil.listStringToListVersion(fixVersionOrdered);
             final ProjectFilePairReleaseOcurrence projectVersionFilePairReleaseOcurrence
                     = new ProjectFilePairReleaseOcurrence(new Project(project), allVersions,
-                            minFilePairOccurrences, minOccurrencesInVersion, filtersOccurrences);
+                            minFilePairOccurrences, minOccurrencesInVersion, filtersOccurrences,
+                            FilterByApriori.getFiltersForExperiment1());
 
             final Set<ProjectVersionSummary> projectVersionsSummary = new LinkedHashSet<>(); // cummulative versions summary for project
 

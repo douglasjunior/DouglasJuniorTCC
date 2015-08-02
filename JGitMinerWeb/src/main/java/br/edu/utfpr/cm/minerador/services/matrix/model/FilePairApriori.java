@@ -107,6 +107,10 @@ public class FilePairApriori {
         return minIssues <= issues;
     }
 
+    public boolean hasIssues(int issues) {
+        return this.issues == issues;
+    }
+
     public boolean hasMaxIssues(int maxIssues) {
         return maxIssues >= issues;
     }
@@ -181,6 +185,9 @@ public class FilePairApriori {
      */
     public boolean hasMinMaxIssues(Integer minIssues, Integer maxIssues) {
         if (minIssues != null && maxIssues != null) {
+            if (minIssues.equals(maxIssues)) {
+                return hasIssues(minIssues);
+            }
             return hasMinIssues(minIssues) && hasMaxIssues(maxIssues);
         } else if (minIssues != null) {
             return hasMinIssues(minIssues);

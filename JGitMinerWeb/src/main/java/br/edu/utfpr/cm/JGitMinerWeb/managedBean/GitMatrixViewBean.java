@@ -18,6 +18,7 @@ import javax.enterprise.context.RequestScoped;
 import javax.faces.context.ExternalContext;
 import javax.faces.context.FacesContext;
 import javax.inject.Named;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  *
@@ -113,7 +114,7 @@ public class GitMatrixViewBean implements Serializable {
             }
 
             zos.close();
-            download("All.zip", "application/zip", zipBytes.toByteArray());
+            download(StringUtils.capitalize(getMatrices().iterator().next().getRepository()) + " Matrices.zip", "application/zip", zipBytes.toByteArray());
         } catch (Exception ex) {
             ex.printStackTrace();
             JsfUtil.addErrorMessage(ex.toString());

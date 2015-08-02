@@ -454,6 +454,22 @@ public class BichoFileDAO {
         return count != null ? count : 0l;
     }
 
+    public long calculeNumberOfIssues(String filename) {
+        List<Object> selectParams = new ArrayList<>();
+
+        StringBuilder sql = new StringBuilder();
+        sql.append(COUNT_ISSUES_BY_FILENAME);
+        selectParams.add(filename);
+
+        sql.append(FIXED_ISSUES_ONLY);
+
+        Long count = (Long) dao.selectNativeOneWithParams(
+                sql.toString(),
+                selectParams.toArray());
+
+        return count != null ? count : 0l;
+    }
+
     public long calculeNumberOfIssues(
             String filename, String version) {
         List<Object> selectParams = new ArrayList<>();

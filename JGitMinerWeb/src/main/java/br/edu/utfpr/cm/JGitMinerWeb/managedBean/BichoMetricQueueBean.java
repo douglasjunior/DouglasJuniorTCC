@@ -263,6 +263,7 @@ public class BichoMetricQueueBean implements Serializable {
             }
         }
         params = new LinkedHashMap<>();
+        out.printLog("Queue size: " + paramsQueue.size());
     }
 
     public void queueAllForAllMatrixIndex() {

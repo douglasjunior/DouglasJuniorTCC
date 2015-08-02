@@ -43,6 +43,7 @@ public class BichoDAO {
     private final String SELECT_ALL_FIXED_ISSUES;
     private final String SELECT_ALL_FIXED_ISSUES_LIMIT_OFFSET;
     private final String SELECT_ISSUES_BY_FIXED_DATE;
+    private final String SELECT_ISSUES_AND_TYPE;
     private final String SELECT_ISSUES_AND_TYPE_BY_FIXED_MAJOR_VERSION;
     private final String SELECT_ISSUES_AND_TYPE_BY_FIXED_DATE;
     private final String SELECT_COMMENTERS_BY_ISSUE_ORDER_BY_SUBMIT;
@@ -173,6 +174,19 @@ public class BichoDAO {
                         + "  JOIN {0}_vcs.scmlog s ON s.id = i2s.scmlog_id"
                         + " WHERE c.changed_on BETWEEN ? AND ?"
                         + "   AND s.date > i.submitted_on"
+                        + "   AND s.date < i.fixed_on"
+                        + "   AND s.num_files > 0", repository)
+                + FIXED_ISSUES_ONLY
+                + FILTER_BY_MAX_FILES_IN_COMMIT;
+
+        SELECT_ISSUES_AND_TYPE
+                = QueryUtils.getQueryForDatabase("SELECT DISTINCT i.id, i.type, i.fixed_on, s.id, s.date"
+                        + "  FROM {0}_issues.issues_scmlog i2s"
+                        + "  JOIN {0}_issues.issues i ON i.id = i2s.issue_id"
+                        + "  JOIN {0}_issues.issues_fix_version ifv ON ifv.issue_id = i2s.issue_id"
+                        + "  JOIN {0}_issues.changes c ON c.issue_id = i.id"
+                        + "  JOIN {0}_vcs.scmlog s ON s.id = i2s.scmlog_id"
+                        + " WHERE s.date > i.submitted_on"
                         + "   AND s.date < i.fixed_on"
                         + "   AND s.num_files > 0", repository)
                 + FIXED_ISSUES_ONLY
@@ -432,6 +446,17 @@ public class BichoDAO {
         sql.append(SELECT_ISSUES_AND_TYPE_BY_FIXED_MAJOR_VERSION);
 
         selectParams.add(version);
+
+        List<Object[]> rawIssues = dao.selectNativeWithParams(sql.toString(), selectParams.toArray());
+
+        return rawIssuesAndCommitsToMap(rawIssues);
+    }
+
+    public Map<Issue, List<Commit>> selectIssuesAndType() {
+        List<Object> selectParams = new ArrayList<>();
+
+        StringBuilder sql = new StringBuilder();
+        sql.append(SELECT_ISSUES_AND_TYPE_BY_FIXED_MAJOR_VERSION);
 
         List<Object[]> rawIssues = dao.selectNativeWithParams(sql.toString(), selectParams.toArray());
 

@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -29,12 +31,15 @@ public class ProjectFilePairReleaseOcurrence {
     private final Map<FilePair, AtomicInteger> filePairs;
     private final Map<FilePair, AtomicInteger> filePairsWithMinOccurrences;
     private final Map<FilePair, FilePairReleasesOccurenceCounter> filePairReleasesOccurenceCounter;
+    private final Map<FilterByApriori, Set<FilePair>> filePairsPerFilter;
     private final FilePairOcurrencesGroup filePairOcurrencesGroup;
     private final int minOccurrencesInEachVersion;
     private final int minFilePairOccurrences;
     private final List<Version> allVersions;
 
-    public ProjectFilePairReleaseOcurrence(Project project, List<Version> allVersions, Collection<FilterFilePairByReleaseOcurrence> filtersOccurrences) {
+    public ProjectFilePairReleaseOcurrence(Project project, List<Version> allVersions,
+            Collection<FilterFilePairByReleaseOcurrence> filtersOccurrences,
+            Collection<FilterByApriori> filtersByApriori) {
         this.project = project;
         this.versions = new LinkedHashSet<>();
         this.filePairsWithMinOccurrences = new HashMap<>();
@@ -44,10 +49,15 @@ public class ProjectFilePairReleaseOcurrence {
         this.minOccurrencesInEachVersion = 0;
         this.minFilePairOccurrences = 0;
         this.allVersions = allVersions;
+        this.filePairsPerFilter = new LinkedHashMap<>();
+        for (FilterByApriori filtersByApriori1 : filtersByApriori) {
+            filePairsPerFilter.put(filtersByApriori1, new HashSet<>());
+        }
     }
 
     public ProjectFilePairReleaseOcurrence(Project project, List<Version> allVersions, int minFilePairOccurrences, int minOccurrencesInEachVersion,
-            List<FilterFilePairByReleaseOcurrence> filtersOccurrences) {
+            List<FilterFilePairByReleaseOcurrence> filtersOccurrences,
+            Collection<FilterByApriori> filtersByApriori) {
         this.project = project;
         this.allVersions = allVersions;
         this.minOccurrencesInEachVersion = minOccurrencesInEachVersion;
@@ -57,6 +67,20 @@ public class ProjectFilePairReleaseOcurrence {
         this.filePairs = new HashMap<>();
         this.filePairOcurrencesGroup = new FilePairOcurrencesGroup(filtersOccurrences);
         this.filePairReleasesOccurenceCounter = new HashMap<>();
+        this.filePairsPerFilter = new LinkedHashMap<>();
+        for (FilterByApriori filtersByApriori1 : filtersByApriori) {
+            filePairsPerFilter.put(filtersByApriori1, new HashSet<>());
+        }
+    }
+
+    public void add(ProjectFilePairReleaseOcurrence versionSummary) {
+        for (Version version : versionSummary.versions) {
+            for (Map.Entry<FilePair, AtomicInteger> entrySet : versionSummary.filePairs.entrySet()) {
+                FilePair key = entrySet.getKey();
+                AtomicInteger value = entrySet.getValue();
+                addVersionForFilePair(key, version, value.get());
+            }
+        }
     }
 
     private void addVersion(Version version) {
@@ -69,6 +93,10 @@ public class ProjectFilePairReleaseOcurrence {
         } else {
             filePairs.put(filePair, new AtomicInteger(1));
         }
+    }
+
+    public void addPairFileForAprioriFilter(FilePair filePair, FilterByApriori filterByApriori) {
+        filePairsPerFilter.get(filterByApriori).add(filePair);
     }
 
     public void addVersionForFilePair(FilePair filePair, Version version) {
@@ -177,6 +205,18 @@ public class ProjectFilePairReleaseOcurrence {
         sb.append(filePairs.size());
         filePairOcurrencesGroup.groupFilePairs(new ArrayList<>(versions), filePairReleasesOccurenceCounter.values(), minOccurrencesInEachVersion);
         sb.append(";").append(filePairOcurrencesGroup.toString());
+        for (Map.Entry<FilterByApriori, Set<FilePair>> filePairPerFilter : filePairsPerFilter.entrySet()) {
+            sb.append(";").append(filePairPerFilter.getValue().size());
+        }
+        return sb.toString();
+    }
+
+    public String getDynamicHeader() {
+        StringBuilder sb = new StringBuilder();
+        sb.append(getFilePairOcurrencesGroup().getDynamicHeader());
+        for (Map.Entry<FilterByApriori, Set<FilePair>> filePairPerFilter : filePairsPerFilter.entrySet()) {
+            sb.append(";").append(filePairPerFilter.getKey().toString());
+        }
         return sb.toString();
     }
 

@@ -178,11 +178,11 @@ public class EntityMatrix implements InterfaceEntity, Startable {
         if (filename != null) {
             final Object additionalFilename = params.get("additionalFilename");
             if (additionalFilename != null) {
-                return filename + " " + additionalFilename;
+                return repository + " " + filename + " " + additionalFilename;
             }
-            return filename.toString();
+            return repository + " " + filename;
         } else {
-            return "(" + id + ") " + repository + " - " + getClassServicesSingleName();
+            return repository;
         }
     }
 
@@ -193,7 +193,7 @@ public class EntityMatrix implements InterfaceEntity, Startable {
 
             final Object additionalFilename = params.get("additionalFilename");
             if (additionalFilename != null) {
-                return repository + " " + filename + additionalFilename;
+                return repository + " " + filename + " " + additionalFilename;
             }
             return repository + " " + filename;
         } else {

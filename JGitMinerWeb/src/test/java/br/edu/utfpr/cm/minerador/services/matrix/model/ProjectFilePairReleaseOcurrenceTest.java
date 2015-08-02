@@ -17,7 +17,8 @@ public class ProjectFilePairReleaseOcurrenceTest {
         occurrences = new ProjectFilePairReleaseOcurrence(new Project("Test"),
                 VersionTestHelper.getVersionsAsList("1.0", "1.1", "1.2", "1.3"),
                 1, 2,
-                FilterFilePairByReleaseOcurrence.getSuggestedFilters());
+                FilterFilePairByReleaseOcurrence.getSuggestedFilters(),
+                FilterByApriori.getFiltersForExperiment1());
 
         final FilePair filePairAB = new FilePair("A", "B");
         final Version version10 = new Version("1.0");

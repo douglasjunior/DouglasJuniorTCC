@@ -112,17 +112,25 @@ public class FilterByApriori {
     public static Set<FilterByApriori> getFiltersForExperiment1() {
         Set<FilterByApriori> filters = new LinkedHashSet<>();
 
-        filters.add(new FilterByApriori(null, null, 0.5d, 0.7d, null, 3));
-        filters.add(new FilterByApriori(null, null, 0.7d, 0.9d, null, 3));
-        filters.add(new FilterByApriori(null, null, 0.9d, 1.0d, null, 3));
+        filters.add(new FilterByApriori(null, null, 0.5d, 0.7d, 2, 2));
+        filters.add(new FilterByApriori(null, null, 0.7d, 0.9d, 2, 2));
+        filters.add(new FilterByApriori(null, null, 0.9d, null, 2, 2));
 
-        filters.add(new FilterByApriori(null, null, 0.5d, 0.7d, null, 5));
-        filters.add(new FilterByApriori(null, null, 0.7d, 0.9d, null, 5));
-        filters.add(new FilterByApriori(null, null, 0.9d, 1.0d, null, 5));
+        filters.add(new FilterByApriori(null, null, 0.5d, 0.7d, 3, 3));
+        filters.add(new FilterByApriori(null, null, 0.7d, 0.9d, 3, 3));
+        filters.add(new FilterByApriori(null, null, 0.9d, null, 3, 3));
 
-        filters.add(new FilterByApriori(null, null, 0.5d, 0.7d, null, 7));
-        filters.add(new FilterByApriori(null, null, 0.7d, 0.9d, null, 7));
-        filters.add(new FilterByApriori(null, null, 0.9d, 1.0d, null, 7));
+        filters.add(new FilterByApriori(null, null, 0.5d, 0.7d, 4, 5));
+        filters.add(new FilterByApriori(null, null, 0.7d, 0.9d, 4, 5));
+        filters.add(new FilterByApriori(null, null, 0.9d, null, 4, 5));
+
+        filters.add(new FilterByApriori(null, null, 0.5d, 0.7d, 6, 7));
+        filters.add(new FilterByApriori(null, null, 0.7d, 0.9d, 6, 7));
+        filters.add(new FilterByApriori(null, null, 0.9d, null, 6, 7));
+
+        filters.add(new FilterByApriori(null, null, 0.5d, 0.7d, 8, null));
+        filters.add(new FilterByApriori(null, null, 0.7d, 0.9d, 8, null));
+        filters.add(new FilterByApriori(null, null, 0.9d, null, 8, null));
 
         return filters;
     }
@@ -173,15 +181,18 @@ public class FilterByApriori {
     public String toString() {
         StringBuilder sb = new StringBuilder();
 
-        if (minIssues != null) {
-            sb.append("Min issues ").append(minIssues);
-        }
-
-        if (maxIssues != null) {
-            if (sb.length() > 0) {
-                sb.append(", ");
+        if (minIssues != null && maxIssues != null) {
+            if (Objects.equals(minIssues, maxIssues)) {
+                sb.append("Issues = ").append(minIssues);
+            } else {
+                sb.append("Min issues ").append(minIssues)
+                        .append(", Max issues ").append(maxIssues);
             }
-            sb.append("Min issues ").append(maxIssues);
+        } else if (minIssues != null) {
+            sb.append("Min issues ").append(minIssues);
+
+        } else if (maxIssues != null) {
+            sb.append("Max issues ").append(maxIssues);
         }
 
         if (minSupport != null) {

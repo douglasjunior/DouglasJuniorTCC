@@ -19,6 +19,7 @@ import javax.enterprise.context.RequestScoped;
 import javax.faces.context.ExternalContext;
 import javax.faces.context.FacesContext;
 import javax.inject.Named;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  *
@@ -199,10 +200,32 @@ public class GitMetricViewBean implements Serializable {
                 }
             }
             zos.close();
-            download(project + ".zip", "application/zip", zipBytes.toByteArray());
+            download(StringUtils.capitalize(project) + " Metrics.zip", "application/zip", zipBytes.toByteArray());
         } catch (Exception ex) {
             ex.printStackTrace();
             JsfUtil.addErrorMessage(ex.toString());
+        }
+    }
+
+    public void updateParameters() {
+        for (EntityMetric metric : getMetrics()) {
+            if (metric.getParams().containsKey("aprioriFilter")) {
+                if (metric.getParams().get("aprioriFilter").toString().contains("Min issues 5, ")
+                        && !metric.getParams().get("aprioriFilter").toString().contains("Min issues 5, Max issues 6, ")) {
+                    metric.getParams().put("aprioriFilter",
+                            metric.getParams().get("aprioriFilter").toString().replace("Min issues 5, ", "Min issues 5, Max issues 6, "));
+
+                } else if (metric.getParams().get("aprioriFilter").toString().contains("Min issues 7, ")
+                        && !metric.getParams().get("aprioriFilter").toString().contains("Min issues 7, Max issues 8, ")) {
+                    metric.getParams().put("aprioriFilter",
+                            metric.getParams().get("aprioriFilter").toString().replace("Min issues 7, ", "Min issues 7, Max issues 8, "));
+
+                } else if (metric.getParams().get("aprioriFilter").toString().contains("Min issues 5, ")
+                        && !metric.getParams().get("aprioriFilter").toString().contains("Min issues 5, Max issues 6, ")) {
+                    metric.getParams().put("aprioriFilter",
+                            metric.getParams().get("aprioriFilter").toString().replace("Min issues 5, ", "Min issues 5, Max issues 6, "));
+                }
+            }
         }
     }
 

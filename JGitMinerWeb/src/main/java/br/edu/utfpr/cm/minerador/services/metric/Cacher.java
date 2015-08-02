@@ -115,6 +115,17 @@ public class Cacher {
         return fileNumberOfPullrequestOfPairFuture;
     }
 
+    public Long calculeNumberOfIssues(String fileName) {
+        Long fileNumberOfPullrequestOfPairFuture;
+        if (issueFileMap.containsKey(fileName)) {
+            fileNumberOfPullrequestOfPairFuture = issueFileMap.get(fileName);
+        } else {
+            fileNumberOfPullrequestOfPairFuture = fileDAO.calculeNumberOfIssues(fileName);
+            issueFileMap.put(fileName, fileNumberOfPullrequestOfPairFuture);
+        }
+        return fileNumberOfPullrequestOfPairFuture;
+    }
+
     public Long calculeNumberOfIssues(String fileName, Set<Issue> issues) {
         Long fileNumberOfPullrequestOfPairFuture;
         if (issueFileMap.containsKey(fileName)) {

@@ -258,6 +258,12 @@ public abstract class AbstractBichoMatrixServices extends AbstractBichoServices 
         identifyFilePairs(pairFiles, issuesConsideredCommits, bichoFileDAO);
     }
 
+    public void identifyFilePairs(Map<FilePair, FilePairAprioriOutput> pairFiles, BichoDAO bichoDAO, BichoFileDAO bichoFileDAO) {
+        // select a issue/pullrequest commenters
+        Map<Issue, List<Commit>> issuesConsideredCommits = bichoDAO.selectIssuesAndType();
+        identifyFilePairs(pairFiles, issuesConsideredCommits, bichoFileDAO);
+    }
+
     public Map<FilePair, FilePairAprioriOutput> identifyFilePairs(Map<FilePair, FilePairAprioriOutput> pairFiles, Map<Issue, List<Commit>> issuesConsideredCommits, BichoFileDAO bichoFileDAO) {
         Set<FilePath> allFiles = new HashSet<>();
         Set<FilePath> allTestJavaFiles = new HashSet<>();
