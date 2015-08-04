@@ -349,6 +349,20 @@ public class BichoDAO {
         return count != null ? count : 0l;
     }
 
+    public long calculeNumberOfIssues() {
+
+        List<Object> selectParams = new ArrayList<>();
+
+        StringBuilder sql = new StringBuilder();
+        sql.append(COUNT_ISSUES);
+        sql.append(FIXED_ISSUES_ONLY);
+
+        Long count = (Long) dao.selectNativeOneWithParams(sql.toString(),
+                selectParams.toArray());
+
+        return count != null ? count : 0l;
+    }
+
     public Map<Integer, Integer> countFilesPerCommit(Date beginDate, Date endDate) {
         List<Object> selectParams = new ArrayList<>();
 
@@ -396,13 +410,13 @@ public class BichoDAO {
         return issuesCommits;
     }
 
-    public List<Map<Issue, List<Commit>>> selectAllIssuesAndTypeSubdividedBy(Integer size) {
+    public List<Map<Issue, List<Commit>>> selectAllIssuesAndTypeSubdividedBy(long size) {
         List<Object> selectParams = new ArrayList<>();
 
         StringBuilder sql = new StringBuilder();
         sql.append(SELECT_ALL_FIXED_ISSUES);
 
-        Integer offset = 0;
+        long offset = 0;
         selectParams.add(size);
         selectParams.add(offset);
 
@@ -456,7 +470,7 @@ public class BichoDAO {
         List<Object> selectParams = new ArrayList<>();
 
         StringBuilder sql = new StringBuilder();
-        sql.append(SELECT_ISSUES_AND_TYPE_BY_FIXED_MAJOR_VERSION);
+        sql.append(SELECT_ISSUES_AND_TYPE);
 
         List<Object[]> rawIssues = dao.selectNativeWithParams(sql.toString(), selectParams.toArray());
 

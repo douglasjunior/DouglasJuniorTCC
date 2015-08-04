@@ -538,7 +538,7 @@ public class BichoPairFilePerIssueMetricsInFixVersionServices extends AbstractBi
 
         EntityMetric metrics = new EntityMetric();
         metrics.setNodes(objectsToNodes(fileFileMetrics, getHeadCSV()));
-        saveMetrics(metrics);
+        saveMetrics(metrics, getClass());
 
         List<AuxFileFileIssueMetrics> metricsList = new ArrayList<>(fileFileMetrics);
         Set<FilePair> top25 = getTop25(metricsList);
@@ -658,7 +658,7 @@ public class BichoPairFilePerIssueMetricsInFixVersionServices extends AbstractBi
             EntityMetric metrics3 = new EntityMetric();
             metrics3.setNodes(objectsToNodes(allFileChanges, FileIssueMetrics.HEADER));
             metrics3.setAdditionalFilename("rank " + rank++);
-            saveMetrics(metrics3);
+            saveMetrics(metrics3, getClass());
         }
     }
 
@@ -683,7 +683,7 @@ public class BichoPairFilePerIssueMetricsInFixVersionServices extends AbstractBi
         EntityMetric metrics = new EntityMetric();
         metrics.setNodes(objectsToNodes(top25Metrics, getHeadCSV()));
         metrics.setAdditionalFilename("top 25");
-        saveMetrics(metrics);
+        saveMetrics(metrics, getClass());
 
         return distinctFileOfFilePairWithHigherConfidence;
     }

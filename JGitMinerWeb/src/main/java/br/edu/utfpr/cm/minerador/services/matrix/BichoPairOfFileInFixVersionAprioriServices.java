@@ -14,8 +14,6 @@ import br.edu.utfpr.cm.minerador.services.matrix.model.FilePairAprioriOutput;
 import br.edu.utfpr.cm.minerador.services.metric.Cacher;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -238,20 +236,4 @@ public class BichoPairOfFileInFixVersionAprioriServices extends AbstractBichoMat
         matricesToSave.add(top25);
     }
 
-    private void orderByNumberOfDefects(final List<FilePairAprioriOutput> pairFileList) {
-        Collections.sort(pairFileList, new Comparator<FilePairAprioriOutput>() {
-
-            @Override
-            public int compare(FilePairAprioriOutput o1, FilePairAprioriOutput o2) {
-                final int defectIssuesIdWeight1 = o1.getFutureDefectIssuesIdWeight();
-                final int defectIssuesIdWeight2 = o2.getFutureDefectIssuesIdWeight();
-                if (defectIssuesIdWeight1 > defectIssuesIdWeight2) {
-                    return -1;
-                } else if (defectIssuesIdWeight1 < defectIssuesIdWeight2) {
-                    return 1;
-                }
-                return 0;
-            }
-        });
-    }
 }

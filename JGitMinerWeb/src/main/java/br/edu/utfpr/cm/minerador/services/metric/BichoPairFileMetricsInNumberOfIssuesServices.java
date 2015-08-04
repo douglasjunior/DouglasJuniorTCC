@@ -25,7 +25,6 @@ import br.edu.utfpr.cm.minerador.services.metric.model.IssueMetrics;
 import br.edu.utfpr.cm.minerador.services.metric.socialnetwork.NetworkMetrics;
 import br.edu.utfpr.cm.minerador.services.metric.socialnetwork.NetworkMetricsCalculator;
 import br.edu.utfpr.cm.minerador.services.util.MatrixUtils;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -39,15 +38,15 @@ import org.apache.commons.lang3.BooleanUtils;
  *
  * @author Rodrigo T. Kuroda
  */
-public class BichoPairFileMostChangedPerIssueMetricsByNumberOfIssuesServices extends AbstractBichoMetricServices {
+public class BichoPairFileMetricsInNumberOfIssuesServices extends AbstractBichoMetricServices {
 
     private String repository;
 
-    public BichoPairFileMostChangedPerIssueMetricsByNumberOfIssuesServices() {
+    public BichoPairFileMetricsInNumberOfIssuesServices() {
         super();
     }
 
-    public BichoPairFileMostChangedPerIssueMetricsByNumberOfIssuesServices(GenericBichoDAO dao, GenericDao genericDao, EntityMatrix matrix, Map<Object, Object> params, OutLog out) {
+    public BichoPairFileMetricsInNumberOfIssuesServices(GenericBichoDAO dao, GenericDao genericDao, EntityMatrix matrix, Map<Object, Object> params, OutLog out) {
         super(dao, genericDao, matrix, params, out);
     }
 
@@ -85,8 +84,8 @@ public class BichoPairFileMostChangedPerIssueMetricsByNumberOfIssuesServices ext
         // reducing access to database
         Cacher cacher = new Cacher(bichoFileDAO, bichoPairFileDAO);
 
-        // 25 pares I+J que mais foram alterados e que mais tiveram defeitos (bugs)
-        Set<FilePair> top25 = getTop25Matrix(matrix.getNodes().get(0), matrixNodes, headerIndexesMap);
+        // pares I+J em ordem de support e confidence
+        Set<FilePair> issuesGroup = getFilePairsFromMatrix(matrix.getNodes().get(0), matrixNodes, headerIndexesMap);
 
         Set<Integer> issues = bichoDAO.selectIssuesAndType(quantity, analysisIndex);//getIntegerSetFromMatrix(matrixNodes, headerIndexesMap.get("issuesId"));
         Set<Integer> futureIssues = bichoDAO.selectIssuesAndType(quantity, futureIndex);//getIntegerSetFromMatrix(matrixNodes, headerIndexesMap.get("futureIssuesId"));
@@ -98,10 +97,10 @@ public class BichoPairFileMostChangedPerIssueMetricsByNumberOfIssuesServices ext
         CommitterFileMetricsCalculator committerFileMetricsCalculator = new CommitterFileMetricsCalculator(bichoFileDAO);
 
         final Set<Committer> majorContributorsInPreviousVersion = new HashSet<>();
-        final Map<String, Double> ownerExperienceInPreviousVersionMap = new HashMap<>(25);
+        final Map<String, Double> ownerExperienceInPreviousVersionMap = new HashMap<>();
         final Map<CommitterFileMetrics, CommitterFileMetrics> committerFileMetricsList = new HashMap<>();
-        // calcule committer experience for each top 25 files in previous version
-        for (FilePair filePair : top25) {
+        // calcule committer experience for each file pairs in previous version
+        for (FilePair filePair : issuesGroup) {
             final String filename = filePair.getFileName();
 
             // committers do arquivo I
@@ -131,7 +130,7 @@ public class BichoPairFileMostChangedPerIssueMetricsByNumberOfIssuesServices ext
         }
 
         int rank = 1;
-        for (FilePair filePair : top25) {
+        for (FilePair filePair : issuesGroup) {
             final Set<FileIssueMetrics> allFileChanges = new LinkedHashSet<>();
 
             // par analisado
@@ -247,55 +246,6 @@ public class BichoPairFileMostChangedPerIssueMetricsByNumberOfIssuesServices ext
             metrics3.setAdditionalFilename("rank " + rank++ + " " + getAdditionalFilename());
             saveMetrics(metrics3, getClass());
         }
-    }
-
-    private Set<FilePair> getTop25Matrix(final EntityMatrixNode headerNode, final List<EntityMatrixNode> matrixNodes, final Map<String, Integer> header) {
-        // 25 arquivos distintos com maior confiança entre o par (coluna da esquerda)
-        final int file1Index = header.get("file1");
-        final int file2Index = header.get("file2");
-
-        final Set<FilePair> distinctFileOfFilePairWithHigherConfidence = new LinkedHashSet<>(25);
-        final List<EntityMatrixNode> nodesTop25 = new ArrayList<>();
-        for (EntityMatrixNode node : matrixNodes) {
-            final String[] lineValues = MatrixUtils.separateValues(node);
-
-            FilePair filePair = new FilePair(lineValues[file1Index], lineValues[file2Index]);
-
-            distinctFileOfFilePairWithHigherConfidence.add(filePair);
-            nodesTop25.add(node);
-            if (distinctFileOfFilePairWithHigherConfidence.size() >= 25) {
-                break;
-            }
-        }
-
-        EntityMetric top25 = new EntityMetric();
-        top25.setNodes(objectsToNodes(nodesTop25, headerNode.toString()));
-        top25.setAdditionalFilename("top 25");
-        saveMetrics(top25, getClass());
-
-        return distinctFileOfFilePairWithHigherConfidence;
-    }
-
-    private Set<Integer> getIntegerSetFromMatrix(final List<EntityMatrixNode> matrixNodes, final int index) {
-        final Set<Integer> allValues = new LinkedHashSet<>(25);
-        for (EntityMatrixNode node : matrixNodes) {
-            final String[] lineValues = MatrixUtils.separateValues(node);
-            Set<Integer> issues = toIntegerSet(lineValues[index]);
-            allValues.addAll(issues);
-        }
-
-        return allValues;
-    }
-
-    private Set<Integer> toIntegerSet(String value) {
-        final String[] integerValues = value.split(",");
-        final LinkedHashSet<Integer> set = new LinkedHashSet<>(integerValues.length);
-        if (integerValues.length > 0 && !integerValues[0].isEmpty()) {
-            for (String integerValue : integerValues) {
-                set.add(Integer.valueOf(integerValue));
-            }
-        }
-        return set;
     }
 
     public String getHeadCSV() {

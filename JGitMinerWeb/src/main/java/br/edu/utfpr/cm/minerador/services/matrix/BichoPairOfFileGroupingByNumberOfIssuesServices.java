@@ -14,8 +14,6 @@ import br.edu.utfpr.cm.minerador.services.matrix.model.Issue;
 import br.edu.utfpr.cm.minerador.services.metric.Cacher;
 import br.edu.utfpr.cm.minerador.services.metric.model.Commit;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -77,8 +75,6 @@ public class BichoPairOfFileGroupingByNumberOfIssuesServices extends AbstractBic
             throw new IllegalArgumentException("Parameter repository must be informed.");
         }
 
-        Integer quantity = getQuantity();
-
 //        Set<FilePath> allDistinctFiles = new HashSet<>();
 
 //        Pattern fileToConsiders = null;
@@ -92,6 +88,13 @@ public class BichoPairOfFileGroupingByNumberOfIssuesServices extends AbstractBic
 
         out.printLog("Maximum files per commit: " + getMaxFilesPerCommit());
         out.printLog("Minimum files per commit: " + getMinFilesPerCommit());
+
+        Long quantity;
+        if (getQuantity() != null && getQuantity().longValue() > 0) {
+            quantity = getQuantity().longValue();
+        } else {
+            quantity = bichoDAO.calculeNumberOfIssues() / 2;
+        }
 
         // select a issue/pullrequest commenters
         List<Map<Issue, List<Commit>>> subdividedIssuesCommits = bichoDAO.selectAllIssuesAndTypeSubdividedBy(quantity);
@@ -167,7 +170,7 @@ public class BichoPairOfFileGroupingByNumberOfIssuesServices extends AbstractBic
 
                 pairFileList.add(filePairOutput);
             }
-            orderByFilePairSupportAndNumberOfDefects(pairFileList);
+            orderByFilePairConfidenceAndSupport(pairFileList);
 
             EntityMatrix matrix = new EntityMatrix();
             matrix.setNodes(objectsToNodes(pairFileList, FilePairAprioriOutput.getToStringHeader()));
@@ -261,29 +264,5 @@ public class BichoPairOfFileGroupingByNumberOfIssuesServices extends AbstractBic
         top25.setNodes(objectsToNodes(nodesTop25, FilePairAprioriOutput.getToStringHeader()));
         top25.setAdditionalFilename("top 25");
         matricesToSave.add(top25);
-    }
-
-    private void orderByFilePairSupportAndNumberOfDefects(final List<FilePairAprioriOutput> pairFileList) {
-        // order by number of defects (lower priority)
-        orderByNumberOfDefects(pairFileList);
-        // order by support (higher priority)
-        orderByFilePairSupport(pairFileList);
-    }
-
-    private void orderByNumberOfDefects(final List<FilePairAprioriOutput> pairFileList) {
-        Collections.sort(pairFileList, new Comparator<FilePairAprioriOutput>() {
-
-            @Override
-            public int compare(FilePairAprioriOutput o1, FilePairAprioriOutput o2) {
-                final int defectIssuesIdWeight1 = o1.getFutureDefectIssuesIdWeight();
-                final int defectIssuesIdWeight2 = o2.getFutureDefectIssuesIdWeight();
-                if (defectIssuesIdWeight1 > defectIssuesIdWeight2) {
-                    return -1;
-                } else if (defectIssuesIdWeight1 < defectIssuesIdWeight2) {
-                    return 1;
-                }
-                return 0;
-            }
-        });
     }
 }

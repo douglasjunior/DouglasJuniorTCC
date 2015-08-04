@@ -336,21 +336,21 @@ public class BichoPairFilePerReopenedIssueMetricsInFixVersionServices extends Ab
                             EntityMetric train = new EntityMetric();
                             train.setNodes(objectsToNodes(allFileChanges, FileIssueMetrics.HEADER));
                             train.setAdditionalFilename(fixVersion + "_" + issue + "/" + filePair.toStringNameOnly() + "/train.csv");
-                            saveMetrics(train);
+                            saveMetrics(train, getClass());
 
                             fileIssueMetrics.unchanged();
 
                             EntityMetric testFalse = new EntityMetric();
                             testFalse.setNodes(objectsToNodes(fileIssueMetrics, FileIssueMetrics.HEADER));
                             testFalse.setAdditionalFilename(fixVersion + "_" + issue + "/" + filePair.toStringNameOnly() + "/test_false.csv");
-                            saveMetrics(testFalse);
+                            saveMetrics(testFalse, getClass());
 
                             fileIssueMetrics.changed();
 
                             EntityMetric testTrue = new EntityMetric();
                             testTrue.setNodes(objectsToNodes(fileIssueMetrics, FileIssueMetrics.HEADER));
                             testTrue.setAdditionalFilename(fixVersion + "_" + issue + "/" + filePair.toStringNameOnly() + "/test_true.csv");
-                            saveMetrics(testTrue);
+                            saveMetrics(testTrue, getClass());
                         }
 
                         allFileChanges.add(fileIssueMetrics);

@@ -533,7 +533,7 @@ public class BichoPairFileMetricsInDateServices extends AbstractBichoMetricServi
 
         EntityMetric metrics = new EntityMetric();
         metrics.setNodes(objectsToNodes(fileFileMetrics, getHeadCSV()));
-        saveMetrics(metrics);
+        saveMetrics(metrics, getClass());
 
         List<AuxFileFileMetrics> metricsList = new ArrayList<>(fileFileMetrics);
         // salvando a matriz com o top 10 par de arquivos
@@ -541,7 +541,7 @@ public class BichoPairFileMetricsInDateServices extends AbstractBichoMetricServi
         List<AuxFileFileMetrics> top10 = getTop10(metricsList);
         metrics2.setNodes(objectsToNodes(top10, getHeadCSV()));
         metrics2.setAdditionalFilename(" top 10");
-        saveMetrics(metrics2);
+        saveMetrics(metrics2, getClass());
 
         // separa o top 10 em A + qualquerarquivo
         int rank = 0;
@@ -560,7 +560,7 @@ public class BichoPairFileMetricsInDateServices extends AbstractBichoMetricServi
             metrics3.setNodes(objectsToNodes(changedWithA, getHeadCSV()));
             rank++;
             metrics3.setAdditionalFilename(" " + rank + " file changed with " + filePairTop.getFile());
-            saveMetrics(metrics3);
+            saveMetrics(metrics3, getClass());
         }
     }
 

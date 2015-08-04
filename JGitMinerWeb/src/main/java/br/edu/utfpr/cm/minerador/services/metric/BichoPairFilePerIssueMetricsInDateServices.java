@@ -587,11 +587,11 @@ public class BichoPairFilePerIssueMetricsInDateServices extends AbstractBichoMet
 
             EntityMetric metrics = new EntityMetric();
             metrics.setNodes(objectsToNodes(fileFileMetrics, getHeadCSV()));
-            saveMetrics(metrics);
+            saveMetrics(metrics, getClass());
 
             EntityMetric metrics25percentMostUpdated = new EntityMetric();
             metrics25percentMostUpdated.setNodes(objectsToNodes(ListUtils.getFirst25PercentElements(ordered), getHeadCSV()));
-            saveMetrics(metrics25percentMostUpdated);
+            saveMetrics(metrics25percentMostUpdated, getClass());
         } catch (Exception e) {
             e.printStackTrace();
         }

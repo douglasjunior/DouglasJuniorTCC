@@ -1,53 +1,18 @@
 package br.edu.utfpr.cm.minerador.services.metric;
 
-import br.edu.utfpr.cm.JGitMinerWeb.dao.BichoDAO;
-import br.edu.utfpr.cm.JGitMinerWeb.dao.BichoFileDAO;
-import br.edu.utfpr.cm.JGitMinerWeb.dao.BichoPairFileDAO;
-import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericBichoDAO;
-import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericDao;
-import br.edu.utfpr.cm.JGitMinerWeb.model.matrix.EntityMatrix;
-import br.edu.utfpr.cm.JGitMinerWeb.model.matrix.EntityMatrixNode;
-import br.edu.utfpr.cm.JGitMinerWeb.model.metric.EntityMetric;
-import br.edu.utfpr.cm.JGitMinerWeb.util.OutLog;
-import br.edu.utfpr.cm.minerador.services.matrix.BichoPairOfFileInFixVersionServices;
-import br.edu.utfpr.cm.minerador.services.matrix.BichoProjectsFilePairReleaseOccurenceServices;
-import static br.edu.utfpr.cm.minerador.services.metric.AbstractBichoMetricServices.objectsToNodes;
-import br.edu.utfpr.cm.minerador.services.metric.committer.Committer;
-import br.edu.utfpr.cm.minerador.services.metric.committer.CommitterFileMetrics;
-import br.edu.utfpr.cm.minerador.services.metric.committer.CommitterFileMetricsCalculator;
-import br.edu.utfpr.cm.minerador.services.metric.committer.EmptyCommitterFileMetrics;
-import br.edu.utfpr.cm.minerador.services.metric.model.CodeChurn;
-import br.edu.utfpr.cm.minerador.services.metric.model.Commit;
-import br.edu.utfpr.cm.minerador.services.metric.model.CommitMetrics;
-import br.edu.utfpr.cm.minerador.services.metric.model.File;
-import br.edu.utfpr.cm.minerador.services.metric.model.FileIssueMetrics;
-import br.edu.utfpr.cm.minerador.services.metric.model.FilePair;
-import br.edu.utfpr.cm.minerador.services.metric.model.IssueMetrics;
-import br.edu.utfpr.cm.minerador.services.metric.socialnetwork.NetworkMetrics;
-import br.edu.utfpr.cm.minerador.services.metric.socialnetwork.NetworkMetricsCalculator;
-import br.edu.utfpr.cm.minerador.services.util.MatrixUtils;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import org.apache.commons.lang3.BooleanUtils;
-
 /**
  *
  * @author Rodrigo T. Kuroda
  */
-public class BichoPairFileMetricsInFixVersionServices extends AbstractBichoMetricServices {
+public class BichoPairFileMetricsInFixVersionWholeProjectServices { /*extends AbstractBichoMetricServices {
 
     private String repository;
 
-    public BichoPairFileMetricsInFixVersionServices() {
+    public BichoPairFileMetricsInFixVersionWholeProjectServices() {
         super();
     }
 
-    public BichoPairFileMetricsInFixVersionServices(GenericBichoDAO dao, GenericDao genericDao, EntityMatrix matrix, Map<Object, Object> params, OutLog out) {
+    public BichoPairFileMetricsInFixVersionWholeProjectServices(GenericBichoDAO dao, GenericDao genericDao, EntityMatrix matrix, Map<Object, Object> params, OutLog out) {
         super(dao, genericDao, matrix, params, out);
     }
 
@@ -70,8 +35,6 @@ public class BichoPairFileMetricsInFixVersionServices extends AbstractBichoMetri
     @Override
     public void run() {
         repository = getRepository();
-        final String fixVersion = getVersion();
-        final String futureVersion;
 
         out.printLog("Iniciado cálculo da métrica de matriz com " + getMatrix().getNodes().size() + " nodes. Parametros: " + params);
 
@@ -79,13 +42,6 @@ public class BichoPairFileMetricsInFixVersionServices extends AbstractBichoMetri
         final BichoDAO bichoDAO = new BichoDAO(dao, repository, maxFilePerCommit);
         final BichoFileDAO bichoFileDAO = new BichoFileDAO(dao, repository, maxFilePerCommit);
         final BichoPairFileDAO bichoPairFileDAO = new BichoPairFileDAO(dao, repository, maxFilePerCommit);
-
-        final String pastMajorVersion = bichoDAO.selectPastMajorVersion(fixVersion);
-        if (getFutureVersion() != null) {
-            futureVersion = getFutureVersion();
-        } else {
-            futureVersion = bichoDAO.selectFutureMajorVersion(fixVersion);;
-        }
 
         final Map<String, Integer> headerIndexesMap = MatrixUtils.extractHeaderIndexes(matrix);
         final List<EntityMatrixNode> matrixNodes = MatrixUtils.extractValues(matrix);
@@ -194,8 +150,7 @@ public class BichoPairFileMetricsInFixVersionServices extends AbstractBichoMetri
                         final long totalCommits = bichoFileDAO.calculeCummulativeCommits(filename, fixVersion);
 
                         final Map<String, Long> futureIssuesTypes
-                                = bichoFileDAO.calculeNumberOfIssuesGroupedByType(
-                                        filename, futureVersion);
+                                = bichoFileDAO.calculeNumberOfIssuesGroupedByType(filename, futureVersion);
                         final long futureDefects;
                         if (!futureIssuesTypes.containsKey("Bug")) {
                             futureDefects = 0;
@@ -208,16 +163,16 @@ public class BichoPairFileMetricsInFixVersionServices extends AbstractBichoMetri
                             futureIssues += entrySet.getValue();
                         }
 
-                        final Committer lastCommitter = bichoFileDAO.selectLastCommitter(file.getFileName(), commitInIssue, fixVersion);
+                        final Committer lastCommitter = bichoFileDAO.selectLastCommitter(file.getFileName(), commitInIssue);
                         final boolean sameOwnership = commitInIssue.getCommiter().equals(lastCommitter);
 
-                        final CodeChurn fileCodeChurn = bichoFileDAO.calculeAddDelChanges(filename, issue, commitInIssue.getId(), fixVersion);
+                        final CodeChurn fileCodeChurn = bichoFileDAO.calculeAddDelChanges(filename, issue, commitInIssue.getId());
 
                         // pair file age in release interval (days)
-                        final int ageRelease = bichoFileDAO.calculeFileAgeInDays(filename, issue, fixVersion);
+                        final int ageRelease = bichoFileDAO.calculeFileAgeInDays(filename, issue);
 
                         // pair file cummulative age: from first commit until previous (past) release
-                        final int ageTotal = bichoFileDAO.calculeTotalFileAgeInDays(filename, issue, fixVersion);
+                        final int ageTotal = bichoFileDAO.calculeTotalFileAgeInDays(filename, issue);
 
                         fileIssueMetrics.addMetrics(
                                 // majorContributors
@@ -249,7 +204,7 @@ public class BichoPairFileMetricsInFixVersionServices extends AbstractBichoMetri
             metrics.setNodes(objectsToNodes(allFileChanges, FileIssueMetrics.HEADER));
             metrics.getParams().put("rank", rank++);
             metrics.getParams().put("additionalFilename", getAdditionalFilename());
-            saveMetrics(metrics, getClass());
+            saveMetrics(metrics);
         }
     }
 
@@ -303,5 +258,5 @@ public class BichoPairFileMetricsInFixVersionServices extends AbstractBichoMetri
 
     private String getRepository() {
         return getMatrix().getRepository();
-    }
+    }*/
 }

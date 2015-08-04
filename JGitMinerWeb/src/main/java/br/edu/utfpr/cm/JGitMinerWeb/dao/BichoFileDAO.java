@@ -91,7 +91,8 @@ public class BichoFileDAO {
     private final String COUNT_ISSUES_TYPES;
     private final String SELECT_RELEASE_MIN_MAX_COMMIT_DATE;
 
-    private final String SELECT_LAST_COMMITTER_BEFORE_ISSUE;
+    private final String SELECT_LAST_COMMITTER_BEFORE_COMMIT;
+    private final String SELECT_LAST_COMMITTER_BEFORE_COMMIT_AND_BEFORE_INCLUSIVE_VERSION;
     private final String SELECT_LAST_COMMITTER_BEFORE_ISSUE_BY_ISSUES_ID;
 
     private final String SELECT_COMMIT_AND_FILES_BY_FILENAME_AND_ISSUE;
@@ -341,7 +342,20 @@ public class BichoFileDAO {
                 + FILTER_BY_MAX_FILES_IN_COMMIT
                 + FIXED_ISSUES_ONLY;
 
-        SELECT_LAST_COMMITTER_BEFORE_ISSUE
+        SELECT_LAST_COMMITTER_BEFORE_COMMIT_AND_BEFORE_INCLUSIVE_VERSION
+                = QueryUtils.getQueryForDatabase(
+                        "SELECT DISTINCT p.id, p.name, p.email"
+                        + FROM_TABLE
+                        + "  JOIN {0}_vcs.people p ON p.id = s.committer_id"
+                        + WHERE
+                        + FIXED_ISSUES_ONLY
+                        + FILTER_BY_BEFORE_ISSUE_FIX_MAJOR_VERSION_INCLUSIVE
+                        + " AND s.date < "
+                        + "     (SELECT MAX(s2.date) FROM {0}_vcs.scmlog s2"
+                        + "       WHERE s2.id = ?)"
+                        + " ORDER BY s.date DESC LIMIT 1", repository);
+
+        SELECT_LAST_COMMITTER_BEFORE_COMMIT
                 = QueryUtils.getQueryForDatabase(
                         "SELECT DISTINCT p.id, p.name, p.email"
                         + FROM_TABLE
@@ -1019,6 +1033,30 @@ public class BichoFileDAO {
         return calculeAddDelChanges(filename, issue, null, version);
     }
 
+    public CodeChurn calculeAddDelChanges(String filename, Integer issue, Integer commit) {
+        List<Object> selectParams = new ArrayList<>();
+
+        StringBuilder sql = new StringBuilder();
+
+        sql.append(SUM_ADD_AND_DEL_LINES_BY_FILE_NAME);
+        selectParams.add(filename);
+
+        sql.append(FILTER_BY_COMMIT);
+        selectParams.add(commit);
+
+        sql.append(FILTER_BY_ISSUE);
+        selectParams.add(issue);
+
+        sql.append(FIXED_ISSUES_ONLY);
+
+        List<Object[]> sum = dao.selectNativeWithParams(sql.toString(),
+                selectParams.toArray());
+        Long additions = sum.get(0)[0] == null ? 0l : ((BigDecimal) sum.get(0)[0]).longValue();
+        Long deletions = sum.get(0)[1] == null ? 0l : ((BigDecimal) sum.get(0)[1]).longValue();
+
+        return new CodeChurn(filename, additions, deletions);
+    }
+
     public CodeChurn calculeAddDelChanges(String filename, Integer issue, Integer commit, String version) {
         List<Object> selectParams = new ArrayList<>();
 
@@ -1237,6 +1275,35 @@ public class BichoFileDAO {
         return calculeFileAgeInDays(filename, null, fixVersion);
     }
 
+    public int calculeFileAgeInDays(String filename, Integer issue) {
+        List<Object> selectParams = new ArrayList<>();
+
+        StringBuilder sql = new StringBuilder();
+        sql.append(SELECT_RELEASE_MIN_MAX_COMMIT_DATE);
+        sql.append(FIXED_ISSUES_ONLY);
+
+        selectParams.add(filename);
+
+        sql.append(FILTER_BY_BEFORE_ISSUE_FIX_DATE_OF_ISSUE_ID);
+        selectParams.add(issue);
+
+        List<Object[]> minMaxDateList = dao.selectNativeWithParams(sql.toString(), selectParams.toArray());
+        Object[] minMaxDate = minMaxDateList.get(0);
+
+        if (minMaxDate[0] == null || minMaxDate[1] == null) {
+            return 0;
+        }
+
+        java.sql.Timestamp minDate = (java.sql.Timestamp) minMaxDate[0];
+        java.sql.Timestamp maxDate = (java.sql.Timestamp) minMaxDate[1];
+
+        LocalDate createdAt = new LocalDate(minDate.getTime());
+        LocalDate finalDate = new LocalDate(maxDate.getTime());
+        Days age = Days.daysBetween(createdAt, finalDate);
+
+        return age.getDays();
+    }
+
     public int calculeFileAgeInDays(String filename, Integer issue, String fixVersion) {
         List<Object> selectParams = new ArrayList<>();
 
@@ -1374,10 +1441,28 @@ public class BichoFileDAO {
         return age.getDays();
     }
 
+    public Committer selectLastCommitter(String filename, Commit commit) {
+
+        Object[] row
+                = dao.selectNativeOneWithParams(SELECT_LAST_COMMITTER_BEFORE_COMMIT,
+                        new Object[]{filename, commit.getId()});
+
+        Committer committer = null;
+        if (row != null) {
+            Integer committerId = (Integer) row[0];
+            String committerName = (String) row[1];
+            String committerEmail = (String) row[2];
+
+            committer = new Committer(committerId, committerName, committerEmail);
+        }
+
+        return committer;
+    }
+
     public Committer selectLastCommitter(String filename, Commit commit, String fixVersion) {
 
         Object[] row
-                = dao.selectNativeOneWithParams(SELECT_LAST_COMMITTER_BEFORE_ISSUE,
+                = dao.selectNativeOneWithParams(SELECT_LAST_COMMITTER_BEFORE_COMMIT_AND_BEFORE_INCLUSIVE_VERSION,
                         new Object[]{filename, fixVersion, commit.getId()});
 
         Committer committer = null;

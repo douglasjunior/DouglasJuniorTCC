@@ -120,7 +120,7 @@ public class BichoPairFileMatrixTrainTestSummaryServices extends AbstractBichoMe
             metrics.setNodes(objectsToNodes(allFileChanges, FileIssueMetrics.HEADER));
             metrics.getParams().put("rank", rank++);
             metrics.getParams().put("additionalFilename", getAdditionalFilename());
-            saveMetrics(metrics);
+            saveMetrics(metrics, getClass());
         }
     }
 

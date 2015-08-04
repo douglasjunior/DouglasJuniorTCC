@@ -15,6 +15,7 @@ import br.edu.utfpr.cm.minerador.services.matrix.model.FilePath;
 import br.edu.utfpr.cm.minerador.services.matrix.model.Issue;
 import br.edu.utfpr.cm.minerador.services.metric.model.Commit;
 import br.edu.utfpr.cm.minerador.services.util.OrderFilePairAprioriOutputByConfidence;
+import br.edu.utfpr.cm.minerador.services.util.OrderFilePairAprioriOutputByNumberOfDefects;
 import br.edu.utfpr.cm.minerador.services.util.OrderFilePairAprioriOutputBySupport;
 import java.io.FileWriter;
 import java.util.ArrayList;
@@ -335,13 +336,22 @@ public abstract class AbstractBichoMatrixServices extends AbstractBichoServices 
     }
 
     protected void orderByFilePairSupportAndConfidence(final List<FilePairAprioriOutput> pairFileList) {
-        orderByFilePairSupport(pairFileList);
-        orderByFilePairConfidence(pairFileList);
+        orderByFilePairSupport(pairFileList); // lower priority
+        orderByFilePairConfidence(pairFileList); // higher priority
     }
 
     protected void orderByFilePairConfidenceAndSupport(final List<FilePairAprioriOutput> pairFileList) {
-        orderByFilePairConfidence(pairFileList);
-        orderByFilePairSupport(pairFileList);
+        orderByFilePairConfidence(pairFileList); // lower priority
+        orderByFilePairSupport(pairFileList); // higher priority
+    }
+
+    protected void orderByFilePairSupportAndNumberOfDefects(final List<FilePairAprioriOutput> pairFileList) {
+        orderByNumberOfDefects(pairFileList); // lower priority
+        orderByFilePairSupport(pairFileList); // higher priority
+    }
+
+    protected void orderByNumberOfDefects(final List<FilePairAprioriOutput> pairFileList) {
+        Collections.sort(pairFileList, new OrderFilePairAprioriOutputByNumberOfDefects());
     }
 
     protected void orderByFilePairSupport(final List<FilePairAprioriOutput> pairFileList) {

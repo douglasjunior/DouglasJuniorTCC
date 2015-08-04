@@ -243,12 +243,12 @@ public class BichoProjectsFilePairReleaseOccurenceServices extends AbstractBicho
 //            "cassandra"//,
 //            "cloudstack"//,
 //            "cxf"//,
-            "derby"//,
+//            "derby"//,
 //            "hadoop"//,
-//                    "hbase",
-        //            "hive",
-        //            "lucene",
-        //            "solr"
+            //                    "hbase",
+//            "hive"//,
+//            "lucene"//,
+                    "solr"
         });
     }
 }

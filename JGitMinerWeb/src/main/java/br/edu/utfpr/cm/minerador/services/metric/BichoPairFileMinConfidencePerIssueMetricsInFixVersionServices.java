@@ -283,7 +283,7 @@ public class BichoPairFileMinConfidencePerIssueMetricsInFixVersionServices exten
             EntityMetric metrics3 = new EntityMetric();
             metrics3.setNodes(objectsToNodes(allFileChanges, FileIssueMetrics.HEADER));
             metrics3.setAdditionalFilename("rank " + rank++ + " " + getAdditionalFilename());
-            saveMetrics(metrics3);
+            saveMetrics(metrics3, getClass());
         }
     }
 
@@ -317,7 +317,7 @@ public class BichoPairFileMinConfidencePerIssueMetricsInFixVersionServices exten
         EntityMetric top25 = new EntityMetric();
         top25.setNodes(objectsToNodes(nodesTop25, headerNode.toString()));
         top25.setAdditionalFilename("top 25");
-        saveMetrics(top25);
+        saveMetrics(top25, getClass());
 
         return distinctFileOfFilePairWithHigherConfidence;
     }
