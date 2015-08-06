@@ -4,6 +4,7 @@ import br.edu.utfpr.cm.JGitMinerWeb.dao.BichoDAO;
 import br.edu.utfpr.cm.JGitMinerWeb.dao.BichoFileDAO;
 import br.edu.utfpr.cm.JGitMinerWeb.dao.BichoPairFileDAO;
 import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericBichoDAO;
+import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericDao;
 import br.edu.utfpr.cm.JGitMinerWeb.model.matrix.EntityMatrix;
 import br.edu.utfpr.cm.JGitMinerWeb.util.OutLog;
 import br.edu.utfpr.cm.JGitMinerWeb.util.Util;
@@ -44,8 +45,8 @@ public class BichoProjectsFilePairReleaseOccurenceServices extends AbstractBicho
         super(dao, out);
     }
 
-    public BichoProjectsFilePairReleaseOccurenceServices(GenericBichoDAO dao, String repository, List<EntityMatrix> matricesToSave, Map<Object, Object> params, OutLog out) {
-        super(dao, repository, matricesToSave, params, out);
+    public BichoProjectsFilePairReleaseOccurenceServices(GenericBichoDAO dao, GenericDao genericDao, String repository, List<EntityMatrix> matricesToSave, Map<Object, Object> params, OutLog out) {
+        super(dao, genericDao, repository, matricesToSave, params, out);
     }
 
     private Integer getMaxFilesPerCommit() {
@@ -182,12 +183,6 @@ public class BichoProjectsFilePairReleaseOccurenceServices extends AbstractBicho
                             summary.addPairFileForAprioriFilter(filePair, aprioriFilter);
                         }
                     }
-//                    if (apriori.hasMinIssues(3)
-//                            && apriori.hasMinConfidence(0.9)) {
-//                    if (apriori.hasMinSupport(0.02)
-//                            && apriori.hasMinConfidence(0.8)) {
-//                    if (value.getIssues().size() >= 2) {
-//                    }
                 }
 
                 for (FilterByApriori aprioriFilter : filtersForExperiment1) {
@@ -203,7 +198,7 @@ public class BichoProjectsFilePairReleaseOccurenceServices extends AbstractBicho
                     matrix.getParams().put("aprioriFilter", aprioriFilter.toString());
                     matrix.getParams().put("version", version.getVersion());
                     matrix.getParams().put("project", project);
-                    matricesToSave.add(matrix);
+                    saveMatrix(matrix, getClass());
                 }
             }
             if (summaryRepositoryName.length() > 0) {
@@ -224,7 +219,7 @@ public class BichoProjectsFilePairReleaseOccurenceServices extends AbstractBicho
             matrixSummary.getParams().put("aprioriFilter", aprioriFilter.toString());
             return matrixSummary;
         }).forEachOrdered((matrixSummary) -> {
-            matricesToSave.add(matrixSummary);
+            saveMatrix(matrixSummary, getClass());
         });
 
         EntityMatrix matrixSummary = new EntityMatrix();
@@ -233,7 +228,7 @@ public class BichoProjectsFilePairReleaseOccurenceServices extends AbstractBicho
         matrixSummary.getParams().put("filename", "summary");
         matrixSummary.getParams().put("minOccurrencesInVersion", minOccurrencesInVersion);
 
-        matricesToSave.add(matrixSummary);
+        saveMatrix(matrixSummary, getClass());
     }
 
     // TODO parameterize

@@ -35,60 +35,73 @@
             </h:panelGroup>
             <br />
             <br />
+            <h:panelGrid columns="2">
 
-            <p:commandButton widgetVar="queueButtonVar" 
-                             actionListener="#{bichoMetricQueueBean.queue()}"
-                             value="Queue"
-                             update="logTextArea" />
+                <p:commandButton widgetVar="queueButtonVar"
+                                 actionListener="#{bichoMetricQueueBean.queue()}"
+                                 value="Queue"
+                                 update="logTextArea" />
 
-            <p:commandButton widgetVar="queueAllButtonVar" 
-                             actionListener="#{bichoMetricQueueBean.queueAll()}"
-                             value="Queue All"
-                             update="logTextArea" />
+                <p:commandButton widgetVar="queueAllButtonVar"
+                                 actionListener="#{bichoMetricQueueBean.queueAll()}"
+                                 value="Queue All"
+                                 update="logTextArea" />
 
-            <p:commandButton widgetVar="queueAllForAllMatrixButtonVar"
-                             actionListener="#{bichoMetricQueueBean.queueAllForAllMatrixIndex()}"
-                             value="Queue For Future Indexes"
-                             update="logTextArea" />
+                <p:commandButton widgetVar="queueForCurrentAndFutureVersionButtonVar"
+                                 actionListener="#{bichoMetricQueueBean.queueForCurrentAndFutureVersion()}"
+                                 value="Queue For Current and Future Version"
+                                 update="logTextArea" />
 
-            <p:commandButton widgetVar="queueForCurrentAndFutureButtonVar"
-                             actionListener="#{bichoMetricQueueBean.queueForCurrentAndFutureVersion()}"
-                             value="Queue For Current and Future Version"
-                             update="logTextArea" />
+                <p:commandButton widgetVar="queueAllForCurrentAndFutureVersionButtonVar"
+                                 actionListener="#{bichoMetricQueueBean.queueAllForCurrentAndFutureVersion()}"
+                                 value="Queue All For Current and Future Version"
+                                 update="logTextArea" />
 
-            <p:commandButton widgetVar="queueAllForCurrentAndFutureButtonVar"
-                             actionListener="#{bichoMetricQueueBean.queueAllForCurrentAndFutureVersion()}"
-                             value="Queue All For Current and Future Version"
-                             update="logTextArea" />
+                <p:commandButton widgetVar="queueForCurrentAndFutureIndexButtonVar"
+                                 actionListener="#{bichoMetricQueueBean.queueForCurrentAndFutureIndex()}"
+                                 value="Queue For Current and Future Index"
+                                 update="logTextArea" />
 
-            <p:commandButton widgetVar="queueAllButtonVar" 
-                             actionListener="#{bichoMetricQueueBean.queueAllForAllVersion()}"
-                             value="Queue All For All Version"
-                             update="logTextArea" />
+                <p:commandButton widgetVar="queueAllForCurrentAndFutureIndexButtonVar"
+                                 actionListener="#{bichoMetricQueueBean.queueAllForCurrentAndFutureIndex()}"
+                                 value="Queue All For Current and Future Index"
+                                 update="logTextArea" />
 
-            <p:commandButton widgetVar="removeLastFromQueueButtonVar" 
-                             actionListener="#{bichoMetricQueueBean.removeLastFromQueue()}"
-                             value="Remove Last"
-                             update="logTextArea" />
+                <p:commandButton widgetVar="queueAllButtonVar"
+                                 actionListener="#{bichoMetricQueueBean.queueAllForAllVersion()}"
+                                 value="Queue All For All Version"
+                                 update="logTextArea" />
 
-            <p:commandButton widgetVar="removeFirstFromQueueButtonVar" 
-                             actionListener="#{bichoMetricQueueBean.removeFirstFromQueue()}"
-                             value="Remove First"
-                             update="logTextArea" />
+                <p:commandButton widgetVar="queueAllForAllMatrixButtonVar"
+                                 actionListener="#{bichoMetricQueueBean.queueAllForAllMatrixIndex()}"
+                                 value="Queue For Future Indexes"
+                                 update="logTextArea" />
+            </h:panelGrid>
 
-            <p:commandButton widgetVar="showQueueButtonVar" 
-                             actionListener="#{bichoMetricQueueBean.showQueue()}"
-                             value="Show Queue"
-                             update="logTextArea" />
+            <h:panelGrid columns="5">
+                <p:commandButton widgetVar="removeFirstFromQueueButtonVar"
+                                 actionListener="#{bichoMetricQueueBean.removeFirstFromQueue()}"
+                                 value="Remove First"
+                                 update="logTextArea" />
 
-            <p:commandButton widgetVar="clearQueueButtonVar" 
-                             actionListener="#{bichoMetricQueueBean.clearQueue()}"
-                             value="Clear Queue"
-                             update="logTextArea" />
+                <p:commandButton widgetVar="removeLastFromQueueButtonVar"
+                                 actionListener="#{bichoMetricQueueBean.removeLastFromQueue()}"
+                                 value="Remove Last"
+                                 update="logTextArea" />
 
-            <p:commandButton widgetVar="startQueueButtonVar" actionListener="#{bichoMetricQueueBean.startQueue()}" value="Start Queue"
-                             onclick="startButtonVar.disable();progressVar.start();textAreaUpdaterVar.start();" update="loadingImage,logTextArea" />
+                <p:commandButton widgetVar="showQueueButtonVar"
+                                 actionListener="#{bichoMetricQueueBean.showQueue()}"
+                                 value="Show Queue"
+                                 update="logTextArea" />
 
+                <p:commandButton widgetVar="clearQueueButtonVar"
+                                 actionListener="#{bichoMetricQueueBean.clearQueue()}"
+                                 value="Clear Queue"
+                                 update="logTextArea" />
+
+                <p:commandButton widgetVar="startQueueButtonVar" actionListener="#{bichoMetricQueueBean.startQueue()}" value="Start Queue"
+                                 onclick="startButtonVar.disable();progressVar.start();textAreaUpdaterVar.start();" update="loadingImage,logTextArea" />
+            </h:panelGrid>
             <br />
             <br />
 

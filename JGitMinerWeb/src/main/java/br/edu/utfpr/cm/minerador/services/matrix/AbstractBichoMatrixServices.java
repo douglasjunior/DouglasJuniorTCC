@@ -4,6 +4,7 @@ import br.edu.utfpr.cm.JGitMinerWeb.dao.BichoDAO;
 import br.edu.utfpr.cm.JGitMinerWeb.dao.BichoFileDAO;
 import br.edu.utfpr.cm.JGitMinerWeb.dao.BichoPairFileDAO;
 import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericBichoDAO;
+import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericDao;
 import br.edu.utfpr.cm.JGitMinerWeb.model.matrix.EntityMatrix;
 import br.edu.utfpr.cm.JGitMinerWeb.model.matrix.EntityMatrixNode;
 import br.edu.utfpr.cm.JGitMinerWeb.util.OutLog;
@@ -21,6 +22,7 @@ import java.io.FileWriter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -41,14 +43,41 @@ public abstract class AbstractBichoMatrixServices extends AbstractBichoServices 
         this.matricesToSave = null;
     }
 
-    public AbstractBichoMatrixServices(GenericBichoDAO dao, String repository, List<EntityMatrix> matricesToSave, Map<Object, Object> params, OutLog out) {
-        super(dao, params, out);
+    public AbstractBichoMatrixServices(GenericBichoDAO dao, GenericDao genericDao, String repository, List<EntityMatrix> matricesToSave, Map<Object, Object> params, OutLog out) {
+        super(dao, genericDao, params, out);
         this.repository = repository;
         this.matricesToSave = matricesToSave;
     }
 
     public String getRepository() {
         return repository;
+    }
+
+    public void saveMatrix(EntityMatrix entityMatrix, Class<?> serviceClass) {
+        out.printLog("Salvando matriz com " + entityMatrix.getNodes().size() + " registros. Parametros: " + entityMatrix.getParams());
+
+        for (Map.Entry<Object, Object> entrySet : params.entrySet()) {
+            Object key = entrySet.getKey();
+            Object value = entrySet.getValue();
+
+            if (!entityMatrix.getParams().containsKey(key)) {
+                entityMatrix.getParams().put(key, value);
+            }
+        }
+        if (entityMatrix.getRepository() == null) {
+            entityMatrix.setRepository(getRepository());
+        }
+        entityMatrix.setClassServicesName(serviceClass.getName());
+        entityMatrix.setLog(out.getLog().toString());
+        for (EntityMatrixNode node : entityMatrix.getNodes()) {
+            node.setMatrix(entityMatrix);
+        }
+        entityMatrix.setStoped(new Date());
+        entityMatrix.setComplete(true);
+        // saving in jgitminer database
+        genericDao.insert(entityMatrix);
+
+        out.printLog("\nSalvamento dos dados concluído!");
     }
 
     @Override

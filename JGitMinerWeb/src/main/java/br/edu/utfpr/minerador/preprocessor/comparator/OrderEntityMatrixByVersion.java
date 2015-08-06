@@ -7,7 +7,7 @@ import java.util.Comparator;
  *
  * @author Rodrigo T. Kuroda
  */
-public class MatrixComparator implements Comparator<EntityMatrix> {
+public class OrderEntityMatrixByVersion implements Comparator<EntityMatrix> {
 
     @Override
     public int compare(EntityMatrix o1, EntityMatrix o2) {

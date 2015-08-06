@@ -169,15 +169,15 @@ public class GitMetricViewBean implements Serializable {
 
 
                 if (metric.getNodes().size() == 1) {
-                    continue;
+                    continue; // skip empty files (i.e. having only the header)
                 }
                 project = metric.getParams().get("project").toString();
-                String version = metric.getParams().get("versionInAnalysis").toString();
-                String aprioriFilter = metric.getParams().get("aprioriFilter").toString();
-                String projectVersion = project + " " + version;
-                String rank = metric.getParams().get("rank").toString();
-                String trainOrTest = metric.getParams().get("additionalFilename").toString();
-                String path = aprioriFilter + "/" + projectVersion + "/" + rank + "/" + trainOrTest + ".csv";
+                final String version = metric.getParams().get("versionInAnalysis") == null ? metric.getParams().get("indexInAnalysis").toString() : metric.getParams().get("versionInAnalysis").toString();
+                final String projectVersion = project + " " + version;
+                final String aprioriFilter = metric.getParams().get("aprioriFilter").toString();
+                final String rank = metric.getParams().get("rank").toString();
+                final String trainOrTest = metric.getParams().get("additionalFilename").toString();
+                final String path = aprioriFilter + "/" + projectVersion + "/" + rank + "/" + trainOrTest + ".csv";
 
                 System.out.println("Metric " + path + " tem nodes: " + metric.getNodes().size());
 

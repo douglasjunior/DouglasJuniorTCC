@@ -3,6 +3,7 @@ package br.edu.utfpr.cm.minerador.services.matrix;
 import br.edu.utfpr.cm.JGitMinerWeb.dao.BichoDAO;
 import br.edu.utfpr.cm.JGitMinerWeb.dao.BichoFileDAO;
 import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericBichoDAO;
+import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericDao;
 import br.edu.utfpr.cm.JGitMinerWeb.model.matrix.EntityMatrix;
 import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.auxiliary.AuxFileFile;
 import br.edu.utfpr.cm.JGitMinerWeb.services.matrix.auxiliary.AuxUserFileFileUserDirectional;
@@ -35,8 +36,8 @@ public class BichoUserCommentedSamePairOfFileOnIssueInDateServices extends Abstr
         super(dao, out);
     }
 
-    public BichoUserCommentedSamePairOfFileOnIssueInDateServices(GenericBichoDAO dao, String repository, List<EntityMatrix> matricesToSave, Map params, OutLog out) {
-        super(dao, repository, matricesToSave, params, out);
+    public BichoUserCommentedSamePairOfFileOnIssueInDateServices(GenericBichoDAO dao, GenericDao genericDao, String repository, List<EntityMatrix> matricesToSave, Map<Object, Object> params, OutLog out) {
+        super(dao, genericDao, repository, matricesToSave, params, out);
     }
 
     private Integer getMaxFilesPerCommit() {

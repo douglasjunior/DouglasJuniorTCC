@@ -39,7 +39,7 @@ public abstract class AbstractBichoMetricServices extends AbstractBichoServices 
         return matrix;
     }
 
-    protected void saveMetrics(EntityMetric entityMetric, Class serviceClass) {
+    protected void saveMetrics(EntityMetric entityMetric, Class<?> serviceClass) {
         out.printLog("\nSalvando métricas com " + entityMetric.getNodes().size() + " registros. Parametros: " + entityMetric.getParams());
 
         entityMetric.getParams().putAll(params);

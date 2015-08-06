@@ -4,18 +4,25 @@ import br.edu.utfpr.cm.JGitMinerWeb.dao.BichoDAO;
 import br.edu.utfpr.cm.JGitMinerWeb.dao.BichoFileDAO;
 import br.edu.utfpr.cm.JGitMinerWeb.dao.BichoPairFileDAO;
 import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericBichoDAO;
+import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericDao;
 import br.edu.utfpr.cm.JGitMinerWeb.model.matrix.EntityMatrix;
 import br.edu.utfpr.cm.JGitMinerWeb.util.OutLog;
 import br.edu.utfpr.cm.JGitMinerWeb.util.Util;
 import br.edu.utfpr.cm.minerador.services.matrix.model.FilePair;
 import br.edu.utfpr.cm.minerador.services.matrix.model.FilePairApriori;
 import br.edu.utfpr.cm.minerador.services.matrix.model.FilePairAprioriOutput;
+import br.edu.utfpr.cm.minerador.services.matrix.model.FilterByApriori;
+import br.edu.utfpr.cm.minerador.services.matrix.model.FilterFilePairByReleaseOcurrence;
 import br.edu.utfpr.cm.minerador.services.matrix.model.Issue;
+import br.edu.utfpr.cm.minerador.services.matrix.model.Project;
+import br.edu.utfpr.cm.minerador.services.matrix.model.ProjectFilePairReleaseOcurrence;
+import br.edu.utfpr.cm.minerador.services.matrix.model.Version;
 import br.edu.utfpr.cm.minerador.services.metric.Cacher;
 import br.edu.utfpr.cm.minerador.services.metric.model.Commit;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -35,8 +42,8 @@ public class BichoPairOfFileGroupingByNumberOfIssuesServices extends AbstractBic
         super(dao, out);
     }
 
-    public BichoPairOfFileGroupingByNumberOfIssuesServices(GenericBichoDAO dao, String repository, List<EntityMatrix> matricesToSave, Map<Object, Object> params, OutLog out) {
-        super(dao, repository, matricesToSave, params, out);
+    public BichoPairOfFileGroupingByNumberOfIssuesServices(GenericBichoDAO dao, GenericDao genericDao, String repository, List<EntityMatrix> matricesToSave, Map<Object, Object> params, OutLog out) {
+        super(dao, genericDao, repository, matricesToSave, params, out);
     }
 
     private Integer getMaxFilesPerCommit() {
@@ -63,6 +70,10 @@ public class BichoPairOfFileGroupingByNumberOfIssuesServices extends AbstractBic
         return getIntegerParam("quantity");
     }
 
+    public Integer getGroupsQuantity() {
+        return getIntegerParam("groupsQuantity");
+    }
+
     public Integer getFutureQuantity() {
         return getIntegerParam("futureQuantity");
     }
@@ -75,13 +86,6 @@ public class BichoPairOfFileGroupingByNumberOfIssuesServices extends AbstractBic
             throw new IllegalArgumentException("Parameter repository must be informed.");
         }
 
-//        Set<FilePath> allDistinctFiles = new HashSet<>();
-
-//        Pattern fileToConsiders = null;
-//        if (getFilesToConsiders() != null && !getFilesToConsiders().isEmpty()) {
-//            fileToConsiders = MatcherUtils.createExtensionIncludeMatcher(getFilesToConsiders());
-//        }
-
         BichoDAO bichoDAO = new BichoDAO(dao, getRepository(), getMaxFilesPerCommit());
         BichoFileDAO bichoFileDAO = new BichoFileDAO(dao, getRepository(), getMaxFilesPerCommit());
         BichoPairFileDAO bichoPairFileDAO = new BichoPairFileDAO(dao, getRepository(), getMaxFilesPerCommit());
@@ -89,19 +93,64 @@ public class BichoPairOfFileGroupingByNumberOfIssuesServices extends AbstractBic
         out.printLog("Maximum files per commit: " + getMaxFilesPerCommit());
         out.printLog("Minimum files per commit: " + getMinFilesPerCommit());
 
-        Long quantity;
-        if (getQuantity() != null && getQuantity().longValue() > 0) {
+        final long quantity;
+        if (getQuantity() != null && getQuantity() > 0) {
             quantity = getQuantity().longValue();
+
+        } else if (getGroupsQuantity() != null && getGroupsQuantity() > 0) {
+            quantity = Double.valueOf(Math.ceil(bichoDAO.calculeNumberOfIssues() / getGroupsQuantity())).intValue();
+
         } else {
-            quantity = bichoDAO.calculeNumberOfIssues() / 2;
+            throw new IllegalArgumentException("Parameter quantity or group quantity is required.");
         }
 
         // select a issue/pullrequest commenters
-        List<Map<Issue, List<Commit>>> subdividedIssuesCommits = bichoDAO.selectAllIssuesAndTypeSubdividedBy(quantity);
+        final List<Map<Issue, List<Commit>>> subdividedIssuesCommits = bichoDAO.selectAllIssuesAndTypeSubdividedBy(quantity);
 
         out.printLog("Issues (filtered): " + subdividedIssuesCommits.size());
 
-        Cacher cacher = new Cacher(bichoFileDAO);
+        final Cacher cacher = new Cacher(bichoFileDAO);
+
+        // Mapping indexes with encapsulated indexes for perfomance
+        final Map<Integer, Version> indexesMap = new HashMap<>(subdividedIssuesCommits.size());
+        // Using version to encapsulate version and reuse the functionalities provided for version
+        final List<Version> indexes = new ArrayList<>(subdividedIssuesCommits.size());
+        for (int i = 0; i < subdividedIssuesCommits.size() - 1; i++) {
+            final Version version = new Version(String.valueOf(i));
+            indexes.add(version);
+            indexesMap.put(i, version);
+        }
+
+        final Set<FilterByApriori> filtersForExperiment1 = FilterByApriori.getFiltersForExperiment1();
+        final Map<FilterByApriori, Set<ProjectFilePairReleaseOcurrence>> releaseOccurrencesMap = new LinkedHashMap<>();
+        final Set<ProjectFilePairReleaseOcurrence> summaries = new LinkedHashSet<>();
+
+        for (FilterByApriori aprioriFilter : filtersForExperiment1) {
+            releaseOccurrencesMap.put(aprioriFilter, new HashSet<>());
+
+        }
+
+        // TODO parametrizar
+        // TODO confirmar/verificar de acordo com a planilha
+        final List<FilterFilePairByReleaseOcurrence> filters = FilterFilePairByReleaseOcurrence.getSuggestedFilters();
+        final Project project = new Project(getRepository());
+        final int minFilePairOccurrences = 1;
+        final int minOccurrencesInVersion = 1;
+
+        final ProjectFilePairReleaseOcurrence summary = new ProjectFilePairReleaseOcurrence(project,
+                indexes,
+                minFilePairOccurrences, minOccurrencesInVersion, filters, filtersForExperiment1);
+        summaries.add(summary);
+
+        final Map<FilterByApriori, ProjectFilePairReleaseOcurrence> projectVersionFilePairReleaseOcurrence
+                = new LinkedHashMap<>();
+        for (FilterByApriori aprioriFilter : filtersForExperiment1) {
+            final ProjectFilePairReleaseOcurrence projectFilePairReleaseOcurrence = new ProjectFilePairReleaseOcurrence(project,
+                    indexes,
+                    minFilePairOccurrences, minOccurrencesInVersion, filters, filtersForExperiment1);
+            projectVersionFilePairReleaseOcurrence.put(aprioriFilter, projectFilePairReleaseOcurrence);
+            releaseOccurrencesMap.get(aprioriFilter).add(projectFilePairReleaseOcurrence);
+        }
 
         // combina em pares todos os arquivos commitados em uma issue
         for (int index = 0; index < subdividedIssuesCommits.size() - 1; index++) {
@@ -170,99 +219,67 @@ public class BichoPairOfFileGroupingByNumberOfIssuesServices extends AbstractBic
 
                 pairFileList.add(filePairOutput);
             }
-            orderByFilePairConfidenceAndSupport(pairFileList);
 
-            EntityMatrix matrix = new EntityMatrix();
-            matrix.setNodes(objectsToNodes(pairFileList, FilePairAprioriOutput.getToStringHeader()));
-            matrix.setAdditionalFilename(String.valueOf(index + 1));
-            matrix.getParams().put("index", index);
-            matricesToSave.add(matrix);
+            final Map<FilterByApriori, Set<FilePairAprioriOutput>> output = new HashMap<>();
+            for (FilterByApriori aprioriFilter : filtersForExperiment1) {
+                output.put(aprioriFilter, new HashSet<>());
+            }
 
-            saveTop25Matrix(pairFileList, index);
-        }
-    }
+            for (Map.Entry<FilePair, FilePairAprioriOutput> entrySet : pairFiles.entrySet()) {
+                FilePair filePair = entrySet.getKey();
+                FilePairAprioriOutput value = entrySet.getValue();
+                final FilePairApriori apriori = value.getFilePairApriori();
 
-    private void saveTop25Matrix(List<FilePairAprioriOutput> pairFileList, int index) {
-        // 25 arquivos distintos com maior confianÃƒÂ§a entre o par (coluna da esquerda)
-        final Set<FilePairAprioriOutput> distinctFileOfFilePairWithHigherConfidence = new LinkedHashSet<>(25);
-        final List<FilePairAprioriOutput> nodesTop25 = new ArrayList<>();
-        for (FilePairAprioriOutput node : pairFileList) {
-            distinctFileOfFilePairWithHigherConfidence.add(node);
-            nodesTop25.add(node);
-            if (distinctFileOfFilePairWithHigherConfidence.size() >= 25) {
-                break;
+                summary.addVersionForFilePair(filePair, indexesMap.get(index), value.getIssues().size());
+                for (FilterByApriori aprioriFilter : filtersForExperiment1) {
+                    if (apriori.fits(aprioriFilter)) {
+                        output.get(aprioriFilter).add(value);
+                        projectVersionFilePairReleaseOcurrence.get(aprioriFilter).addVersionForFilePair(filePair, indexesMap.get(index), value.getIssues().size());
+                        projectVersionFilePairReleaseOcurrence.get(aprioriFilter).addPairFileForAprioriFilter(filePair, aprioriFilter);
+                        summary.addPairFileForAprioriFilter(filePair, aprioriFilter);
+                    }
+                }
+
+            }
+            for (FilterByApriori aprioriFilter : filtersForExperiment1) {
+                EntityMatrix matrix = new EntityMatrix();
+                final List<FilePairAprioriOutput> matrixNodes = new ArrayList<>(output.get(aprioriFilter));
+                orderByFilePairConfidenceAndSupport(matrixNodes);
+
+                matrix.setNodes(objectsToNodes(matrixNodes, FilePairAprioriOutput.getToStringHeader()));
+                matrix.setRepository(project.getName());
+                matrix.getParams().put("filename", indexesMap.get(index).getVersion());
+                matrix.getParams().put("additionalFilename", aprioriFilter.toString());
+                matrix.getParams().put("minOccurrencesInVersion", minOccurrencesInVersion);
+                matrix.getParams().put("aprioriFilter", aprioriFilter.toString());
+                matrix.getParams().put("index", indexesMap.get(index).getVersion());
+                matrix.getParams().put("project", project.getName());
+                
+                saveMatrix(matrix, getClass());
             }
         }
 
-        Set<Integer> totalIssues = new HashSet<>();
-        Set<Integer> totalCommits = new HashSet<>();
-        Set<Integer> totalCommitsFile1 = new HashSet<>();
-        Set<Integer> totalCommitsFile2 = new HashSet<>();
-        Set<Integer> totalDefects = new HashSet<>();
-        Set<Integer> totalFutureDefects = new HashSet<>();
+        releaseOccurrencesMap.entrySet().stream().map((entrySet) -> {
+            FilterByApriori aprioriFilter = entrySet.getKey();
+            Set<ProjectFilePairReleaseOcurrence> releaseOccurrences = entrySet.getValue();
+            EntityMatrix matrixSummary = new EntityMatrix();
+            matrixSummary.setNodes(objectsToNodes(releaseOccurrences, ProjectFilePairReleaseOcurrence.getHeader() + ";" + releaseOccurrences.iterator().next().getDynamicHeader()));
+            matrixSummary.setRepository(project.getName());
+            matrixSummary.getParams().put("filename", "summary " + aprioriFilter.toString());
+            matrixSummary.getParams().put("minOccurrencesInVersion", minOccurrencesInVersion);
+            matrixSummary.getParams().put("aprioriFilter", aprioriFilter.toString());
+            return matrixSummary;
+        }).forEachOrdered((matrixSummary) -> {
+            
+            saveMatrix(matrixSummary, getClass());
+        });
 
-        Set<String> allFiles = new HashSet<>();
-        Set<String> allJavaFiles = new HashSet<>();
-        Set<String> allXmlFiles = new HashSet<>();
-        Set<String> allOtherFiles = new HashSet<>();
-
-        for (FilePairAprioriOutput node : nodesTop25) {
-            totalIssues.addAll(node.getIssuesId());
-            totalCommits.addAll(node.getCommitsId());
-
-            totalCommitsFile1.addAll(node.getCommitsFile1Id());
-            totalCommitsFile2.addAll(node.getCommitsFile2Id());
-
-            totalFutureDefects.addAll(node.getFutureDefectIssuesId());
-            totalDefects.add(node.getCommitsIdWeight());
-
-            final String file1 = node.getFilePair().getFile1();
-
-            allFiles.add(file1);
-            if (file1.endsWith(".java")) {
-                allJavaFiles.add(file1);
-            } else if (file1.endsWith(".xml")) {
-                allXmlFiles.add(file1);
-            } else {
-                allOtherFiles.add(file1);
-            }
-
-            final String file2 = node.getFilePair().getFile2();
-
-            allFiles.add(file2);
-            if (file2.endsWith(".java")) {
-                allJavaFiles.add(file2);
-            } else if (file2.endsWith(".xml")) {
-                allXmlFiles.add(file2);
-            } else {
-                allOtherFiles.add(file2);
-            }
-        }
-
-        FilePairAprioriOutput summary = new FilePairAprioriOutput(new FilePair("Summary", String.valueOf(allFiles.size())));
-        summary.addIssueId(totalIssues.size());
-        summary.addCommitId(totalCommits.size());
-        summary.addCommitFile1Id(totalCommitsFile1.size());
-        summary.addCommitFile2Id(totalCommitsFile2.size());
-        summary.addDefectIssueId(totalDefects.size());
-        summary.addFutureDefectIssuesId(totalFutureDefects.size());
-
-        log("\n\n" + getRepository() + " " + index + " top 25 \n"
-                + "Number of files: " + allFiles.size() + "\n"
-                + "Number of files (JAVA): " + allJavaFiles.size() + "\n"
-                + "Number of files (XML): " + allXmlFiles.size() + "\n"
-                + "Number of files (Others): " + allOtherFiles.size() + "\n"
-                + "Number of commits file 1: " + totalCommitsFile1.size() + "\n"
-                + "Number of commits file 2: " + totalCommitsFile2.size() + "\n"
-                + "Number of issues: " + totalIssues.size() + "\n"
-                + "Number of commits: " + totalCommits.size() + "\n"
-                + "Number of defect issues: " + totalDefects.size() + "\n"
-                + "Number of future defect issues: " + totalFutureDefects.size() + "\n\n"
-        );
-
-        EntityMatrix top25 = new EntityMatrix();
-        top25.setNodes(objectsToNodes(nodesTop25, FilePairAprioriOutput.getToStringHeader()));
-        top25.setAdditionalFilename("top 25");
-        matricesToSave.add(top25);
+        EntityMatrix matrixSummary = new EntityMatrix();
+        matrixSummary.setNodes(objectsToNodes(summaries, ProjectFilePairReleaseOcurrence.getHeader() + ";" + summaries.iterator().next().getDynamicHeader()));
+        matrixSummary.setRepository(project.getName());
+        matrixSummary.getParams().put("filename", "summary");
+        matrixSummary.getParams().put("minOccurrencesInVersion", minOccurrencesInVersion);
+        
+        saveMatrix(matrixSummary, getClass());
     }
 }

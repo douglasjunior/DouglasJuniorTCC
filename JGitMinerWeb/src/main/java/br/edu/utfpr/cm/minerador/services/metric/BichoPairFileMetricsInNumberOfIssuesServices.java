@@ -241,10 +241,11 @@ public class BichoPairFileMetricsInNumberOfIssuesServices extends AbstractBichoM
                 }
             }
 
-            EntityMetric metrics3 = new EntityMetric();
-            metrics3.setNodes(objectsToNodes(allFileChanges, FileIssueMetrics.HEADER));
-            metrics3.setAdditionalFilename("rank " + rank++ + " " + getAdditionalFilename());
-            saveMetrics(metrics3, getClass());
+            EntityMetric metrics = new EntityMetric();
+            metrics.setNodes(objectsToNodes(allFileChanges, FileIssueMetrics.HEADER));
+            metrics.getParams().put("rank", rank++);
+            metrics.setAdditionalFilename(getAdditionalFilename());
+            saveMetrics(metrics, getClass());
         }
     }
 

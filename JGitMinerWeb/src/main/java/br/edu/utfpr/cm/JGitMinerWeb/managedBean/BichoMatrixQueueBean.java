@@ -348,7 +348,7 @@ public class BichoMatrixQueueBean implements Serializable {
 
     private AbstractBichoMatrixServices createMatrixServiceInstance(List<EntityMatrix> matricesToSave, Map<Object, Object> params, String repository) {
         try {
-            return (AbstractBichoMatrixServices) serviceClass.getConstructor(GenericBichoDAO.class, String.class, List.class, Map.class, OutLog.class).newInstance(dao, repository, matricesToSave, params, out);
+            return (AbstractBichoMatrixServices) serviceClass.getConstructor(GenericBichoDAO.class, GenericDao.class, String.class, List.class, Map.class, OutLog.class).newInstance(dao, genericDao, repository, matricesToSave, params, out);
         } catch (Exception ex) {
             ex.printStackTrace();
         }

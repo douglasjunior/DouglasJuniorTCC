@@ -8,7 +8,8 @@ import br.edu.utfpr.cm.JGitMinerWeb.model.matrix.EntityMatrix;
 import br.edu.utfpr.cm.JGitMinerWeb.util.JsfUtil;
 import br.edu.utfpr.cm.JGitMinerWeb.util.OutLog;
 import br.edu.utfpr.cm.minerador.services.metric.AbstractBichoMetricServices;
-import br.edu.utfpr.minerador.preprocessor.comparator.MatrixComparator;
+import br.edu.utfpr.minerador.preprocessor.comparator.OrderEntityMatrixByIndex;
+import br.edu.utfpr.minerador.preprocessor.comparator.OrderEntityMatrixByVersion;
 import com.google.common.util.concurrent.AtomicDouble;
 import java.io.PrintWriter;
 import java.io.Serializable;
@@ -132,7 +133,7 @@ public class BichoMetricQueueBean implements Serializable {
 
     public void queueAll() {
         List<EntityMatrix> matrices = (List<EntityMatrix>) JsfUtil.getObjectFromSession(LIST);
-        Collections.sort(matrices, new MatrixComparator());
+        Collections.sort(matrices, new OrderEntityMatrixByVersion());
         for (EntityMatrix matrix : matrices) {
             Map<Object, Object> params = new LinkedHashMap<>();
             params.put("matrix", matrix);
@@ -155,13 +156,11 @@ public class BichoMetricQueueBean implements Serializable {
     }
 
     public void queueAllForCurrentAndFutureVersion() {
-        List<EntityMatrix> matrices = (List<EntityMatrix>) JsfUtil.getObjectFromSession(LIST);
-        Collections.sort(matrices.stream().filter(m -> !m.toString().contains("summary")).collect(Collectors.toList()), new MatrixComparator());
+        final List<EntityMatrix> matrices = (List<EntityMatrix>) JsfUtil.getObjectFromSession(LIST);
+        final List<EntityMatrix> filteredMatrices = matrices.stream().filter(m -> !m.toString().contains("summary")).collect(Collectors.toList());
+        Collections.sort(filteredMatrices, new OrderEntityMatrixByVersion());
         final BichoDAO bichoDAO = new BichoDAO(bichoDao, matrix.getRepository(), null);
-        for (EntityMatrix matrix : matrices) {
-            if (matrix.toString().contains("summary")) {
-                continue;
-            }
+        for (EntityMatrix matrix : filteredMatrices) {
             String project = (String) matrix.getParams().get("project");
 
             String version = (String) matrix.getParams().get("version");
@@ -208,6 +207,8 @@ public class BichoMetricQueueBean implements Serializable {
         String aprioriFilter = (String) matrix.getParams().get("aprioriFilter");
         String futureVersion = bichoDAO.selectFutureMajorVersion(version);
 
+        // organization in zip:
+        // [filters]/[project][versionInAnalysis]/[rank]/[additionalFilename: train or test].csv
         Map<Object, Object> trainParams = new LinkedHashMap<>();
         trainParams.put("matrix", matrix);
         trainParams.put("versionInAnalysis", version);
@@ -225,6 +226,7 @@ public class BichoMetricQueueBean implements Serializable {
 
         Map<Object, Object> testParams = new LinkedHashMap<>();
         testParams.put("matrix", matrix);
+        // o arquivo de teste vai ficar junto com o arquivo de treino
         testParams.put("versionInAnalysis", version);
         testParams.put("version", futureVersion);
         testParams.put("filename", project + " " + futureVersion);
@@ -239,7 +241,7 @@ public class BichoMetricQueueBean implements Serializable {
 
     public void queueAllForAllVersion() {
         List<EntityMatrix> matrices = (List<EntityMatrix>) JsfUtil.getObjectFromSession(LIST);
-        Collections.sort(matrices, new MatrixComparator());
+        Collections.sort(matrices, new OrderEntityMatrixByVersion());
         List<String> versions = new BichoDAO(bichoDao, matrix.getRepository(), null).selectFixVersionOrdered();
         List<String> toRemove = new ArrayList<>();
         for (String version : versions) {
@@ -266,18 +268,104 @@ public class BichoMetricQueueBean implements Serializable {
         out.printLog("Queue size: " + paramsQueue.size());
     }
 
+    public void queueForCurrentAndFutureIndex() {
+        String project = (String) matrix.getParams().get("project");
+
+        Integer index = (Integer) matrix.getParams().get("index");
+        String aprioriFilter = (String) matrix.getParams().get("aprioriFilter");
+        Integer futureIndex = index + 1;
+
+        // organization in zip:
+        // [filtros]/[projeto][indexInAnalysis]/[rank]/[train or test].csv
+        Map<Object, Object> trainParams = new LinkedHashMap<>();
+        trainParams.put("matrix", matrix);
+        trainParams.put("indexInAnalysis", index);
+        trainParams.put("index", index);
+        trainParams.put("filename", project + " " + index);
+        trainParams.put("futureIndex", futureIndex);
+        trainParams.put("additionalFilename", "train");
+        trainParams.put("project", project);
+        trainParams.put("aprioriFilter", aprioriFilter);
+
+        out.printLog("Train params: " + trainParams);
+        paramsQueue.add(trainParams);
+
+        Integer futureFutureVersion = futureIndex + 1;
+
+        Map<Object, Object> testParams = new LinkedHashMap<>();
+        testParams.put("matrix", matrix);
+        // o arquivo de teste vai ficar junto com o arquivo de treino
+        testParams.put("versionInAnalysis", index);
+        testParams.put("version", futureIndex);
+        testParams.put("filename", project + " " + futureIndex);
+        testParams.put("futureVersion", futureFutureVersion);
+        testParams.put("additionalFilename", "test");
+        trainParams.put("project", project);
+        trainParams.put("aprioriFilter", aprioriFilter);
+
+        out.printLog("Test params: " + testParams);
+        paramsQueue.add(testParams);
+    }
+
+    public void queueAllForCurrentAndFutureIndex() {
+        List<EntityMatrix> matrices = (List<EntityMatrix>) JsfUtil.getObjectFromSession(LIST);
+        final List<EntityMatrix> filteredMatrices = matrices.stream().filter(m -> !m.toString().contains("summary")).collect(Collectors.toList());
+        Collections.sort(filteredMatrices, new OrderEntityMatrixByIndex());
+
+        final LinkedHashSet<String> allIndexes = new LinkedHashSet<>();
+        for (EntityMatrix filteredMatrix : filteredMatrices) {
+            allIndexes.add(filteredMatrix.getParams().get("index").toString());
+        }
+        final List<String> indexesList = new ArrayList<>(allIndexes);
+        String lastIndex = indexesList.get(indexesList.size() - 1);
+
+        for (EntityMatrix matrix : filteredMatrices.stream().filter(m -> m.getParams().get("index").equals(lastIndex)).collect(Collectors.toList())) {
+            String project = (String) matrix.getParams().get("project");
+
+            Integer index = Integer.valueOf(matrix.getParams().get("index").toString());
+            String aprioriFilter = (String) matrix.getParams().get("aprioriFilter");
+            Integer futureIndex = index + 1;
+
+            Map<Object, Object> trainParams = new LinkedHashMap<>();
+            trainParams.put("matrix", matrix);
+            trainParams.put("indexInAnalysis", index);
+            trainParams.put("index", index);
+            trainParams.put("filename", project + " " + index);
+            trainParams.put("futureIndex", futureIndex);
+            trainParams.put("additionalFilename", "train");
+            trainParams.put("project", project);
+            trainParams.put("aprioriFilter", aprioriFilter);
+
+            out.printLog("Train params: " + trainParams);
+            paramsQueue.add(trainParams);
+
+            Integer futureFutureVersion = futureIndex + 1;
+
+            Map<Object, Object> testParams = new LinkedHashMap<>();
+            testParams.put("matrix", matrix);
+            testParams.put("indexInAnalysis", index);
+            testParams.put("version", futureIndex);
+            testParams.put("filename", project + " " + futureIndex);
+            testParams.put("futureVersion", futureFutureVersion);
+            testParams.put("additionalFilename", "test");
+            trainParams.put("project", project);
+            trainParams.put("aprioriFilter", aprioriFilter);
+
+            out.printLog("Test params: " + testParams);
+            paramsQueue.add(testParams);
+        }
+        params = new LinkedHashMap<>();
+    }
+
     public void queueAllForAllMatrixIndex() {
         List<EntityMatrix> matrices = (List<EntityMatrix>) JsfUtil.getObjectFromSession(LIST);
-        Collections.sort(matrices, new MatrixComparator());
+        Collections.sort(matrices, new OrderEntityMatrixByVersion());
         Set<Integer> indexes = new LinkedHashSet<>(matrices.size());
         for (EntityMatrix matrix : matrices) {
             if (matrix.toString().endsWith("top 25")) {
                 continue;
             }
-//            if (!matrix.toString().endsWith(" 2")
-//                    && !matrix.toString().endsWith(" 1")) {
-//                continue;
-//            }
+
             indexes.add(Integer.valueOf(String.valueOf(matrix.getParams().get("index"))));
         }
 
@@ -285,9 +373,7 @@ public class BichoMetricQueueBean implements Serializable {
             if (matrix.toString().endsWith("top 25")) {
                 continue;
             }
-//            if (!matrix.toString().endsWith(" 2")) {
-//                continue;
-//            }
+
             for (Integer index : indexes) {
                 Map<Object, Object> params = new LinkedHashMap<>();
                 params.put("matrix", matrix);

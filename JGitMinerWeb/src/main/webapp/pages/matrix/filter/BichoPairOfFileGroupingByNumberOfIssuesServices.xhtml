@@ -4,7 +4,10 @@
 
     <h:panelGrid columns="2" cellspacing="10" cellpadding="0">
         <h:outputText value="Quantity: " />
-        <p:inputText value="#{bean.paramValue['quantity']}" id="version" size="20" />
+        <p:inputText value="#{bean.paramValue['quantity']}" id="quantity" size="20" />
+
+        <h:outputText value="Groups Quantity: " />
+        <p:inputText value="#{bean.paramValue['groupsQuantity']}" id="groupsQuantity" size="20" />
 
         <h:outputText value="Minimum files per commit: " />
         <p:inputText value="#{bean.paramValue['minFilesPerCommit']}" id="minFilesPerCommit" type="number" size="20" />

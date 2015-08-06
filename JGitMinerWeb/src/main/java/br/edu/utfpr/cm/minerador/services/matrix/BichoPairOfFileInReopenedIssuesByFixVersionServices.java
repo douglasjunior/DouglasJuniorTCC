@@ -4,6 +4,7 @@ import br.edu.utfpr.cm.JGitMinerWeb.dao.BichoDAO;
 import br.edu.utfpr.cm.JGitMinerWeb.dao.BichoFileDAO;
 import br.edu.utfpr.cm.JGitMinerWeb.dao.BichoPairFileDAO;
 import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericBichoDAO;
+import br.edu.utfpr.cm.JGitMinerWeb.dao.GenericDao;
 import br.edu.utfpr.cm.JGitMinerWeb.model.matrix.EntityMatrix;
 import br.edu.utfpr.cm.JGitMinerWeb.util.OutLog;
 import br.edu.utfpr.cm.JGitMinerWeb.util.Util;
@@ -42,8 +43,8 @@ public class BichoPairOfFileInReopenedIssuesByFixVersionServices extends Abstrac
         super(dao, out);
     }
 
-    public BichoPairOfFileInReopenedIssuesByFixVersionServices(GenericBichoDAO dao, String repository, List<EntityMatrix> matricesToSave, Map<Object, Object> params, OutLog out) {
-        super(dao, repository, matricesToSave, params, out);
+    public BichoPairOfFileInReopenedIssuesByFixVersionServices(GenericBichoDAO dao, GenericDao genericDao, String repository, List<EntityMatrix> matricesToSave, Map<Object, Object> params, OutLog out) {
+        super(dao, genericDao, repository, matricesToSave, params, out);
     }
 
     private Integer getMaxFilesPerCommit() {
