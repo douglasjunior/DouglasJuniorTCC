@@ -94,11 +94,11 @@ public class BichoPairOfFileGroupingByNumberOfIssuesServices extends AbstractBic
         out.printLog("Minimum files per commit: " + getMinFilesPerCommit());
 
         final long quantity;
-        if (getQuantity() != null && getQuantity() > 0) {
-            quantity = getQuantity().longValue();
-
-        } else if (getGroupsQuantity() != null && getGroupsQuantity() > 0) {
+        if (getGroupsQuantity() != null && getGroupsQuantity() > 0) {
             quantity = Double.valueOf(Math.ceil(bichoDAO.calculeNumberOfIssues() / getGroupsQuantity())).intValue();
+
+        } else if (getQuantity() != null && getQuantity() > 0) {
+            quantity = getQuantity().longValue();
 
         } else {
             throw new IllegalArgumentException("Parameter quantity or group quantity is required.");

@@ -269,39 +269,20 @@ public class BichoMetricQueueBean implements Serializable {
     }
 
     public void queueForCurrentAndFutureIndex() {
-        String project = (String) matrix.getParams().get("project");
-
         Integer index = (Integer) matrix.getParams().get("index");
         String aprioriFilter = (String) matrix.getParams().get("aprioriFilter");
         Integer futureIndex = index + 1;
 
         // organization in zip:
         // [filtros]/[projeto][indexInAnalysis]/[rank]/[train or test].csv
-        Map<Object, Object> trainParams = new LinkedHashMap<>();
-        trainParams.put("matrix", matrix);
-        trainParams.put("indexInAnalysis", index);
-        trainParams.put("index", index);
-        trainParams.put("filename", project + " " + index);
-        trainParams.put("futureIndex", futureIndex);
-        trainParams.put("additionalFilename", "train");
-        trainParams.put("project", project);
-        trainParams.put("aprioriFilter", aprioriFilter);
+        Map<Object, Object> trainParams = createParams(matrix, index, index, futureIndex, aprioriFilter);
 
         out.printLog("Train params: " + trainParams);
         paramsQueue.add(trainParams);
 
         Integer futureFutureVersion = futureIndex + 1;
 
-        Map<Object, Object> testParams = new LinkedHashMap<>();
-        testParams.put("matrix", matrix);
-        // o arquivo de teste vai ficar junto com o arquivo de treino
-        testParams.put("versionInAnalysis", index);
-        testParams.put("version", futureIndex);
-        testParams.put("filename", project + " " + futureIndex);
-        testParams.put("futureVersion", futureFutureVersion);
-        testParams.put("additionalFilename", "test");
-        trainParams.put("project", project);
-        trainParams.put("aprioriFilter", aprioriFilter);
+        Map<Object, Object> testParams = createParams(matrix, futureIndex, index, futureFutureVersion, aprioriFilter);
 
         out.printLog("Test params: " + testParams);
         paramsQueue.add(testParams);
@@ -319,42 +300,42 @@ public class BichoMetricQueueBean implements Serializable {
         final List<String> indexesList = new ArrayList<>(allIndexes);
         String lastIndex = indexesList.get(indexesList.size() - 1);
 
-        for (EntityMatrix matrix : filteredMatrices.stream().filter(m -> m.getParams().get("index").equals(lastIndex)).collect(Collectors.toList())) {
-            String project = (String) matrix.getParams().get("project");
-
+        for (EntityMatrix matrix : filteredMatrices.stream().filter(m -> !m.getParams().get("index").equals(lastIndex)).collect(Collectors.toList())) {
             Integer index = Integer.valueOf(matrix.getParams().get("index").toString());
             String aprioriFilter = (String) matrix.getParams().get("aprioriFilter");
             Integer futureIndex = index + 1;
 
-            Map<Object, Object> trainParams = new LinkedHashMap<>();
-            trainParams.put("matrix", matrix);
-            trainParams.put("indexInAnalysis", index);
-            trainParams.put("index", index);
-            trainParams.put("filename", project + " " + index);
-            trainParams.put("futureIndex", futureIndex);
+            Map<Object, Object> trainParams = createParams(matrix, index, index, futureIndex, aprioriFilter);
             trainParams.put("additionalFilename", "train");
-            trainParams.put("project", project);
-            trainParams.put("aprioriFilter", aprioriFilter);
 
             out.printLog("Train params: " + trainParams);
             paramsQueue.add(trainParams);
 
             Integer futureFutureVersion = futureIndex + 1;
 
-            Map<Object, Object> testParams = new LinkedHashMap<>();
-            testParams.put("matrix", matrix);
-            testParams.put("indexInAnalysis", index);
-            testParams.put("version", futureIndex);
-            testParams.put("filename", project + " " + futureIndex);
-            testParams.put("futureVersion", futureFutureVersion);
+            Map<Object, Object> testParams = createParams(matrix, futureIndex, index, futureFutureVersion, aprioriFilter);
             testParams.put("additionalFilename", "test");
-            trainParams.put("project", project);
-            trainParams.put("aprioriFilter", aprioriFilter);
 
             out.printLog("Test params: " + testParams);
             paramsQueue.add(testParams);
         }
         params = new LinkedHashMap<>();
+
+        out.printLog("Jobs: " + paramsQueue.size());
+    }
+
+    private Map<Object, Object> createParams(EntityMatrix matrix1, Integer index, Integer indexInAnalisys, Integer futureIndex, String aprioriFilter) {
+        String project = matrix1.getParams().get("project").toString();
+        Map<Object, Object> params = new LinkedHashMap<>();
+        params.put("matrix", matrix1);
+        params.put("indexInAnalysis", indexInAnalisys);
+        params.put("index", index);
+        params.put("filename", project + " " + index);
+        params.put("futureIndex", futureIndex);
+        params.put("project", project);
+        params.put("aprioriFilter", aprioriFilter);
+        params.put("groupsQuantity", matrix1.getParams().get("groupsQuantity"));
+        return params;
     }
 
     public void queueAllForAllMatrixIndex() {

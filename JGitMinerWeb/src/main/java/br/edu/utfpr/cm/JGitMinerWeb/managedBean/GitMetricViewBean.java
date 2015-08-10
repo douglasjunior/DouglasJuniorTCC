@@ -155,29 +155,32 @@ public class GitMetricViewBean implements Serializable {
             ByteArrayOutputStream zipBytes = new ByteArrayOutputStream();
             ZipOutputStream zos = new ZipOutputStream(zipBytes);
             zos.setLevel(9);
-            String project = "All";
             Set<String> files = new HashSet<>();
-            Set<String> downloaded = new HashSet<>();
+
+            // set of all files in zip
+            Set<String> toDownload = new HashSet<>();
+
             for (EntityMetric metric : getMetrics()) {
-//                final String metricName = metric.toString();
-                // download lasts metrics
-//                if (downloaded.contains(metricName)) {
-//                    continue;
-//                } else {
-//                    downloaded.add(metricName);
-//                }
-
-
                 if (metric.getNodes().size() == 1) {
                     continue; // skip empty files (i.e. having only the header)
                 }
-                project = metric.getParams().get("project").toString();
-                final String version = metric.getParams().get("versionInAnalysis") == null ? metric.getParams().get("indexInAnalysis").toString() : metric.getParams().get("versionInAnalysis").toString();
-                final String projectVersion = project + " " + version;
-                final String aprioriFilter = metric.getParams().get("aprioriFilter").toString();
-                final String rank = metric.getParams().get("rank").toString();
-                final String trainOrTest = metric.getParams().get("additionalFilename").toString();
-                final String path = aprioriFilter + "/" + projectVersion + "/" + rank + "/" + trainOrTest + ".csv";
+                String path = createPath(metric);
+
+                toDownload.add(path);
+            }
+
+            for (EntityMetric metric : getMetrics()) {
+                if (metric.getNodes().size() <= 1) {
+                    // skip empty files (i.e. having only the header)
+                    continue;
+                }
+
+                String path = createPath(metric);
+                if (!hasTrainAndTest(metric, toDownload)) {
+                    System.out.println("No train or test for " + path);
+                    // skip when has no train and test files
+                    continue;
+                }
 
                 System.out.println("Metric " + path + " tem nodes: " + metric.getNodes().size());
 
@@ -200,11 +203,44 @@ public class GitMetricViewBean implements Serializable {
                 }
             }
             zos.close();
+            final String project = getMetrics().get(0).getParams().get("project").toString();
             download(StringUtils.capitalize(project) + " Metrics.zip", "application/zip", zipBytes.toByteArray());
         } catch (Exception ex) {
             ex.printStackTrace();
             JsfUtil.addErrorMessage(ex.toString());
         }
+    }
+
+    private boolean hasTrainAndTest(EntityMetric metric, Set<String> toDownload) {
+        final String trainOrTest = metric.getParams().get("additionalFilename").toString();
+        if ("train".equals(trainOrTest)) {
+            final String testPath = createPath(metric, "test");
+            return toDownload.contains(testPath);
+        } else {
+            final String trainPath = createPath(metric, "train");
+            return toDownload.contains(trainPath);
+        }
+    }
+
+    private String createPath(EntityMetric metric) {
+        final String trainOrTest = metric.getParams().get("additionalFilename").toString();
+        return createPath(metric, trainOrTest);
+    }
+
+    public String createPath(EntityMetric metric, final String trainOrTest) {
+        final String project = metric.getParams().get("project").toString();
+        final String version;
+        if (metric.getParams().get("versionInAnalysis") == null
+                || StringUtils.isEmpty(metric.getParams().get("versionInAnalysis").toString())) {
+            version = metric.getParams().get("indexInAnalysis").toString();
+        } else {
+            version = metric.getParams().get("versionInAnalysis").toString();
+        }
+        final String projectVersion = project + " " + version;
+        final String aprioriFilter = metric.getParams().get("aprioriFilter").toString();
+        final String rank = metric.getParams().get("rank").toString();
+        final String path = aprioriFilter + "/" + projectVersion + "/" + rank + "/" + trainOrTest + ".csv";
+        return path;
     }
 
     public void updateParameters() {
@@ -317,7 +353,7 @@ public class GitMetricViewBean implements Serializable {
             for (Map.Entry<Object, Object> entrySet : metric.getParams().entrySet()) {
                 Object key = entrySet.getKey();
                 Object value = entrySet.getValue();
-                params.append(key).append("=").append(value);
+                params.append(key).append("=").append(value).append("\r\n");
             }
 
             download(fileName, "text/plain", params.toString().getBytes());

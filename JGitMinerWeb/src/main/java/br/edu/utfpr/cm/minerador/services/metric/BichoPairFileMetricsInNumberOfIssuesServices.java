@@ -62,6 +62,10 @@ public class BichoPairFileMetricsInNumberOfIssuesServices extends AbstractBichoM
         return getIntegerParam("quantity");
     }
 
+    public Integer getGroupsQuantity() {
+        return getIntegerParam("groupsQuantity");
+    }
+
     @Override
     public void run() {
         repository = getRepository();
@@ -75,10 +79,19 @@ public class BichoPairFileMetricsInNumberOfIssuesServices extends AbstractBichoM
 
         final Map<String, Integer> headerIndexesMap = MatrixUtils.extractHeaderIndexes(matrix);
         final List<EntityMatrixNode> matrixNodes = MatrixUtils.extractValues(matrix);
-        final Integer quantity = getQuantity(); // index x quantity
-        final Integer analysisIndex = getIndex(); // index x quantity
-        final Integer pastIndex = analysisIndex - 1;
-        final Integer futureIndex = analysisIndex + 1;
+        final int quantity;
+        if (getGroupsQuantity() != null && getGroupsQuantity() > 0) {
+            quantity = Double.valueOf(Math.ceil(bichoDAO.calculeNumberOfIssues() / getGroupsQuantity())).intValue();
+
+        } else if (getQuantity() != null && getQuantity() > 0) {
+            quantity = getQuantity();
+
+        } else {
+            throw new IllegalArgumentException("Parameter quantity or group quantity is required.");
+        }
+        final int analysisIndex = getIndex();
+        final int pastIndex = analysisIndex - 1;
+        final int futureIndex = analysisIndex + 1;
 
         // cache for optimization number of pull requests where file is in,
         // reducing access to database
