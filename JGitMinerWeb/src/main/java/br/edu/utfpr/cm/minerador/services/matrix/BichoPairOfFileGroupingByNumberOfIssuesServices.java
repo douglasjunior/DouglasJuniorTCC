@@ -95,10 +95,10 @@ public class BichoPairOfFileGroupingByNumberOfIssuesServices extends AbstractBic
 
         final long quantity;
         if (getGroupsQuantity() != null && getGroupsQuantity() > 0) {
-            quantity = Double.valueOf(Math.ceil(bichoDAO.calculeNumberOfIssues() / getGroupsQuantity())).intValue();
+            quantity = Double.valueOf(Math.ceil(bichoDAO.calculeNumberOfIssues() / getGroupsQuantity().doubleValue())).intValue();
 
         } else if (getQuantity() != null && getQuantity() > 0) {
-            quantity = getQuantity().longValue();
+            quantity = getQuantity();
 
         } else {
             throw new IllegalArgumentException("Parameter quantity or group quantity is required.");

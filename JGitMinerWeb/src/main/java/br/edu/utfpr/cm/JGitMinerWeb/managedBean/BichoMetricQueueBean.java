@@ -300,7 +300,7 @@ public class BichoMetricQueueBean implements Serializable {
         final List<String> indexesList = new ArrayList<>(allIndexes);
         String lastIndex = indexesList.get(indexesList.size() - 1);
 
-        for (EntityMatrix matrix : filteredMatrices.stream().filter(m -> !m.getParams().get("index").equals(lastIndex)).collect(Collectors.toList())) {
+        for (EntityMatrix matrix : filteredMatrices.stream().filter(m -> !m.getParams().get("index").toString().equals(lastIndex)).collect(Collectors.toList())) {
             Integer index = Integer.valueOf(matrix.getParams().get("index").toString());
             String aprioriFilter = (String) matrix.getParams().get("aprioriFilter");
             Integer futureIndex = index + 1;
