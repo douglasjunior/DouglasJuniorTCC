@@ -93,10 +93,12 @@ public class BichoPairOfFileGroupingByNumberOfIssuesServices extends AbstractBic
         out.printLog("Maximum files per commit: " + getMaxFilesPerCommit());
         out.printLog("Minimum files per commit: " + getMinFilesPerCommit());
 
-        final long quantity;
+        final int quantity;
         if (getGroupsQuantity() != null && getGroupsQuantity() > 0) {
-            quantity = Double.valueOf(Math.ceil(bichoDAO.calculeNumberOfIssues() / getGroupsQuantity().doubleValue())).intValue();
-
+            final long totalIssues = bichoDAO.calculeNumberOfAllFixedIssues();
+            quantity = Double.valueOf(Math.ceil(totalIssues / getGroupsQuantity().doubleValue())).intValue();
+            out.printLog("Total issues: " + totalIssues);
+            out.printLog("Quantity per group (" + getGroupsQuantity() + "): " + quantity);
         } else if (getQuantity() != null && getQuantity() > 0) {
             quantity = getQuantity();
 
@@ -107,6 +109,17 @@ public class BichoPairOfFileGroupingByNumberOfIssuesServices extends AbstractBic
         // select a issue/pullrequest commenters
         final List<Map<Issue, List<Commit>>> subdividedIssuesCommits = bichoDAO.selectAllIssuesAndTypeSubdividedBy(quantity);
 
+        StringBuilder sb = new StringBuilder();
+        for (Map<Issue, List<Commit>> subdividedIssuesCommit : subdividedIssuesCommits) {
+            for (Issue issue : subdividedIssuesCommit.keySet()) {
+                if (sb.length() > 0) {
+                    sb.append(",");
+                }
+                sb.append(issue.getId());
+            }
+            sb.append("\r\n");
+        }
+        System.out.println(sb.toString());
         out.printLog("Issues (filtered): " + subdividedIssuesCommits.size());
 
         final Cacher cacher = new Cacher(bichoFileDAO);
@@ -163,7 +176,7 @@ public class BichoPairOfFileGroupingByNumberOfIssuesServices extends AbstractBic
 
             out.printLog("Result: " + pairFiles.size());
 
-            out.printLog("Index: " + index + "/" + subdividedIssuesCommits.size());
+            out.printLog("Index: " + index + "/" + (subdividedIssuesCommits.size() - 1));
             out.printLog("Counting future defects...");
             final int total = pairFiles.keySet().size();
             int progressCountFutureDefects = 0;

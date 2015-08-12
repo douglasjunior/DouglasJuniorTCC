@@ -41,6 +41,7 @@ public class BichoDAO {
     // queries
     private final String COUNT_FILES_PER_COMMITS;
     private final String SELECT_ALL_FIXED_ISSUES;
+    private final String COUNT_ALL_FIXED_ISSUES;
     private final String SELECT_ALL_FIXED_ISSUES_LIMIT_OFFSET;
     private final String SELECT_ISSUES_BY_FIXED_DATE;
     private final String SELECT_ISSUES_AND_TYPE;
@@ -133,11 +134,28 @@ public class BichoDAO {
                 = QueryUtils.getQueryForDatabase("SELECT DISTINCT i.id, i.type, i.fixed_on, s.id, s.date"
                         + "  FROM {0}_issues.issues_scmlog i2s"
                         + "  JOIN {0}_issues.issues i ON i.id = i2s.issue_id"
+                        + "  JOIN {0}_issues.changes c ON c.issue_id = i.id"
                         + "  JOIN {0}_vcs.scmlog s ON s.id = i2s.scmlog_id"
                         + ISSUE_BY_LIMIT_OFFSET_ORDER_BY_FIX_DATE
                         + " WHERE s.date > i.submitted_on"
                         + "   AND s.date < i.fixed_on"
+                        + FIXED_ISSUES_ONLY
+                        + FILTER_BY_MAX_FILES_IN_COMMIT
                         + "   AND s.num_files > 0", repository);
+
+        COUNT_ALL_FIXED_ISSUES
+                = QueryUtils.getQueryForDatabase("SELECT COUNT(DISTINCT(i.id))"
+                        + "  FROM {0}_issues.issues_scmlog i2s"
+                        + "  JOIN {0}_issues.issues i ON i.id = i2s.issue_id"
+                        + "  JOIN {0}_issues.changes c ON c.issue_id = i.id"
+                        + "  JOIN {0}_vcs.scmlog s ON s.id = i2s.scmlog_id"
+                        + " WHERE s.date > i.submitted_on"
+                        + "   AND s.date < i.fixed_on"
+                        + "   AND s.num_files > 0"
+                        + "   AND i.fixed_on IS NOT NULL"
+                        + FIXED_ISSUES_ONLY
+                        + FILTER_BY_MAX_FILES_IN_COMMIT
+                        + "     AND s.num_files > 0 ", repository);
 
         SELECT_ALL_FIXED_ISSUES_LIMIT_OFFSET
                 = QueryUtils.getQueryForDatabase("SELECT DISTINCT(i.id) "
@@ -249,7 +267,8 @@ public class BichoDAO {
                         + "  JOIN {0}_vcs.scmlog s2 ON s2.id = i2s2.scmlog_id"
                         + "  JOIN {0}.commits com ON com.commit_id = i2s.scmlog_id"
                         + "  JOIN {0}.commits com2 ON com2.commit_id = i2s2.scmlog_id AND com.file_id <> com2.file_id"
-                        + " WHERE com.date > i.submitted_on"
+                        + " WHERE i.fixed_on IS NOT NULL"
+                        + "   AND com.date > i.submitted_on"
                         + "   AND com2.date > i.submitted_on"
                         + "   AND com.date < i.fixed_on"
                         + "   AND com2.date < i.fixed_on"
@@ -351,14 +370,23 @@ public class BichoDAO {
 
     public long calculeNumberOfIssues() {
 
-        List<Object> selectParams = new ArrayList<>();
-
         StringBuilder sql = new StringBuilder();
         sql.append(COUNT_ISSUES);
         sql.append(FIXED_ISSUES_ONLY);
 
         Long count = (Long) dao.selectNativeOneWithParams(sql.toString(),
-                selectParams.toArray());
+                new Object[0]);
+
+        return count != null ? count : 0l;
+    }
+
+    public long calculeNumberOfAllFixedIssues() {
+
+        StringBuilder sql = new StringBuilder();
+        sql.append(COUNT_ALL_FIXED_ISSUES);
+
+        Long count = (Long) dao.selectNativeOneWithParams(sql.toString(),
+                new Object[0]);
 
         return count != null ? count : 0l;
     }

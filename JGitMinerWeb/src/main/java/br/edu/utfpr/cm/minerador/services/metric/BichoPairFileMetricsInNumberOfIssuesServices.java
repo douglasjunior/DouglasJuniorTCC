@@ -81,8 +81,10 @@ public class BichoPairFileMetricsInNumberOfIssuesServices extends AbstractBichoM
         final List<EntityMatrixNode> matrixNodes = MatrixUtils.extractValues(matrix);
         final int quantity;
         if (getGroupsQuantity() != null && getGroupsQuantity() > 0) {
-            quantity = Double.valueOf(Math.ceil(bichoDAO.calculeNumberOfIssues() / getGroupsQuantity().doubleValue())).intValue();
-
+            final long totalIssues = bichoDAO.calculeNumberOfAllFixedIssues();
+            quantity = Double.valueOf(Math.ceil(totalIssues / getGroupsQuantity().doubleValue())).intValue();
+            out.printLog("Total issues: " + totalIssues);
+            out.printLog("Quantity per group (" + getGroupsQuantity() + "): " + quantity);
         } else if (getQuantity() != null && getQuantity() > 0) {
             quantity = getQuantity();
 

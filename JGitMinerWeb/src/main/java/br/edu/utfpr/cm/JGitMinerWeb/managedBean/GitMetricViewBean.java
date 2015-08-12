@@ -243,28 +243,6 @@ public class GitMetricViewBean implements Serializable {
         return path;
     }
 
-    public void updateParameters() {
-        for (EntityMetric metric : getMetrics()) {
-            if (metric.getParams().containsKey("aprioriFilter")) {
-                if (metric.getParams().get("aprioriFilter").toString().contains("Min issues 5, ")
-                        && !metric.getParams().get("aprioriFilter").toString().contains("Min issues 5, Max issues 6, ")) {
-                    metric.getParams().put("aprioriFilter",
-                            metric.getParams().get("aprioriFilter").toString().replace("Min issues 5, ", "Min issues 5, Max issues 6, "));
-
-                } else if (metric.getParams().get("aprioriFilter").toString().contains("Min issues 7, ")
-                        && !metric.getParams().get("aprioriFilter").toString().contains("Min issues 7, Max issues 8, ")) {
-                    metric.getParams().put("aprioriFilter",
-                            metric.getParams().get("aprioriFilter").toString().replace("Min issues 7, ", "Min issues 7, Max issues 8, "));
-
-                } else if (metric.getParams().get("aprioriFilter").toString().contains("Min issues 5, ")
-                        && !metric.getParams().get("aprioriFilter").toString().contains("Min issues 5, Max issues 6, ")) {
-                    metric.getParams().put("aprioriFilter",
-                            metric.getParams().get("aprioriFilter").toString().replace("Min issues 5, ", "Min issues 5, Max issues 6, "));
-                }
-            }
-        }
-    }
-
     public void downloadAllCSVNotEmptyInFolder() {
         try {
             ByteArrayOutputStream zipBytes = new ByteArrayOutputStream();
